@@ -1,0 +1,55 @@
+<!-- Main -->
+<div class="flex-auto">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row md:flex-col flex-auto justify-between py-8"></div>
+
+    <!-- Contacts list -->
+    <div class="relative">
+        <table class="default-item-table">
+            <thead>
+                <tr>
+                    <th class="w-20">NO</th>
+                    <th>Object Key</th>
+                    <th class="w-36">Status</th>
+                    <th class="w-36">Progress</th>
+                    <th class="w-36">Action</th>
+                </tr>
+            </thead>
+
+            <tbody *ngIf="objects">
+                @for (object of objects; track trackByFn;let no=$index) {
+                <tr>
+                    <td class="text-center">{{no+1}}</td>
+                    <td class="px-3">{{object.objectKey}}</td>
+                    <td class="text-center text-green-700">
+                        <span [ngClass]="{'text-warn': object.status === 'failed','text-accent':object.status==='success'}">{{ object.status }}</span>
+                    </td>
+                    <td class="text-center text-green-700">
+                        <span [ngClass]="{'text-warn': object.status === 'failed','text-accent':object.status==='success'}">{{ object.progress }}</span>
+                    </td>
+                    <td class="text-center ">
+                        @if(object.refresh){
+                        <button mat-icon-button class="underline" color="primary" (click)="onRefreshObject(object)">
+                            <mat-icon [svgIcon]="'mat_solid:refresh'"></mat-icon>
+                        </button>
+                        }
+                        @else if(object.status==='success'){
+                        <!-- <button mat-button class="text-primary-600" disabled>
+                            <mat-icon color="primary" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
+                        </button> -->
+                        <div class="flex items-center justify-center h-10">
+                            <mat-icon color="accent" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
+                        </div>
+                        }
+                        @else{
+                        <button mat-button class="underline" color="primary" [disabled]="object.status && object.status!=='failed'"
+                            (click)="onTranslateJob(object)">translate</button>
+                        }
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

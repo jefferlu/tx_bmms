@@ -1,0 +1,96 @@
+<!-- Main -->
+<div class="flex-auto">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row md:flex-col flex-auto justify-between py-8">
+        <div class="flex items-center">
+            <div class="flex-auto"></div>
+            <input id="file-input" class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file" [multiple]="true"
+                (change)="onFileSelected($event)">
+            <label class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer ml-2 hover:bg-hover" for="file-input">
+                <mat-icon [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
+            </label>
+            <!-- <form class="rounded overflow-hidden" [formGroup]="form">
+                        <mat-form-field class="flex-auto w-full fuse-mat-dense" subscriptSizing="dynamic">
+                            <input matInput [formControlName]="'file'" [placeholder]="'Select a file ...'" readonly>
+                            <input id="file-input" class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file" [multiple]="false"
+                                (change)="onFileSelected($event)">
+                            <label class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer ml-2 hover:bg-hover" for="file-input">
+                                <mat-icon [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
+                            </label>
+                        </mat-form-field>
+                    </form> -->
+
+            <!-- Add contact button -->
+            <!-- <button class="ml-4" mat-flat-button [color]="'accent'" [disabled]="!canUpload" (click)="onStartUpload()">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:cloud-arrow-up'"></mat-icon>
+                    <span class="ml-2">{{'upload'|transloco}}</span>
+                </button> -->
+        </div>
+    </div>
+
+    <!-- Contacts list -->
+    <div class="relative">
+        <table class="default-item-table">
+            <thead>
+                <tr>
+                    <th class="w-20">NO</th>
+                    <th>File Name</th>
+                    <th class="w-36">Size</th>
+                    <th class="w-48">Status</th>
+                    <th class="w-36">Action</th>
+                </tr>
+            </thead>
+
+            <tbody *ngIf="files">
+                @for (file of files; track trackByFn;let no=$index) {
+                <tr>
+                    <td class="text-center">{{no+1}}</td>
+                    <td class="px-3">{{file.name}}</td>
+                    <td class="text-center">{{file.size}}</td>
+                    <td class="text-center">
+                        @if(file.status==='process'){<mat-progress-bar class="" [mode]="'determinate'" [value]="file.progress"></mat-progress-bar>}
+                        @else{<span class="text-green-900">{{file.status||'ready'}}</span>}
+                    </td>
+                    <td class="text-center">
+                        <!-- <button mat-button class="text-primary" (click)="onStartUpload(file)" [disabled]="file.status==='Completed'">Upload</button> -->
+                        @if(file.status==='complete'){
+                        <button mat-button color="primary"><mat-icon [svgIcon]="'heroicons_outline:check-circle'"></mat-icon></button>
+                        }
+                        @else{
+                        <button mat-button class="underline" color="primary" [disabled]="file.status" (click)="onUpload(file)">upload</button>
+                        }
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+
+</div>
+<!-- <div class="flex-auto p-6 sm:p-10">
+    <div class="max-w-2xl ">
+        <form class="px-6 rounded overflow-hidden" [formGroup]="form">
+            <div class="flex">
+                <mat-form-field class="flex-auto fuse-mat-dense">
+                    <input matInput [formControlName]="'file'" [placeholder]="'Select a file ...'" readonly>
+                    <input id="file-input" class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file" [multiple]="false"
+                        (change)="onFileSelected($event)">
+                    <label class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer ml-2 hover:bg-hover" for="file-input">
+                        <mat-icon [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
+                    </label>
+                </mat-form-field>
+            </div>
+
+            <div class="flex pb-4">
+
+            </div>
+            <div class="flex justify-end">
+                <button mat-flat-button [color]="'accent'" [disabled]="!canUpload" (click)="onStartUpload()">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:cloud-arrow-up'"></mat-icon>
+                    <span class="ml-2">{{'upload'|transloco}}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div> -->

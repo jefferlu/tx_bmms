@@ -1,0 +1,49 @@
+<div class="flex-auto p-10 sm:px-36">
+    <div class="flex flex-col flex-wrap sm:w-auto">
+        <form [formGroup]="form">
+
+            <!-- name -->
+            <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 sm:ml-4 fuse-mat-dense">
+                <mat-label>Name</mat-label>
+                <input type="search" matInput [formControlName]="'name'" [autocomplete]="'off'">
+            </mat-form-field>
+
+            <!-- Search button -->
+            <button class="w-full sm:w-auto sm:ml-4 mt-4 mr-auto sm:-mt-1 bg-accent" mat-flat-button [color]="'primary'" (click)="onSearch()">
+                <mat-icon fontIcon="search"></mat-icon>
+                <span class="ml-2 mr-1">Search</span>
+            </button>
+
+        </form>
+    </div>
+
+
+    <!-- Overview -->
+    <table mat-table [dataSource]="dataSource" matSort>
+
+        <!-- No Column -->
+        <ng-container matColumnDef="no">
+            <th mat-header-cell *matHeaderCellDef class="sticky top-0"> No. </th>
+            <td mat-cell *matCellDef="let idx=index"> {{idx+1}} </td>
+        </ng-container>
+
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header class="sticky top-0"> Name </th>
+            <td mat-cell *matCellDef="let element">
+                <a class="text-blue-600 hover:text-blue-400 hover:cursor-pointer" [routerLink]="['./', element.id]">{{element.name}}</a>
+
+            </td>
+        </ng-container>
+
+        <!-- Size Column -->
+        <!-- <ng-container matColumnDef="size">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header class="sticky top-0"> Size </th>
+            <td mat-cell *matCellDef="let element"> {{element.size}} </td>
+        </ng-container> -->
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+</div>

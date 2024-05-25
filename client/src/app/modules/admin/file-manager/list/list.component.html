@@ -1,0 +1,166 @@
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden" *transloco="let t">
+    <mat-drawer-container class="flex-auto h-full bg-card dark:bg-transparent">
+
+        <mat-drawer-content class="flex flex-col bg-gray-50 dark:bg-transparent">
+
+            <!-- Main -->
+            <div class="flex flex-col flex-auto">
+
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between p-6 dark:bg-transparent">
+
+                    <!-- Title -->
+                    <div>
+                        <div class="text-4xl font-extrabold tracking-tight leading-none">File Manager</div>
+                        <div class="flex items-center mt-0.5 font-medium text-secondary">
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <!-- <div class="mt-4 sm:mt-0">                        
+                        <button mat-flat-button [color]="'accent'" (click)="onUpload()">
+                            <mat-icon [svgIcon]="'heroicons_outline:cloud-arrow-up'"></mat-icon>
+                            <span class="ml-2 mr-1">Upload</span>
+                        </button>
+                    </div> -->
+
+                </div>
+
+
+
+                <div class="flex-auto p-6 sm:p-10">
+                    <div class="max-w-5xl mx-auto">
+
+                        <mat-horizontal-stepper [linear]="true" #horizontalStepper class="bg-transparent" animationDuration="50">
+                            <mat-step [label]="t('upload-object')">
+                                <ng-template matStepperIcon="edit"><mat-icon>check</mat-icon></ng-template>
+                            </mat-step>
+                            <mat-step [label]="t('translate-job')">
+                                <ng-template matStepperIcon="edit"><mat-icon>check</mat-icon></ng-template>
+                            </mat-step>
+                            <mat-step [label]="t('extract-metadata')">
+                                <ng-template matStepperIcon="edit"><mat-icon>check</mat-icon></ng-template>
+                            </mat-step>
+                        </mat-horizontal-stepper>
+
+
+                        <form class="px-6 rounded overflow-hidden" [formGroup]="form">
+
+
+                            <div class="flex">
+                                <mat-form-field class="flex-auto fuse-mat-dense">
+                                    <input matInput [formControlName]="'file'" [placeholder]="'Select a file ...'" readonly>
+
+                                    <input id="file-input" class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file" [multiple]="false"
+                                        (change)="onFileSelected($event)">
+
+                                    <!-- @if(progress<100){ <mat-progress-bar class="w-1/4" [mode]="'determinate'" [value]="progress">
+                                    </mat-progress-bar>
+                                    }
+
+                                    @if ((fileInput?.files && fileInput?.files.length > 0) &&progress==100) {
+                                    <mat-icon [svgIcon]="'heroicons_outline:check-circle'" color="primary"></mat-icon>
+                                    } -->
+
+                                    <!-- @if (fileInput?.files && fileInput?.files.length > 0) {
+                                    <button mat-icon-button [matMenuTriggerFor]="userActions" (click)="onUpload($event)">
+                                        <mat-icon [svgIcon]="'heroicons_outline:cloud-arrow-up'"></mat-icon>
+                                    </button>
+                                    } -->
+                                    @if (stepper?.selectedIndex==0)
+                                    {
+                                    <label class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer ml-2 hover:bg-hover" for="file-input">
+                                        <mat-icon [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
+                                    </label>
+                                    }
+                                </mat-form-field>
+                            </div>
+
+
+                            <!-- <div class="flex">
+                                <mat-form-field [ngClass]="formFieldHelpers" class="flex-auto">
+                                    <textarea matInput formControlName="message" rows="15" readonly></textarea>
+                                </mat-form-field>
+                                
+                            </div> -->
+
+                            <div class="flex pb-4">
+                                <div #content
+                                    class="w-full h-90 min-h-90 max-h-90 border border-gray-300 rounded px-4 pt-3 pb-8 bg-card overflow-y-auto scroll-auto ">
+                                    @if (isStartUpload) {
+                                    <pre>Upload file to server ... <span *ngIf="progress!=100">{{progress}}%</span><span *ngIf="progress===100" class="text-blue-800">Completed.</span></pre>
+                                    }
+
+                                    @if (isStartUploadOSS ) {
+                                    <pre>Upload file(<span class="text-blue-800">{{fileName}}</span>) to OSS server ... <span *ngIf="oss_progress!=100" class="text-green-800">{{oss_progress}}%</span><span *ngIf="oss_progress===100" class="text-blue-800">Completed.</span></pre>
+                                    }
+
+                                    @if(this.isStartTranslate){
+                                    <pre>&nbsp;</pre>
+                                    <pre>Translate object to manifest ... <span *ngIf="translate_progress!='complete'" class="text-green-800">{{translate_progress}}</span><span *ngIf="translate_progress==='complete'" class="text-blue-800">Completed.</span></pre>
+                                    }
+
+                                    @if (isStartConvert) {
+                                    <pre>&nbsp;</pre>
+                                    <pre>Extracting Metadata ...</pre>
+                                    }
+
+                                    @for (msg of extractMessages; track $index) {
+                                    @if (msg.status==='inprogress'){
+                                    <pre>{{msg.message}}</pre>}
+                                    @else {
+                                    <pre class="text-blue-800">{{msg.message}}</pre>}
+                                    }
+
+                                    <!-- Error Message -->
+                                    @if(this.error){
+                                    <pre class="text-red-700"><br/>[Error]:<br/>{{error | json}}</pre>
+                                    }
+
+
+                                </div>
+                            </div>
+
+
+
+                            <div class="flex justify-end">
+                                @if(stepper?.selectedIndex==0){
+                                <button mat-flat-button [color]="'accent'" [disabled]="!canUpload" (click)="onStartUpload()">
+                                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:cloud-arrow-up'"></mat-icon>
+                                    <span class="ml-2">{{t('upload')}}</span>
+                                </button>
+                                }
+                                @if(stepper?.selectedIndex==1){
+                                <button mat-flat-button [color]="'primary'" (click)="onTranslateJob()">
+                                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:arrow-path-rounded-square'"></mat-icon>
+                                    <span class="ml-2">{{t('start-translate')}}</span>
+                                </button>
+                                }
+                                @if(stepper?.selectedIndex==2 && !isDone){
+                                <button mat-flat-button [color]="'warn'" (click)="onExtraMetadata()">
+                                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:arrows-up-down'"></mat-icon>
+                                    <span class="ml-2">{{t('extra-metadata')}}</span>
+                                </button>
+                                }
+                                @if(isDone){
+                                <button mat-flat-button class="ml-4" [color]="'accent'" (click)="onDone()">
+                                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:check'"></mat-icon>
+                                    <span class="ml-2">{{t('done')}}</span>
+                                </button>
+                                }
+                            </div>
+
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </mat-drawer-content>
+
+
+
+    </mat-drawer-container>
+</div>
