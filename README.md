@@ -40,12 +40,12 @@ Please make sure that Node.js (version >= 16) is installed on your operating sys
     Navigate to http://localhost:4200/
 
 ### NestJS
-1.  Install npm packages by using
+1.  Install npm packages by using `npm CLI`
     ```sh
     cd backend
     npm install
     ```
-2. Run a new basic Nest project in development mode
+2. Run Nest project in development mode
     ```sh
     npm run start:dev -b swc
     ```
