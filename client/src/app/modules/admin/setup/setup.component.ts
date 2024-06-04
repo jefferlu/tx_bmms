@@ -29,13 +29,13 @@ export class SetupComponent implements OnInit, OnDestroy {
                 id: 'aps-account',
                 icon: 'heroicons_outline:user-circle',
                 title: 'APS帳號及憑證',
-                description: '客戶端 ID 和客戶端金鑰用於取得存取令牌，您必須使用這些令牌對 API 呼叫進行身份驗證。',
+                // description: '客戶端 ID 和客戶端金鑰用於取得存取令牌，您必須使用這些令牌對 API 呼叫進行身份驗證。',
             },           
             {
                 id: 'db_backup_restore',
                 icon: 'heroicons_outline:lock-closed',
                 title: '資料庫備份&還原',
-                description: 'Manage your password and 2-step verification preferences',
+                // description: 'Manage your password and 2-step verification preferences',
             },
         ];
     }

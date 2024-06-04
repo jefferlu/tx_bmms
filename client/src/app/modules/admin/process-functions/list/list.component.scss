@@ -1,8 +1,8 @@
-.inventory-grid {
-  /* grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); */
-  grid-template-columns: 48px repeat(auto-fit, minmax(100px, 1fr));
+.table-grid {
+    /* grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); */
+    grid-template-columns: 48px repeat(auto-fit, minmax(100px, 1fr));
 
-  /* @screen sm {
+    /* @screen sm {
       grid-template-columns: 48px auto 112px 72px;
     }
   
@@ -16,5 +16,5 @@
 }
 
 .adsk-viewing-viewer {
-  background: none !important;
+    background: none !important;
 }

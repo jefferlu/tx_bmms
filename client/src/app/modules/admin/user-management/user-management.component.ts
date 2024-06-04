@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
 import { UserAccountComponent } from './user-account/user-account.component';
+import { RoleGroupComponent } from './role-group/role-group.component';
 
 
 @Component({
@@ -14,7 +15,7 @@ import { UserAccountComponent } from './user-account/user-account.component';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, UserAccountComponent],
+    imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, UserAccountComponent, RoleGroupComponent],
 })
 export class UserManagementComponent implements OnInit, OnDestroy {
 
@@ -22,7 +23,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     drawerMode: 'over' | 'side' = 'side';
     drawerOpened: boolean = true;
     panels: any[] = [];
-    selectedPanel: string = 'user-account';
+    selectedPanel: string = 'role-group';
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     ngOnInit(): void {
@@ -31,15 +32,18 @@ export class UserManagementComponent implements OnInit, OnDestroy {
             {
                 id: 'user-account',
                 icon: 'heroicons_outline:user-circle',
-                title: '使用者管理',
-                description: '客戶端 ID 和客戶端金鑰用於取得存取令牌，您必須使用這些令牌對 API 呼叫進行身份驗證。',
+                title: '帳戶管理'
             },
             {
-                id: 'db_backup_restore',
-                icon: 'heroicons_outline:lock-closed',
-                title: '紀錄查詢',
-                description: 'Manage your password and 2-step verification preferences',
+                id: 'role-group',
+                icon: 'heroicons_outline:user-group',
+                title: '職權組別'
             },
+            {
+                id: 'db-backup-restore',
+                icon: 'heroicons_outline:lock-closed',
+                title: '紀錄查詢'
+            }
         ];
     }
 

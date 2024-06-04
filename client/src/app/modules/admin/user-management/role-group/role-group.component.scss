@@ -1,0 +1,45 @@
+table.cust-table {
+    @apply table-auto w-full;
+    @apply border-l border-white;
+    border-collapse: separate;
+    border-spacing: 0;
+
+    thead {
+        @apply sticky top-0 bg-slate-800;
+    }
+
+    th {
+        @apply border-r border-b border-slate-500 p-0.5;
+    }
+    tr:first-child th {
+        @apply border-t;
+    }
+
+    td {
+        @apply border-b border-r border-slate-500 p-0.5;
+
+        .checkbox {
+            @apply w-4 h-4 mt-1;
+        }
+    }
+
+    .edit {
+        @apply text-center whitespace-nowrap w-18;
+
+        input {
+            @apply w-full text-center truncate;
+        }
+    }
+
+    .edit-header {
+        @apply w-full text-center font-normal truncate;
+    }
+
+    .need-test {
+        @apply bg-white;
+    }
+
+    .view {
+        @apply text-center;
+    }
+}
