@@ -4,14 +4,14 @@ import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
-import { SettingsAccountComponent } from './account/account.component';
+import { ApsAccountComponent } from './aps-account/aps-account.component';
 
 @Component({
     selector: 'app-setup',
     templateUrl: './setup.component.html',
     styleUrl: './setup.component.scss',
     standalone: true,
-    imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, SettingsAccountComponent],
+    imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, ApsAccountComponent],
 })
 export class SetupComponent implements OnInit, OnDestroy {
 
@@ -19,14 +19,14 @@ export class SetupComponent implements OnInit, OnDestroy {
     drawerMode: 'over' | 'side' = 'side';
     drawerOpened: boolean = true;
     panels: any[] = [];
-    selectedPanel: string = 'account';
+    selectedPanel: string = 'aps-account';
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     ngOnInit(): void {
         // Setup available panels
         this.panels = [
             {
-                id: 'account',
+                id: 'aps-account',
                 icon: 'heroicons_outline:user-circle',
                 title: 'APS帳號及憑證',
                 description: '客戶端 ID 和客戶端金鑰用於取得存取令牌，您必須使用這些令牌對 API 呼叫進行身份驗證。',

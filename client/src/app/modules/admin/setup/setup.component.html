@@ -59,28 +59,11 @@
                 <div class="mt-8">
                     <ng-container [ngSwitch]="selectedPanel">
                         <!-- Account -->
-                        <ng-container *ngSwitchCase="'account'">
-                            <settings-account></settings-account>
-                        </ng-container>
-                        <!-- Security -->
-                        <ng-container *ngSwitchCase="'security'">
-                            <settings-security></settings-security>
-                        </ng-container>
-                        <!-- Plan & Billing -->
-                        <ng-container *ngSwitchCase="'plan-billing'">
-                            <settings-plan-billing></settings-plan-billing>
-                        </ng-container>
-                        <!-- Notifications -->
-                        <ng-container *ngSwitchCase="'notifications'">
-                            <settings-notifications></settings-notifications>
-                        </ng-container>
-                        <!-- Team -->
-                        <ng-container *ngSwitchCase="'team'">
-                            <settings-team></settings-team>
-                        </ng-container>
+                        <ng-container *ngSwitchCase="'aps-account'">
+                            <aps-account></aps-account>
+                        </ng-container>                       
                     </ng-container>
                 </div>
-
             </div>
 
         </mat-drawer-content>

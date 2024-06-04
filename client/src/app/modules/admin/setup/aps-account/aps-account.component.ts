@@ -9,15 +9,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
 @Component({
-    selector       : 'settings-account',
-    templateUrl    : './account.component.html',
-    encapsulation  : ViewEncapsulation.None,
+    selector: 'aps-account',
+    templateUrl: './aps-account.component.html',
+    encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone     : true,
-    imports        : [FormsModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, TextFieldModule, MatSelectModule, MatOptionModule, MatButtonModule],
+    standalone: true,
+    imports: [FormsModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, TextFieldModule, MatSelectModule, MatOptionModule, MatButtonModule],
 })
-export class SettingsAccountComponent implements OnInit
-{
+export class ApsAccountComponent {
+
     accountForm: UntypedFormGroup;
 
     /**
@@ -25,8 +25,7 @@ export class SettingsAccountComponent implements OnInit
      */
     constructor(
         private _formBuilder: UntypedFormBuilder,
-    )
-    {
+    ) {
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -36,19 +35,22 @@ export class SettingsAccountComponent implements OnInit
     /**
      * On init
      */
-    ngOnInit(): void
-    {
+    ngOnInit(): void {
         // Create the form
         this.accountForm = this._formBuilder.group({
-            name    : ['47aKP8JTOibKQTvtpdugm8r05baqLxtF'],
+            name: ['47aKP8JTOibKQTvtpdugm8r05baqLxtF'],
             username: ['UOnLHJkAYTAQAAAP'],
-            title   : ['Senior Frontend Developer'],
-            company : ['YXZ Software'],
-            about   : ['Hey! This is Brian; husband, father and gamer. I\'m mostly passionate about bleeding edge tech and chocolate! 🍫'],
-            email   : ['hughes.brian@mail.com', Validators.email],
-            phone   : ['121-490-33-12'],
-            country : ['usa'],
+            title: ['Senior Frontend Developer'],
+            company: ['YXZ Software'],
+            about: ['Hey! This is Brian; husband, father and gamer. I\'m mostly passionate about bleeding edge tech and chocolate! 🍫'],
+            email: ['hughes.brian@mail.com', Validators.email],
+            phone: ['121-490-33-12'],
+            country: ['usa'],
             language: ['english'],
         });
+    }
+
+    trackByFn(index: number, item: any): any {
+        return item.id || index;
     }
 }
