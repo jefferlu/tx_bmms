@@ -37,7 +37,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
             {
                 id: 'role-group',
                 icon: 'heroicons_outline:user-group',
-                title: '職權組別'
+                title: '權限管理'
             },
             {
                 id: 'db-backup-restore',
