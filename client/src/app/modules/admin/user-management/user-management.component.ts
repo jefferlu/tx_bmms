@@ -4,7 +4,7 @@ import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
-import { SettingsTeamComponent } from './team/team.component';
+import { ProfileComponent } from './profile/profile.component';
 
 
 @Component({
@@ -14,7 +14,7 @@ import { SettingsTeamComponent } from './team/team.component';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, SettingsTeamComponent],
+    imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, ProfileComponent],
 })
 export class UserManagementComponent implements OnInit, OnDestroy {
 
@@ -22,14 +22,14 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     drawerMode: 'over' | 'side' = 'side';
     drawerOpened: boolean = true;
     panels: any[] = [];
-    selectedPanel: string = 'team';
+    selectedPanel: string = 'profile';
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     ngOnInit(): void {
         // Setup available panels
         this.panels = [
             {
-                id: 'team',
+                id: 'profile',
                 icon: 'heroicons_outline:user-circle',
                 title: '使用者管理',
                 description: '客戶端 ID 和客戶端金鑰用於取得存取令牌，您必須使用這些令牌對 API 呼叫進行身份驗證。',
@@ -53,6 +53,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     }
 
     getPanelInfo(id: string): any {
+        console.log(id)
         return this.panels.find(panel => panel.id === id);
     }
 
