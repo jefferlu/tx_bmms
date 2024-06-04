@@ -8,14 +8,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
 @Component({
-    selector: 'profile',
-    templateUrl: './profile.component.html',
+    selector: 'user-account',
+    templateUrl: './user-account.component.html',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
     imports: [MatFormFieldModule, MatIconModule, MatInputModule, MatButtonModule, NgFor, NgIf, MatSelectModule, MatOptionModule, TitleCasePipe],
 })
-export class ProfileComponent implements OnInit {
+export class UserAccountComponent {
     members: any[];
     roles: any[];
 
@@ -127,4 +127,3 @@ export class ProfileComponent implements OnInit {
     }
 
 }
-
