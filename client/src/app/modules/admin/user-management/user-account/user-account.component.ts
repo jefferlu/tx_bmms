@@ -15,7 +15,7 @@ import { MatSelectModule } from '@angular/material/select';
     standalone: true,
     imports: [MatFormFieldModule, MatIconModule, MatInputModule, MatButtonModule, NgFor, NgIf, MatSelectModule, MatOptionModule, TitleCasePipe],
 })
-export class UserAccountComponent {
+export class UserAccountComponent implements OnInit {
     members: any[];
     roles: any[];
 
