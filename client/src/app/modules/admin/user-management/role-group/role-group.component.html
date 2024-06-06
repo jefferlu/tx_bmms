@@ -1,13 +1,13 @@
 <div class="w-full">
 
+    <p-table [value]="products" styleClass="p-datatable-gridlines" [tableStyle]="{ 'min-width': '50rem' }">
 
-    <table class="cust-table">
-        <thead>
+        <ng-template pTemplate="header">
             <tr>
-                <th colspan="13">BMMS 使用者權限管理矩陣</th>
+                <th colspan="13" class="text-center">BMMS 使用者權限管理矩陣</th>
             </tr>
-            <tr>         
-                <th></th>       
+            <tr>
+                <th></th>
                 <th colspan="2">圖資檢索模組</th>
                 <th colspan="1">模型檢視模組</th>
                 <th colspan="3">模型匯入模組</th>
@@ -34,84 +34,24 @@
                 <th class="min-w-30">系統歷史紀錄查詢</th>
 
             </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="text-center px-2 max-w-80">系統管理員</td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-            </tr>
-            <tr>
-                <td class="text-center px-2">安控管理人員</td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-            </tr>
-            <tr>
-                <td class="text-center px-2">圖資管理人員</td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-            </tr>
-            <tr>
-                <td class="text-center px-2">圖資作業人員</td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-            </tr>
-            <tr>
-                <td class="text-center px-2">一般查詢使用者</td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-                <td class="edit"><input type="checkbox" class="hover:cursor-pointer"></td>
-            </tr>
-        </tbody>
-    </table>
+        </ng-template>
 
+        <ng-template pTemplate="body" let-product>
+            <tr>
+                <td class="text-center">{{ product.name }}</td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+                <td class="text-center"> <p-checkbox value="New York" /></td>
+            </tr>
+        </ng-template>
+    </p-table>
 </div>

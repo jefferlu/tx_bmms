@@ -1,4 +1,4 @@
-table.cust-table {
+table {
     @apply table-auto w-full;
     @apply border-l border-white;
     border-collapse: separate;
@@ -10,14 +10,18 @@ table.cust-table {
 
     th {
         @apply border-r border-b border-slate-500 p-0.5;
+        @apply text-center;
     }
     tr:first-child th {
         @apply border-t;
     }
 
+    tbody tr{
+        @apply bg-transparent;
+    }
     td {
         @apply border-b border-r border-slate-500 p-0.5;
-
+        @apply bg-transparent;
         .checkbox {
             @apply w-4 h-4 mt-1;
         }
@@ -42,4 +46,11 @@ table.cust-table {
     .view {
         @apply text-center;
     }
+}
+
+p-checkbox{
+    @apply py-2;
+}
+.p-checkbox-box{
+    @apply border-white border;
 }
