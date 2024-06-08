@@ -22,34 +22,34 @@ export class RoleListComponent implements OnInit, OnDestroy {
   drawerMode: 'over' | 'side' = 'side';
   drawerOpened: boolean = true;
   roles: any[] = [];
-  selectedRole: string = 'role-profile';
+  selectedRole: string = 'sysadmin';
   private _unsubscribeAll: Subject<any> = new Subject<any>();
 
   ngOnInit(): void {
       // Setup available roles
       this.roles = [
           {
-              id: 'role-profile',
+              id: 'sysadmin',
               icon: 'heroicons_outline:user-circle',
               title: '系統管理員'
           },
           {
-              id: 'role-profile1',
+              id: 'security',
               icon: 'heroicons_outline:user-circle',
               title: '安控管理人員'
           },
           {
-              id: 'role-profile2',
+              id: 'manager',
               icon: 'heroicons_outline:user-circle',
               title: '圖模管理人員'
           },
           {
-              id: 'role-profile3',
+              id: 'operator',
               icon: 'heroicons_outline:user-circle',
               title: '圖資作業人員'
           },
           {
-              id: 'role-profile4',
+              id: 'inquirer',
               icon: 'heroicons_outline:user-circle',
               title: '一般查詢使用者'
           }  

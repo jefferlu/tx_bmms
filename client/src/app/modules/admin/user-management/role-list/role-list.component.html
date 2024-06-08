@@ -3,7 +3,7 @@
     <mat-drawer-container class="flex-auto sm:h-full">
 
         <!-- Drawer -->
-        <mat-drawer class="w-full sm:w-56 dark:bg-gray-900" [autoFocus]="false" [mode]="drawerMode" [opened]="drawerOpened" #drawer>
+        <mat-drawer class="w-full sm:w-72 dark:bg-gray-900" [autoFocus]="false" [mode]="drawerMode" [opened]="drawerOpened" #drawer>
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div></div>
@@ -19,8 +19,6 @@
                 <ng-container *ngFor="let role of roles; trackBy: trackByFn">
                     <div class="flex px-8 py-5 cursor-pointer" [ngClass]="{'hover:bg-gray-100 dark:hover:bg-hover': !selectedRole || selectedRole !== role.id,
                                     'bg-primary-50 dark:bg-hover': selectedRole && selectedRole === role.id}" (click)="goToRole(role.id)">
-                        <mat-icon [ngClass]="{'text-hint': !selectedRole || selectedRole !== role.id,
-                                        'text-primary dark:text-primary-500': selectedRole && selectedRole === role.id}" [svgIcon]="role.icon"></mat-icon>
                         <div class="ml-3">
                             <div class="font-medium leading-6" [ngClass]="{'text-primary dark:text-primary-500': selectedRole && selectedRole === role.id}">
                                 {{role.title}}
@@ -54,7 +52,19 @@
                 <!-- Load settings role -->
                 <div class="mt-8">
                     <ng-container [ngSwitch]="selectedRole">                       
-                        <ng-container *ngSwitchCase="'role-profile'">
+                        <ng-container *ngSwitchCase="'sysadmin'">
+                            <role-profile></role-profile>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'security'">
+                            <role-profile></role-profile>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'manager'">
+                            <role-profile></role-profile>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'operator'">
+                            <role-profile></role-profile>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'inquirer'">
                             <role-profile></role-profile>
                         </ng-container>
                     </ng-container>
