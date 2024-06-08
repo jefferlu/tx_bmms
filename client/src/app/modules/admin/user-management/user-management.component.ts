@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
 import { UserAccountComponent } from './user-account/user-account.component';
 import { RoleGroupComponent } from './role-group/role-group.component';
-
+import { RoleListComponent } from './role-list/role-list.component';
 
 @Component({
     selector: 'app-user-management',
@@ -15,7 +15,7 @@ import { RoleGroupComponent } from './role-group/role-group.component';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, UserAccountComponent, RoleGroupComponent],
+    imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, UserAccountComponent, RoleGroupComponent, RoleListComponent],
 })
 export class UserManagementComponent implements OnInit, OnDestroy {
 
@@ -43,6 +43,11 @@ export class UserManagementComponent implements OnInit, OnDestroy {
                 id: 'db-backup-restore',
                 icon: 'heroicons_outline:lock-closed',
                 title: '紀錄查詢'
+            },
+            {
+                id: 'role-list',
+                icon: 'heroicons_outline:check-circle',
+                title: '權限設定'
             }
         ];
     }
