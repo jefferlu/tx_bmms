@@ -37,15 +37,14 @@
                             "src/downloads"
                         ],
                         "styles": [                           
-                            
+                            "node_modules/primeng/resources/themes/aura-dark-blue/theme.css",
+                            "node_modules/primeng/resources/primeng.min.css",
                             "src/@fuse/styles/tailwind.scss",
                             "src/@fuse/styles/themes.scss",
                             "src/styles/vendors.scss",
                             "src/@fuse/styles/main.scss",
                             "src/styles/styles.scss",
-                            "src/styles/tailwind.scss",
-                            "node_modules/primeng/resources/themes/lara-dark-blue/theme.css",
-                            "node_modules/primeng/resources/primeng.min.css"
+                            "src/styles/tailwind.scss"                           
                         ],
                         "scripts": [
                         ]

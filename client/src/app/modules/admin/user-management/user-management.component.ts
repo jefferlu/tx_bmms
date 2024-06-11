@@ -23,7 +23,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     drawerMode: 'over' | 'side' = 'side';
     drawerOpened: boolean = true;
     panels: any[] = [];
-    selectedPanel: string = 'role-group';
+    selectedPanel: string = 'role-list';
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     ngOnInit(): void {
@@ -34,11 +34,11 @@ export class UserManagementComponent implements OnInit, OnDestroy {
                 icon: 'heroicons_outline:user-circle',
                 title: '帳戶管理'
             },
-            {
-                id: 'role-group',
-                icon: 'heroicons_outline:user-group',
-                title: '權限管理'
-            },
+            // {
+            //     id: 'role-group',
+            //     icon: 'heroicons_outline:user-group',
+            //     title: '權限管理'
+            // },
             {
                 id: 'db-backup-restore',
                 icon: 'heroicons_outline:lock-closed',
