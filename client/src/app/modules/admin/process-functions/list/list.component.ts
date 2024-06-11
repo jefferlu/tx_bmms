@@ -12,6 +12,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ProcessFunctionsService } from '../process-functions.service';
 import { Observable } from 'rxjs';
 import { SearchComponent } from '../search/search.component';
+import { ChipsearchComponent } from '../chipsearch/chipsearch.component';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { environment } from 'environments/environment';
@@ -72,6 +73,15 @@ export class ListComponent implements OnInit, OnDestroy {
 
     advanceSearch(): void {
         this._matDialog.open(SearchComponent, {
+            autoFocus: false,
+            data: {
+                note: {},
+            },
+        });
+    }
+
+    chipSearch(): void {
+        this._matDialog.open(ChipsearchComponent, {
             autoFocus: false,
             data: {
                 note: {},
