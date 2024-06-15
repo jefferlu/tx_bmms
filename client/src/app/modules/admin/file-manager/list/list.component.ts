@@ -10,10 +10,10 @@ import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FileManagerService } from '../file-manager.service';
-import { TranslocoModule } from '@ngneat/transloco';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { HttpEventType } from '@angular/common/http';
 import { finalize } from 'rxjs';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
     selector: 'file-manager-list',

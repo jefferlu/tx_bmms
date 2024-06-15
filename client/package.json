@@ -21,7 +21,7 @@
         "@angular/platform-browser": "^17.0.0",
         "@angular/platform-browser-dynamic": "^17.0.0",
         "@angular/router": "^17.0.0",
-        "@ngneat/transloco": "4.2.7",
+        "@jsverse/transloco": "^7.4.2",
         "@types/crypto-js": "^4.2.1",
         "crypto-js": "^4.2.0",
         "lodash-es": "^4.17.21",

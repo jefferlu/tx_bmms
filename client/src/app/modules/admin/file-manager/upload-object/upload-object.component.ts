@@ -6,9 +6,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { FileManagerService } from '../file-manager.service';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpEventType } from '@angular/common/http';
-import { TranslocoModule } from '@ngneat/transloco';
 import { Subject, takeUntil } from 'rxjs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
     selector: 'upload-object',

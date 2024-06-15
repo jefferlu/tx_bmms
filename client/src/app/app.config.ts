@@ -1,15 +1,16 @@
 import { provideHttpClient } from '@angular/common/http';
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, isDevMode } from '@angular/core';
 import { PreloadAllModules, provideRouter, withInMemoryScrolling, withPreloading } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { LuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { routes } from './app.routes';
-import { provideTransloco } from './core/transloco/transloco.provider';
 import { provideAuth } from './core/auth/auth.provider';
 import { provideIcons } from './core/icons/icons.provider';
 import { provideFuse } from '@fuse';
 import { mockApiServices } from './mock-api';
+import { TranslocoHttpLoader } from './core/transloco/transloco-loader';
+import { provideTransloco, provideTransloco as provideTransloco_alias } from '@jsverse/transloco';
 
 
 // import { routes } from './app.routes';
@@ -41,7 +42,6 @@ export const appConfig: ApplicationConfig = {
                 }
             }
         },
-        provideTransloco(),
         provideAuth(),
         provideIcons(),
         provideFuse({
@@ -86,6 +86,21 @@ export const appConfig: ApplicationConfig = {
                     },
                 ],
             },
+        }),
+        provideTransloco({
+            config: {
+                availableLangs: [{
+                    id: 'zh',
+                    label: '繁體中文',
+                }, {
+                    id: 'en',
+                    label: 'English',
+                }],
+                defaultLang: 'en',
+                reRenderOnLangChange: true,
+                prodMode: !isDevMode(),
+            },
+            loader: TranslocoHttpLoader
         })
 
 

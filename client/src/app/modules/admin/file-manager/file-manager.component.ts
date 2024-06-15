@@ -5,11 +5,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { RouterOutlet } from '@angular/router';
 import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
-import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { Subject, takeUntil } from 'rxjs';
 import { UploadObjectComponent } from './upload-object/upload-object.component';
 import { TranslateJobComponent } from './translate-job/translate-job.component';
 import { ExtraMetadataComponent } from './extra-metadata/extra-metadata.component';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
     selector: 'app-file-manager',

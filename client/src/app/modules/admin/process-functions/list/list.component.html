@@ -1,4 +1,4 @@
-<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden">
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden" *transloco="let t">
     <mat-drawer-container class="flex-auto h-full bg-card dark:bg-transparent" [hasBackdrop]="false">
 
         <mat-drawer class="w-full md:w-360 dark:bg-gray-900" [mode]="'over'" [opened]="false" [position]="'end'" [disableClose]="true" #matDrawer>
@@ -27,7 +27,7 @@
         </mat-drawer>
 
 
-        <mat-drawer-content class="flex flex-col">            
+        <mat-drawer-content class="flex flex-col">
             <div class="flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-card dark:bg-transparent">
                 <!-- Header -->
                 <div class="relative flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b">
@@ -36,24 +36,24 @@
                         <mat-progress-bar [mode]="'indeterminate'"></mat-progress-bar>
                     </div>
                     <!-- Title -->
-                    <div class="text-4xl font-extrabold tracking-tight">圖資檢索</div>
+                    <div class="text-4xl font-extrabold tracking-tight">{{t('bim-information-listing')}}</div>
                     <!-- Actions -->
                     <div class="flex shrink-0 mt-6 sm:mt-0 sm:ml-4">
                         <!-- Search -->
                         <mat-form-field class="fuse-mat-dense fuse-mat-rounded sm:min-w-72" [subscriptSizing]="'dynamic'">
                             <mat-icon class="icon-size-5" matPrefix [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
-                            <input matInput [autocomplete]="'off'" [placeholder]="'查詢關鍵字...'">
+                            <input matInput [autocomplete]="'off'" [placeholder]="t('search-keyword')">
                         </mat-form-field>
                         <!-- Add product button -->
 
                         <button class="ml-4 bg-accent" mat-flat-button [color]="'accent'" (click)="advanceSearch()">
                             <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:adjustments-horizontal'"></mat-icon>
-                            <span class="ml-2">進階查詢</span>
+                            <span class="ml-2">{{t('advanced-search')}}</span>
                         </button>
 
                         <button class="ml-4 bg-accent" mat-flat-button [color]="'accent'" (click)="chipSearch()">
                             <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:adjustments-horizontal'"></mat-icon>
-                            <span class="ml-2">進階查詢II</span>
+                            <span class="ml-2">{{t('advanced-search')}}II</span>
                         </button>
                     </div>
                 </div>

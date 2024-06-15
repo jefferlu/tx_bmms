@@ -1,11 +1,9 @@
 {
-    "home": "Home",
-    "file-manager": "File Manager",
-    "upload-object": "Upload Object",
-    "translate-job": "Translate Job",
-    "extract-metadata": "Extract Metadata",
-    "upload": "Upload",
-    "start-translate": "Start Translate",
-    "extra-metadata": "Extra Metadata",
-    "done": "Done"
+    "bim-information-listing": "BIM Information Listing",
+    "bim-model-viewer": "BIM Model Viewer",
+    "bim-data-import": "BIM Data Viewer",
+    "user-management":"User Management",
+    "system-administration-functions":"System Administration Functions",
+    "advanced-search": "Advanced Search",
+    "search-keyword": "Search keyword..."
 }

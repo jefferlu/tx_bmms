@@ -1,4 +1,9 @@
 {
-    "upload-object": "上傳檔案",
-    "upload": "上傳"
+    "bim-information-listing": "圖資檢索",
+    "bim-model-viewer": "模型檢視",
+    "bim-data-import": "模型匯入",
+    "user-management": "使用者管理",
+    "system-administration-functions": "系統管理",
+    "advanced-search": "進階查詢",
+    "search-keyword": "查詢關鍵字..."
 }

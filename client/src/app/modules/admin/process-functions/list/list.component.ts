@@ -16,6 +16,7 @@ import { ChipsearchComponent } from '../chipsearch/chipsearch.component';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { environment } from 'environments/environment';
+import { TranslocoModule } from '@jsverse/transloco';
 
 declare const Autodesk: any;
 const env = environment;
@@ -27,7 +28,10 @@ const env = environment;
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [NgIf, NgFor, RouterOutlet, RouterLink, MatSidenavModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule, MatSortModule, MatCheckboxModule, MatPaginatorModule, AsyncPipe],
+    imports: [
+        NgIf, NgFor, RouterOutlet, RouterLink,
+        MatSidenavModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule, MatSortModule, MatCheckboxModule, MatPaginatorModule,
+        TranslocoModule, AsyncPipe],
 })
 export class ListComponent implements OnInit, OnDestroy {
 
@@ -57,7 +61,7 @@ export class ListComponent implements OnInit, OnDestroy {
 
         this.products$.subscribe({
             next: (res) => {
-                console.log(res)
+                // console.log(res)
             },
             error: e => { }
         })
