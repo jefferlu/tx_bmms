@@ -1167,14 +1167,14 @@ export const defaultNavigation: FuseNavigationItem[] = [
 ];
 export const compactNavigation: FuseNavigationItem[] = [
     {
-        id: 'process_functions',
+        id: 'bim_information_listing',
         title: '圖資檢索',
         type: 'basic',
         icon: 'heroicons_outline:magnifying-glass',
         link: '/process-functions',
     },
     {
-        id: 'bim-model-viewer',
+        id: 'bim_model_viewer',
         title: '模型檢視',
         type: 'basic',
         icon: 'heroicons_outline:photo',

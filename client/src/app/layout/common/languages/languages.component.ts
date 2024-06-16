@@ -117,7 +117,7 @@ export class LanguagesComponent implements OnInit, OnDestroy {
         const navigation = navComponent.navigation;
 
         /* Get the menu item and update its title */
-        const processFunctionsItem = this._fuseNavigationService.getItem('process_functions', navigation);
+        const processFunctionsItem = this._fuseNavigationService.getItem('bim_information_listing', navigation);
         if (processFunctionsItem) {
             this._translocoService.selectTranslate('bim-information-listing').pipe(take(1))
                 .subscribe((translation) => {
@@ -129,7 +129,7 @@ export class LanguagesComponent implements OnInit, OnDestroy {
                 });
         }
 
-        const bimModelViewerItem = this._fuseNavigationService.getItem('bim-model-viewer', navigation);
+        const bimModelViewerItem = this._fuseNavigationService.getItem('bim_model_viewer', navigation);
         if (bimModelViewerItem) {
             this._translocoService.selectTranslate('bim-model-viewer').pipe(take(1))
                 .subscribe((translation) => {
@@ -143,7 +143,7 @@ export class LanguagesComponent implements OnInit, OnDestroy {
 
         const bimDataImportItem = this._fuseNavigationService.getItem('bim_data_import', navigation);
         if (bimDataImportItem) {
-            this._translocoService.selectTranslate('Analytics').pipe(take(1))
+            this._translocoService.selectTranslate('bim-data-import').pipe(take(1))
                 .subscribe((translation) => {
                     // Set the title
                     bimDataImportItem.title = translation;
