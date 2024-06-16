@@ -1174,7 +1174,7 @@ export const compactNavigation: FuseNavigationItem[] = [
         link: '/process-functions',
     },
     {
-        id: 'operation_functions',
+        id: 'bim-model-viewer',
         title: '模型檢視',
         type: 'basic',
         icon: 'heroicons_outline:photo',

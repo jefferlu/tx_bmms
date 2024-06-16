@@ -7,6 +7,7 @@ import { Subject } from 'rxjs';
 import { UserAccountComponent } from './user-account/user-account.component';
 import { RoleGroupComponent } from './role-group/role-group.component';
 import { RoleListComponent } from './role-list/role-list.component';
+import { TranslocoService } from '@jsverse/transloco';
 
 @Component({
     selector: 'app-user-management',
@@ -26,7 +27,14 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     selectedPanel: string = 'role-list';
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
+    constructor(
+        private _translocoService: TranslocoService
+    ) { }
+
     ngOnInit(): void {
+        this._translocoService.selectTranslate('account-management')
+                         .subscribe(value => {console.log(value)});
+
         // Setup available panels
         this.panels = [
             {

@@ -116,26 +116,61 @@ export class LanguagesComponent implements OnInit, OnDestroy {
         // Get the flat navigation data
         const navigation = navComponent.navigation;
 
-        // Get the Project dashboard item and update its title
-        const projectDashboardItem = this._fuseNavigationService.getItem('dashboards.project', navigation);
-        if (projectDashboardItem) {
-            this._translocoService.selectTranslate('Project').pipe(take(1))
+        /* Get the menu item and update its title */
+        const processFunctionsItem = this._fuseNavigationService.getItem('process_functions', navigation);
+        if (processFunctionsItem) {
+            this._translocoService.selectTranslate('bim-information-listing').pipe(take(1))
                 .subscribe((translation) => {
                     // Set the title
-                    projectDashboardItem.title = translation;
+                    processFunctionsItem.title = translation;
 
                     // Refresh the navigation component
                     navComponent.refresh();
                 });
         }
 
-        // Get the Analytics dashboard item and update its title
-        const analyticsDashboardItem = this._fuseNavigationService.getItem('dashboards.analytics', navigation);
-        if (analyticsDashboardItem) {
+        const bimModelViewerItem = this._fuseNavigationService.getItem('bim-model-viewer', navigation);
+        if (bimModelViewerItem) {
+            this._translocoService.selectTranslate('bim-model-viewer').pipe(take(1))
+                .subscribe((translation) => {
+                    // Set the title
+                    bimModelViewerItem.title = translation;
+
+                    // Refresh the navigation component
+                    navComponent.refresh();
+                });
+        }
+
+        const bimDataImportItem = this._fuseNavigationService.getItem('bim_data_import', navigation);
+        if (bimDataImportItem) {
             this._translocoService.selectTranslate('Analytics').pipe(take(1))
                 .subscribe((translation) => {
                     // Set the title
-                    analyticsDashboardItem.title = translation;
+                    bimDataImportItem.title = translation;
+
+                    // Refresh the navigation component
+                    navComponent.refresh();
+                });
+        }
+
+        const userManagementItem = this._fuseNavigationService.getItem('user_management', navigation);
+        if (userManagementItem) {
+            this._translocoService.selectTranslate('user-management').pipe(take(1))
+                .subscribe((translation) => {
+                    // Set the title
+                    userManagementItem.title = translation;
+
+                    // Refresh the navigation component
+                    navComponent.refresh();
+                });
+        }
+
+        const systemAdministrationItem = this._fuseNavigationService.getItem('system_administration', navigation);
+        if (systemAdministrationItem) {
+            this._translocoService.selectTranslate('system-administration').pipe(take(1))
+                .subscribe((translation) => {
+                    // Set the title
+                    systemAdministrationItem.title = translation;
 
                     // Refresh the navigation component
                     navComponent.refresh();

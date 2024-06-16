@@ -2,8 +2,11 @@
     "bim-information-listing": "BIM Information Listing",
     "bim-model-viewer": "BIM Model Viewer",
     "bim-data-import": "BIM Data Viewer",
-    "user-management":"User Management",
-    "system-administration-functions":"System Administration Functions",
+    "user-management": "User Management",
+    "system-administration": "System Administration",
     "advanced-search": "Advanced Search",
-    "search-keyword": "Search keyword..."
+    "search-keyword": "Search keyword...",
+    "account-management": "Account Management",
+    "log-query": "Log Query",
+    "permission-settings": "Permission Settings"
 }
