@@ -8,6 +8,7 @@ import { Subject } from 'rxjs';
 import { TabViewModule } from 'primeng/tabview';
 
 import { RoleProfileComponent } from './role-profile/role-profile.component';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
     selector: 'role-list',
@@ -16,8 +17,11 @@ import { RoleProfileComponent } from './role-profile/role-profile.component';
     styleUrl: './role-list.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, TabViewModule, RoleProfileComponent]
-    //imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, RoleProfileComponent]
+    imports: [
+        NgFor, NgClass, NgSwitch, NgSwitchCase,
+        MatSidenavModule, MatButtonModule, MatIconModule, TabViewModule,
+        TranslocoModule, RoleProfileComponent]
+
 })
 export class RoleListComponent implements OnInit, OnDestroy {
 
@@ -32,27 +36,27 @@ export class RoleListComponent implements OnInit, OnDestroy {
         // Setup available roles
         this.roles = [
             {
-                id: 'sysadmin',
+                id: 'system-administrator',
                 icon: 'heroicons_outline:user-circle',
                 title: '系統管理員'
             },
             {
-                id: 'security',
+                id: 'security-manager',
                 icon: 'heroicons_outline:user-circle',
                 title: '安控管理人員'
             },
             {
-                id: 'manager',
+                id: 'bim-manager',
                 icon: 'heroicons_outline:user-circle',
                 title: '圖模管理人員'
             },
             {
-                id: 'operator',
+                id: 'bim-operator',
                 icon: 'heroicons_outline:user-circle',
                 title: '圖資作業人員'
             },
             {
-                id: 'inquirer',
+                id: 'inquiry-user',
                 icon: 'heroicons_outline:user-circle',
                 title: '一般查詢使用者'
             }

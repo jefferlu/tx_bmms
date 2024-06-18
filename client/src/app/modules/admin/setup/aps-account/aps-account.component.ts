@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
     selector: 'aps-account',
@@ -14,7 +15,10 @@ import { MatSelectModule } from '@angular/material/select';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [FormsModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, TextFieldModule, MatSelectModule, MatOptionModule, MatButtonModule],
+    imports: [
+        FormsModule, ReactiveFormsModule, TranslocoModule,
+        MatFormFieldModule, MatIconModule, MatInputModule, TextFieldModule, MatSelectModule, MatOptionModule, MatButtonModule
+    ],
 })
 export class ApsAccountComponent {
 

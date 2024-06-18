@@ -70,9 +70,9 @@
     </mat-drawer-container>
 </div> -->
 
-<div class="w-full">
+<div class="w-full" *transloco="let t">
     <p-tabView>
-        <p-tabPanel *ngFor="let role of roles" [header]="role.title" [scrollable]="true">
+        <p-tabPanel *ngFor="let role of roles" [header]="t(role.id)" [scrollable]="true">
             <role-profile></role-profile>
         </p-tabPanel>
     </p-tabView>

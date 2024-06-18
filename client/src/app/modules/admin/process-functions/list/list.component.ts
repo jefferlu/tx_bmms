@@ -94,8 +94,6 @@ export class ListComponent implements OnInit, OnDestroy {
     }
 
     toggle(item: any, change: MatCheckboxChange): void {
-        console.log(item);
-
         this.matDrawer.open();
         const container = document.getElementById('viewer');
         this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);

@@ -6,7 +6,16 @@
     "system-administration": "系統管理",
     "advanced-search": "進階查詢",
     "search-keyword": "查詢關鍵字...",
-    "account-management": "帳戶管理",
+    "user-account": "帳戶管理",
     "log-query": "紀錄查詢",
-    "permission-settings": "權限設定"
+    "role-list": "權限設定",
+    "aps-account": "APS帳號及憑證",
+    "db-backup-restore": "資料庫備份及還原",
+    "system-administrator": "系統管理員",
+    "security-manager": "安控管理人員",
+    "bim-manager": "圖模管理人員",
+    "bim-operator": "圖資作業人員",
+    "inquiry-user": "一般查詢使用者",
+    "client-id": "Client ID",
+    "client-secret": "Client Secret"
 }

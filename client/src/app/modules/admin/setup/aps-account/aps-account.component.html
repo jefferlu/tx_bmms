@@ -1,41 +1,27 @@
-<div class="w-full max-w-3xl">
+<div class="w-full max-w-3xl" *transloco="let t">
 
     <!-- Form -->
     <form [formGroup]="accountForm">
 
-       
+
         <div class="grid sm:grid-cols-4 gap-6 w-full mt-8">
             <!-- Name -->
             <div class="sm:col-span-4">
-                <mat-form-field
-                    class="w-full"
-                    [subscriptSizing]="'dynamic'">
-                    <mat-label>Client ID</mat-label>
-                    <mat-icon
-                        class="icon-size-5"
-                        [svgIcon]="'heroicons_solid:user'"
-                        matPrefix></mat-icon>
-                    <input
-                        [formControlName]="'name'"
-                        matInput>
+                <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
+                    <mat-label>{{t('client-id')}}</mat-label>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:user'" matPrefix></mat-icon>
+                    <input [formControlName]="'name'" matInput>
                 </mat-form-field>
             </div>
 
             <!-- Name -->
             <div class="sm:col-span-4">
-                <mat-form-field
-                    class="w-full"
-                    [subscriptSizing]="'dynamic'">
-                    <mat-label>Client ID</mat-label>
-                    <mat-icon
-                        class="icon-size-5"
-                        [svgIcon]="'heroicons_solid:user'"
-                        matPrefix></mat-icon>
-                    <input
-                        [formControlName]="'username'"
-                        matInput>
+                <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
+                    <mat-label>{{t('client-secret')}}</mat-label>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:user'" matPrefix></mat-icon>
+                    <input [formControlName]="'username'" matInput>
                 </mat-form-field>
-            </div>                       
+            </div>
         </div>
 
         <!-- Divider -->
@@ -43,16 +29,10 @@
 
         <!-- Actions -->
         <div class="flex items-center justify-end">
-            <button
-                mat-stroked-button
-                type="button">
+            <button mat-stroked-button type="button">
                 Cancel
             </button>
-            <button
-                class="ml-4"
-                mat-flat-button
-                type="button"
-                [color]="'primary'">Save
+            <button class="ml-4" mat-flat-button type="button" [color]="'primary'">Save
             </button>
         </div>
     </form>

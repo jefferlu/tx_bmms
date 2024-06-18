@@ -6,7 +6,16 @@
     "system-administration": "System Administration",
     "advanced-search": "Advanced Search",
     "search-keyword": "Search keyword...",
-    "account-management": "Account Management",
+    "user-account": "Account Management",
     "log-query": "Log Query",
-    "permission-settings": "Permission Settings"
+    "role-list": "Permission Settings",
+    "aps-account": "APS Account & Credentials",
+    "db-backup-restore": "Database Backup & Restore",
+    "system-administrator": "Administrator",
+    "security-manager": "Security Manager",
+    "bim-manager": "BIM Manager",
+    "bim-operator": "BIM Operator",
+    "inquiry-user": "Inquiry User",
+    "client-id": "Client ID",
+    "client-secret": "Client Secret"
 }

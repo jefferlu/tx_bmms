@@ -5,13 +5,17 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
 import { ApsAccountComponent } from './aps-account/aps-account.component';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
     selector: 'app-setup',
     templateUrl: './setup.component.html',
     styleUrl: './setup.component.scss',
     standalone: true,
-    imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, ApsAccountComponent],
+    imports: [
+        NgFor, NgClass, NgSwitch, NgSwitchCase,
+        MatSidenavModule, MatButtonModule, MatIconModule,
+        TranslocoModule, ApsAccountComponent],
 })
 export class SetupComponent implements OnInit, OnDestroy {
 
@@ -30,9 +34,9 @@ export class SetupComponent implements OnInit, OnDestroy {
                 icon: 'heroicons_outline:user-circle',
                 title: 'APS帳號及憑證',
                 // description: '客戶端 ID 和客戶端金鑰用於取得存取令牌，您必須使用這些令牌對 API 呼叫進行身份驗證。',
-            },           
+            },
             {
-                id: 'db_backup_restore',
+                id: 'db-backup-restore',
                 icon: 'heroicons_outline:lock-closed',
                 title: '資料庫備份&還原',
                 // description: 'Manage your password and 2-step verification preferences',

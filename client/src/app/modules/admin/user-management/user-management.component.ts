@@ -5,9 +5,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
 import { UserAccountComponent } from './user-account/user-account.component';
-import { RoleGroupComponent } from './role-group/role-group.component';
 import { RoleListComponent } from './role-list/role-list.component';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
     selector: 'app-user-management',
@@ -16,7 +15,11 @@ import { TranslocoService } from '@jsverse/transloco';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, UserAccountComponent, RoleGroupComponent, RoleListComponent],
+    imports: [
+        NgFor, NgClass, NgSwitch, NgSwitchCase, TranslocoModule,
+        MatSidenavModule, MatButtonModule, MatIconModule,
+        UserAccountComponent,  RoleListComponent
+    ],
 })
 export class UserManagementComponent implements OnInit, OnDestroy {
 
@@ -24,7 +27,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     drawerMode: 'over' | 'side' = 'side';
     drawerOpened: boolean = true;
     panels: any[] = [];
-    selectedPanel: string = 'role-list';
+    selectedPanel: string = 'user-account';
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     constructor(
@@ -33,7 +36,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this._translocoService.selectTranslate('account-management')
-                         .subscribe(value => {console.log(value)});
+            .subscribe(value => { console.log(value) });
 
         // Setup available panels
         this.panels = [
@@ -48,7 +51,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
             //     title: '權限管理'
             // },
             {
-                id: 'db-backup-restore',
+                id: 'log-query',
                 icon: 'heroicons_outline:lock-closed',
                 title: '紀錄查詢'
             },
