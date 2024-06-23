@@ -1,61 +1,39 @@
 <div class="w-full max-w-3xl">
 
     <!-- Form -->
-    <form [formGroup]="roleprofileForm">
+    <form [formGroup]="roleprofileForm" *transloco="let t">
 
         <!-- Divider -->
         <div class="my-10 border-t"></div>
-        
-        <!-- Section -->
-        <div class="w-full text-xl">模型匯入模組</div>
+
+        <!-- Section 模型匯入模組 -->
+        <div class="w-full text-xl">{{t('bim-data-import')}}{{t('module')}}</div>
         <div class="grid grid-cols-1 gap-6 w-full mt-8">
             <!-- APS Convert -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="apsconvert.toggle()">
-                    <div class="leading-6 font-medium">模型匯入作業</div>
-                    <div class="text-md text-secondary">使用 APS 服務將模型轉換 WebGL 格式</div>
+                <div class="flex-auto cursor-pointer" (click)="apsconvert.toggle()">
+                    <div class="leading-6 font-medium">{{t('model-import-operations')}}</div>
+                    <div class="text-md text-secondary">{{t('model-import-operations-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'apsconvert'"
-                    #apsconvert>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'apsconvert'" #apsconvert>
                 </mat-slide-toggle>
             </div>
             <!-- BIM File  -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="bimfileToggle.toggle()">
-                    <div class="leading-6 font-medium">BIM 檔案管理</div>
-                    <div class="text-md text-secondary">
-                        可管理並下載 BIM 檔案
-                    </div>
+                <div class="flex-auto cursor-pointer" (click)="bimfileToggle.toggle()">
+                    <div class="leading-6 font-medium">{{t('bim-file-management')}}</div>
+                    <div class="text-md text-secondary">{{t('bim-file-management-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'bimfile'"
-                    #bimfileToggle>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'bimfile'" #bimfileToggle>
                 </mat-slide-toggle>
             </div>
             <!-- Digital File  -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="digitalfileToggle.toggle()">
-                    <div class="leading-6 font-medium">數位化檔案</div>
-                    <div class="text-md text-secondary">
-                        可管理數位化檔案並下載
-                    </div>
+                <div class="flex-auto cursor-pointer" (click)="digitalfileToggle.toggle()">
+                    <div class="leading-6 font-medium">{{t('bim-file-management')}}</div>
+                    <div class="text-md text-secondary">{{t('bim-file-management-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'digitalfile'"
-                    #digitalfileToggle>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'digitalfile'" #digitalfileToggle>
                 </mat-slide-toggle>
             </div>
         </div>
@@ -63,39 +41,25 @@
         <!-- Divider -->
         <div class="my-10 border-t"></div>
 
-        <!-- Section -->
-        <div class="w-full text-xl">圖資檢索模組</div>
+        <!-- Section 圖資檢索模組 -->
+        <div class="w-full text-xl">{{t('bim-information-listing')}}{{t('module')}}</div>
         <div class="grid grid-cols-1 gap-6 w-full mt-8">
             <!-- Listing -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="listingToggle.toggle()">
-                    <div class="leading-6 font-medium">圖資檢索查詢</div>
-                    <div class="text-md text-secondary">可查詢模型檢索列表資料</div>
+                <div class="flex-auto cursor-pointer" (click)="listingToggle.toggle()">
+                    <div class="leading-6 font-medium">{{t('digital-files')}}</div>
+                    <div class="text-md text-secondary">{{t('digital-files-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'listing'"
-                    #listingToggle>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'listing'" #listingToggle>
                 </mat-slide-toggle>
             </div>
             <!-- Export Listing  -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="exportlistingToggle.toggle()">
-                    <div class="leading-6 font-medium">圖資資料匯出</div>
-                    <div class="text-md text-secondary">
-                        可匯出圖資查詢結果列表
-                    </div>
+                <div class="flex-auto cursor-pointer" (click)="exportlistingToggle.toggle()">
+                    <div class="leading-6 font-medium">{{t('bim-information-search')}}</div>
+                    <div class="text-md text-secondary">{{t('bim-information-search-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'exportlisting'"
-                    #exportlistingToggle>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'exportlisting'" #exportlistingToggle>
                 </mat-slide-toggle>
             </div>
         </div>
@@ -103,74 +67,50 @@
         <!-- Divider -->
         <div class="my-10 border-t"></div>
 
-        <!-- Section -->
-        <div class="w-full text-xl">模型檢視模組</div>
+        <!-- Section 模型檢視模組 -->
+        <div class="w-full text-xl">{{t('bim-model-viewer')}}{{t('module')}}</div>
         <div class="grid grid-cols-1 gap-6 w-full mt-8">
             <!-- Listing -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="viewerToggle.toggle()">
-                    <div class="leading-6 font-medium"> 3D模型檢視器</div>
-                    <div class="text-md text-secondary">可使用 3D WebGL 模型檢視器</div>
+                <div class="flex-auto cursor-pointer" (click)="viewerToggle.toggle()">
+                    <div class="leading-6 font-medium">{{t('3d-model-viewer')}}</div>
+                    <div class="text-md text-secondary">{{t('3d-model-viewer-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'viewer'"
-                    #viewerToggle>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'viewer'" #viewerToggle>
                 </mat-slide-toggle>
             </div>
         </div>
         <!-- Divider -->
         <div class="my-10 border-t"></div>
 
-        <!-- Section -->
-        <div class="w-full text-xl">使用者管理模組</div>
+        <!-- Section 使用者管理模組 -->
+        <div class="w-full text-xl">{{t('user-management')}}{{t('module')}}</div>
         <div class="grid grid-cols-1 gap-6 w-full mt-8">
             <!-- Usermanagement -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="usermanagementToggle.toggle()">
-                    <div class="leading-6 font-medium">使用者管理</div>
-                    <div class="text-md text-secondary">可新增、刪除、修改使用者帳戶</div>
+                <div class="flex-auto cursor-pointer" (click)="usermanagementToggle.toggle()">
+                    <div class="leading-6 font-medium">{{t('user-management')}}</div>
+                    <div class="text-md text-secondary">{{t('user-management-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'usermanagement'"
-                    #usermanagementToggle>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'usermanagement'" #usermanagementToggle>
                 </mat-slide-toggle>
             </div>
             <!-- Profilemanagement -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="profilemanagementToggle.toggle()">
-                    <div class="leading-6 font-medium">權限群組管理</div>
-                    <div class="text-md text-secondary">可新增、刪除、修改使用者權限群組</div>
+                <div class="flex-auto cursor-pointer" (click)="profilemanagementToggle.toggle()">
+                    <div class="leading-6 font-medium">{{t('permission-group-management')}}</div>
+                    <div class="text-md text-secondary">{{t('permission-group-management-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'profilemanagement'"
-                    #profilemanagementToggle>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'profilemanagement'" #profilemanagementToggle>
                 </mat-slide-toggle>
             </div>
             <!-- History Log -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="historyToggle.toggle()">
-                    <div class="leading-6 font-medium">查詢使用者歷程</div>
-                    <div class="text-md text-secondary">可查詢使用者歷程記錄並匯出記錄檔</div>
+                <div class="flex-auto cursor-pointer" (click)="historyToggle.toggle()">
+                    <div class="leading-6 font-medium">{{t('user-log-query')}}</div>
+                    <div class="text-md text-secondary">{{t('user-log-query-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'history'"
-                    #historyToggle>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'history'" #historyToggle>
                 </mat-slide-toggle>
             </div>
         </div>
@@ -178,52 +118,34 @@
         <!-- Divider -->
         <div class="my-10 border-t"></div>
 
-        <!-- Section -->
-        <div class="w-full text-xl">系統管理模組</div>
+        <!-- Section 系統管理模組 -->
+        <div class="w-full text-xl">{{t('system-administration')}}{{t('module')}}</div>
         <div class="grid grid-cols-1 gap-6 w-full mt-8">
             <!-- APS Credential -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="credentialToggle.toggle()">
-                    <div class="leading-6 font-medium">APS 帳號及憑證</div>
-                    <div class="text-md text-secondary">可修改 APS 帳號及憑證資料</div>
+                <div class="flex-auto cursor-pointer" (click)="credentialToggle.toggle()">
+                    <div class="leading-6 font-medium">{{t('aps-account')}}</div>
+                    <div class="text-md text-secondary">{{t('aps-account-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'credential'"
-                    #credentialToggle>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'credential'" #credentialToggle>
                 </mat-slide-toggle>
             </div>
             <!-- DB Backup & Restore -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="dbmanagementToggle.toggle()">
-                    <div class="leading-6 font-medium">資料庫管理</div>
-                    <div class="text-md text-secondary">可進行資料庫備份及還原作業</div>
+                <div class="flex-auto cursor-pointer" (click)="dbmanagementToggle.toggle()">
+                    <div class="leading-6 font-medium">{{t('database-management')}}</div>
+                    <div class="text-md text-secondary">{{t('database-management-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'dbmanagement'"
-                    #dbmanagementToggle>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'dbmanagement'" #dbmanagementToggle>
                 </mat-slide-toggle>
             </div>
             <!-- System Log -->
             <div class="flex items-center justify-between">
-                <div
-                    class="flex-auto cursor-pointer"
-                    (click)="syslogToggle.toggle()">
-                    <div class="leading-6 font-medium">查詢系統紀錄</div>
-                    <div class="text-md text-secondary">可查詢系統記錄並匯出記錄檔</div>
+                <div class="flex-auto cursor-pointer" (click)="syslogToggle.toggle()">
+                    <div class="leading-6 font-medium">{{t('system-log-query')}}</div>
+                    <div class="text-md text-secondary">{{t('system-log-query-desc')}}</div>
                 </div>
-                <mat-slide-toggle
-                    class="ml-2"
-                    [color]="'primary'"
-                    [formControlName]="'syslog'"
-                    #syslogToggle>
+                <mat-slide-toggle class="ml-2" [color]="'primary'" [formControlName]="'syslog'" #syslogToggle>
                 </mat-slide-toggle>
             </div>
         </div>
@@ -234,16 +156,10 @@
 
         <!-- Actions -->
         <div class="flex items-center justify-end">
-            <button
-                mat-stroked-button
-                type="button">
+            <button mat-stroked-button type="button">
                 Cancel
             </button>
-            <button
-                class="ml-4"
-                mat-flat-button
-                type="button"
-                [color]="'primary'">Save
+            <button class="ml-4" mat-flat-button type="button" [color]="'primary'">Save
             </button>
         </div>
     </form>

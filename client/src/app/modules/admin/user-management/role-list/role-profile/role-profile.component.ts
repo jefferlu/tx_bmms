@@ -13,17 +13,17 @@ import { CheckboxModule } from 'primeng/checkbox';
 
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
-    selector       : 'role-profile',
-    templateUrl    : './role-profile.component.html',
-    encapsulation  : ViewEncapsulation.None,
+    selector: 'role-profile',
+    templateUrl: './role-profile.component.html',
+    encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone     : true,
-    imports        : [FormsModule, ReactiveFormsModule, MatSlideToggleModule, MatButtonModule],
+    standalone: true,
+    imports: [FormsModule, ReactiveFormsModule, MatSlideToggleModule, MatButtonModule, TranslocoModule],
 })
-export class RoleProfileComponent implements OnInit
-{
+export class RoleProfileComponent implements OnInit {
     roleprofileForm: UntypedFormGroup;
 
     /**
@@ -31,8 +31,7 @@ export class RoleProfileComponent implements OnInit
      */
     constructor(
         private _formBuilder: UntypedFormBuilder,
-    )
-    {
+    ) {
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -42,23 +41,22 @@ export class RoleProfileComponent implements OnInit
     /**
      * On init
      */
-    ngOnInit(): void
-    {
+    ngOnInit(): void {
         // Create the form
         this.roleprofileForm = this._formBuilder.group({
-            apsconvert          : [true],
-            bimfile             : [true],
-            digitalfile         : [false],
-            comments            : [false],
-            listing             : [true],
-            exportlisting       : [true],
-            viewer              : [false],
-            usermanagement      : [true],
-            profilemanagement   : [false],
-            history             : [true],
-            credential          : [true],
-            dbmanagement        : [true],
-            syslog              : [true]
+            apsconvert: [true],
+            bimfile: [true],
+            digitalfile: [false],
+            comments: [false],
+            listing: [true],
+            exportlisting: [true],
+            viewer: [false],
+            usermanagement: [true],
+            profilemanagement: [false],
+            history: [true],
+            credential: [true],
+            dbmanagement: [true],
+            syslog: [true]
         });
     }
 }
