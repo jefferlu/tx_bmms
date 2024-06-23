@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { FileManagerService } from '../file-manager.service';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpEventType } from '@angular/common/http';
 import { Subject, takeUntil } from 'rxjs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { TranslocoModule } from '@jsverse/transloco';
+import { BimDataImportService } from '../bim-data-import.service';
 
 @Component({
     selector: 'upload-object',
@@ -34,7 +34,7 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
 
     constructor(
         private _cdr: ChangeDetectorRef,
-        private _fileManagerService: FileManagerService,
+        private _bimDataImportService: BimDataImportService
     ) { }
 
     ngOnInit(): void {
@@ -57,7 +57,7 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
 
     onUpload(file: any): void {
 
-        this._fileManagerService.uploadFile(file)
+        this._bimDataImportService.uploadFile(file)
             .subscribe({
                 next: (res) => {
                     if (res.type == HttpEventType.UploadProgress) {
@@ -72,7 +72,7 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
                 complete: () => {
                     // websocket emit upload-object
 
-                    this._fileManagerService.sse('upload-object', file.name)
+                    this._bimDataImportService.sse('upload-object', file.name)
                         .pipe(takeUntil(this._unsubscribeAll))
                         .subscribe(res => {
 

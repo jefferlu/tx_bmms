@@ -8,7 +8,7 @@ const endpoint = environment.host;
 @Injectable({
     providedIn: 'root'
 })
-export class FileManagerService {
+export class BimDataImportService {
 
     private _objects: BehaviorSubject<any> = new BehaviorSubject(null);
     private _object: BehaviorSubject<any> = new BehaviorSubject(null);

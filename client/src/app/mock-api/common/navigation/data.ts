@@ -1192,7 +1192,7 @@ export const compactNavigation: FuseNavigationItem[] = [
         title: '模型匯入',
         type: 'basic',
         icon: 'heroicons_outline:inbox-arrow-down',
-        link: '/file-manager',
+        link: '/bim-data-import',
     },   
     {
         id: 'user_management',
