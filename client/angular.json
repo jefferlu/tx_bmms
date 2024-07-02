@@ -36,15 +36,16 @@
                             "src/assets",
                             "src/downloads"
                         ],
-                        "styles": [                           
-                            "node_modules/primeng/resources/themes/aura-dark-blue/theme.css",
-                            "node_modules/primeng/resources/primeng.min.css",
+                        "styles": [                               
                             "src/@fuse/styles/tailwind.scss",
                             "src/@fuse/styles/themes.scss",
                             "src/styles/vendors.scss",
-                            "src/@fuse/styles/main.scss",
+                            "src/@fuse/styles/main.scss",                            
+                            "src/styles/tailwind.scss",
                             "src/styles/styles.scss",
-                            "src/styles/tailwind.scss"                           
+                            "node_modules/primeicons/primeicons.css",                        
+                            "node_modules/primeng/resources/themes/aura-dark-blue/theme.css",
+                            "node_modules/primeng/resources/primeng.min.css"
                         ],
                         "scripts": [
                         ]
