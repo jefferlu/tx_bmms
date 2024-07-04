@@ -9,7 +9,7 @@ export default [{
     path: '',
     component: ProcessFunctionsComponent,
     resolve: {
-        products: () => inject(ProcessFunctionsService).getProducts()
+        // products: () => inject(ProcessFunctionsService).getProducts()
     },
     children: [{
         path: '',

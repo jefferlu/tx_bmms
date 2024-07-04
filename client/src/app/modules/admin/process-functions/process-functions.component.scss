@@ -1,27 +1,41 @@
 .adsk-viewing-viewer {
-    background: none !important;
-}
-
-.inventory-grid {
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  /* grid-template-columns: 48px auto 40px;
-
-  @screen sm {
-    grid-template-columns: 48px auto 112px 72px;
-  }
-
-  @screen md {
-    grid-template-columns: 48px 112px auto 112px 72px;
-  }
-
-  @screen lg {
-    grid-template-columns: auto auto auto auto auto auto 72px;
-  } */
+  background: none !important;
 }
 
 .p-component {
   font-size: 14px;
 }
-.p-tree {
-  background-color: transparent;
+
+.tree-container {
+  .p-tree {
+    @apply bg-transparent;
+
+    .p-treenode-children {
+      @apply ml-4;
+    }
+  }
+}
+
+.result-table {
+  .p-datatable {
+    .p-datatable-thead {
+      > tr {
+        @apply border-b;
+
+        > th {
+          @apply bg-transparent;
+        }
+      }
+    }
+
+    .p-datatable-tbody {
+      > tr {
+        @apply bg-transparent;
+
+        > td {
+          @apply border-b;
+        }
+      }
+    }
+  }
 }

@@ -1,0 +1,28 @@
+<!-- 已選條件 -->
+<div class="flex items-center px-6 py-4 md:px-8 cursor-pointer border-t border-b">
+    <div class="flex-shrink-0 items-center justify-center mr-4 leading-8">已選條件 :</div>
+    <div class='flex flex-wrap gap-2'>
+        @for(criterion of criteria;track criterion){
+
+        @for(item of criterion.items;track item){
+        @if(item.selected){
+        <span class='py-1 px-2 rounded cursor-pointer text-center border border-gray-400' (click)="onSelected(item)">{{item.name}}</span>
+        }}}
+    </div>
+</div>
+
+
+<!-- 動態條件 -->
+@for(criterion of criteria;track criterion){
+<div class="flex items-center px-6 py-4 md:px-8 cursor-pointer border-b">
+    <div class="flex-shrink-0 items-center justify-center mr-4 leading-8">{{criterion.field}} :</div>
+
+    <div class='flex flex-wrap gap-2'>
+        @for(item of criterion.items;track item){
+        <!-- <span class="hover:shadow hover:bg-blue-900 cursor-pointer">{{item.name}}</span> -->
+        <span class='py-1 px-2 rounded cursor-pointer text-center border border-transparent hover:border-gray-600'
+            [ngClass]="{'border-gray-400':item.selected}" (click)="onSelected(item)">{{item.name}}</span>
+        }
+    </div>
+</div>
+}

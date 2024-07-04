@@ -1,5 +1,6 @@
 {
     "bim-information-listing": "圖資檢索",
+    "bim-information-listing-desc": "圖資檢索功能說明",
     "bim-model-viewer": "模型檢視",
     "bim-data-import": "模型匯入",
     "user-management": "使用者管理",

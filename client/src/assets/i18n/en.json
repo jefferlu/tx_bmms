@@ -1,5 +1,6 @@
 {
     "bim-information-listing": "BIM Information Listing",
+    "bim-information-listing-desc": "BIM Information Listing function description",
     "bim-model-viewer": "BIM Model Viewer",
     "bim-data-import": "BIM Data Import",
     "user-management": "User Management",
