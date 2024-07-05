@@ -6,8 +6,29 @@
 
         @for(item of criterion.items;track item){
         @if(item.selected){
-        <span class='py-1 px-2 rounded cursor-pointer text-center border border-gray-400' (click)="onSelected(item)">{{item.name}}</span>
+        <span class='flex items-center py-1 px-2 rounded cursor-pointer text-center border bg-gray-600 border-gray-400'
+            (click)="onSelected(item)">{{item.name}}
+            <mat-icon class="icon-size-5 ml-1" [svgIcon]="'heroicons_mini:x-mark'"></mat-icon>
+        </span>
         }}}
+    </div>
+</div>
+
+<!-- 關鍵字查詢 -->
+<div class="flex items-center px-6 py-4 md:px-8 cursor-pointer border-b">
+    <div class="flex-shrink-0 items-center justify-center mr-9 leading-8">關鍵字 :</div>
+    <div class='flex flex-wrap gap-2'>
+
+        <div class="relative">
+            <input type="search"
+                class="block px-2 py-1.5 border rounded min-w-64 focus:ring-blue-500 focus:border-blue-500 bg-gray-700 border-gray-600 placeholder-gray-400 text-white dark:focus:border-blue-500"
+                placeholder="請輸入關鍵字..." />
+            <button type="button" class="absolute inset-y-0 end-0 flex items-center pe-3">
+                <mat-icon class="icon-size-5 ml-1" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+            </button>
+        </div>
+
+
     </div>
 </div>
 
@@ -20,8 +41,9 @@
     <div class='flex flex-wrap gap-2'>
         @for(item of criterion.items;track item){
         <!-- <span class="hover:shadow hover:bg-blue-900 cursor-pointer">{{item.name}}</span> -->
-        <span class='py-1 px-2 rounded cursor-pointer text-center border border-transparent hover:border-gray-600'
-            [ngClass]="{'border-gray-400':item.selected}" (click)="onSelected(item)">{{item.name}}</span>
+        <span class='py-1 px-2 rounded cursor-pointer text-center border hover:border-gray-600'
+            [ngClass]="{'border-gray-400':item.selected, 'border-transparent':!item.selected}"
+            (click)="onSelected(item)">{{item.name}}</span>
         }
     </div>
 </div>

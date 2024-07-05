@@ -11,11 +11,12 @@
         <div class="flex items-center justify-between w-full" *transloco="let t">
             <div>
                 <h2 class="text-3xl font-semibold tracking-tight leading-8">{{t('bim-information-listing')}}</h2>
-                <div class="font-medium tracking-tight text-secondary text-lg">{{t('bim-information-listing-desc')}}</div>
+                <div class="font-medium tracking-tight text-secondary text-lg">{{t('bim-information-listing-desc')}}
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 w-full mt-6">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 w-full mt-6">
 
             <!-- Files tree -->
             <div class="relative flex flex-col flex-auto bg-card shadow rounded-lg overflow-hidden">
@@ -44,7 +45,8 @@
                     <!-- Select chat or start new -->
                     <div class="flex flex-col flex-auto items-center justify-center bg-gray-100 dark:bg-transparent">
                         <mat-icon class="icon-size-24" [svgIcon]="'heroicons_outline:viewfinder-circle'"></mat-icon>
-                        <div class="mt-4 text-2xl font-semibold tracking-tight text-secondary">Select one or more derivatives</div>
+                        <div class="mt-4 text-2xl font-semibold tracking-tight text-secondary">Select one or more
+                            derivatives</div>
                     </div>
                     }
 
@@ -56,16 +58,27 @@
         <div class="grid grid-cols-1 gap-8 w-full mt-6" *transloco="let t">
             <div class="flex flex-col flex-auto bg-card shadow rounded-xl py-6">
                 <div class="p-4">
-                    <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">{{t('advanced-search')}}</div>
-                    <div class="text-secondary font-medium text-lg">1 pending, 4 completed</div>
+                    <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">{{t('advanced-search')}}
+                    </div>
+                    <!-- <div class="text-secondary font-medium text-lg">1 pending, 4 completed</div> -->
                 </div>
 
                 <app-search-panel [criteria]="criteria"></app-search-panel>
 
                 <!-- {{criteria[0]|json}} -->
+
+
+            </div>
+        </div>
+
+        <!-- Result table -->
+        <div class="grid grid-cols-1 gap-8 w-full mt-6" *transloco="let t">
+            <div class="flex flex-col flex-auto bg-card shadow rounded-xl py-6">
+
                 <!-- Result table -->
-                <!-- <div class="overflow-x-auto mx-6 result-table">
-                    <p-table [value]="products" [tableStyle]="{ 'min-width': '50rem' }">
+                <div class="overflow-x-auto mx-6 result-table">
+                    <div class="text-secondary font-medium text-lg">1 pending, 4 completed</div>
+                    <p-table [value]="products" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="true" [rows]="5">
                         <ng-template pTemplate="header">
                             <tr>
                                 <th>Code</th>
@@ -83,7 +96,7 @@
                             </tr>
                         </ng-template>
                     </p-table>
-                </div> -->
+                </div>
             </div>
         </div>
 
