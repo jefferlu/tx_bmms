@@ -559,12 +559,12 @@ export class ProcessFunctionsComponent implements OnInit {
         };
         Autodesk.Viewing.Initializer(this.options, () => {
             Autodesk.Viewing.Private.InitParametersSetting.alpha = true;
-            // const startedCode = this.viewer.start(this.options.document, this.options, () => {
-            //     this.viewer.impl.renderer().setClearAlpha(0);
-            //     this.viewer.impl.glrenderer().setClearColor(0xffffff, 0);
-            //     this.viewer.impl.invalidate(true);
-            //     console.log('check')
-            // });
+            const startedCode = this.viewer.start(this.options.document, this.options, () => {
+                this.viewer.impl.renderer().setClearAlpha(0);
+                this.viewer.impl.glrenderer().setClearColor(0xffffff, 0);
+                this.viewer.impl.invalidate(true);
+                console.log('check')
+            });
         });
     }
 
