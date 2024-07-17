@@ -46,9 +46,6 @@
     "database-management-desc": "可進行資料庫備份及還原作業",
     "system-log-query": "查詢系統紀錄",
     "system-log-query-desc": "可查詢系統記錄並匯出記錄檔",
-<<<<<<< HEAD
-    "file-directory": "數位化文件資料夾"
-=======
+    "file-directory": "數位化文件資料夾",
     "search-bim-name": "查詢圖資名稱"
->>>>>>> ae63abf421de8db6c0b4eea1e677b261a400f60c
 }

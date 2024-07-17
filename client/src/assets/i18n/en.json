@@ -46,9 +46,6 @@
     "database-management-desc": "Can perform database backup and restore operations",
     "system-log-query": "System Log Query",
     "system-log-query-desc": "Can query system logs and export log files",
-<<<<<<< HEAD
-    "file-directory": "Digital files directory "
-=======
+    "file-directory": "Digital files directory ",
     "search-bim-name": "Search BIM Name"
->>>>>>> ae63abf421de8db6c0b4eea1e677b261a400f60c
 }
