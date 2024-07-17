@@ -20,6 +20,13 @@
             <!-- Files tree -->
             <div class="relative flex flex-col flex-auto bg-card shadow rounded-lg overflow-hidden">
 
+                <!-- Title -->
+                <div class="flex items-center justify-between w-full" *transloco="let t">
+                    <div>
+                        <h3 class="text-2xl m-5 font-semibold tracking-tight leading-8">{{t('file-directory')}}</h3>
+                        <!-- <div class="font-medium tracking-tight text-secondary text-lg">{{t('bim-information-listing-desc')}}</div> -->
+                    </div>
+                </div>
                 <!-- Add folder button -->
                 <div class="absolute top-0 right-0 mt-4 mr-4">
                     <button mat-icon-button>
@@ -76,14 +83,14 @@
 
                 <!-- Result table -->
                 <div class="overflow-x-auto mx-6 result-table">
-                    <div class="text-secondary font-medium text-lg">1 pending, 4 completed</div>
+                    <div class="text-secondary font-medium text-lg">全部 56 筆資料 </div>
                     <p-table [value]="products" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="true" [rows]="5">
                         <ng-template pTemplate="header">
                             <tr>
-                                <th>Code</th>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Quantity</th>
+                                <th>標別/檔案名稱 </th>
+                                <th>空間區域名稱</th>
+                                <th>構件類型</th>
+                                <th>樓層名稱</th>
                             </tr>
                         </ng-template>
                         <ng-template pTemplate="body" let-product>
