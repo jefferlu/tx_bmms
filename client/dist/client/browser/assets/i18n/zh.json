@@ -45,5 +45,6 @@
     "database-management": "資料庫管理",
     "database-management-desc": "可進行資料庫備份及還原作業",
     "system-log-query": "查詢系統紀錄",
-    "system-log-query-desc": "可查詢系統記錄並匯出記錄檔"
+    "system-log-query-desc": "可查詢系統記錄並匯出記錄檔",
+    "search-bim-name": "查詢圖資名稱"
 }

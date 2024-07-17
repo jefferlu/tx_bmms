@@ -10,6 +10,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { BmmsService } from '../bmms.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
     selector: 'bmms-list',
@@ -19,7 +20,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
     imports: [
         CommonModule, ReactiveFormsModule, RouterLink,
         MatIconModule, MatButtonModule, MatInputModule,
-        MatTableModule, MatSortModule
+        MatTableModule, MatSortModule, TranslocoModule
     ],
 })
 export class BmmsListComponent implements OnInit, OnDestroy {

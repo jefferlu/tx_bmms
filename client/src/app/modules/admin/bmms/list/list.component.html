@@ -1,18 +1,17 @@
-<div class="flex-auto p-10 sm:px-36">
+<div class="flex-auto p-10 sm:px-36" *transloco="let t">
     <div class="flex flex-col flex-wrap sm:w-auto">
         <form [formGroup]="form">
 
-            <!-- name -->
-            <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 sm:ml-4 fuse-mat-dense">
-                <mat-label>Name</mat-label>
-                <input type="search" matInput [formControlName]="'name'" [autocomplete]="'off'">
-            </mat-form-field>
-
-            <!-- Search button -->
-            <button class="w-full sm:w-auto sm:ml-4 mt-4 mr-auto sm:-mt-1 bg-accent" mat-flat-button [color]="'primary'" (click)="onSearch()">
-                <mat-icon fontIcon="search"></mat-icon>
-                <span class="ml-2 mr-1">Search</span>
-            </button>
+            <!-- Search -->
+            <div class="flex ml-auto mr-auto">
+                <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 fuse-mat-dense">
+                    <input matInput [placeholder]="t('search-bim-name')" />
+                                        
+                    <button mat-icon-button matSuffix (click)="onSearch()">
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+                    </button>
+                </mat-form-field>
+            </div>
 
         </form>
     </div>

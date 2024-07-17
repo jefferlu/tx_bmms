@@ -1178,7 +1178,7 @@ export const compactNavigation: FuseNavigationItem[] = [
         title: '模型檢視',
         type: 'basic',
         icon: 'heroicons_outline:photo',
-        link: '/bmms',
+        link: '/bim-model-viewer',
     },
     // {
     //     id: 'bim_model_conversion',

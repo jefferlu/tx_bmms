@@ -1,4 +1,5 @@
 {
+    "app-title": "BIM Model Management System",
     "bim-information-listing": "BIM Information Listing",
     "bim-information-listing-desc": "BIM Information Listing function description",
     "bim-model-viewer": "BIM Model Viewer",
@@ -44,5 +45,6 @@
     "database-management": "Database Management",
     "database-management-desc": "Can perform database backup and restore operations",
     "system-log-query": "System Log Query",
-    "system-log-query-desc": "Can query system logs and export log files"
+    "system-log-query-desc": "Can query system logs and export log files",
+    "search-bim-name": "Search BIM Name"
 }
