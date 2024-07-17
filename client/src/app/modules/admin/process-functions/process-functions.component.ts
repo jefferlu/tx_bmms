@@ -551,17 +551,17 @@ export class ProcessFunctionsComponent implements OnInit {
             useConsolidation: true,
             document: `${svfPath}/output.svf`,
             language: 'en',
-            background: {
-                color: [0, 0, 0], // 背景顏色，這裡設置為黑色
-                gradient: 'none', // 背景漸變效果，這裡設置為無
-                opacity: 0 // 背景透明度，這裡設置為完全透明
-            }
+            // background: {
+            //     color: [0, 0, 0], // 背景顏色，這裡設置為黑色
+            //     gradient: 'none', // 背景漸變效果，這裡設置為無
+            //     opacity: 0 // 背景透明度，這裡設置為完全透明
+            // }
         };
         Autodesk.Viewing.Initializer(this.options, () => {
             Autodesk.Viewing.Private.InitParametersSetting.alpha = true;
             const startedCode = this.viewer.start(this.options.document, this.options, () => {
-                this.viewer.impl.renderer().setClearAlpha(0);
-                this.viewer.impl.glrenderer().setClearColor(0xffffff, 0);
+                // this.viewer.impl.renderer().setClearAlpha(0);
+                // this.viewer.impl.glrenderer().setClearColor(0xffffff, 0);
                 this.viewer.impl.invalidate(true);
                 console.log('check')
             });
