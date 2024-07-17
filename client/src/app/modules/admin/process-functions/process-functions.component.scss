@@ -1,45 +1,46 @@
 .adsk-viewing-viewer {
-  background: none !important;
+    /* background: none !important; */
+    @apply rounded-lg;
 }
 
 .p-component {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 .tree-container {
-  .p-tree {
-    @apply bg-transparent;
+    .p-tree {
+        @apply bg-transparent;
 
-    .p-treenode-children {
-      @apply ml-4;
+        .p-treenode-children {
+            @apply ml-4;
+        }
     }
-  }
 }
 
 .result-table {
-  .p-datatable {
-    .p-datatable-thead {
-      > tr {
-        @apply border-b;
+    .p-datatable {
+        .p-datatable-thead {
+            >tr {
+                @apply border-b;
 
-        > th {
-          @apply bg-transparent;
+                >th {
+                    @apply bg-transparent;
+                }
+            }
         }
-      }
-    }
 
-    .p-datatable-tbody {
-      > tr {
-        @apply bg-transparent;
+        .p-datatable-tbody {
+            >tr {
+                @apply bg-transparent;
 
-        > td {
-          @apply border-b;
+                >td {
+                    @apply border-b;
+                }
+            }
         }
-      }
     }
-  }
 }
 
 .p-paginator {
-  @apply bg-transparent;
+    @apply bg-transparent;
 }

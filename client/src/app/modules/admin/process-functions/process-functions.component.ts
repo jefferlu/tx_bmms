@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterOutlet } from '@angular/router';
@@ -31,6 +31,8 @@ const env = environment;
 })
 export class ProcessFunctionsComponent implements OnInit {
 
+    @ViewChild('viewer') viewerContainer: ElementRef;
+
     viewer: any;
     options: any;
 
@@ -42,6 +44,7 @@ export class ProcessFunctionsComponent implements OnInit {
     constructor() { }
 
     ngOnInit(): void {
+        console.log(this.viewerContainer)
         this.files = [
             {
                 key: '0',
@@ -504,7 +507,7 @@ export class ProcessFunctionsComponent implements OnInit {
                     { name: '俄羅斯(含獨立國協)', selected: false },
                     { name: '歐非中東', selected: false },
                     { name: '北美洲', selected: false },
-                    { name: '中國/大中華', selected: false },                    
+                    { name: '中國/大中華', selected: false },
                     { name: '全球市場', selected: false },
                     { name: '台灣', selected: false },
                     { name: '台灣', selected: false },
@@ -515,19 +518,10 @@ export class ProcessFunctionsComponent implements OnInit {
         ];
 
     }
-
-    onHeaderClick(event: any) {
-        // event.stopPropagation();
-        // 阻止默认的展开行为
-        console.log('header click', event.originalEvent, event.index)
-        event.originalEvent.stopPropagation();
-    }
-
-
-
+   
     ngAfterViewInit(): void {
-        console.log(this.criteria)
-        const container = document.getElementById('viewer');
+        console.log(this.viewerContainer)
+        const container = this.viewerContainer.nativeElement;        
         this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
         // let svfPath = res.svfPath.replace(/\\/g, '/');
         // console.log(`${env.downloadUrl}${svfPath}/output.svf`)
@@ -563,7 +557,7 @@ export class ProcessFunctionsComponent implements OnInit {
                 // this.viewer.impl.renderer().setClearAlpha(0);
                 // this.viewer.impl.glrenderer().setClearColor(0xffffff, 0);
                 this.viewer.impl.invalidate(true);
-                console.log('check')
+                
             });
         });
     }
