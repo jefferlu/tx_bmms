@@ -45,15 +45,15 @@ export class ProcessFunctionsComponent implements OnInit {
         this.files = [
             {
                 key: '0',
-                label: 'Documents',
+                label: 'T3-TP01-TX1-XX-XXX-M3-EE-00001',
                 data: 'Documents Folder',
-                icon: 'pi pi-fw pi-inbox',
+                icon: 'pi pi-fw pi-file',
                 children: [
                     {
                         key: '0-0',
-                        label: 'Work',
+                        label: '工程驗收紀錄資料夾',
                         data: 'Work Folder',
-                        icon: 'pi pi-fw pi-cog',
+                        icon: 'pi pi-fw pi-file',
                         children: [
                             { key: '0-0-0', label: 'Expenses.doc', icon: 'pi pi-fw pi-file', data: 'Expenses Document' },
                             { key: '0-0-1', label: 'Resume.doc', icon: 'pi pi-fw pi-file', data: 'Resume Document' }
@@ -61,18 +61,32 @@ export class ProcessFunctionsComponent implements OnInit {
                     },
                     {
                         key: '0-1',
-                        label: 'Home',
+                        label: '工程進度追蹤資料夾',
                         data: 'Home Folder',
-                        icon: 'pi pi-fw pi-home',
+                        icon: 'pi pi-fw pi-file',
                         children: [{ key: '0-1-0', label: 'Invoices.txt', icon: 'pi pi-fw pi-file', data: 'Invoices for this month' }]
+                    },
+                    {
+                        key: '0-2',
+                        label: '工程變更設計紀錄',
+                        data: 'Home Folder',
+                        icon: 'pi pi-fw pi-file',
+                        children: [{ key: '0-1-0', label: 'Invoices.txt', icon: 'pi pi-fw pi-file', data: 'Invoices for this month' }]
+                    },
+                    {
+                        key: '0-3',
+                        label: '交付施工模型圖',
+                        data: 'Home Folder',
+                        icon: 'pi pi-fw pi-file',
+                        children: [{ key: '0-1-0', label: 'T3-TP01-TX1-XX-XXX-M3-EE-00001.rvt', icon: 'pi pi-fw pi-file', data: 'Invoices for this month' }]
                     }
                 ]
             },
             {
                 key: '1',
-                label: 'Events',
+                label: 'T3-TP11-TB1-XX-XXX-M6-EA-00091',
                 data: 'Events Folder',
-                icon: 'pi pi-fw pi-calendar',
+                icon: 'pi pi-fw pi-file',
                 children: [
                     { key: '1-0', label: 'Meeting', icon: 'pi pi-fw pi-calendar-plus', data: 'Meeting' },
                     { key: '1-1', label: 'Product Launch', icon: 'pi pi-fw pi-calendar-plus', data: 'Product Launch' },
@@ -81,9 +95,9 @@ export class ProcessFunctionsComponent implements OnInit {
             },
             {
                 key: '2',
-                label: 'Movies',
+                label: 'T3-TP14-TA2-XX-XXX-N6-AA-02011',
                 data: 'Movies Folder',
-                icon: 'pi pi-fw pi-star-fill',
+                icon: 'pi pi-fw pi-file',
                 children: [
                     {
                         key: '2-0',
@@ -474,43 +488,102 @@ export class ProcessFunctionsComponent implements OnInit {
 
         this.criteria = [
             {
-                field: '基金類型',
+                field: '空間區域名稱',
                 collapse: false,
                 items: [
-                    { name: '股票型', selected: false },
-                    { name: '債券型', selected: false },
-                    { name: '平衡型', selected: false },
-                    { name: '保本型', selected: false },
-                    { name: '貨幣型', selected: false },
-                    { name: '其他', selected: false }]
+                    { name: '旅客大廳', selected: false },
+                    { name: '走廊', selected: false },
+                    { name: '辦公區', selected: false },
+                    { name: '停車場', selected: false },
+                    { name: '接待區', selected: false },
+                    { name: '道路', selected: false },
+                    { name: '旅客大廳', selected: false },
+                    { name: '捷運聯絡道', selected: false },
+                    { name: 'T#辦公區', selected: false },
+                    { name: 'A區停車場', selected: false },
+                    { name: '接機停等區', selected: false },
+                    { name: '聯外道路', selected: false },
+                    { name: '男廁', selected: false },
+                    { name: 'A1座位區', selected: false },
+                    { name: '女廁', selected: false },
+                    { name: 'B1座位區', selected: false },
+                    { name: '航空公司櫃台', selected: false },
+                    { name: '旅客電梯', selected: false },
+                    { name: '貨梯', selected: false }]
             },
             {
-                field: '投資地區',
+                field: '樓層名稱',
                 collapse: false,
                 items: [
-                    { name: '全球新興市場', selected: false },
-                    { name: '美國', selected: false },
-                    { name: '日本', selected: false },
-                    { name: '台灣', selected: false },
-                    { name: '台灣', selected: false },
-                    { name: '台灣', selected: false },
-                    { name: '拉丁美洲', selected: false },
-                    { name: '亞洲地區', selected: false },
-                    { name: '新興歐洲', selected: false },
-                    { name: '英國', selected: false },
-                    { name: '歐洲(含歐元區)', selected: false },
-                    { name: '俄羅斯(含獨立國協)', selected: false },
-                    { name: '俄羅斯(含獨立國協)', selected: false },
-                    { name: '俄羅斯(含獨立國協)', selected: false },
-                    { name: '歐非中東', selected: false },
-                    { name: '北美洲', selected: false },
-                    { name: '中國/大中華', selected: false },                    
-                    { name: '全球市場', selected: false },
-                    { name: '台灣', selected: false },
-                    { name: '台灣', selected: false },
-                    { name: '台灣', selected: false },
-                    { name: '俄羅斯(含獨立國協)', selected: false },
-                    { name: '中國/大中華', selected: false }]
+                    { name: 'B4', selected: false },
+                    { name: 'B3', selected: false },
+                    { name: 'B2', selected: false },
+                    { name: 'B1', selected: false },
+                    { name: '1F', selected: false },
+                    { name: '2F', selected: false },
+                    { name: '3F', selected: false },
+                    { name: '4F', selected: false },
+                    { name: '5F', selected: false },
+                    { name: '6F', selected: false },
+                    { name: '7F', selected: false },
+                    { name: '8F', selected: false },
+                    { name: 'RF', selected: false }]
+            },
+            {
+                field: '管理系統分類',
+                collapse: false,
+                items: [
+                    { name: '空調系統', selected: false },
+                    { name: '空橋設備', selected: false },
+                    { name: '電梯設備', selected: false },
+                    { name: '天然氣管線', selected: false },
+                    { name: '消防管線', selected: false },
+                    { name: '汙水系統', selected: false },
+                    { name: '焚化爐系統', selected: false },
+                    { name: '電力系統', selected: false },
+                    { name: 'BHS系統', selected: false },
+                    { name: 'PMS營運系統', selected: false },
+                    { name: '空調系統', selected: false },
+                    { name: '空橋設備', selected: false },
+                    { name: '電梯設備', selected: false },
+                    { name: '天然氣管線', selected: false },
+                    { name: '消防管線', selected: false },
+                    { name: '汙水系統', selected: false },
+                    { name: '焚化爐系統', selected: false },
+                    { name: '電力系統', selected: false },
+                    { name: 'BHS系統', selected: false },
+                    { name: 'PMS營運系統', selected: false },
+                    { name: '跑道', selected: false }]
+            },
+            {
+                field: '構件類型',
+                collapse: false,
+                items: [
+                    { name: '建築工程', selected: false },
+                    { name: '結構工程', selected: false },
+                    { name: '照明設備', selected: false },
+                    { name: '瓦斯天然氣管線', selected: false },
+                    { name: '給水管線', selected: false },
+                    { name: '排水管線', selected: false },
+                    { name: '汙水管線', selected: false },
+                    { name: '消防管線', selected: false },
+                    { name: '消防設備', selected: false },
+                    { name: '電力線架', selected: false },
+                    { name: '電力設備', selected: false },
+                    { name: '弱電槽線', selected: false },
+                    { name: '照明設備', selected: false },
+                    { name: '瓦斯管線', selected: false },
+                    { name: '給水管線', selected: false },
+                    { name: '排水管線', selected: false },
+                    { name: '汙水管線', selected: false },
+                    { name: '消防管線', selected: false },
+                    { name: '消防設備', selected: false },
+                    { name: '電力線架', selected: false },
+                    { name: '電力設備', selected: false },
+                    { name: '弱電槽線', selected: false },
+                    { name: '弱電設備', selected: false },
+                    { name: '油管監控', selected: false },
+                    { name: '機場油管', selected: false }]
             }
         ];
 

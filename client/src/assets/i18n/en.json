@@ -5,7 +5,7 @@
     "bim-data-import": "BIM Data Import",
     "user-management": "User Management",
     "system-administration": "System Administration",
-    "advanced-search": "Advanced Search",
+    "advanced-search": "COBie Data Advanced Search",
     "search-keyword": "Search keyword...",
     "user-account": "Account Management",
     "log-query": "Log Query",
@@ -44,5 +44,6 @@
     "database-management": "Database Management",
     "database-management-desc": "Can perform database backup and restore operations",
     "system-log-query": "System Log Query",
-    "system-log-query-desc": "Can query system logs and export log files"
+    "system-log-query-desc": "Can query system logs and export log files",
+    "file-directory": "Digital files directory "
 }
