@@ -474,7 +474,9 @@ export class ProcessFunctionsComponent implements OnInit {
 
         this.criteria = [
             {
-                field: '基金類型', items: [
+                field: '基金類型',
+                collapse: false,
+                items: [
                     { name: '股票型', selected: false },
                     { name: '債券型', selected: false },
                     { name: '平衡型', selected: false },
@@ -483,17 +485,31 @@ export class ProcessFunctionsComponent implements OnInit {
                     { name: '其他', selected: false }]
             },
             {
-                field: '投資地區', items: [
+                field: '投資地區',
+                collapse: false,
+                items: [
                     { name: '全球新興市場', selected: false },
                     { name: '美國', selected: false },
                     { name: '日本', selected: false },
+                    { name: '台灣', selected: false },
+                    { name: '台灣', selected: false },
+                    { name: '台灣', selected: false },
                     { name: '拉丁美洲', selected: false },
                     { name: '亞洲地區', selected: false },
                     { name: '新興歐洲', selected: false },
                     { name: '英國', selected: false },
                     { name: '歐洲(含歐元區)', selected: false },
+                    { name: '俄羅斯(含獨立國協)', selected: false },
+                    { name: '俄羅斯(含獨立國協)', selected: false },
+                    { name: '俄羅斯(含獨立國協)', selected: false },
                     { name: '歐非中東', selected: false },
                     { name: '北美洲', selected: false },
+                    { name: '中國/大中華', selected: false },                    
+                    { name: '全球市場', selected: false },
+                    { name: '台灣', selected: false },
+                    { name: '台灣', selected: false },
+                    { name: '台灣', selected: false },
+                    { name: '俄羅斯(含獨立國協)', selected: false },
                     { name: '中國/大中華', selected: false }]
             }
         ];
@@ -550,13 +566,6 @@ export class ProcessFunctionsComponent implements OnInit {
             //     console.log('check')
             // });
         });
-    }
-
-
-    criteriaChange(criteria) {
-        this.criteria = criteria;
-
-        console.log(criteria)
     }
 
 

@@ -1,6 +1,7 @@
 import { NgClass } from '@angular/common';
 import { Component, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
@@ -8,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
     templateUrl: './search-panel.component.html',
     styleUrl: './search-panel.component.scss',
     standalone: true,
-    imports: [NgClass, FormsModule, MatIconModule],
+    imports: [NgClass, FormsModule, MatIconModule, MatButtonModule],
 })
 export class SearchPanelComponent implements OnInit {
 
@@ -18,6 +19,10 @@ export class SearchPanelComponent implements OnInit {
 
     onSelected(item) {
         item.selected = !item.selected;
+    }
+
+    onCollapse(criterion) {
+        criterion.collapse = !criterion.collapse;
     }
 }
 
