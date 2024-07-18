@@ -1,4 +1,4 @@
-<div class="flex w-full flex-auto flex-col" *transloco="let t">
+<div class="absolute inset-0 flex w-full flex-auto flex-col overflow-auto" *transloco="let t">
     <div class="mx-auto flex w-full max-w-screen-xl flex-wrap p-6 md:p-8">
         <div class="flex w-full items-center justify-between">
 
@@ -8,7 +8,52 @@
             <div class="text-secondary font-medium tracking-tight">
                 <!-- Monitor metrics, check reports and review performance -->
             </div>
+        </div>
 
+        <div class="mt-6 grid w-full grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-xl shadow sm:col-span-2 lg:col-span-3">
+
+                <!-- Search -->
+                <div class="ml-10 mr-6 mt-6 flex items-center justify-between sm:mr-10">
+                    <div class="flex flex-col">
+                        <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 fuse-mat-dense">
+                            <input matInput [placeholder]="t('search-bim-name')" [(ngModel)]="searchBinName" />
+
+                            <button mat-icon-button matSuffix (click)="onSearch()">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+                            </button>
+                        </mat-form-field>
+                    </div>
+                </div>
+
+                <div class="ml-10 mr-6 mt-2 flex flex-auto flex-col result-table" style="height: calc(100vh - 10rem);">
+                    <p-table [value]="page?.data" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="false" [rows]="5">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>標別/檔案名稱</th>                                
+                                <th>上傳者</th>
+                                <th>上傳時間</th>
+                                <th>前次備分</th>
+                                <th>還原版本</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-product>
+                            <tr>   
+
+                                <td><span class="hover:cursor-pointer">{{ product.name }}</span></td>
+                                <td>{{ product.category }}</td>
+                                <td>{{ product.quantity }}</td>
+                                <td>{{ product.quantity }}</td>
+                                <td>
+                                    <button mat-icon-button matSuffix (click)="onSearch()">
+                                        <mat-icon [svgIcon]="'mat_outline:history'"></mat-icon>
+                                    </button>
+                                </td>
+                                
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
         </div>
     </div>
-</div>

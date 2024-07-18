@@ -1,0 +1,27 @@
+.result-table {
+    .p-datatable {
+        .p-datatable-thead {
+            >tr {
+                @apply border-b;
+
+                >th {
+                    @apply bg-transparent;
+                }
+            }
+        }
+
+        .p-datatable-tbody {
+            >tr {
+                @apply bg-transparent;
+
+                >td {
+                    @apply border-b;
+                }
+            }
+        }
+    }
+}
+
+.p-paginator {
+    @apply bg-transparent;
+}
