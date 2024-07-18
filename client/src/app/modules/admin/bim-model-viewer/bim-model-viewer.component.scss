@@ -1,18 +1,19 @@
 .result-table {
     .p-datatable {
         .p-datatable-thead {
+            @apply bg-card;
             >tr {
                 @apply border-b;
 
                 >th {
-                    @apply bg-transparent;
+                    @apply bg-card;
                 }
             }
         }
 
         .p-datatable-tbody {
             >tr {
-                @apply bg-transparent;
+                 @apply bg-card;
 
                 >td {
                     @apply border-b;
@@ -23,5 +24,9 @@
 }
 
 .p-paginator {
-    @apply bg-transparent;
+    @apply bg-card;
+}
+
+.initial-height{
+    height: calc(100vh - 17rem);
 }
