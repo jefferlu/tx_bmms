@@ -7,7 +7,7 @@ import { RouterOutlet } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { BimModelViewerService } from './bim-model-viewer.service';
-import { NgClass } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 
 @Component({
     selector: 'app-bim-model-viewer',
@@ -17,7 +17,7 @@ import { NgClass } from '@angular/common';
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
     imports: [
-        NgClass, FormsModule, TranslocoModule, TableModule,
+        NgClass, DatePipe, FormsModule, TranslocoModule, TableModule,
         MatIconModule, MatButtonModule, MatInputModule
     ],
 })

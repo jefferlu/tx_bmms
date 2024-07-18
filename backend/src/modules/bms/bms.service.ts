@@ -52,7 +52,7 @@ export class BmmsMasterService {
             });
         } else {
             console.log(2)
-            return this.bmmsRepository.find();
+            return this.bmmsRepository.find({ relations: ['uploader'] });
         }
     }
 
