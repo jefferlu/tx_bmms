@@ -395,7 +395,7 @@
 
         /* Border color */
         .mat-mdc-text-field-wrapper {
-            @apply border-primary dark:border-primary #{'!important'};
+            @apply border-primary dark:border-white #{'!important'};
         }
     }
 
