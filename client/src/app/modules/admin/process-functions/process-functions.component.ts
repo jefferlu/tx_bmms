@@ -593,7 +593,7 @@ export class ProcessFunctionsComponent implements OnInit {
     }
    
     ngAfterViewInit(): void {
-        console.log(this.viewerContainer)
+        
         const container = this.viewerContainer.nativeElement;        
         this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
         // let svfPath = res.svfPath.replace(/\\/g, '/');
@@ -630,10 +630,13 @@ export class ProcessFunctionsComponent implements OnInit {
                 // this.viewer.impl.renderer().setClearAlpha(0);
                 // this.viewer.impl.glrenderer().setClearColor(0xffffff, 0);
                 this.viewer.impl.invalidate(true);
+                this.viewer.setGhosting(false);
                 
+                let instanceTree=this.viewer.model.getData();
+                // let rootId = instanceTree.getRootId()
+                console.log(instanceTree)
             });
         });
     }
-
 
 }
