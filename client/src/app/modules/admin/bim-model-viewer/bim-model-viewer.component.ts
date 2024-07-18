@@ -36,7 +36,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         this.products = [
             {
                 id: '1000',
-                code: 'f230fh0g3',
+                code: 'T3-TP20-TA-EE-f230fh0g3',
                 name: 'Bamboo Watch',
                 description: 'Product Description',
                 image: 'bamboo-watch.jpg',

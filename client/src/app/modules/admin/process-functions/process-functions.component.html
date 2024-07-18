@@ -82,12 +82,13 @@
             <div class="flex flex-col flex-auto bg-card shadow rounded-xl py-6">
 
                 <!-- Result table -->
-                <div class="overflow-x-auto mx-6 result-table">
-                    <div class="text-secondary font-medium text-lg">全部 56 筆資料 </div>
+                <div class="overflow-x-auto mx-10 result-table">
+                    <div class="text-secondary font-medium text-lg">查詢結果 : 全部 56 筆資料 </div>
                     <p-table [value]="products" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="true" [rows]="5">
                         <ng-template pTemplate="header">
                             <tr>
-                                <th>標別/檔案名稱 </th>
+                                <th>載入模型</th>
+                                <th>標別/檔案名稱</th>
                                 <th>空間區域名稱</th>
                                 <th>構件類型</th>
                                 <th>樓層名稱</th>
@@ -95,10 +96,13 @@
                         </ng-template>
                         <ng-template pTemplate="body" let-product>
                             <tr>
+                                <td>
+                                <input type="checkbox" [(ngModel)]="product.selected" (change)="onProductSelected(product)" />
+                                </td>
                                 <td>{{ product.code }}</td>
                                 <td>{{ product.name }}</td>
                                 <td>{{ product.category }}</td>
-                                <td>{{ product.quantity }}</td>
+                                <td>{{ product.inventoryStatus }}</td>
                             </tr>
                         </ng-template>
                     </p-table>

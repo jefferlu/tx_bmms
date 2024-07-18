@@ -27,29 +27,43 @@
                 </div>
 
                 <div class="ml-10 mr-6 mt-2 flex flex-auto flex-col result-table" style="height: calc(100vh - 10rem);">
-                    <p-table [value]="page?.data" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="false" [rows]="5">
+                    <p-table [value]="page?.data" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="false" [rows]="7">
                         <ng-template pTemplate="header">
                             <tr>
-                                <th>標別/檔案名稱</th>                                
-                                <th>上傳者</th>
+                                <th>標別/檔案名稱</th>                              
                                 <th>上傳時間</th>
-                                <th>前次備分</th>
-                                <th>還原版本</th>
+                                <th>上傳者</th>
+                                <th>下載COBie CSV</th>  
+                                <th>下載BIM原始檔</th>
+                                <th>前次備份版本</th>
+                                <th>還原前次版本</th>  
                             </tr>
                         </ng-template>
                         <ng-template pTemplate="body" let-product>
                             <tr>   
 
                                 <td><span class="hover:cursor-pointer">{{ product.name }}</span></td>
-                                <td>{{ product.category }}</td>
+                        <!--    <td>{{ product.category }}</td>
                                 <td>{{ product.quantity }}</td>
-                                <td>{{ product.quantity }}</td>
+                                <td>{{ product.quantity }}</td>  --> 
+                                <td>2024-03-03 12:23:12</td>
+                                <td>Luke</td>
+                                <td>
+                                    <button mat-icon-button matSuffix (click)="onSearch()">
+                                        <mat-icon [svgIcon]="'mat_outline:description'"></mat-icon>
+                                    </button>
+                                </td>
+                                <td>
+                                    <button mat-icon-button matSuffix (click)="onSearch()">
+                                        <mat-icon [svgIcon]="'mat_outline:download'"></mat-icon>
+                                    </button>
+                                </td>
+                                <td>2024-01-03 12:23:12</td>
                                 <td>
                                     <button mat-icon-button matSuffix (click)="onSearch()">
                                         <mat-icon [svgIcon]="'mat_outline:history'"></mat-icon>
                                     </button>
-                                </td>
-                                
+                                </td>  
                             </tr>
                         </ng-template>
                     </p-table>
