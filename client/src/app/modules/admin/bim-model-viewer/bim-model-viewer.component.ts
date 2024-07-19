@@ -8,6 +8,8 @@ import { TranslocoModule } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { DatePipe, NgClass } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { ModelDialogComponent } from './model-dialog/model-dialog.component';
 
 @Component({
     selector: 'app-bim-model-viewer',
@@ -30,7 +32,8 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
-        private _bimModelViewerService: BimModelViewerService
+        private _bimModelViewerService: BimModelViewerService,
+        private _matDialog: MatDialog
     ) { }
 
     ngOnInit(): void {
@@ -418,7 +421,13 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
                 // this._alert.open({ type: 'warn', message: JSON.stringify(e.message) });
             }
         });
+    }
 
+    onModelDialog(item): void {
+
+        this._matDialog.open(ModelDialogComponent, {       
+            data: item
+        })
     }
 
     ngOnDestroy(): void {

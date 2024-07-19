@@ -6,3 +6,11 @@
 .p-component {
     font-size: 14px;
 }
+
+.mat-mdc-snack-bar-container.snackbar-customer {
+    .mdc-snackbar__surface {
+        @apply bg-transparent #{'!important'};
+        @apply border-0 #{'!important'};
+        @apply shadow-none #{'!important'};
+    }
+}

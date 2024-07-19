@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterOutlet } from '@angular/router';
@@ -29,7 +29,7 @@ const env = environment;
     ],
 
 })
-export class ProcessFunctionsComponent implements OnInit {
+export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     @ViewChild('viewer') viewerContainer: ElementRef;
 
@@ -591,10 +591,10 @@ export class ProcessFunctionsComponent implements OnInit {
         ];
 
     }
-   
+
     ngAfterViewInit(): void {
-        
-        const container = this.viewerContainer.nativeElement;        
+
+        const container = this.viewerContainer.nativeElement;
         this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
         // let svfPath = res.svfPath.replace(/\\/g, '/');
         // console.log(`${env.downloadUrl}${svfPath}/output.svf`)
@@ -629,14 +629,20 @@ export class ProcessFunctionsComponent implements OnInit {
             const startedCode = this.viewer.start(this.options.document, this.options, () => {
                 // this.viewer.impl.renderer().setClearAlpha(0);
                 // this.viewer.impl.glrenderer().setClearColor(0xffffff, 0);
-                this.viewer.impl.invalidate(true);
+                // this.viewer.impl.invalidate(true);
                 this.viewer.setGhosting(false);
-                
-                let instanceTree=this.viewer.model.getData();
+
+                let instanceTree = this.viewer.model.getData();
                 // let rootId = instanceTree.getRootId()
                 console.log(instanceTree)
             });
         });
+    }
+
+    ngOnDestroy(): void {
+        if (this.viewer) {
+            this.viewer.finish();
+        }
     }
 
 }
