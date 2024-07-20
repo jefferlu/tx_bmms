@@ -31,3 +31,6 @@
     height: calc(100vh - 17rem);
 }
 
+.mat-mdc-dialog-surface {
+    @apply p-0 #{'!important'};    
+}

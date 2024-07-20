@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, Input, OnDestroy, OnInit, Optional, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { environment } from 'environments/environment';
 
@@ -6,33 +6,39 @@ declare const Autodesk: any;
 const env = environment;
 
 @Component({
-    selector: 'app-model-dialog',
-    templateUrl: './model-dialog.component.html',
-    styleUrl: './model-dialog.component.scss',
+    selector: 'aps-viewer',
+    templateUrl: './aps-viewer.component.html',
+    styleUrl: './aps-viewer.component.scss',
     encapsulation: ViewEncapsulation.None,
     standalone: true,
     imports: [],
 })
-export class ModelDialogComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
+    @Input() option;
     @ViewChild('viewer') viewerContainer: ElementRef;
 
     viewer: any;
     options: any;
 
-    constructor(@Inject(MAT_DIALOG_DATA) public data: any) { }
+    constructor(@Optional() @Inject(MAT_DIALOG_DATA) public data: any) { }
 
 
     ngOnInit(): void {
         // console.log(this.data)
+        console.log('check')
     }
 
 
     ngAfterViewInit(): void {
+
+        console.log(this.data, this.option)
+        let data = this.data || this.option;
+
         const container = this.viewerContainer.nativeElement;
         this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
 
-        let svfPath = this.data.svfPath.replace(/\\/g, '/');
+        let svfPath = data.svfPath.replace(/\\/g, '/');
         this.options = {
             env: 'Local',
             useConsolidation: true,
@@ -57,3 +63,4 @@ export class ModelDialogComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 }
+

@@ -3,15 +3,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterOutlet } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
-import { environment } from 'environments/environment';
 import { TreeNode } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { TreeModule } from 'primeng/tree';
-import { SearchPanelComponent } from './search-panel/search-panel.component';
 import { JsonPipe } from '@angular/common';
-
-declare const Autodesk: any;
-const env = environment;
+import { ApsViewerComponent } from "../../../layout/common/aps-viewer/aps-viewer.component";
+import { SearchPanelComponent } from './search-panel/search-panel.component';
 
 @Component({
     selector: 'app-process-functions',
@@ -25,16 +22,19 @@ const env = environment;
         MatButtonModule, MatIconModule,
         TreeModule, TableModule,
         TranslocoModule,
-        SearchPanelComponent
+        SearchPanelComponent,
+        ApsViewerComponent,
     ],
 
 })
 export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
-    @ViewChild('viewer') viewerContainer: ElementRef;
+    // @ViewChild('viewer') viewerContainer: ElementRef;
 
-    viewer: any;
-    options: any;
+    // viewer: any;
+    // options: any;
+
+    page = { svf: {} }
 
     files: TreeNode[];
     products: any[];
@@ -44,7 +44,16 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     constructor() { }
 
     ngOnInit(): void {
-        console.log(this.viewerContainer)
+
+        console.log(this.page)
+        this.page.svf = {
+            "id": 6,
+            "name": "SL_OM_IN(整合)_A棟.nwd",
+            "filePath": "./uploads/SL_OM_IN(%E6%95%B4%E5%90%88)_A%E6%A3%9F.nwd",
+            "svfPath": "downloads/dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvU0xfT01fSU4oJUU2JTk1JUI0JUU1JTkwJTg4KV9BJUU2JUEzJTlGLm53ZA/4755652b-a8e4-4d79-b049-b9ee252c3efe"
+        }
+        
+
         this.files = [
             {
                 key: '0',
@@ -593,56 +602,55 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     ngAfterViewInit(): void {
+       
 
-        const container = this.viewerContainer.nativeElement;
-        this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
+        // let svfPath = res.svfPath.replace(/\\/g, '/');
+
+        // const container = this.viewerContainer.nativeElement;
+        // this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
+        // // let svfPath = res.svfPath.replace(/\\/g, '/');
+        // // console.log(`${env.downloadUrl}${svfPath}/output.svf`)
+        // // this.options = {
+        // //     env: 'Local',
+        // //     useConsolidation: true,
+        // //     document: `${env.downloadUrl}${svfPath}/output.svf`,
+        // //     language: 'en'
+        // // };
+        // let res = {
+        //     "id": 6,
+        //     "name": "SL_OM_IN(整合)_A棟.nwd",
+        //     "filePath": "./uploads/SL_OM_IN(%E6%95%B4%E5%90%88)_A%E6%A3%9F.nwd",
+        //     "svfPath": "downloads/dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvU0xfT01fSU4oJUU2JTk1JUI0JUU1JTkwJTg4KV9BJUU2JUEzJTlGLm53ZA/4755652b-a8e4-4d79-b049-b9ee252c3efe"
+        // }
+
         // let svfPath = res.svfPath.replace(/\\/g, '/');
         // console.log(`${env.downloadUrl}${svfPath}/output.svf`)
         // this.options = {
         //     env: 'Local',
         //     useConsolidation: true,
-        //     document: `${env.downloadUrl}${svfPath}/output.svf`,
-        //     language: 'en'
+        //     document: `${svfPath}/output.svf`,
+        //     language: 'en',
+        //     // background: {
+        //     //     color: [0, 0, 0], // 背景顏色，這裡設置為黑色
+        //     //     gradient: 'none', // 背景漸變效果，這裡設置為無
+        //     //     opacity: 0 // 背景透明度，這裡設置為完全透明
+        //     // }
         // };
-        let res = {
-            "id": 6,
-            "name": "SL_OM_IN(整合)_A棟.nwd",
-            "filePath": "./uploads/SL_OM_IN(%E6%95%B4%E5%90%88)_A%E6%A3%9F.nwd",
-            "svfPath": "downloads/dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvU0xfT01fSU4oJUU2JTk1JUI0JUU1JTkwJTg4KV9BJUU2JUEzJTlGLm53ZA/4755652b-a8e4-4d79-b049-b9ee252c3efe"
-        }
+        // Autodesk.Viewing.Initializer(this.options, () => {
+        //     Autodesk.Viewing.Private.InitParametersSetting.alpha = true;
+        //     const startedCode = this.viewer.start(this.options.document, this.options, () => {
+        //         // this.viewer.impl.renderer().setClearAlpha(0);
+        //         // this.viewer.impl.glrenderer().setClearColor(0xffffff, 0);
+        //         // this.viewer.impl.invalidate(true);
+        //         this.viewer.setGhosting(false);
 
-        let svfPath = res.svfPath.replace(/\\/g, '/');
-        console.log(`${env.downloadUrl}${svfPath}/output.svf`)
-        this.options = {
-            env: 'Local',
-            useConsolidation: true,
-            document: `${svfPath}/output.svf`,
-            language: 'en',
-            // background: {
-            //     color: [0, 0, 0], // 背景顏色，這裡設置為黑色
-            //     gradient: 'none', // 背景漸變效果，這裡設置為無
-            //     opacity: 0 // 背景透明度，這裡設置為完全透明
-            // }
-        };
-        Autodesk.Viewing.Initializer(this.options, () => {
-            Autodesk.Viewing.Private.InitParametersSetting.alpha = true;
-            const startedCode = this.viewer.start(this.options.document, this.options, () => {
-                // this.viewer.impl.renderer().setClearAlpha(0);
-                // this.viewer.impl.glrenderer().setClearColor(0xffffff, 0);
-                // this.viewer.impl.invalidate(true);
-                this.viewer.setGhosting(false);
-
-                let instanceTree = this.viewer.model.getData();
-                // let rootId = instanceTree.getRootId()
-                console.log(instanceTree)
-            });
-        });
+        //         let instanceTree = this.viewer.model.getData();
+        //         // let rootId = instanceTree.getRootId()
+        //         console.log(instanceTree)
+        //     });
+        // });
     }
 
-    ngOnDestroy(): void {
-        if (this.viewer) {
-            this.viewer.finish();
-        }
-    }
+    ngOnDestroy(): void { }
 
 }

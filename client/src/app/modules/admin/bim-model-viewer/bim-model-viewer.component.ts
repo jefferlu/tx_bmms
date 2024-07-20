@@ -9,7 +9,7 @@ import { TableModule } from 'primeng/table';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { DatePipe, NgClass } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
-import { ModelDialogComponent } from './model-dialog/model-dialog.component';
+import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 
 @Component({
     selector: 'app-bim-model-viewer',
@@ -425,7 +425,9 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     onModelDialog(item): void {
 
-        this._matDialog.open(ModelDialogComponent, {       
+        this._matDialog.open(ApsViewerComponent, {
+            width: '70vw',
+            height: '90vh',
             data: item
         })
     }
