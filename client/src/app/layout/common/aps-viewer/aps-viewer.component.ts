@@ -23,16 +23,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     constructor(@Optional() @Inject(MAT_DIALOG_DATA) public data: any) { }
 
-
-    ngOnInit(): void {
-        // console.log(this.data)
-        console.log('check')
-    }
-
+    ngOnInit(): void { }
 
     ngAfterViewInit(): void {
 
-        console.log(this.data, this.option)
         let data = this.data || this.option;
 
         const container = this.viewerContainer.nativeElement;
@@ -58,6 +52,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        console.log('aps-viewer destroy')
         if (this.viewer) {
             this.viewer.finish();
         }
