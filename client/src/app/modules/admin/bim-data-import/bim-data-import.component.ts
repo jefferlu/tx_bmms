@@ -1,4 +1,4 @@
-import { NgFor } from '@angular/common';
+import { NgClass, NgFor } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -17,7 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
     imports: [
-        NgFor, TranslocoModule,
+        NgFor, NgClass, TranslocoModule,
         MatSidenavModule, MatButtonModule, MatIconModule,
         UploadObjectComponent, TranslateJobComponent, ExtraMetadataComponent
     ],

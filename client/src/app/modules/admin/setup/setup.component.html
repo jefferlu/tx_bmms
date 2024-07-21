@@ -19,9 +19,9 @@
                     <div class="flex px-8 py-5 cursor-pointer" [ngClass]="{'hover:bg-gray-100 dark:hover:bg-hover': !selectedPanel || selectedPanel !== panel.id,
                                     'bg-primary-50 dark:bg-hover': selectedPanel && selectedPanel === panel.id}" (click)="goToPanel(panel.id)">
                         <mat-icon [ngClass]="{'text-hint': !selectedPanel || selectedPanel !== panel.id,
-                                        'text-primary dark:text-primary-500': selectedPanel && selectedPanel === panel.id}" [svgIcon]="panel.icon"></mat-icon>
+                                        'text-primary dark:text-gray-400': selectedPanel && selectedPanel === panel.id}" [svgIcon]="panel.icon"></mat-icon>
                         <div class="ml-3">
-                            <div class="font-medium leading-6" [ngClass]="{'text-primary dark:text-primary-500': selectedPanel && selectedPanel === panel.id}">
+                            <div class="font-medium leading-6" [ngClass]="{'text-primary dark:text-gray-400': selectedPanel && selectedPanel === panel.id}">
                                 {{t(panel.id)}}
                             </div>
                             <!-- <div class="mt-0.5 text-secondary">

@@ -1,16 +1,16 @@
 <div class="absolute inset-0 flex w-full flex-auto flex-col overflow-auto" *transloco="let t">
     <div class="mx-auto flex w-full max-w-screen-xl flex-wrap p-6 md:p-8">
-        <div class="flex w-full items-center justify-between">
+        <!-- <div class="flex w-full items-center justify-between">
 
             <div class="text-3xl font-semibold leading-8 tracking-tight">
                 {{t('bim-model-viewer')}}
             </div>
             <div class="text-secondary font-medium tracking-tight">
-                <!-- Monitor metrics, check reports and review performance -->
+                Monitor metrics, check reports and review performance
             </div>
-        </div>
+        </div> -->
 
-        <div class="mt-6 grid w-full grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="mt-1 grid w-full grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-xl shadow sm:col-span-2 lg:col-span-3">
 
                 <!-- Search -->
@@ -27,9 +27,10 @@
                 </div>
 
                 <div class="ml-10 mr-6 mt-2 flex flex-auto flex-col result-table" [ngClass]="{'initial-height':!page.data}">
-                    <p-table [value]="page.data" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="true" [rows]="8" [scrollable]="true" scrollHeight="100%">
+                    <p-table [value]="page.data" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="true" [rows]="9" [scrollable]="true" scrollHeight="100%">
                         <ng-template pTemplate="header">
                             <tr>
+                                <!-- <th>NO</th> -->
                                 <th class="min-w-20">標別/檔案名稱</th>
                                 <th>上傳時間</th>
                                 <th>上傳者</th>
@@ -39,9 +40,9 @@
                                 <th class="text-center">還原前次版本</th>
                             </tr>
                         </ng-template>
-                        <ng-template pTemplate="body" let-item>
+                        <ng-template pTemplate="body" let-item let-no="rowIndex">
                             <tr>
-
+                                <!-- <td>{{no+1}}</td> -->
                                 <td><span class="hover:cursor-pointer hover:text-slate-500" (click)="onModelDialog(item)">{{ item.name }}</span></td>
                                 <td>{{item.createdAt | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
                                 <td>{{item.uploader.username}}</td>

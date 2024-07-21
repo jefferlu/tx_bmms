@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -9,6 +9,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { TranslocoModule } from '@jsverse/transloco';
 import { BimDataImportService } from '../bim-data-import.service';
+import { TableModule } from 'primeng/table';
 
 @Component({
     selector: 'upload-object',
@@ -20,15 +21,20 @@ import { BimDataImportService } from '../bim-data-import.service';
     imports: [
         CommonModule,
         MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule,
-        TranslocoModule, MatProgressBarModule
+        TranslocoModule, MatProgressBarModule, TableModule
     ],
 })
 export class UploadObjectComponent implements OnInit, OnDestroy {
 
+    @ViewChild('fileInput') fileInput!: ElementRef;
+
     canUpload: boolean = false;
     progress: number = 0;
-    files = [];
+    page = {
+        files: []
+    }
 
+    products;
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
@@ -41,9 +47,25 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
 
     }
 
+    triggerFileInput(): void {
+        this.fileInput.nativeElement.click();
+    }
+
     onFileSelected(event: any): void {
         // this.fileInput = event.target;
-        this.files = event.target.files
+        // this.page.files = event.target.files;
+
+        if (event.target.files) {
+            this.page.files = Array.from(event.target.files).map((file: any) => ({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                lastModified: file.lastModified,
+                file: file
+            }));
+        }
+
+        // this.page.files = event.target.files;
 
         // this.form.patchValue({ file: '' });
         // if (this.fileInput.files && this.fileInput.files.length > 0) {
@@ -53,13 +75,17 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
 
         //     this.canUpload = true;
         // }
+
+
+        console.log(this.page.files, event.target.files)
     }
 
     onUpload(file: any): void {
 
-        this._bimDataImportService.uploadFile(file)
+        this._bimDataImportService.uploadFile(file.file)
             .subscribe({
                 next: (res) => {
+
                     if (res.type == HttpEventType.UploadProgress) {
                         let progress = Math.round(100 * (res.loaded / res.total));
                         file.status = `${progress} %`;

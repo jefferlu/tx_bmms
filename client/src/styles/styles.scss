@@ -3,14 +3,56 @@
 /*  @ Styles from this file will override 'vendors.scss' and Fuse's base styles.
 /* ----------------------------------------------------------------------------------------------------- */
 
-.p-component {
-    font-size: 14px;
-}
-
 .mat-mdc-snack-bar-container.snackbar-customer {
     .mdc-snackbar__surface {
         @apply bg-transparent #{'!important'};
         @apply border-0 #{'!important'};
         @apply shadow-none #{'!important'};
+    }
+}
+
+/* ----------------------------------------------------------------------------------------------------- */
+/*  @ Primeng Override
+/* ----------------------------------------------------------------------------------------------------- */
+.p-component {
+    font-size: 14px;
+}
+
+.p-datatable {
+    .p-datatable-thead {
+        @apply bg-card;
+
+        >tr {
+            @apply border-b;
+
+            >th {
+                @apply bg-card;
+            }
+        }
+    }
+
+    .p-datatable-tbody {
+        >tr {
+            @apply bg-card;
+
+            >td {
+                @apply border-b;
+            }
+        }
+    }
+}
+
+.p-paginator {
+    @apply bg-card;
+}
+
+
+.tree-container {
+    .p-tree {
+        @apply bg-transparent;
+
+        .p-treenode-children {
+            @apply ml-4;
+        }
     }
 }

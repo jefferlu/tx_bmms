@@ -1,6 +1,68 @@
-<!-- Main -->
-<div class="flex-auto">
-    <!-- Header -->
+<div class="flex-auto bg-card rounded-lg">
+
+    <!-- Upload file -->
+    <div class="ml-10 mr-6 mt-6 flex items-center justify-between sm:mr-10">
+        <div class="flex flex-col sm:flex-row md:flex-col flex-auto justify-between py-8">
+            <div class="flex items-center ">
+
+                <input #fileInput class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file" [multiple]="true"
+                    (change)="onFileSelected($event)">
+                <a mat-stroked-button (click)="triggerFileInput()">
+                    <span class="inline-flex items-center cursor-pointer">
+                        <mat-icon class="mr-2 icon-size-5" [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
+                        <span>Upload file</span>
+                    </span>
+                </a>
+
+                <!-- <div class="flex-auto"></div>
+                <input id="file-input" class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file" [multiple]="true"
+                    (change)="onFileSelected($event)">
+                <label class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer ml-2 hover:bg-hover" for="file-input">
+                    <mat-icon [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
+                </label> -->
+
+            </div>
+        </div>
+    </div>
+
+    <div class="ml-10 mr-6 mt-2 flex flex-auto flex-col result-table" [ngClass]="{'initial-height':true}">
+        <p-table [value]="page.files" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="true" [rows]="9" [scrollable]="true" scrollHeight="100%">
+            <ng-template pTemplate="header">
+                <tr>
+                    <!-- <th class="min-w-20">NO</th> -->
+                    <th>File Name</th>
+                    <th>Size</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-file let-no="rowIndex">
+                <tr>
+                    <!-- <td>{{no+1}}</td> -->
+                    <td>{{file.name}}</td>
+                    <td>{{file.size}}</td>
+                    <td class="text-center">
+                        @if(file.status==='process'){<mat-progress-bar class="" [mode]="'determinate'" [value]="file.progress"></mat-progress-bar>}
+                        @else{<span class="text-green-900 dark:text-green-400">{{file.status||'ready'}}</span>}
+                    </td>
+                    <td class="text-center">
+                        <!-- <button mat-button class="text-primary" (click)="onStartUpload(file)" [disabled]="file.status==='Completed'">Upload</button> -->
+                        @if(file.status==='complete'){
+                        <button mat-button color="primary"><mat-icon [svgIcon]="'heroicons_outline:check-circle'"></mat-icon></button>
+                        }
+                        @else{
+                        <button mat-button class="underline" color="primary" [disabled]="file.status" (click)="onUpload(file)">upload</button>
+                        }
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </div>
+</div>
+
+
+<!-- <div class="flex-auto">    
     <div class="flex flex-col sm:flex-row md:flex-col flex-auto justify-between py-8">
         <div class="flex items-center">
             <div class="flex-auto"></div>
@@ -8,27 +70,10 @@
                 (change)="onFileSelected($event)">
             <label class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer ml-2 hover:bg-hover" for="file-input">
                 <mat-icon [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
-            </label>
-            <!-- <form class="rounded overflow-hidden" [formGroup]="form">
-                        <mat-form-field class="flex-auto w-full fuse-mat-dense" subscriptSizing="dynamic">
-                            <input matInput [formControlName]="'file'" [placeholder]="'Select a file ...'" readonly>
-                            <input id="file-input" class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file" [multiple]="false"
-                                (change)="onFileSelected($event)">
-                            <label class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer ml-2 hover:bg-hover" for="file-input">
-                                <mat-icon [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
-                            </label>
-                        </mat-form-field>
-                    </form> -->
-
-            <!-- Add contact button -->
-            <!-- <button class="ml-4" mat-flat-button [color]="'accent'" [disabled]="!canUpload" (click)="onStartUpload()">
-                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:cloud-arrow-up'"></mat-icon>
-                    <span class="ml-2">{{'upload'|transloco}}</span>
-                </button> -->
+            </label>           
         </div>
     </div>
 
-    <!-- Contacts list -->
     <div class="relative">
         <table class="default-item-table">
             <thead>
@@ -41,8 +86,8 @@
                 </tr>
             </thead>
 
-            <tbody *ngIf="files">
-                @for (file of files; track trackByFn;let no=$index) {
+            <tbody *ngIf="page.files">
+                @for (file of page.files; track trackByFn;let no=$index) {
                 <tr>
                     <td class="text-center">{{no+1}}</td>
                     <td class="px-3">{{file.name}}</td>
@@ -52,7 +97,6 @@
                         @else{<span class="text-green-900">{{file.status||'ready'}}</span>}
                     </td>
                     <td class="text-center">
-                        <!-- <button mat-button class="text-primary" (click)="onStartUpload(file)" [disabled]="file.status==='Completed'">Upload</button> -->
                         @if(file.status==='complete'){
                         <button mat-button color="primary"><mat-icon [svgIcon]="'heroicons_outline:check-circle'"></mat-icon></button>
                         }
@@ -64,33 +108,5 @@
                 }
             </tbody>
         </table>
-    </div>
-
-
-</div>
-<!-- <div class="flex-auto p-6 sm:p-10">
-    <div class="max-w-2xl ">
-        <form class="px-6 rounded overflow-hidden" [formGroup]="form">
-            <div class="flex">
-                <mat-form-field class="flex-auto fuse-mat-dense">
-                    <input matInput [formControlName]="'file'" [placeholder]="'Select a file ...'" readonly>
-                    <input id="file-input" class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file" [multiple]="false"
-                        (change)="onFileSelected($event)">
-                    <label class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer ml-2 hover:bg-hover" for="file-input">
-                        <mat-icon [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
-                    </label>
-                </mat-form-field>
-            </div>
-
-            <div class="flex pb-4">
-
-            </div>
-            <div class="flex justify-end">
-                <button mat-flat-button [color]="'accent'" [disabled]="!canUpload" (click)="onStartUpload()">
-                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:cloud-arrow-up'"></mat-icon>
-                    <span class="ml-2">{{'upload'|transloco}}</span>
-                </button>
-            </div>
-        </form>
     </div>
 </div> -->
