@@ -1,17 +1,14 @@
-import * as fs from 'fs';
 import * as path from 'path';
+import * as fs from 'fs';
+import * as fse from 'fs-extra';
 import * as crypto from 'crypto';
 
-import { Injectable } from "@nestjs/common";
-import { IEnvironment } from "./environments";
-import { IContext, promptBucket, promptDerivative, promptObject, showErrorMessage } from "./common";
-import { AuthenticationClient, BIM360Client, DataManagementClient, DesignAutomationClient, DesignAutomationRegion, IDerivativeOutputType, IResumableUploadRange, ModelDerivativeClient, WebhooksClient } from "aps-sdk-node";
-import { Region } from "aps-sdk-node/dist/common";
-
-import * as mdc from './commands/model-derivative';
-import { Observable } from "rxjs";
-import { SvfDownloader, TwoLeggedAuthenticationProvider } from 'svf-utils';
-import { IDerivative } from './interfaces/model-derivative';
+import { Injectable, MessageEvent } from '@nestjs/common';
+import { IEnvironment } from './environments';
+import { IContext, findViewable, getModelDerivativeClientForObject, getURN, promptBucket, promptDerivative, promptObject, showErrorMessage } from './common';
+import { AuthenticationClient, BIM360Client, DataManagementClient, IDerivativeOutputType, IResumableUploadRange, ModelDerivativeClient, WebhooksClient } from 'forge-server-utils';
+import { Observable } from 'rxjs';
+import { SvfDownloader } from 'forge-convert-utils';
 import { BmmsMasterService } from '../bms/bms.service';
 
 const fsPath = './uploads';
@@ -29,14 +26,12 @@ const context: IContext = {
     credentials: { client_id: env.clientId, client_secret: env.clientSecret },
     environment: env,
     authenticationClient: new AuthenticationClient(env.clientId, env.clientSecret, env.host),
-    dataManagementClient: new DataManagementClient({ client_id: env.clientId, client_secret: env.clientSecret }, env.host, env.region as Region),
-    modelDerivativeClient2L: new ModelDerivativeClient({ client_id: env.clientId, client_secret: env.clientSecret }, env.host, env.region as Region),
-    modelDerivativeClient3L: new ModelDerivativeClient({ token: '' }, env.host, env.region as Region),
-    designAutomationClient: new DesignAutomationClient({ client_id: env.clientId, client_secret: env.clientSecret }, env.host, env.region as Region, env.designAutomationRegion as DesignAutomationRegion),
-    webhookClient: new WebhooksClient({ client_id: env.clientId, client_secret: env.clientSecret }, env.host, env.region as Region),
-    bim360Client: new BIM360Client({ client_id: env.clientId, client_secret: env.clientSecret }, env.host, env.region as Region),
+    dataManagementClient: new DataManagementClient({ client_id: env.clientId, client_secret: env.clientSecret }),
+    modelDerivativeClient2L: new ModelDerivativeClient({ client_id: env.clientId, client_secret: env.clientSecret }),
+    modelDerivativeClient3L: new ModelDerivativeClient({ token: '' }),
+    webhookClient: new WebhooksClient({ client_id: env.clientId, client_secret: env.clientSecret }),
+    bim360Client: new BIM360Client({ client_id: env.clientId, client_secret: env.clientSecret })
 };
-
 
 @Injectable()
 export class ApsService {
@@ -45,13 +40,15 @@ export class ApsService {
 
     async getObjects(): Promise<any> {
         try {
+            let data = [];
             const objects = await promptObject(context, bucketKey);
-            for (const object of objects) {
-                let urn = mdc.getURN(object)
 
-                let client = mdc.getModelDerivativeClientForObject(object, context);
+            for (const object of objects) {
+                let urn = getURN(object);
+                let client = getModelDerivativeClientForObject(object, context);
                 let manifest;
 
+                // avoid error format
                 try {
                     manifest = await client.getManifest(urn);
 
@@ -59,10 +56,12 @@ export class ApsService {
                     object.progress = manifest.progress;
                     if (object.status == 'inprogress') object.refresh = true;
 
+                    data.push(object);
                 } catch {
                     object.status
                 }
             }
+            // console.log(objects)
             return objects;
         } catch (err) {
             console.log(err)
@@ -73,8 +72,8 @@ export class ApsService {
     async getObject(name: string): Promise<any> {
         try {
             const object = await promptObject(context, bucketKey, name);
-            let urn = mdc.getURN(object);
-            let client = mdc.getModelDerivativeClientForObject(object, context);
+            let urn = getURN(object);
+            let client = getModelDerivativeClientForObject(object, context);
             let manifest = await client.getManifest(urn);
 
             object.status = manifest.status;
@@ -87,18 +86,21 @@ export class ApsService {
         }
     }
 
+
     uploadObject(name: string): Observable<MessageEvent> {
+
         return new Observable((observer) => {
             this._upload(name, observer);
-            return () => { };
+            return () => {
+                console.log('return')
+            };
         });
 
     }
     async _upload(name: string, observer: any) {
 
-        const chunkBytes = (2 << 20);
-        const filepath = `${fsPath}/${name}`;
-
+        const chunkBytes = 2097152;
+        const filepath = fsPath + '/' + encodeURIComponent(name);
         const hash = await this.computeFileHash(bucketKey, name, filepath);
         const stateKey = `upload:${hash}`;
         let fd = -1;
@@ -183,8 +185,8 @@ export class ApsService {
                 return;
             }
 
-            let urn = mdc.getURN(object);
-            let client = mdc.getModelDerivativeClientForObject(object, context);
+            let urn = getURN(object);
+            let client = getModelDerivativeClientForObject(object, context);
 
             const outputOptions = {
                 type: 'svf',
@@ -237,9 +239,9 @@ export class ApsService {
 
             const filepath = fsPath + '/' + encodeURIComponent(name)
             const baseDir = outputFolderUri;
-            const urn = mdc.getURN(object);
+            const urn = getURN(object);
 
-            const svfDownloader = new SvfDownloader(new TwoLeggedAuthenticationProvider(context.environment.clientId, context.environment.clientSecret));
+            const svfDownloader = new SvfDownloader(context.credentials);
             const svfDownloadTask = svfDownloader.download(urn, {
                 outputDir: baseDir,
                 log: (message: string) => {
@@ -252,12 +254,13 @@ export class ApsService {
             await svfDownloadTask.ready;
 
             /* Derivative Tree */
-            const derivative = await promptDerivative(context, object.objectId);            
-            const viewable = this.findViewable(derivative);
+            const derivative = await promptDerivative(context, object.objectId);
+            
+            const viewable = findViewable(derivative);
             const { guid } = viewable;
             let svfPath = path.join(baseDir || '.', urn);
             svfPath = path.join(svfPath, guid)
-            console.log(svfPath)
+
             console.log(urn)
             console.log(guid)
             /* Endr Derivative Tree */
@@ -289,7 +292,6 @@ export class ApsService {
         return new Promise((resolve, reject) => {
             const stream = fs.createReadStream(filename);
             let hash = crypto.createHash('md5');
-            console
             hash.update(bucketKey);
             hash.update(objectKey);
             stream.on('data', (chunk) => {
@@ -302,9 +304,5 @@ export class ApsService {
                 reject(err);
             });
         })
-    }
-
-    private findViewable(derivative: IDerivative): any {
-        return derivative.bubble.children.find((child: any) => child.role === 'graphics' || child.role === 'pdf-page');
     }
 }

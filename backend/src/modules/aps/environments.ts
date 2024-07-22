@@ -5,4 +5,4 @@ export interface IEnvironment {
     region?: string;
     host?: string;
     designAutomationRegion?: string;
-}   
+}

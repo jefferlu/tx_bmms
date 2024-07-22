@@ -4,14 +4,15 @@ import * as fse from 'fs-extra';
 import * as crypto from 'crypto';
 
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsResponse } from '@nestjs/websockets';
-import { AuthenticationClient, BIM360Client, DataManagementClient, IBucket, IDerivativeOutputType, IDerivativeTree, IObject, IResumableUploadRange, ModelDerivativeClient, WebhooksClient, urnify } from 'forge-server-utils';
-import { SvfDownloader } from 'forge-convert-utils';
 
 import { Server, Socket } from 'socket.io';
 import { IContext } from 'src/forge/common';
 import { IEnvironment } from 'src/forge/environment';
 import { clearInterval } from 'timers';
 import { BmmsMasterService } from 'src/modules/bms/bms.service';
+import { AuthenticationClient, BIM360Client, DataManagementClient, IBucket, IDerivativeOutputType, IDerivativeTree, IObject, IResumableUploadRange, ModelDerivativeClient, urnify, WebhooksClient } from 'aps-sdk-node';
+import { SvfDownloader } from 'svf-utils';
+import { ApsService } from 'src/modules/aps/aps.service';
 
 
 
@@ -43,7 +44,10 @@ const context: IContext = {
     },
 })
 export class TranslateJobGateway {
-    constructor(private _bmmsMasterService: BmmsMasterService) { }
+    constructor(
+        private _bmmsMasterService: BmmsMasterService,
+        private _apsService: ApsService
+    ) { }
 
     @SubscribeMessage('message')
     handleMessage(client: any, payload: any): string {
@@ -77,7 +81,7 @@ export class TranslateJobGateway {
 
 
     private async _upload(originalname: string) {
-
+        
         function computeFileHash(bucketKey: string, objectKey: string, filename: string): Promise<string> {
             return new Promise((resolve, reject) => {
                 const stream = fs.createReadStream(filename);
@@ -173,7 +177,7 @@ export class TranslateJobGateway {
                     fs.readSync(fd, buff, 0, chunkSize, lastByte);
                     await context.dataManagementClient.uploadObjectResumable(bucketKey, name, buff.subarray(0, chunkSize), lastByte, totalBytes, uploadSessionID);
                     lastByte += chunkSize;
-
+                    console.log('upload-object')
                     this.server.emit('upload-object', { lastByte: lastByte, totalBytes: totalBytes, name: name });
 
                 }
@@ -201,6 +205,7 @@ export class TranslateJobGateway {
         }
 
         async function promptObject(context: IContext, bucketKey: string): Promise<IObject | undefined> {
+            console.log('check')
             const objects = await context.dataManagementClient.listObjects(bucketKey);
             const objectKey = originalname;
 
@@ -270,6 +275,7 @@ export class TranslateJobGateway {
         }
 
         async function promptObject(context: IContext, bucketKey: string): Promise<IObject | undefined> {
+            console.log('check')
             const objects = await context.dataManagementClient.listObjects(bucketKey);
             const objectKey = originalname;
 
@@ -326,45 +332,45 @@ export class TranslateJobGateway {
 
 
 
-            const svfDownloader = new SvfDownloader(context.credentials);
-            const svfDownloadTask = svfDownloader.download(urn, {
-                outputDir: baseDir,
-                log: (message: string) => {
+            // const svfDownloader = new SvfDownloader(context.credentials);
+            // const svfDownloadTask = svfDownloader.download(urn, {
+            //     outputDir: baseDir,
+            //     log: (message: string) => {
 
-                    if (message.includes('output.svf')) console.log(message);
+            //         if (message.includes('output.svf')) console.log(message);
 
-                    this.server.emit('extract-metadata', { status: 'inprogress', message: message });
-                }
-            });
-            await svfDownloadTask.ready;
+            //         this.server.emit('extract-metadata', { status: 'inprogress', message: message });
+            //     }
+            // });
+            // await svfDownloadTask.ready;
 
-            /* Derivative Tree */
-            const derivative = await promptDerivative(context, object.objectId);
-            const viewable = findViewable(derivative);
-            const { guid } = viewable;
-            let svfPath = path.join(baseDir || '.', urn);
-            svfPath = path.join(svfPath, guid)
+            // /* Derivative Tree */
+            // const derivative = await promptDerivative(context, object.objectId);
+            // const viewable = findViewable(derivative);
+            // const { guid } = viewable;
+            // let svfPath = path.join(baseDir || '.', urn);
+            // svfPath = path.join(svfPath, guid)
 
-            console.log(urn)
-            console.log(guid)
-            /* Endr Derivative Tree */
+            // console.log(urn)
+            // console.log(guid)
+            // /* Endr Derivative Tree */
 
-            // ORM
-            let master_data = { 'name': name, 'filePath': filepath, 'svfPath': svfPath }
-            let exist = await this._bmmsMasterService.exist(master_data)
-            if (exist) {
-                let record = await this._bmmsMasterService.findOne(name);                
-                await fse.remove(record.svfPath);
-                this._bmmsMasterService.update(master_data);
-            }
-            else {
-                this._bmmsMasterService.create(master_data);
-            }
+            // // ORM
+            // let master_data = { 'name': name, 'filePath': filepath, 'svfPath': svfPath }
+            // let exist = await this._bmmsMasterService.exist(master_data)
+            // if (exist) {
+            //     let record = await this._bmmsMasterService.findOne(name);                
+            //     await fse.remove(record.svfPath);
+            //     this._bmmsMasterService.update(master_data);
+            // }
+            // else {
+            //     this._bmmsMasterService.create(master_data);
+            // }
 
 
 
-            this.server.emit('extract-metadata', { status: 'complete', message: 'Extract metadata ompleted.' });
-            console.log('Completed');
+            // this.server.emit('extract-metadata', { status: 'complete', message: 'Extract metadata ompleted.' });
+            // console.log('Completed');
 
         } catch (error) {
             console.log(error);

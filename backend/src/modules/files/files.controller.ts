@@ -10,11 +10,11 @@ export class FilesController {
     @Post('upload')
     @UseInterceptors(FileInterceptor('file', {
         storage: diskStorage({
-            destination: fsPath,            
+            destination: fsPath,
             filename: (req, file, callback) => { callback(null, file.originalname) }
         })
     }))
     async uploadFile(@UploadedFile() file: Express.Multer.File) {
-        console.log('file',file)
-     }
+        // console.log('file', file)
+    }
 }

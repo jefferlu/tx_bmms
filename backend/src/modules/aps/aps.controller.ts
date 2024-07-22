@@ -1,7 +1,7 @@
 import { Body, Controller, Get, MessageEvent, Param, Post, Req, Res, Sse } from '@nestjs/common';
-import { ApsService } from './aps.service';
 import { Observable, interval, map } from 'rxjs';
 import { Response } from 'express';
+import { ApsService } from './aps.service';
 
 @Controller('api/aps')
 export class ApsController {
@@ -21,7 +21,6 @@ export class ApsController {
     @Sse('upload-object/:name')
     uploadObject(@Param('name') name: string, @Res() res: Response): Observable<MessageEvent> {
         return this._aps.uploadObject(name);
-
     }
 
     @Sse('translate-job/:name')

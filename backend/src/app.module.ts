@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm'
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -16,12 +16,12 @@ import { ApsModule } from './modules/aps/aps.module';
 @Module({
     imports: [
         TypeOrmModule.forRoot({
-            type: "postgres",
-            host: "giantcld.com",
+            type: 'postgres',
+            host: 'giantcld.com',
             port: 5432,
-            username: "giantcld",
-            password: "90637925",
-            database: "bmms",
+            username: 'giantcld',
+            password: '90637925',
+            database: 'bmms',
             synchronize: true,
             logging: true,
             entities: [User, Bmms_Master],
@@ -31,10 +31,13 @@ import { ApsModule } from './modules/aps/aps.module';
         MulterModule.register({
             dest: './uploads',
         }),
-        AuthModule, FilesModule, TranslateJobModule, BmmsMasterModule, ApsModule,
+        AuthModule,
+        FilesModule,
+        TranslateJobModule,
+        BmmsMasterModule,
+        ApsModule,
 
-    ],
-    controllers: [AppController],
+],
     providers: [AppService, TranslateJobGateway],
 })
 export class AppModule { }

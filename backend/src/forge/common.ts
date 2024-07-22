@@ -1,6 +1,6 @@
-import { IAuthOptions } from "forge-server-utils/dist/common";
+import { IAuthOptions } from "aps-sdk-node/dist/common";
 import { IEnvironment } from "./environment";
-import { AuthenticationClient, BIM360Client, DataManagementClient, DesignAutomationClient, ModelDerivativeClient, WebhooksClient } from "forge-server-utils";
+import { AuthenticationClient, BIM360Client, DataManagementClient, DesignAutomationClient, ModelDerivativeClient, WebhooksClient } from  "aps-sdk-node";
 
 export interface IPreviewSettings {
     extensions: string[];
