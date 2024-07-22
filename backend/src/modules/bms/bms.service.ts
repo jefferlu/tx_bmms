@@ -49,6 +49,7 @@ export class BmmsMasterService {
 
             return this.bmmsRepository.find({
                 where: { name: ILike(`%${name}%`) },
+                relations: ['uploader']
             });
         } else {
             console.log(2)
