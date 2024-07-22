@@ -26,7 +26,7 @@
                     </div>
                 </div>
 
-                <div class="ml-10 mr-6 mt-2 flex flex-auto flex-col result-table" [ngClass]="{'initial-height':!page.data}">
+                <div class="ml-10 mr-6 mt-2 flex flex-auto flex-col result-table initial-height" >
                     <p-table [value]="page.data" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="true" [rows]="9" [scrollable]="true" scrollHeight="100%">
                         <ng-template pTemplate="header">
                             <tr>

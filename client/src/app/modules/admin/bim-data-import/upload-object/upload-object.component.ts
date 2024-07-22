@@ -30,9 +30,8 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
 
     canUpload: boolean = false;
     progress: number = 0;
-    page = {
-        files: []
-    }
+
+    files: any[];
 
     products;
 
@@ -56,7 +55,7 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
         // this.page.files = event.target.files;
 
         if (event.target.files) {
-            this.page.files = Array.from(event.target.files).map((file: any) => ({
+            this.files = Array.from(event.target.files).map((file: any) => ({
                 name: file.name,
                 size: file.size,
                 type: file.type,
@@ -77,7 +76,7 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
         // }
 
 
-        console.log(this.page.files, event.target.files)
+        console.log(this.files, event.target.files)
     }
 
     onUpload(file: any): void {
@@ -86,11 +85,12 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (res) => {
 
+                    file.status = 'process';
                     if (res.type == HttpEventType.UploadProgress) {
                         let progress = Math.round(100 * (res.loaded / res.total));
-                        file.status = `${progress} %`;
+                        // file.status = `${progress} %`;
 
-                        if (progress === 100) file.status = 'inprogress';
+                        // if (progress === 100) file.status = 'inprogress';
                         this._cdr.markForCheck();
                     }
 

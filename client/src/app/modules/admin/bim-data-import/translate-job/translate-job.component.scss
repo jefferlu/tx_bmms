@@ -1,4 +1,9 @@
-table.default-item-table {
+
+.initial-height{
+    min-height: calc(100vh - 8rem);
+}
+
+/* table.default-item-table {
     @apply table-auto w-full;
     @apply border-l border-slate-500;
     border-collapse: separate;
@@ -34,4 +39,4 @@ table.default-item-table {
     .view {
         @apply text-center;
     }
-}
+} */

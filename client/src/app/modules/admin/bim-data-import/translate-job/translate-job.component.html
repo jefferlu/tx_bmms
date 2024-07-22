@@ -1,10 +1,46 @@
-<!-- Main -->
-<div class="flex-auto">
+<div class="flex-auto bg-card rounded-lg">
+    <div class="ml-10 mr-6 mt-2 pt-6 flex flex-auto flex-col result-table initial-height">
+        <p-table [value]="objects" [tableStyle]="{ 'min-width': '50rem' }" [scrollable]="true" scrollHeight="100%">
 
-    <!-- Header -->
+            <ng-template pTemplate="header">
+                <tr>
+                    <th class="min-w-15 text-center">NO</th>
+                    <th class="min-w-80">File Name</th>
+                    <th class="min-w-60 text-center">Status</th>
+                    <th class="min-w-60 text-center">Progress</th>
+                    <th class="min-w-60 text-center">Translate</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-object let-no="rowIndex">
+                <tr>
+                    <td class="text-center">{{no+1}}</td>
+                    <td>{{object.objectKey}}</td>
+                    <td class="text-center">
+                        @if(object.status==='success'){<i class="pi text-green-400 pi-check-circle"></i>}
+                        @else if(object.status==='failed'){<i class="pi text-red-500 pi-times-circle"></i>}
+                        @else{{{object.status}}}
+                        <!-- <span [ngClass]="{'dark:text-warn': object.status === 'failed','dark:text-accent':object.status==='success'}">{{ object.status }}</span> -->
+                    </td>
+                    <td class="text-center">
+                        <span [ngClass]="{'text-red-500': object.status === 'failed','text-green-400':object.status==='success'}">{{ object.progress }}</span>
+                    </td>
+                    <td class="text-center ">
+
+                        <button class="fuse-alert-dismiss-button" mat-icon-button (click)="onTranslateJob(object)"
+                            [disabled]="object.status!=='success' && object.status!=='failed' && object.status">
+                            <mat-icon [svgIcon]="'heroicons_outline:arrow-path-rounded-square'"></mat-icon>
+                        </button>
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </div>
+</div>
+
+<!-- <div class="flex-auto">
     <div class="flex flex-col sm:flex-row md:flex-col flex-auto justify-between py-8"></div>
-
-    <!-- Contacts list -->
     <div class="relative">
         <table class="default-item-table">
             <thead>
@@ -35,9 +71,9 @@
                         </button>
                         }
                         @else if(object.status==='success'){
-                        <!-- <button mat-button class="text-primary-600" disabled>
+                        <button mat-button class="text-primary-600" disabled>
                             <mat-icon color="primary" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
-                        </button> -->
+                        </button>
                         <div class="flex items-center justify-center h-10">
                             <mat-icon color="accent" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
                         </div>
@@ -52,4 +88,4 @@
             </tbody>
         </table>
     </div>
-</div>
+</div> -->

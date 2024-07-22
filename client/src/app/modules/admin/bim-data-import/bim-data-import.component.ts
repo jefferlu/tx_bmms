@@ -28,7 +28,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     drawerMode: 'over' | 'side' = 'side';
     drawerOpened: boolean = true;
     panels: any[] = [];
-    selectedPanel: string = 'upload-object';
+    selectedPanel: string = 'extract-metadata';
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     constructor() { }
@@ -45,7 +45,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
             },
             {
                 id: 'extract-metadata',
-                icon: 'heroicons_outline:arrows-up-down',
+                icon: 'heroicons_outline:inbox-arrow-down',
             }
         ];
     }

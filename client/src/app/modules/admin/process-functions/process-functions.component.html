@@ -10,7 +10,7 @@
             </div>
         </div> -->
 
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 w-full mt-1">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 w-full mt-2">
 
             <!-- Files tree -->
             <div class="relative flex flex-col flex-auto bg-card shadow rounded-lg overflow-hidden">
@@ -40,7 +40,7 @@
                 <div class="flex flex-col flex-auto h-100">
 
                     @if(true){
-                        <aps-viewer class="relative w-full h-full" [option]="page.svf"></aps-viewer>
+                    <aps-viewer class="relative w-full h-full" [option]="page.svf"></aps-viewer>
                     }
                     @else {
                     <!-- Select chat or start new -->
@@ -81,7 +81,7 @@
                     <div class="text-secondary font-medium text-lg">查詢結果 : 全部 56 筆資料 </div>
                     <p-table [value]="products" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="true" [rows]="5">
                         <ng-template pTemplate="header">
-                            <tr>
+                            <tr class="w-24 text-center">
                                 <th>載入模型</th>
                                 <th>標別/檔案名稱</th>
                                 <th>空間區域名稱</th>
@@ -91,8 +91,8 @@
                         </ng-template>
                         <ng-template pTemplate="body" let-product>
                             <tr>
-                                <td>
-                                <input type="checkbox" [(ngModel)]="product.selected" (change)="onProductSelected(product)" />
+                                <td class="w-24 text-center"> 
+                                    <input type="checkbox" [(ngModel)]="product.selected" (change)="onProductSelected(product)" />
                                 </td>
                                 <td>{{ product.code }}</td>
                                 <td>{{ product.name }}</td>

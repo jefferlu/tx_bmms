@@ -4,13 +4,14 @@ import { Subject, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { BimDataImportService } from '../bim-data-import.service';
+import { TableModule } from 'primeng/table';
 
 @Component({
     selector: 'translate-job',
     templateUrl: './translate-job.component.html',
     styleUrl: './translate-job.component.scss',
     standalone: true,
-    imports: [CommonModule, MatButtonModule, MatIconModule],
+    imports: [CommonModule, MatButtonModule, MatIconModule, TableModule],
 })
 export class TranslateJobComponent implements OnInit, OnDestroy {
 
@@ -20,7 +21,7 @@ export class TranslateJobComponent implements OnInit, OnDestroy {
 
     constructor(
         private _cdr: ChangeDetectorRef,
-        private _bimDataImportService:BimDataImportService
+        private _bimDataImportService: BimDataImportService
     ) { }
 
     ngOnInit(): void {

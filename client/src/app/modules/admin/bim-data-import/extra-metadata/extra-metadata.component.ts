@@ -4,13 +4,14 @@ import { Subject, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { BimDataImportService } from '../bim-data-import.service';
+import { TableModule } from 'primeng/table';
 
 @Component({
     selector: 'extra-metadata',
     templateUrl: './extra-metadata.component.html',
     styleUrl: './extra-metadata.component.scss',
     standalone: true,
-    imports: [CommonModule, MatButtonModule, MatIconModule],
+    imports: [CommonModule, MatButtonModule, MatIconModule, TableModule],
 })
 export class ExtraMetadataComponent implements OnInit, OnDestroy {
 
@@ -20,7 +21,7 @@ export class ExtraMetadataComponent implements OnInit, OnDestroy {
 
     constructor(
         private _cdr: ChangeDetectorRef,
-        private _bimDataImportService:BimDataImportService
+        private _bimDataImportService: BimDataImportService
     ) { }
 
     ngOnInit(): void {
@@ -36,7 +37,7 @@ export class ExtraMetadataComponent implements OnInit, OnDestroy {
     onExtraMetadata(object: any) {
         object.status = 'inprogress';
         object.progress = 'start extracting...';
-        
+
         this._bimDataImportService.sse('extract-metadata', object.objectKey)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(res => {
