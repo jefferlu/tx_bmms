@@ -38,6 +38,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
             useConsolidation: true,
             document: `${svfPath}/output.svf`,
             language: 'en',
+            isAEC: true
         };
 
         // console.log(this.options)
