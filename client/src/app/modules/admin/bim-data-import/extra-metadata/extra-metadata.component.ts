@@ -28,9 +28,10 @@ export class ExtraMetadataComponent implements OnInit, OnDestroy {
         this._bimDataImportService.getObjects()
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((res) => {
-                this.objects = res.filter(e => e.status === 'success');
-                console.log(this.objects)
-                this._cdr.markForCheck();
+                if (res) {
+                    this.objects = res.filter(e => e.status === 'success');                    
+                    this._cdr.markForCheck();
+                }
             })
     }
 
@@ -44,10 +45,6 @@ export class ExtraMetadataComponent implements OnInit, OnDestroy {
 
                 object.status = JSON.parse(res.data).status;
                 object.progress = JSON.parse(res.data).message;
-
-                console.log(res)
-                // console.log(object.status, object.message)
-
                 this._cdr.markForCheck();
             });
     }

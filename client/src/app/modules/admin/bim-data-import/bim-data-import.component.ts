@@ -1,5 +1,5 @@
 import { NgClass, NgFor } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { TranslocoModule } from '@jsverse/transloco';
 import { Subject } from 'rxjs';
@@ -8,6 +8,7 @@ import { TranslateJobComponent } from './translate-job/translate-job.component';
 import { ExtraMetadataComponent } from './extra-metadata/extra-metadata.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { ApsCredentialsService } from 'app/core/services/aps-credentials/aps-credentials.service';
 
 @Component({
     selector: 'app-bim-data-import',
@@ -29,9 +30,10 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     drawerOpened: boolean = true;
     panels: any[] = [];
     selectedPanel: string = 'extract-metadata';
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-    constructor() { }
+    constructor(
+        private _apsCredentials: ApsCredentialsService
+    ) { }
 
     ngOnInit(): void {
         this.panels = [
@@ -48,6 +50,8 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                 icon: 'heroicons_outline:inbox-arrow-down',
             }
         ];
+
+        this._apsCredentials.open();
     }
 
     goToPanel(panel: string): void {

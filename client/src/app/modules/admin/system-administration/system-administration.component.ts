@@ -1,40 +1,35 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { NgClass, NgFor, NgSwitch, NgSwitchCase } from '@angular/common';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
-import { ApsAccountComponent } from './aps-account/aps-account.component';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
-    selector: 'app-setup',
-    templateUrl: './setup.component.html',
-    styleUrl: './setup.component.scss',
+    selector: 'app-system-administration',
+    templateUrl: './system-administration.component.html',
+    styleUrl: './system-administration.component.scss',
+    encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
     imports: [
         NgFor, NgClass, NgSwitch, NgSwitchCase,
         MatSidenavModule, MatButtonModule, MatIconModule,
-        TranslocoModule, ApsAccountComponent],
+        TranslocoModule
+    ],
 })
-export class SetupComponent implements OnInit, OnDestroy {
-
+export class SystemAdministrationComponent implements OnInit, OnDestroy {
     @ViewChild('drawer') drawer: MatDrawer;
     drawerMode: 'over' | 'side' = 'side';
     drawerOpened: boolean = true;
     panels: any[] = [];
-    selectedPanel: string = 'aps-account';
+    selectedPanel: string = 'db-backup-restore';
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     ngOnInit(): void {
         // Setup available panels
-        this.panels = [
-            {
-                id: 'aps-account',
-                icon: 'heroicons_outline:user-circle',
-                title: 'APS帳號及憑證',
-                // description: '客戶端 ID 和客戶端金鑰用於取得存取令牌，您必須使用這些令牌對 API 呼叫進行身份驗證。',
-            },
+        this.panels = [            
             {
                 id: 'db-backup-restore',
                 icon: 'heroicons_outline:lock-closed',
@@ -66,4 +61,5 @@ export class SetupComponent implements OnInit, OnDestroy {
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
     }
+
 }

@@ -3,40 +3,40 @@
     min-height: calc(100vh - 8rem);
 }
 
-/* table.default-item-table {
-    @apply table-auto w-full;
-    @apply border-l border-slate-500;
-    border-collapse: separate;
-    border-spacing: 0;
+    /* table.default-item-table {
+        @apply table-auto w-full;
+        @apply border-l border-slate-500;
+        border-collapse: separate;
+        border-spacing: 0;
 
-    thead {
-        @apply sticky top-0 bg-slate-900;
-    }
-
-    th {
-        @apply border-r border-b border-slate-500 p-0.5;
-    }
-    tr:first-child th {
-        @apply border-t;
-    }
-
-    td {
-        @apply border-b border-r border-slate-500 px-2;
-
-        .checkbox {
-            @apply w-4 h-4 mt-1 ;
+        thead {
+            @apply sticky top-0 bg-slate-900;
         }
-    }
 
-    .edit {
-        @apply text-center bg-blue-100 whitespace-nowrap w-18;
-
-        input {
-            @apply w-full text-center truncate;
+        th {
+            @apply border-r border-b border-slate-500 p-0.5;
         }
-    }
+        tr:first-child th {
+            @apply border-t;
+        }
 
-    .view {
-        @apply text-center;
-    }
-} */
+        td {
+            @apply border-b border-r border-slate-500 px-2;
+
+            .checkbox {
+                @apply w-4 h-4 mt-1 ;
+            }
+        }
+
+        .edit {
+            @apply text-center bg-blue-100 whitespace-nowrap w-18;
+
+            input {
+                @apply w-full text-center truncate;
+            }
+        }
+
+        .view {
+            @apply text-center;
+        }
+    } */

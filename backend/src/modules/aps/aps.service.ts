@@ -11,8 +11,10 @@ import { Region } from "aps-sdk-node/dist/common";
 import * as mdc from './commands/model-derivative';
 import { Observable } from "rxjs";
 import { SvfDownloader, TwoLeggedAuthenticationProvider } from 'svf-utils';
+
 import { IDerivative } from './interfaces/model-derivative';
 import { BmmsMasterService } from '../bms/bms.service';
+// import { SvfDownloader, TwoLeggedAuthenticationProvider } from './svf-utils/src';
 
 const fsPath = './uploads';
 const outputFolderUri = './downloads';
@@ -238,7 +240,7 @@ export class ApsService {
             const filepath = fsPath + '/' + encodeURIComponent(name)
             const baseDir = outputFolderUri;
             const urn = mdc.getURN(object);
-
+            debugger;
             const svfDownloader = new SvfDownloader(new TwoLeggedAuthenticationProvider(context.environment.clientId, context.environment.clientSecret));
             const svfDownloadTask = svfDownloader.download(urn, {
                 outputDir: baseDir,
@@ -246,13 +248,13 @@ export class ApsService {
 
                     // if (message.includes('output.svf')) console.log(message);
                     observer.next({ data: { status: 'extract', message: message } });
-                    console.log(message)
+                    // console.log('-->', message)
                 }
             });
             await svfDownloadTask.ready;
 
             /* Derivative Tree */
-            const derivative = await promptDerivative(context, object.objectId);            
+            const derivative = await promptDerivative(context, object.objectId);
             const viewable = this.findViewable(derivative);
             const { guid } = viewable;
             let svfPath = path.join(baseDir || '.', urn);
@@ -278,7 +280,7 @@ export class ApsService {
             console.log('extract completed');
 
         } catch (error) {
-            console.log(error);
+            console.log('err-->',error);
             observer.next({ data: { error: error } });
 
         }
