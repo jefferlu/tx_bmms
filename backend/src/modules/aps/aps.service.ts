@@ -18,12 +18,12 @@ import { BmmsMasterService } from '../bms/bms.service';
 
 const fsPath = './uploads';
 const outputFolderUri = './downloads';
-const bucketKey = 'bmms_oss'
+let bucketKey = 'bmms_oos'
 
 const env: IEnvironment = {
     title: 'bmms',
-    clientId: '94MGPGEtqunCJS6XyZAAnztSSIrtfOLsVWQEkLNQ7uracrAC',
-    clientSecret: 'G5tBYHoxe9xbpsisxGo5kBZOCPwEFCCuXIYr8kms28SSRuuVAHR0G766A3RKFQXy',
+    clientId: 'wjc7ybhsmnjQWU0xlDqLMNeu80I2GgewEGGNICkbR7byPdVG',
+    clientSecret: 'AGr1logizW2pmgLXFdl6zthVUJJf5FpegzQGLXE7xSuM6fvorelNEFPrmfJH3GMG',
     region: 'US'
 }
 
@@ -45,8 +45,14 @@ export class ApsService {
 
     constructor(private _bmmsMasterService: BmmsMasterService) { }
 
-    async getObjects(): Promise<any> {
+    async getObjects(credentials: any): Promise<any> {
+
         try {
+            env.clientId = credentials.clientId;
+            env.clientSecret = credentials.clientSecret;
+            bucketKey = credentials.bucketKey;
+            this.setContext(env);
+
             const objects = await promptObject(context, bucketKey);
             for (const object of objects) {
                 let urn = mdc.getURN(object)
@@ -89,14 +95,19 @@ export class ApsService {
         }
     }
 
-    uploadObject(name: string): Observable<MessageEvent> {
+    uploadObject(name: string, credentials: any): Observable<MessageEvent> {
         return new Observable((observer) => {
-            this._upload(name, observer);
+            this._upload(name, credentials, observer);
             return () => { };
         });
 
     }
-    async _upload(name: string, observer: any) {
+    async _upload(name: string, credentials: any, observer: any) {
+
+        env.clientId = credentials.clientId;
+        env.clientSecret = credentials.clientSecret;
+        bucketKey = credentials.bucketKey;
+        this.setContext(env);
 
         const chunkBytes = (2 << 20);
         const filepath = `${fsPath}/${name}`;
@@ -167,14 +178,19 @@ export class ApsService {
 
     }
 
-    translateJob(name: string): Observable<MessageEvent> {
+    translateJob(name: string, credentials: any): Observable<MessageEvent> {
         return new Observable((observer) => {
-            this._translate(name, observer);
+            this._translate(name, credentials, observer);
             return () => { };
         });
     }
-    async _translate(name: string, observer: any) {
+    async _translate(name: string, credentials: any, observer: any) {
         try {
+            env.clientId = credentials.clientId;
+            env.clientSecret = credentials.clientSecret;
+            bucketKey = credentials.bucketKey;
+            this.setContext(env);
+
             const bucket = await promptBucket(context, bucketKey);
             if (!bucket) {
                 return;
@@ -218,15 +234,20 @@ export class ApsService {
         }
     }
 
-    extractMetadata(name: string): Observable<MessageEvent> {
+    extractMetadata(name: string, credentials: any): Observable<MessageEvent> {
         return new Observable((observer) => {
-            this._extract(name, observer);
+            this._extract(name, credentials, observer);
             return () => {
             };
         });
     }
-    async _extract(name: string, observer: any) {
+    async _extract(name: string, credentials: any, observer: any) {
         try {
+            env.clientId = credentials.clientId;
+            env.clientSecret = credentials.clientSecret;
+            bucketKey = credentials.bucketKey;
+            this.setContext(env);
+
             const bucket = await promptBucket(context, bucketKey);
             if (!bucket) {
                 return;
@@ -280,12 +301,23 @@ export class ApsService {
             console.log('extract completed');
 
         } catch (error) {
-            console.log('err-->',error);
+            console.log('err-->', error);
             observer.next({ data: { error: error } });
 
         }
     }
 
+    private setContext(env) {
+        context.credentials = { client_id: env.clientId, client_secret: env.clientSecret };
+        context.environment = env;
+        context.authenticationClient = new AuthenticationClient(env.clientId, env.clientSecret, env.host);
+        context.dataManagementClient = new DataManagementClient({ client_id: env.clientId, client_secret: env.clientSecret }, env.host, env.region as Region);
+        context.modelDerivativeClient2L = new ModelDerivativeClient({ client_id: env.clientId, client_secret: env.clientSecret }, env.host, env.region as Region);
+        context.modelDerivativeClient3L = new ModelDerivativeClient({ token: '' }, env.host, env.region as Region);
+        context.designAutomationClient = new DesignAutomationClient({ client_id: env.clientId, client_secret: env.clientSecret }, env.host, env.region as Region, env.designAutomationRegion as DesignAutomationRegion);
+        context.webhookClient = new WebhooksClient({ client_id: env.clientId, client_secret: env.clientSecret }, env.host, env.region as Region);
+        context.bim360Client = new BIM360Client({ client_id: env.clientId, client_secret: env.clientSecret }, env.host, env.region as Region);
+    }
 
     private computeFileHash(bucketKey: string, objectKey: string, filename: string): Promise<string> {
         return new Promise((resolve, reject) => {

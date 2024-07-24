@@ -25,7 +25,7 @@ export class TranslateJobComponent implements OnInit, OnDestroy {
         private _cdr: ChangeDetectorRef,
         private _spinner: NgxSpinnerService,
         private _bimDataImportService: BimDataImportService,
-        private _apsCredentials: ApsCredentialsService        
+        private _apsCredentials: ApsCredentialsService
     ) { }
 
     ngOnInit(): void {
@@ -40,9 +40,9 @@ export class TranslateJobComponent implements OnInit, OnDestroy {
 
     private _getObjects() {
         this._spinner.show();
-        this._bimDataImportService.getObjects()
+        this._bimDataImportService.getObjects(this._apsCredentials.credientials)
             .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((res) => {                
+            .subscribe((res) => {
                 this.objects = res;
                 this._cdr.markForCheck();
                 this._spinner.hide();
@@ -52,7 +52,7 @@ export class TranslateJobComponent implements OnInit, OnDestroy {
     onTranslateJob(object: any) {
         object.status = 'inprogress';
         object.progress = 'start translating...';
-        this._bimDataImportService.sse('translate-job', object.objectKey)
+        this._bimDataImportService.sse('translate-job', object.objectKey, this._apsCredentials.credientials)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(res => {
                 object.status = JSON.parse(res.data).status;

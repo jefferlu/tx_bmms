@@ -35,9 +35,9 @@
                 <!-- Bucket Name -->
                 <div class="sm:col-span-4">
                     <mat-form-field class="w-full fuse-mat-dense" [subscriptSizing]="'dynamic'">
-                        <mat-label>{{t('bucket-name')}}</mat-label>
-                        <input [formControlName]="'bucketName'" matInput>
-                        @if(form.get('bucketName').hasError('required')){
+                        <mat-label>{{t('bucket-key')}}</mat-label>
+                        <input [formControlName]="'bucketKey'" matInput>
+                        @if(form.get('bucketKey').hasError('required')){
                             <mat-error>Email address is required</mat-error>
                         }
                         

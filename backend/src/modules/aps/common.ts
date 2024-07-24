@@ -22,15 +22,15 @@ export interface IPreviewSettings {
 }
 
 export interface IContext {
-    credentials: IAuthOptions;
-    environment: IEnvironment;
-    authenticationClient: AuthenticationClient;
-    dataManagementClient: DataManagementClient;
-    modelDerivativeClient2L: ModelDerivativeClient; // client for 2-legged workflows
-    modelDerivativeClient3L: ModelDerivativeClient; // client for 3-legged workflows
-    designAutomationClient: DesignAutomationClient;
-    webhookClient: WebhooksClient;
-    bim360Client: BIM360Client;
+    credentials?: IAuthOptions;
+    environment?: IEnvironment;
+    authenticationClient?: AuthenticationClient;
+    dataManagementClient?: DataManagementClient;
+    modelDerivativeClient2L?: ModelDerivativeClient; // client for 2-legged workflows
+    modelDerivativeClient3L?: ModelDerivativeClient; // client for 3-legged workflows
+    designAutomationClient?: DesignAutomationClient;
+    webhookClient?: WebhooksClient;
+    bim360Client?: BIM360Client;
     threeLeggedToken?: string;
 }
 

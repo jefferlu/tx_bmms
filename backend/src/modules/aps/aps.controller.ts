@@ -1,4 +1,4 @@
-import { Body, Controller, Get, MessageEvent, Param, Post, Req, Res, Sse } from '@nestjs/common';
+import { Body, Controller, Get, MessageEvent, Param, Post, Query, Req, Res, Sse } from '@nestjs/common';
 import { Observable, interval, map } from 'rxjs';
 import { Response } from 'express';
 import { ApsService } from './aps.service';
@@ -8,9 +8,9 @@ export class ApsController {
 
     constructor(private _aps: ApsService) { }
 
-    @Get('objects')
-    getObjects() {
-        return this._aps.getObjects()
+    @Post('objects')
+    getObjects(@Body() credentials: any) {
+        return this._aps.getObjects(credentials)
     }
 
     @Post('object')
@@ -18,20 +18,50 @@ export class ApsController {
         return this._aps.getObject(request.name)
     }
 
-    @Sse('upload-object/:name')
-    uploadObject(@Param('name') name: string, @Res() res: Response): Observable<MessageEvent> {
-        return this._aps.uploadObject(name);
+    @Sse('upload-object')
+    uploadObject(
+        @Query('name') name: string,
+        @Query('clientId') clientId: string,
+        @Query('clientSecret') clientSecret: string,
+        @Query('bucketKey') bucketKey: string,
+        @Res() res: Response
+    ): Observable<MessageEvent> {
+        return this._aps.uploadObject(name, {
+            'clientId': clientId,
+            'clientSecret': clientSecret,
+            'bucketKey': bucketKey
+        });
     }
 
-    @Sse('translate-job/:name')
-    translateJob(@Param('name') name: string, @Res() res: Response): Observable<MessageEvent> {
-        return this._aps.translateJob(name);
+    @Sse('translate-job')
+    translateJob(
+        @Query('name') name: string,
+        @Query('clientId') clientId: string,
+        @Query('clientSecret') clientSecret: string,
+        @Query('bucketKey') bucketKey: string,
+        @Res() res: Response
+    ): Observable<MessageEvent> {
+        return this._aps.translateJob(name, {
+            'clientId': clientId,
+            'clientSecret': clientSecret,
+            'bucketKey': bucketKey
+        });
     }
 
-    @Sse('extract-metadata/:name')
-    extractMetadata(@Param('name') name: string, @Res() res: Response): Observable<MessageEvent> {
-        
-        return this._aps.extractMetadata(name);
+    @Sse('extract-metadata')
+    extractMetadata(
+        @Query('name') name: string,
+        @Query('clientId') clientId: string,
+        @Query('clientSecret') clientSecret: string,
+        @Query('bucketKey') bucketKey: string,
+        @Res() res: Response
+    ): Observable<MessageEvent> {
+
+        return this._aps.extractMetadata(name, {
+            'clientId': clientId,
+            'clientSecret': clientSecret,
+            'bucketKey': bucketKey
+        });
     }
 }
 

@@ -40,7 +40,7 @@ export class ExtraMetadataComponent implements OnInit, OnDestroy {
 
     private _getObjects() {
         this._spinner.show();
-        this._bimDataImportService.getObjects()
+        this._bimDataImportService.getObjects(this._apsCredentials.credientials)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((res) => {                
                 this.objects = res;
@@ -53,7 +53,7 @@ export class ExtraMetadataComponent implements OnInit, OnDestroy {
         object.status = 'inprogress';
         object.progress = 'start extracting...';
 
-        this._bimDataImportService.sse('extract-metadata', object.objectKey)
+        this._bimDataImportService.sse('extract-metadata', object.objectKey,this._apsCredentials.credientials)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(res => {
 

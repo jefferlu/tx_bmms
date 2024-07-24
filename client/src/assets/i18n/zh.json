@@ -20,7 +20,7 @@
     "inquiry-user": "一般查詢使用者",
     "client-id": "Client ID",
     "client-secret": "Client Secret",
-    "bucket-name": "Bucket Name",
+    "bucket-key": "Bucket Key",
     "upload-object": "上傳圖資",
     "translate-job": "圖資轉換",
     "extract-metadata": "擷取數據",

@@ -39,10 +39,10 @@ export class BimDataImportService {
         );
     }
 
-    getObjects(): Observable<any> {
+    getObjects(data: any): Observable<any> {
         const url = `${endpoint}/api/aps/objects`;
 
-        return this._httpClient.get<any>(url);
+        return this._httpClient.post<any>(url, data);
     }
 
     getObject(name: string): Observable<any> {
@@ -50,8 +50,12 @@ export class BimDataImportService {
         return this._httpClient.post<any>(url, { 'name': name });
     }
 
-    sse(action: string, name: string): Observable<any> {
-        const url = `${endpoint}/api/aps/${action}/${name}`;
+    sse(action: string, name: string, credentials?: any): Observable<any> {
+
+        // const url = `${endpoint}/api/aps/${action}/${name}`;
+        const url = `${endpoint}/api/aps/${action}?name=${name}&clientId=${credentials.clientId}&clientSecret=${credentials.clientSecret}&bucketKey=${credentials.bucketKey}`;
+
+            console.log(url)
 
         return new Observable((observer: Observer<any>) => {
             const eventSource: EventSource = new EventSource(url);

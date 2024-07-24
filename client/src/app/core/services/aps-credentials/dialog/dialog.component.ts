@@ -34,7 +34,7 @@ export class ApsCredentialsDialogComponent implements OnInit {
         this.form = this._formBuilder.group({
             clientId: ['94MGPGEtqunCJS6XyZAAnztSSIrtfOLsVWQEkLNQ7uracrAC', Validators.required],
             clientSecret: ['G5tBYHoxe9xbpsisxGo5kBZOCPwEFCCuXIYr8kms28SSRuuVAHR0G766A3RKFQXy', Validators.required],
-            bucketName: ['bmms_oss', Validators.required]
+            bucketKey: ['bmms_oss', Validators.required]
         });
     }
 
@@ -44,7 +44,6 @@ export class ApsCredentialsDialogComponent implements OnInit {
             return;
         }
 
-        console.log()
         this._apsCredentialsService.credientials = this.form.value;
 
         this._dialogRef.close('confirmed');

@@ -108,7 +108,7 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
                 complete: () => {
                     // websocket emit upload-object
 
-                    this._bimDataImportService.sse('upload-object', file.name)
+                    this._bimDataImportService.sse('upload-object', file.name, this._apsCredentials.credientials)
                         .pipe(takeUntil(this._unsubscribeAll))
                         .subscribe(res => {
 

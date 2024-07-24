@@ -20,7 +20,7 @@
     "inquiry-user": "Inquiry User",
     "client-id": "Client ID",
     "client-secret": "Client Secret",
-    "bucket-name": "Bucket Name",
+    "bucket-key": "Bucket Key",
     "upload-object": "Upload Object",
     "translate-job": "Translate Job",
     "extract-metadata": "Extract Metadata",
