@@ -1,11 +1,12 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { TranslocoModule } from '@jsverse/transloco';
+import { ApsCredentialsService } from '../aps-credentials.service';
 
 @Component({
     selector: 'aps-credentials-dialog',
@@ -22,15 +23,31 @@ export class ApsCredentialsDialogComponent implements OnInit {
 
     form: UntypedFormGroup;
 
-    constructor(private _formBuilder: UntypedFormBuilder,) { }
+    constructor(
+        private _formBuilder: UntypedFormBuilder,
+        private _apsCredentialsService: ApsCredentialsService,
+        private _dialogRef: MatDialogRef<ApsCredentialsDialogComponent>
+    ) { }
 
     ngOnInit(): void {
         // Create the form
         this.form = this._formBuilder.group({
-            clientId: ['47aKP8JTOibKQTvtpdugm8r05baqLxtF'],
-            clientSecret: ['UOnLHJkAYTAQAAAP'],
-            bucketName: ['bmms_oss']
+            clientId: ['94MGPGEtqunCJS6XyZAAnztSSIrtfOLsVWQEkLNQ7uracrAC', Validators.required],
+            clientSecret: ['G5tBYHoxe9xbpsisxGo5kBZOCPwEFCCuXIYr8kms28SSRuuVAHR0G766A3RKFQXy', Validators.required],
+            bucketName: ['bmms_oss', Validators.required]
         });
+    }
+
+    onSave(): void {
+
+        if (this.form.invalid) {
+            return;
+        }
+
+        console.log()
+        this._apsCredentialsService.credientials = this.form.value;
+
+        this._dialogRef.close('confirmed');
     }
 
 }

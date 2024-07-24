@@ -5,6 +5,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { BimDataImportService } from '../bim-data-import.service';
 import { TableModule } from 'primeng/table';
+import { ApsCredentialsService } from 'app/core/services/aps-credentials/aps-credentials.service';
+import { NgxSpinnerService } from 'ngx-spinner';
 
 @Component({
     selector: 'extra-metadata',
@@ -21,17 +23,29 @@ export class ExtraMetadataComponent implements OnInit, OnDestroy {
 
     constructor(
         private _cdr: ChangeDetectorRef,
-        private _bimDataImportService: BimDataImportService
+        private _spinner: NgxSpinnerService,
+        private _bimDataImportService: BimDataImportService,
+        private _apsCredentials: ApsCredentialsService
     ) { }
 
     ngOnInit(): void {
+        if (!this._apsCredentials.check()) {
+            this._apsCredentials.open().afterClosed().subscribe(res => {
+                if (res != 'confirmed') return;
+                this._getObjects();
+            });
+        }
+        else { this._getObjects(); }
+    }
+
+    private _getObjects() {
+        this._spinner.show();
         this._bimDataImportService.getObjects()
             .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((res) => {
-                if (res) {
-                    this.objects = res.filter(e => e.status === 'success');                    
-                    this._cdr.markForCheck();
-                }
+            .subscribe((res) => {                
+                this.objects = res;
+                this._cdr.markForCheck();
+                this._spinner.hide();
             })
     }
 

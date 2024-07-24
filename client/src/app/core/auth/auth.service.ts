@@ -8,6 +8,7 @@ import { AuthUtils } from 'app/core/auth/auth.utils';
 import { UserService } from 'app/core/user/user.service';
 import { environment } from 'environments/environment';
 import { CookieService } from 'ngx-cookie-service';
+import { ApsCredentialsService } from '../services/aps-credentials/aps-credentials.service';
 
 const endpoint = environment.host;
 const USER_KEY: string = environment.user_key;
@@ -23,6 +24,7 @@ export class AuthService {
         private _httpClient: HttpClient,
         private _userService: UserService,
         private _cookieService: CookieService,
+        private _apsCredentials: ApsCredentialsService,
         private _sanitizer: DomSanitizer,
     ) {
     }
@@ -102,6 +104,7 @@ export class AuthService {
     signOut(): Observable<any> {
         // Remove the access token from the local storage
         localStorage.removeItem(USER_KEY);
+        this._apsCredentials.remove();
         this._cookieService.deleteAll();
 
         // Set the authenticated flag to false
@@ -134,7 +137,7 @@ export class AuthService {
      */
     check(): Observable<boolean> {
         // Check if the user is logged in
-        
+
         if (this._authenticated) {
             return of(true);
         }

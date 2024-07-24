@@ -10,6 +10,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { TranslocoModule } from '@jsverse/transloco';
 import { BimDataImportService } from '../bim-data-import.service';
 import { TableModule } from 'primeng/table';
+import { ApsCredentialsService } from 'app/core/services/aps-credentials/aps-credentials.service';
 
 @Component({
     selector: 'upload-object',
@@ -39,12 +40,11 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
 
     constructor(
         private _cdr: ChangeDetectorRef,
-        private _bimDataImportService: BimDataImportService
+        private _bimDataImportService: BimDataImportService,
+        private _apsCredentials: ApsCredentialsService
     ) { }
 
-    ngOnInit(): void {
-
-    }
+    ngOnInit(): void { }
 
     triggerFileInput(): void {
         this.fileInput.nativeElement.click();
@@ -81,6 +81,16 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
 
     onUpload(file: any): void {
 
+        if (!this._apsCredentials.check()) {
+            this._apsCredentials.open().afterClosed().subscribe(res => {
+                if (res != 'confirmed') return;
+                this._upload(file);
+            });
+        }
+        else { this._upload(file); }
+    }
+
+    private _upload(file: any) {
         this._bimDataImportService.uploadFile(file.file)
             .subscribe({
                 next: (res) => {

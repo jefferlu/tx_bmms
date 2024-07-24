@@ -29,11 +29,9 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     drawerMode: 'over' | 'side' = 'side';
     drawerOpened: boolean = true;
     panels: any[] = [];
-    selectedPanel: string = 'extract-metadata';
+    selectedPanel: string = 'upload-object';
 
-    constructor(
-        private _apsCredentials: ApsCredentialsService
-    ) { }
+    constructor() { }
 
     ngOnInit(): void {
         this.panels = [
@@ -49,9 +47,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                 id: 'extract-metadata',
                 icon: 'heroicons_outline:inbox-arrow-down',
             }
-        ];
-
-        this._apsCredentials.open();
+        ];        
     }
 
     goToPanel(panel: string): void {

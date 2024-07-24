@@ -11,6 +11,7 @@ import { DatePipe, NgClass } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { Subject, takeUntil } from 'rxjs';
+import { NgxSpinnerService } from 'ngx-spinner';
 
 @Component({
     selector: 'app-bim-model-viewer',
@@ -33,6 +34,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
+        private _spinnser: NgxSpinnerService,
         private _bimModelViewerService: BimModelViewerService,
         private _matDialog: MatDialog
     ) { }
@@ -46,14 +48,15 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     search(): void {
         let name = this.searchBinName || '';
 
+        this._spinnser.show();
         this._bimModelViewerService.getBmmsList({ 'name': name })
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
                 next: (res) => {
                     if (res) {
                         this.page.data = res;
-                        console.log(res)
                         this._changeDetectorRef.markForCheck();
+                        this._spinnser.hide();
                     }
                 },
                 error: e => {
@@ -73,7 +76,6 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
-        console.log('destroy',this._unsubscribeAll)
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
     }

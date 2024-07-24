@@ -20,6 +20,7 @@
     "inquiry-user": "一般查詢使用者",
     "client-id": "Client ID",
     "client-secret": "Client Secret",
+    "bucket-name": "Bucket Name",
     "upload-object": "上傳圖資",
     "translate-job": "圖資轉換",
     "extract-metadata": "擷取數據",
@@ -47,5 +48,6 @@
     "system-log-query": "查詢系統紀錄",
     "system-log-query-desc": "可查詢系統記錄並匯出記錄檔",
     "file-directory": "數位化文件資料夾",
-    "search-bim-name": "查詢圖資名稱"
+    "search-bim-name": "查詢圖資名稱",
+    "loading": "載入中"
 }

@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { fuseAnimations } from '@fuse/animations';
 import { AuthService } from 'app/core/auth/auth.service';
@@ -18,14 +19,8 @@ import { AuthService } from 'app/core/auth/auth.service';
     styleUrl: './sign-in.component.scss',
     animations: fuseAnimations,
     imports: [
-        RouterLink,
-        CommonModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatIconModule,
+        RouterLink,FormsModule,ReactiveFormsModule,
+        MatButtonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatProgressSpinnerModule,
         FuseAlertComponent
     ],
 })
@@ -61,13 +56,16 @@ export class SignInComponent {
         if (this.signInForm.invalid) {
             return;
         }
-        
+
+        // Disable the form
+        this.signInForm.disable();
+
         // Hide the alert
         this.showAlert = false;
 
         this._authService.signIn(this.signInForm.value).subscribe({
-            next: (res) => {                
-                const redirectURL = this._activatedRoute.snapshot.queryParamMap.get('redirectURL') || '/signed-in-redirect';                
+            next: (res) => {
+                const redirectURL = this._activatedRoute.snapshot.queryParamMap.get('redirectURL') || '/signed-in-redirect';
                 // Navigate to the redirect url
                 this._router.navigateByUrl(redirectURL);
             },

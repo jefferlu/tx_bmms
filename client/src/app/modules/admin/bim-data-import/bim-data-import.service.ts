@@ -15,7 +15,8 @@ export class BimDataImportService {
 
     constructor(
         private _httpClient: HttpClient,
-        private _ngZone: NgZone) { }
+        private _ngZone: NgZone
+    ) { }
 
     uploadFile(file: File): Observable<any> {
 

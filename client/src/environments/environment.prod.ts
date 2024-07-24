@@ -6,6 +6,7 @@ export const environment = {
     staticUrl: 'static/ng/',
     mediaUrl: 'media/',
     aps: {
-        apiUrl: 'https://developer.api.autodesk.com'
+        apiUrl: 'https://developer.api.autodesk.com',
+        key:'asp-credentials'
     }
 };

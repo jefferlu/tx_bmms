@@ -11,6 +11,7 @@ import { NavigationService } from 'app/core/navigation/navigation.service';
 import { Navigation } from 'app/core/navigation/navigation.types';
 import { LanguagesComponent } from 'app/layout/common/languages/languages.component';
 import { UserComponent } from 'app/layout/common/user/user.component';
+import { NgxSpinnerModule } from 'ngx-spinner';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -19,8 +20,8 @@ import { Subject, takeUntil } from 'rxjs';
     encapsulation: ViewEncapsulation.None,
     standalone: true,
     imports: [
-        NgIf, RouterOutlet,
-        MatButtonModule, MatIconModule, TranslocoModule,
+        NgIf, RouterOutlet, TranslocoModule,
+        MatButtonModule, MatIconModule, TranslocoModule, NgxSpinnerModule,
         FuseLoadingBarComponent, FuseVerticalNavigationComponent,
         LanguagesComponent, UserComponent
     ],

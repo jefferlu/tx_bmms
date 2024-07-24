@@ -10,7 +10,8 @@ export const environment = {
     staticUrl: '',
     mediaUrl: 'media/',
     aps: {
-        apiUrl: 'https://developer.api.autodesk.com'
+        apiUrl: 'https://developer.api.autodesk.com',
+        key:'asp-credentials'
     }
 };
 

@@ -10,29 +10,41 @@
             <div class="grid sm:grid-cols-4 gap-6 w-full mt-8">
                 <!-- Client ID -->
                 <div class="sm:col-span-4">
-                    <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
+                    <mat-form-field class="w-full fuse-mat-dense" [subscriptSizing]="'dynamic'">
                         <mat-label>{{t('client-id')}}</mat-label>
                         <input [formControlName]="'clientId'" matInput>
+                        @if(form.get('clientId').hasError('required')){
+                        <mat-error *ngIf="">Email address is required</mat-error>
+                        }
+
                     </mat-form-field>
                 </div>
-    
+
                 <!-- Client Secret -->
                 <div class="sm:col-span-4">
-                    <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
+                    <mat-form-field class="w-full fuse-mat-dense" [subscriptSizing]="'dynamic'">
                         <mat-label>{{t('client-secret')}}</mat-label>
                         <input [formControlName]="'clientSecret'" matInput>
+                        @if(form.get('clientSecret').hasError('required')){
+                        <mat-error>Email address is required</mat-error>
+                        }
+
                     </mat-form-field>
                 </div>
 
                 <!-- Bucket Name -->
                 <div class="sm:col-span-4">
-                    <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
+                    <mat-form-field class="w-full fuse-mat-dense" [subscriptSizing]="'dynamic'">
                         <mat-label>{{t('bucket-name')}}</mat-label>
                         <input [formControlName]="'bucketName'" matInput>
+                        @if(form.get('bucketName').hasError('required')){
+                            <mat-error>Email address is required</mat-error>
+                        }
+                        
                     </mat-form-field>
                 </div>
             </div>
-            
+
         </form>
 
     </div>
@@ -46,7 +58,7 @@
         </button>
 
         <!-- Confirm -->
-        <button mat-stroked-button [matDialogClose]="'confirmed'">
+        <button mat-stroked-button (click)="onSave()">
             Save
         </button>
     </div>
