@@ -7,7 +7,6 @@ import { User } from './modules/users/users.entity';
 import { FilesModule } from './modules/files/files.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MulterModule } from '@nestjs/platform-express';
-import { TranslateJobGateway } from './gateways/forge/forge.gateway';
 import { TranslateJobModule } from './modules/translate-job/translate-job.module';
 import { BmmsMasterModule } from './modules/bms/bms.module';
 import { Bmms_Master } from './modules/bms/bms.entity';
@@ -38,6 +37,6 @@ import { ApsModule } from './modules/aps/aps.module';
         ApsModule,
 
 ],
-    providers: [AppService, TranslateJobGateway],
+    providers: [AppService],
 })
 export class AppModule { }
