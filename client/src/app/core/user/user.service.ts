@@ -38,6 +38,11 @@ export class UserService {
         return this._user.asObservable();
     }
 
+    get user(): User {
+        let value: any = localStorage.getItem(USER_KEY);
+        return JSON.parse(value);
+    }
+
     // -----------------------------------------------------------------------------------------------------
     // @ Public methods
     // -----------------------------------------------------------------------------------------------------

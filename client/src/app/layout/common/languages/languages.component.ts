@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { FuseNavigationService, FuseVerticalNavigationComponent } from '@fuse/components/navigation';
 import { AvailableLangs, TranslocoService } from '@jsverse/transloco';
+import { LanguagesService } from 'app/core/services/languages/languages.service';
 import { take } from 'rxjs';
 
 @Component({
@@ -23,10 +24,10 @@ export class LanguagesComponent implements OnInit, OnDestroy {
     /**
      * Constructor
      */
-    constructor(
-        private _changeDetectorRef: ChangeDetectorRef,
+    constructor(        
         private _fuseNavigationService: FuseNavigationService,
         private _translocoService: TranslocoService,
+        private _languageService: LanguagesService
     ) {
     }
 
@@ -75,6 +76,7 @@ export class LanguagesComponent implements OnInit, OnDestroy {
     setActiveLang(lang: string): void {
         // Set the active lang
         this._translocoService.setActiveLang(lang);
+        this._languageService.language = lang;
     }
 
     /**

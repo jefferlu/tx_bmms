@@ -5,13 +5,14 @@
 export const environment = {
     production: false,
     user_key: 'tx_bmms_user',
-    host: 'http://localhost:3000',    
-    downloadUrl:'../',
+    language_key: 'tx_bmms_languages',
+    host: 'http://localhost:3000',
+    downloadUrl: '../',
     staticUrl: '',
     mediaUrl: 'media/',
     aps: {
         apiUrl: 'https://developer.api.autodesk.com',
-        key:'asp-credentials'
+        key: 'asp-credentials'
     }
 };
 
