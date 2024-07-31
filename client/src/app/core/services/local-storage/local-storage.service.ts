@@ -7,11 +7,11 @@ const LANGUAGE_KEY: string = environment.language_key;
 @Injectable({
     providedIn: 'root'
 })
-export class LanguagesService {
+export class LocalStorageService {
 
     private _userService = inject(UserService);
 
-    set language(lang: string) {        
+    set language(lang: string) {
         let languages = JSON.parse(localStorage.getItem(LANGUAGE_KEY) || '{}');
 
         languages[this._userService.user.email] = lang;
@@ -20,6 +20,9 @@ export class LanguagesService {
 
     get language(): string {
         let languages = JSON.parse(localStorage.getItem(LANGUAGE_KEY) || '{}');
-        return languages[this._userService.user.email];
+        if (this._userService.user)
+            return languages[this._userService.user.email];
+        else
+            return null;
     }
 }

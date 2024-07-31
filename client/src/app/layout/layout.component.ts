@@ -9,7 +9,7 @@ import { combineLatest, filter, map, Subject, takeUntil } from 'rxjs';
 import { EmptyLayoutComponent } from './layouts/empty/empty.component';
 import { CompactLayoutComponent } from './layouts/vertical/compact/compact.component';
 import { TranslocoService } from '@jsverse/transloco';
-import { LanguagesService } from 'app/core/services/languages/languages.service';
+import { LocalStorageService } from 'app/core/services/local-storage/local-storage.service';
 
 @Component({
     selector: 'layout',
@@ -38,7 +38,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
         private _fuseMediaWatcherService: FuseMediaWatcherService,
         private _fusePlatformService: FusePlatformService,
         private _translocoService: TranslocoService,
-        private _languageService: LanguagesService
+        private _localStorageService: LocalStorageService
     ) {
     }
 
@@ -107,7 +107,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
         this._renderer2.addClass(this._document.body, this._fusePlatformService.osName);
 
         // Set language from localStorage
-        this._translocoService.setActiveLang(this._languageService.language);
+        if (this._localStorageService.language)
+            this._translocoService.setActiveLang(this._localStorageService.language);
     }
 
     /**
