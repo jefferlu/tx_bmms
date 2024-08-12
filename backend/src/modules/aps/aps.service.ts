@@ -269,7 +269,7 @@ export class ApsService {
 
                     // if (message.includes('output.svf')) console.log(message);
                     observer.next({ data: { status: 'extract', message: message } });
-                    // console.log('-->', message)
+                    console.log('-->', message)
                 }
             });
             await svfDownloadTask.ready;
