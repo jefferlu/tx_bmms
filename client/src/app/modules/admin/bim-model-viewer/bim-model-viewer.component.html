@@ -45,7 +45,7 @@
                                 <!-- <td>{{no+1}}</td> -->
                                 <td><span class="hover:cursor-pointer hover:text-slate-500" (click)="onModelDialog(item)">{{ item.name }}</span></td>
                                 <td>{{item.createdAt | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
-                                <td>{{item.uploader.username}}</td>
+                                <td>{{item.uploader?.username}}</td>
                                 <td class="text-center">
                                     <button mat-icon-button matSuffix (click)="onSearch()">
                                         <mat-icon [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
