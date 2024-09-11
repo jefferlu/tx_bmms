@@ -1,5 +1,9 @@
+@layer tailwind-base, primeng, tailwind-utilities;
+
 /* This injects Tailwind's base styles and any base styles registered by plugins. */
-@tailwind base;
+@layer tailwind-base {
+    @tailwind base;
+}
 
 /* This injects additional styles into Tailwind's base styles layer. */
 @layer base {
@@ -140,4 +144,6 @@
 }
 
 /* This injects Tailwind's component classes and any component classes registered by plugins. */
-@tailwind components;
+@layer tailwind-utilities {
+    @tailwind components;
+}
