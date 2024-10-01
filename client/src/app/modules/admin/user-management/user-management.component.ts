@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
 import { UserAccountComponent } from './user-account/user-account.component';
 import { RoleListComponent } from './role-list/role-list.component';
+import { LogQueryComponent} from './log-query/log-query.component';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -18,7 +19,7 @@ import { TranslocoModule } from '@jsverse/transloco';
     imports: [
         NgFor, NgClass, NgSwitch, NgSwitchCase, TranslocoModule,
         MatSidenavModule, MatButtonModule, MatIconModule,
-        UserAccountComponent, RoleListComponent
+        UserAccountComponent, RoleListComponent, LogQueryComponent
     ],
 })
 export class UserManagementComponent implements OnInit, OnDestroy {

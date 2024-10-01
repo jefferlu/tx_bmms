@@ -9,6 +9,8 @@ import { TreeModule } from 'primeng/tree';
 import { JsonPipe } from '@angular/common';
 import { ApsViewerComponent } from "../../../layout/common/aps-viewer/aps-viewer.component";
 import { SearchPanelComponent } from './search-panel/search-panel.component';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
     selector: 'app-process-functions',
@@ -24,6 +26,8 @@ import { SearchPanelComponent } from './search-panel/search-panel.component';
         TranslocoModule,
         SearchPanelComponent,
         ApsViewerComponent,
+        MatMenuModule,
+        MatDividerModule,
     ],
 
 })
