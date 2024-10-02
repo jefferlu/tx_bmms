@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterOutlet } from '@angular/router';
@@ -11,6 +11,8 @@ import { ApsViewerComponent } from "../../../layout/common/aps-viewer/aps-viewer
 import { SearchPanelComponent } from './search-panel/search-panel.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+
+declare var $: any;
 
 @Component({
     selector: 'app-process-functions',
@@ -31,7 +33,9 @@ import { MatDividerModule } from '@angular/material/divider';
     ],
 
 })
-export class ProcessFunctionsComponent implements OnInit, OnDestroy {
+export class ProcessFunctionsComponent implements OnInit, AfterViewInit, OnDestroy {
+
+    @ViewChild('elfinder') elfinderDiv!: ElementRef;
 
     // @ViewChild('viewer') viewerContainer: ElementRef;
 
@@ -56,7 +60,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             "filePath": "./uploads/SL_OM_IN(%E6%95%B4%E5%90%88)_A%E6%A3%9F.nwd",
             "svfPath": "downloads/dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvU0xfT01fSU4oJUU2JTk1JUI0JUU1JTkwJTg4KV9BJUU2JUEzJTlGLm53ZA/4755652b-a8e4-4d79-b049-b9ee252c3efe"
         }
-        
+
 
         this.files = [
             {
@@ -606,53 +610,45 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     ngAfterViewInit(): void {
-       
-
-        // let svfPath = res.svfPath.replace(/\\/g, '/');
-
-        // const container = this.viewerContainer.nativeElement;
-        // this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
-        // // let svfPath = res.svfPath.replace(/\\/g, '/');
-        // // console.log(`${env.downloadUrl}${svfPath}/output.svf`)
-        // // this.options = {
-        // //     env: 'Local',
-        // //     useConsolidation: true,
-        // //     document: `${env.downloadUrl}${svfPath}/output.svf`,
-        // //     language: 'en'
-        // // };
-        // let res = {
-        //     "id": 6,
-        //     "name": "SL_OM_IN(整合)_A棟.nwd",
-        //     "filePath": "./uploads/SL_OM_IN(%E6%95%B4%E5%90%88)_A%E6%A3%9F.nwd",
-        //     "svfPath": "downloads/dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvU0xfT01fSU4oJUU2JTk1JUI0JUU1JTkwJTg4KV9BJUU2JUEzJTlGLm53ZA/4755652b-a8e4-4d79-b049-b9ee252c3efe"
-        // }
-
-        // let svfPath = res.svfPath.replace(/\\/g, '/');
-        // console.log(`${env.downloadUrl}${svfPath}/output.svf`)
-        // this.options = {
-        //     env: 'Local',
-        //     useConsolidation: true,
-        //     document: `${svfPath}/output.svf`,
-        //     language: 'en',
-        //     // background: {
-        //     //     color: [0, 0, 0], // 背景顏色，這裡設置為黑色
-        //     //     gradient: 'none', // 背景漸變效果，這裡設置為無
-        //     //     opacity: 0 // 背景透明度，這裡設置為完全透明
-        //     // }
-        // };
-        // Autodesk.Viewing.Initializer(this.options, () => {
-        //     Autodesk.Viewing.Private.InitParametersSetting.alpha = true;
-        //     const startedCode = this.viewer.start(this.options.document, this.options, () => {
-        //         // this.viewer.impl.renderer().setClearAlpha(0);
-        //         // this.viewer.impl.glrenderer().setClearColor(0xffffff, 0);
-        //         // this.viewer.impl.invalidate(true);
-        //         this.viewer.setGhosting(false);
-
-        //         let instanceTree = this.viewer.model.getData();
-        //         // let rootId = instanceTree.getRootId()
-        //         console.log(instanceTree)
-        //     });
-        // });
+        $(this.elfinderDiv.nativeElement).elfinder({
+            cssAutoLoad: false,               // Disable CSS auto loading
+            baseUrl: './elfinder/',
+            url: 'http://localhost/elfinder/php/connector.minimal.php',  // connector URL (REQUIRED)
+            // lang: 'ru'                    // language (OPTIONAL)
+            height: '480px',
+            // 自訂根目錄
+            custom: [
+                {
+                    // 根目錄的標題
+                    label: '我的自訂根目錄',
+                    // 設置根目錄的 URL
+                    url: 'http://localhost:3000/uploads/',
+                    // 設置其他參數
+                    driver: 'LocalFileSystem',
+                    // 可選的其他參數，例如權限
+                    options: {
+                        // 根目錄的其他選項
+                        disable: ['mkdir', 'rename', 'delete'] // 禁止某些操作
+                    }
+                }
+            ]
+            // Callback when a file is double-clicked            
+        }, (fm: any) => {
+            // `init` event callback function
+            fm.bind('init', function () { });
+            // Optional for set document.title dynamically.
+            var title = document.title;
+            fm.bind('open', function () {
+                var path = '',
+                    cwd = fm.cwd();
+                if (cwd) {
+                    path = fm.path(cwd.hash) || null;
+                }
+                document.title = path ? path + ':' + title : title;
+            }).bind('destroy', function () {
+                document.title = title;
+            });
+        });
     }
 
     ngOnDestroy(): void { }
