@@ -75,9 +75,39 @@
         <!-- Result table -->
         <div class="grid grid-cols-1 gap-8 w-full mt-6" *transloco="let t">
             <div class="flex flex-col flex-auto bg-card shadow rounded-xl py-6">
-
+                <div class="ml-60 mt-5">
+                    <button
+                        mat-icon-button
+                        [matMenuTriggerFor]="exportMenu"
+                    >
+                        <mat-icon
+                            class="icon-size-5"
+                            [svgIcon]="'heroicons_mini:arrow-down-tray'"
+                        ></mat-icon>
+                    </button>
+                    <mat-menu #exportMenu="matMenu">
+                        <button mat-menu-item>
+                            <span class="flex items-center">
+                                <mat-icon
+                                    class="mr-3 icon-size-5"
+                                    [svgIcon]="'heroicons_outline:file-csv'"
+                                ></mat-icon>
+                                <span>匯出 CSV 檔案</span>
+                            </span>
+                        </button>
+                        <button mat-menu-item>
+                            <span class="flex items-center">
+                                <mat-icon
+                                    class="mr-3 icon-size-5"
+                                    [svgIcon]="'heroicons_solid:document-text'"
+                                ></mat-icon>
+                                <span>匯出 TXT 檔</span>
+                            </span>
+                        </button>
+                    </mat-menu>
+                </div>
                 <!-- Result table -->
-                <div class="overflow-x-auto mx-10 result-table">
+                <div class=" -mt-7 overflow-x-auto mx-10 result-table">
                     <div class="text-secondary font-medium text-lg">查詢結果 : 全部 56 筆資料 </div>
                     <p-table [value]="products" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="true" [rows]="5">
                         <ng-template pTemplate="header">
