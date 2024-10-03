@@ -10,7 +10,7 @@
                 <a mat-stroked-button (click)="triggerFileInput()">
                     <span class="inline-flex items-center cursor-pointer">
                         <mat-icon class="mr-2 icon-size-5" [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
-                        <span>Choose File</span>
+                        <span>選擇檔案</span>
                     </span>
                 </a>
 
@@ -30,10 +30,10 @@
             <ng-template pTemplate="header">
                 <tr>
                     <!-- <th class="min-w-20">NO</th> -->
-                    <th class="min-w-60">File Name</th>
-                    <th class="min-w-60">Size</th>
-                    <th class="min-w-30 text-center">Status</th>
-                    <th class="min-w-60 text-center">Upload</th>
+                    <th class="min-w-60">檔案名稱</th>
+                    <th class="min-w-60">檔案大小</th>
+                    <th class="min-w-30 text-center">處理狀態</th>
+                    <th class="min-w-60 text-center">上傳</th>
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-file let-no="rowIndex">
@@ -44,7 +44,7 @@
                     <td class="text-center">
                         @if(file.status==='process'){<mat-progress-bar class="" [mode]="'determinate'" [value]="file.progress"></mat-progress-bar>}
                         @else if(file.status==='complete'){<i class="pi text-green-500 pi-check-circle"></i>}
-                        @else{<span class="text-green-900 dark:text-green-300">{{file.status||'Ready'}}</span>}
+                        @else{<span class="text-green-900 dark:text-green-300">{{file.status||'準備上傳'}}</span>}
                     </td>
                     <td class="text-center">
                         <!-- <button mat-button class="text-primary" (click)="onStartUpload(file)" [disabled]="file.status==='Completed'">Upload</button> -->

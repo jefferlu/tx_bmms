@@ -26,7 +26,7 @@
 
                 <!-- Email field -->
                 <mat-form-field class="w-full fuse-mat-dense">
-                    <mat-label>Email address</mat-label>
+                    <mat-label>電子郵件 Email address</mat-label>
                     <input id="email" matInput [formControlName]="'email'">
                     @if(signInForm.get('email').hasError('required')){
                     <mat-error>Email address is required</mat-error>
@@ -39,7 +39,7 @@
 
                 <!-- Password field -->
                 <mat-form-field class="w-full fuse-mat-dense">
-                    <mat-label>Password</mat-label>
+                    <mat-label>密碼 Password</mat-label>
                     <input id="password" matInput type="password" [formControlName]="'password'" #passwordField>
                     <button mat-icon-button type="button"
                         (click)="passwordField.type === 'password' ? passwordField.type = 'text' : passwordField.type = 'password'" matSuffix>
@@ -58,13 +58,13 @@
                 <!-- Actions -->
                 <div class="inline-flex items-center justify-between w-full mt-1.5">
                     <div></div>
-                    <a class="text-md font-medium text-primary-500 hover:underline" [routerLink]="['/forgot-password']">Forgot password?
+                    <a class="text-md font-medium text-primary-500 hover:underline" [routerLink]="['/forgot-password']">忘記密碼?
                     </a>
                 </div>
 
                 <!-- Submit button -->
                 <button class="fuse-mat-button-large w-full mt-6" mat-stroked-button [disabled]="signInForm.disabled" (click)="signIn()">
-                    @if(!signInForm.disabled){<span>Sign in</span>}
+                    @if(!signInForm.disabled){<span>登入</span>}
                     @else{<mat-progress-spinner [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>}
                 </button>
 
