@@ -11,8 +11,10 @@ import { ApsViewerComponent } from "../../../layout/common/aps-viewer/aps-viewer
 import { SearchPanelComponent } from './search-panel/search-panel.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { environment } from 'environments/environment';
 
 declare var $: any;
+const endpoint = environment.elfinder.apiUrl;
 
 @Component({
     selector: 'app-process-functions',
@@ -613,26 +615,9 @@ export class ProcessFunctionsComponent implements OnInit, AfterViewInit, OnDestr
         $(this.elfinderDiv.nativeElement).elfinder({
             cssAutoLoad: false,               // Disable CSS auto loading
             baseUrl: './elfinder/',
-            url: 'http://localhost/elfinder/php/connector.minimal.php',  // connector URL (REQUIRED)
+            url: `${endpoint}/elfinder/php/connector.minimal.php`,  // connector URL (REQUIRED)
             // lang: 'ru'                    // language (OPTIONAL)
-            height: '480px',
-            // 自訂根目錄
-            custom: [
-                {
-                    // 根目錄的標題
-                    label: '我的自訂根目錄',
-                    // 設置根目錄的 URL
-                    url: 'http://localhost:3000/uploads/',
-                    // 設置其他參數
-                    driver: 'LocalFileSystem',
-                    // 可選的其他參數，例如權限
-                    options: {
-                        // 根目錄的其他選項
-                        disable: ['mkdir', 'rename', 'delete'] // 禁止某些操作
-                    }
-                }
-            ]
-            // Callback when a file is double-clicked            
+            height: '480px',            
         }, (fm: any) => {
             // `init` event callback function
             fm.bind('init', function () { });

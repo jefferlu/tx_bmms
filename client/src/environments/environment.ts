@@ -13,6 +13,9 @@ export const environment = {
     aps: {
         apiUrl: 'https://developer.api.autodesk.com',
         key: 'asp-credentials'
+    },
+    elfinder: {
+        apiUrl: 'https://bmms.giantcld.com'
     }
 };
 
