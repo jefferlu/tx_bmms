@@ -36,7 +36,7 @@
                             "src/assets",
                             "src/downloads"
                         ],
-                        "styles": [                               
+                        "styles": [
                             "src/@fuse/styles/tailwind.scss",
                             "src/@fuse/styles/themes.scss",
                             "src/styles/vendors.scss",
@@ -44,12 +44,21 @@
                             "src/styles/styles.scss",
                             "src/styles/tailwind.scss",
                             "node_modules/ngx-spinner/animations/ball-clip-rotate.css",
-                            "node_modules/primeicons/primeicons.css",                        
+                            "node_modules/primeicons/primeicons.css",
                             "node_modules/primeng/resources/themes/aura-dark-blue/theme.css",
-                            "node_modules/primeng/resources/primeng.min.css"
+                            "node_modules/primeng/resources/primeng.min.css",
+                            "src/assets/jqueryui/jquery-ui.min.css",
+                            "src/assets/elfinder/css/elfinder.min.css",
+                            "src/assets/elfinder/css/theme.css"
                         ],
                         "scripts": [
-                        ]
+                            "src/assets/jquery/jquery-3.7.1.min.js",
+                            "src/assets/jqueryui/jquery-ui.min.js",
+                            "src/assets/elfinder/js/elfinder.full.js",
+                            "src/assets/elfinder/js/extras/editors.default.min.js",
+                            "src/assets/elfinder/js/extras/quicklook.googledocs.min.js"
+                        ],
+                        "outputHashing": "all"
                     },
                     "configurations": {
                         "production": {
@@ -124,6 +133,6 @@
         }
     },
     "cli": {
-      "analytics": false
+        "analytics": false
     }
 }

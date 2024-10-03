@@ -10,34 +10,16 @@
             </div>
         </div> -->
 
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 w-full mt-2">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 w-full mt-2">
 
-            <!-- Files tree -->
+            <!-- elFinder -->
             <div class="relative flex flex-col flex-auto bg-card shadow rounded-lg overflow-hidden">
-
-                <!-- Title -->
-                <div class="flex items-center justify-between w-full" *transloco="let t">
-                    <div>
-                        <h3 class="text-2xl m-5 font-semibold tracking-tight leading-8">{{t('file-directory')}}</h3>
-                        <!-- <div class="font-medium tracking-tight text-secondary text-lg">{{t('bim-information-listing-desc')}}</div> -->
-                    </div>
-                </div>
-                <!-- Add folder button -->
-                <div class="absolute top-0 right-0 mt-4 mr-4">
-                    <button mat-icon-button>
-                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:plus'"></mat-icon>
-                    </button>
-                </div>
-
-                <!-- Files tree -->
-                <div class="flex flex-col flex-auto tree-container">
-                    <p-tree [value]="files" selectionMode="single" scrollHeight="360px" />
-                </div>
+                <div #elfinder></div>
             </div>
 
             <!-- BIM viewer -->
             <div class="flex flex-col flex-auto bg-card shadow rounded-lg xl:col-span-2">
-                <div class="flex flex-col flex-auto h-100">
+                <div class="flex flex-col flex-auto h-120">
 
                     @if(true){
                     <aps-viewer class="relative w-full h-full" [option]="page.svf"></aps-viewer>
@@ -56,7 +38,7 @@
         </div>
 
         <!-- Advanced search -->
-        <div class="grid grid-cols-1 gap-8 w-full mt-6" *transloco="let t">
+        <div class="grid grid-cols-1 gap-8 w-full mt-4" *transloco="let t">
             <div class="flex flex-col flex-auto bg-card shadow rounded-xl pb-6">
                 <div class="p-8">
                     <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">{{t('advanced-search')}}

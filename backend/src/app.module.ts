@@ -36,7 +36,8 @@ import { ApsModule } from './modules/aps/aps.module';
         BmmsMasterModule,
         ApsModule,
 
-],
+    ],
+    controllers: [AppController],
     providers: [AppService],
 })
 export class AppModule { }
