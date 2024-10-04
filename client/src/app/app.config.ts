@@ -1,5 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import { ApplicationConfig, isDevMode } from '@angular/core';
+import { APP_INITIALIZER, ApplicationConfig, inject, isDevMode } from '@angular/core';
 import { PreloadAllModules, provideRouter, withInMemoryScrolling, withPreloading } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
@@ -10,7 +10,8 @@ import { provideIcons } from './core/icons/icons.provider';
 import { provideFuse } from '@fuse';
 import { mockApiServices } from './mock-api';
 import { TranslocoHttpLoader } from './core/transloco/transloco-loader';
-import { provideTransloco, provideTransloco as provideTransloco_alias } from '@jsverse/transloco';
+import { provideTransloco, provideTransloco as provideTransloco_alias, TranslocoService } from '@jsverse/transloco';
+import { firstValueFrom } from 'rxjs';
 
 
 // import { routes } from './app.routes';
@@ -41,6 +42,18 @@ export const appConfig: ApplicationConfig = {
                     monthYearA11yLabel: 'LLLL yyyy',
                 }
             }
+        },
+        // Preload the default language before the app starts to prevent empty/jumping content
+        {
+            provide: APP_INITIALIZER,
+            useFactory: () => {
+                const translocoService = inject(TranslocoService);
+                const defaultLang = translocoService.getDefaultLang();
+                translocoService.setActiveLang(defaultLang);
+
+                return () => firstValueFrom(translocoService.load(defaultLang));
+            },
+            multi: true,
         },
         provideAuth(),
         provideIcons(),
