@@ -63,5 +63,10 @@
     "forgot-password": "忘記密碼",
     "wrong-email-password": "請確認帳號或密碼是否正確",
     "worng-email-format": "請輸入有效的電子郵件地址",
-    "register": "註冊帳號"
+    "register": "註冊帳號",
+    "create": "新增",
+    "save": "儲存",
+    "edit": "編輯",
+    "confirm": "確認",
+    "close": "關閉"
 }

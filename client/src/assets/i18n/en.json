@@ -55,13 +55,18 @@
     "username": "Account",
     "password": "Password",
     "no": "No",
-    "name": "Name",    "email": "Email",
-    
+    "name": "Name",    
+    "email": "Email",    
     "is-required": " is required",
     "remember-me": "Remember me",
     "forgot-username": "Forgot Username",
     "forgot-password": "Forgot Password",
     "wrong-email-password": "Wrong username or password",
     "worng-email-format":"Please enter a valid email address",
-    "register": "Register Account"
+    "register": "Register Account",
+    "create": "Create",
+    "save": "Save",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "close": "Close"
 }

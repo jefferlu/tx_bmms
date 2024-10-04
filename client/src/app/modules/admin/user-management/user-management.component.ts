@@ -70,7 +70,6 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     }
 
     getPanelInfo(id: string): any {
-        console.log(id)
         return this.panels.find(panel => panel.id === id);
     }
 

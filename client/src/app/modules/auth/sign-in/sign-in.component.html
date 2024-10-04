@@ -1,13 +1,13 @@
 <div class="flex flex-col flex-auto items-center sm:justify-center min-w-0" *transloco="let t">
     <div class="w-full sm:w-auto py-8 px-4 sm:p-12 sm:rounded-2xl">
-        <div class="w-full max-w-80 sm:w-80 mx-auto sm:mx-0">
+        <div class="w-full max-w-80 sm:max-w-xl mx-auto sm:mx-0">
             <!-- Logo -->
-            <div class="w-full">
+            <div class="sm:w-60 mx-auto">
                 <img src="assets/images/logo/Taoyuan_International_Airport_Logo.svg.png">
             </div>
 
             <!-- Title -->
-            <div class="mt-8 text-4xl font-extrabold tracking-tight leading-tight text-center">BIM模型管理服務系統</div>
+            <div class="mt-8 text-6xl font-extrabold tracking-tight leading-tight text-center sm:text-nowrap">{{ t('app-title') }}</div>
             <!-- <div class="flex items-baseline mt-0.5 font-medium">
                 <div>Don't have an account?</div>
                 <a class="ml-1 text-primary-500 hover:underline" [routerLink]="['/sign-up']">Sign up
@@ -22,7 +22,7 @@
             }
 
             <!-- Sign in form -->
-            <form class="mt-8" [formGroup]="signInForm" #signInNgForm="ngForm">
+            <form class="mt-8 sm:w-80 mx-auto" [formGroup]="signInForm" #signInNgForm="ngForm">
 
                 <!-- Email field -->
                 <mat-form-field class="w-full fuse-mat-dense">
