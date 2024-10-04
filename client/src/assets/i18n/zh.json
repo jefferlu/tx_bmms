@@ -12,7 +12,7 @@
     "log-query": "紀錄查詢",
     "role-list": "權限設定",
     "aps-account": "APS帳號及憑證",
-    "db-backup-restore": "資料庫備份及還原",
+    "backup-restore": "資料庫備份及還原",
     "system-administrator": "系統管理員",
     "security-manager": "安控管理人員",
     "bim-manager": "圖模管理人員",

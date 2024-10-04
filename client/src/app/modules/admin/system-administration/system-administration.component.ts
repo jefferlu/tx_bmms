@@ -5,6 +5,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
 import { TranslocoModule } from '@jsverse/transloco';
+import { BackupRestoreComponent } from './backup-restore/backup-restore.component';
+import { LogQueryComponent} from './log-query/log-query.component';
+
 
 @Component({
     selector: 'app-system-administration',
@@ -16,7 +19,7 @@ import { TranslocoModule } from '@jsverse/transloco';
     imports: [
         NgFor, NgClass, NgSwitch, NgSwitchCase,
         MatSidenavModule, MatButtonModule, MatIconModule,
-        TranslocoModule
+        TranslocoModule, BackupRestoreComponent,LogQueryComponent
     ],
 })
 export class SystemAdministrationComponent implements OnInit, OnDestroy {
@@ -24,17 +27,22 @@ export class SystemAdministrationComponent implements OnInit, OnDestroy {
     drawerMode: 'over' | 'side' = 'side';
     drawerOpened: boolean = true;
     panels: any[] = [];
-    selectedPanel: string = 'db-backup-restore';
+    selectedPanel: string = 'backup-restore';
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     ngOnInit(): void {
         // Setup available panels
         this.panels = [            
             {
-                id: 'db-backup-restore',
+                id: 'backup-restore',
                 icon: 'heroicons_outline:lock-closed',
                 title: '資料庫備份&還原',
                 // description: 'Manage your password and 2-step verification preferences',
+            },
+            {
+                id: 'system-log-query',
+                icon: 'heroicons_outline:lock-closed',
+                title: '系統監控紀錄'
             },
         ];
     }

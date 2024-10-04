@@ -12,7 +12,7 @@
     "log-query": "Log Query",
     "role-list": "Permission Settings",
     "aps-account": "APS Account & Credentials",
-    "db-backup-restore": "Database Backup & Restore",
+    "backup-restore": "Database Backup & Restore",
     "system-administrator": "Administrator",
     "security-manager": "Security Manager",
     "bim-manager": "BIM Manager",
