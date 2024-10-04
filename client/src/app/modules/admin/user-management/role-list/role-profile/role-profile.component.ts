@@ -21,7 +21,17 @@ import { TranslocoModule } from '@jsverse/transloco';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [FormsModule, ReactiveFormsModule, MatSlideToggleModule, MatButtonModule, TranslocoModule],
+    imports: [
+        FormsModule, 
+        ReactiveFormsModule, 
+        MatSlideToggleModule, 
+        MatButtonModule, 
+        TranslocoModule,
+        MatFormFieldModule, 
+        MatIconModule, 
+        MatInputModule, 
+        MatButtonModule
+    ],
 })
 export class RoleProfileComponent implements OnInit {
     roleprofileForm: UntypedFormGroup;

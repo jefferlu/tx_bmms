@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
     selector: 'user-account',
@@ -13,7 +14,16 @@ import { MatSelectModule } from '@angular/material/select';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [MatFormFieldModule, MatIconModule, MatInputModule, MatButtonModule, NgFor, NgIf, MatSelectModule, MatOptionModule, TitleCasePipe],
+    imports: [
+        MatFormFieldModule, 
+        MatIconModule, 
+        MatInputModule, 
+        MatButtonModule, 
+        NgFor, 
+        NgIf, 
+        MatSelectModule, 
+        MatOptionModule, 
+        TitleCasePipe],
 })
 export class UserAccountComponent implements OnInit {
     members: any[];

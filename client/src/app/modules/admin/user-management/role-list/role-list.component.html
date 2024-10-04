@@ -70,6 +70,21 @@
     </mat-drawer-container>
 </div> -->
 
+<div class=" mb-5 relative flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between px-6 md:px-8">
+    <div></div>
+
+    <mat-form-field class="fuse-mat-dense fuse-mat-rounded sm:min-w-120" [subscriptSizing]="'dynamic'">
+
+        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:magnifying-glass'" matPrefix></mat-icon>
+        <input matInput [placeholder]="'新增權限群組'">
+        <button mat-icon-button matSuffix>
+            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
+        </button>
+    </mat-form-field>
+    <div></div>
+
+</div>
+
 <div class="w-full" *transloco="let t">
     <p-tabView>
         <p-tabPanel *ngFor="let role of roles" [header]="t(role.id)" [scrollable]="true">

@@ -4,6 +4,8 @@ import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 import { TabViewModule } from 'primeng/tabview';
 
@@ -20,7 +22,10 @@ import { TranslocoModule } from '@jsverse/transloco';
     imports: [
         NgFor, NgClass, NgSwitch, NgSwitchCase,
         MatSidenavModule, MatButtonModule, MatIconModule, TabViewModule,
-        TranslocoModule, RoleProfileComponent]
+        TranslocoModule, RoleProfileComponent,
+        MatFormFieldModule,  
+        MatInputModule, 
+    ]
 
 })
 export class RoleListComponent implements OnInit, OnDestroy {
