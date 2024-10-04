@@ -11,6 +11,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { fuseAnimations } from '@fuse/animations';
 import { AuthService } from 'app/core/auth/auth.service';
+import { TranslocoModule } from '@jsverse/transloco';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
     selector: 'app-sign-in',
@@ -19,7 +21,7 @@ import { AuthService } from 'app/core/auth/auth.service';
     styleUrl: './sign-in.component.scss',
     animations: fuseAnimations,
     imports: [
-        RouterLink,FormsModule,ReactiveFormsModule,
+        RouterLink, FormsModule, ReactiveFormsModule, TranslocoModule, MatCheckboxModule,
         MatButtonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatProgressSpinnerModule,
         FuseAlertComponent
     ],
