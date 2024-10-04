@@ -56,7 +56,13 @@
                 <!-- Load settings panel -->
                 <div class="mt-8">
                     <ng-container [ngSwitch]="selectedPanel">
-                       
+                       <!-- Backup & Restore -->
+                       <ng-container *ngSwitchCase="'backup-restore'">
+                            <backup-restore></backup-restore>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'system-log-query'">
+                            <log-query></log-query>
+                        </ng-container>
                     </ng-container>
                 </div>
             </div>
