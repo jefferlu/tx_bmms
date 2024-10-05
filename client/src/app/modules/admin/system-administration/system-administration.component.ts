@@ -42,7 +42,7 @@ export class SystemAdministrationComponent implements OnInit, OnDestroy {
             {
                 id: 'system-log-query',
                 icon: 'heroicons_outline:lock-closed',
-                title: '系統監控紀錄'
+                title: '系統日誌'
             },
         ];
     }

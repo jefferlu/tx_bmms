@@ -6,12 +6,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-
+import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { TabViewModule } from 'primeng/tabview';
-
 import { RoleProfileComponent } from './role-profile/role-profile.component';
 import { TranslocoModule } from '@jsverse/transloco';
-
+import { RoleDialogComponent } from './role-dialog/role-dialog.component';
 @Component({
     selector: 'role-list',
     standalone: true,
@@ -36,6 +35,13 @@ export class RoleListComponent implements OnInit, OnDestroy {
     roles: any[] = [];
     selectedRole: string = 'sysadmin';
     private _unsubscribeAll: Subject<any> = new Subject<any>();
+
+    /**
+     * Constructor
+     */
+    constructor(
+        private _matDialog: MatDialog,
+    ) { }
 
     ngOnInit(): void {
         // Setup available roles
@@ -90,6 +96,17 @@ export class RoleListComponent implements OnInit, OnDestroy {
         // Unsubscribe from all subscriptions
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
+    }
+        // -----------------------------------------------------------------------------------------------------
+    // @ Public methods
+    // -----------------------------------------------------------------------------------------------------
+
+    openDialog(user: any = {}): void {
+        this._matDialog.open(RoleDialogComponent, {
+            data: {
+                user: user
+            }
+        });
     }
 }
 

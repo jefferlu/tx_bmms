@@ -45,7 +45,7 @@
     "aps-account-desc": "可修改 APS 帳號及憑證資料",
     "database-management": "資料庫管理",
     "database-management-desc": "可進行資料庫備份及還原作業",
-    "system-log-query": "查詢系統紀錄",
+    "system-log-query": "系統日誌",
     "system-log-query-desc": "可查詢系統記錄並匯出記錄檔",
     "file-directory": "數位化文件資料夾",
     "search-bim-name": "查詢圖資名稱",
@@ -68,5 +68,9 @@
     "save": "儲存",
     "edit": "編輯",
     "confirm": "確認",
-    "close": "關閉"
+    "close": "關閉",
+    "auth-user" : "授權帳戶",
+    "auth-permission" : "權限",
+    "auth-group" : "權限群組",
+    "cancel" : "取消"
 }

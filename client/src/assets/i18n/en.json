@@ -68,5 +68,9 @@
     "save": "Save",
     "edit": "Edit",
     "confirm": "Confirm",
-    "close": "Close"
+    "close": "Close",
+    "auth-user" : "Authorized User",
+    "auth-permission" : "Authorized Permission",
+    "auth-group" : "Authorized Group",
+    "cancel" : "Cancel"
 }

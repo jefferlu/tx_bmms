@@ -9,6 +9,8 @@ import { TreeModule } from 'primeng/tree';
 import { JsonPipe } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
     selector: 'log-query',
@@ -18,7 +20,7 @@ import { MatDividerModule } from '@angular/material/divider';
     standalone: true,
     imports: [
         RouterOutlet, JsonPipe,
-        MatButtonModule, MatIconModule,
+        MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule,
         TreeModule, TableModule,
         TranslocoModule,
         MatMenuModule,
