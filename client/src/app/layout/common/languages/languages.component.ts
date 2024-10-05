@@ -1,6 +1,7 @@
 import { NgFor, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { FuseNavigationService, FuseVerticalNavigationComponent } from '@fuse/components/navigation';
 import { AvailableLangs, TranslocoService } from '@jsverse/transloco';
@@ -14,7 +15,7 @@ import { take } from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush,
     exportAs: 'languages',
     standalone: true,
-    imports: [MatButtonModule, MatMenuModule, NgTemplateOutlet, NgFor],
+    imports: [MatButtonModule, MatMenuModule, NgTemplateOutlet, NgFor, MatIconModule,],
 })
 export class LanguagesComponent implements OnInit, OnDestroy {
     availableLangs: AvailableLangs;
