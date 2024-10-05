@@ -7,7 +7,7 @@
 
             <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:magnifying-glass'" matPrefix></mat-icon>
             <input matInput [placeholder]="'查詢帳戶 Email address'">
-            <button mat-icon-button matSuffix>
+            <button mat-icon-button matSuffix (click)="openDialog()">
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
             </button>
         </mat-form-field>

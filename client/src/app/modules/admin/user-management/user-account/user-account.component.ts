@@ -1,12 +1,14 @@
 import { NgFor, NgIf, TitleCasePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatDialog } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { UserDialogComponent } from './user-dialog/user-dialog.component';
 
 @Component({
     selector: 'user-account',
@@ -15,25 +17,28 @@ import { MatDialog } from '@angular/material/dialog';
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
     imports: [
-        MatFormFieldModule, 
-        MatIconModule, 
-        MatInputModule, 
-        MatButtonModule, 
-        NgFor, 
-        NgIf, 
-        MatSelectModule, 
-        MatOptionModule, 
+        MatSidenavModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatButtonModule,
+        NgFor,
+        NgIf,
+        MatSelectModule,
+        MatOptionModule,
         TitleCasePipe],
 })
 export class UserAccountComponent implements OnInit {
+
     members: any[];
     roles: any[];
 
     /**
      * Constructor
      */
-    constructor() {
-    }
+    constructor(
+        private _matDialog: MatDialog,
+    ) { }
 
     ngOnInit(): void {
         // Setup the team members
@@ -126,6 +131,13 @@ export class UserAccountComponent implements OnInit {
     // @ Public methods
     // -----------------------------------------------------------------------------------------------------
 
+    openDialog(user: any = {}): void {
+        this._matDialog.open(UserDialogComponent, {
+            data: {
+                user: user
+            }
+        });
+    }
     /**
      * Track by function for ngFor loops
      *

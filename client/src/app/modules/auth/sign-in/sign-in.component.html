@@ -1,13 +1,13 @@
-<div class="flex flex-col flex-auto items-center sm:justify-center min-w-0">
+<div class="flex flex-col flex-auto items-center sm:justify-center min-w-0" *transloco="let t">
     <div class="w-full sm:w-auto py-8 px-4 sm:p-12 sm:rounded-2xl">
-        <div class="w-full max-w-80 sm:w-80 mx-auto sm:mx-0">
+        <div class="w-full max-w-80 sm:max-w-xl mx-auto sm:mx-0">
             <!-- Logo -->
-            <div class="w-full">
+            <div class="sm:w-60 mx-auto">
                 <img src="assets/images/logo/Taoyuan_International_Airport_Logo.svg.png">
             </div>
 
             <!-- Title -->
-            <div class="mt-8 text-4xl font-extrabold tracking-tight leading-tight text-center">BIM模型管理服務系統</div>
+            <div class="mt-8 text-6xl font-extrabold tracking-tight leading-tight text-center sm:text-nowrap">{{ t('app-title') }}</div>
             <!-- <div class="flex items-baseline mt-0.5 font-medium">
                 <div>Don't have an account?</div>
                 <a class="ml-1 text-primary-500 hover:underline" [routerLink]="['/sign-up']">Sign up
@@ -22,49 +22,48 @@
             }
 
             <!-- Sign in form -->
-            <form class="mt-8" [formGroup]="signInForm" #signInNgForm="ngForm">
+            <form class="mt-8 sm:w-80 mx-auto" [formGroup]="signInForm" #signInNgForm="ngForm">
 
                 <!-- Email field -->
                 <mat-form-field class="w-full fuse-mat-dense">
-                    <mat-label>電子郵件 Email address</mat-label>
-                    <input id="email" matInput [formControlName]="'email'">
-                    @if(signInForm.get('email').hasError('required')){
-                    <mat-error>Email address is required</mat-error>
-                    }
-                    @if(signInForm.get('email').hasError('email')){
-                    <mat-error>Please enter a valid email address</mat-error>
-                    }
-
+                    <mat-label> {{t('email')}} </mat-label>
+                    <input id="email" matInput [formControlName]="'email'" />
+                    @if(signInForm.get('email').hasError('required')) {<mat-error> {{t('email')}}{{t('is-required')}} </mat-error>}
+                    @if(signInForm.get('email').hasError('email')){<mat-error>{{t('worng-email-format')}}</mat-error>}
                 </mat-form-field>
 
                 <!-- Password field -->
-                <mat-form-field class="w-full fuse-mat-dense">
-                    <mat-label>密碼 Password</mat-label>
-                    <input id="password" matInput type="password" [formControlName]="'password'" #passwordField>
-                    <button mat-icon-button type="button"
-                        (click)="passwordField.type === 'password' ? passwordField.type = 'text' : passwordField.type = 'password'" matSuffix>
-                        @if(passwordField.type === 'password'){
+                <mat-form-field class="w-full mt-1 fuse-mat-dense">
+                    <mat-label> {{t('password')}} </mat-label>
+                    <input id="password" matInput type="password" [formControlName]="'password'" #passwordField />
+                    <button mat-icon-button type="button" (click)="
+                                    passwordField.type === 'password'
+                                        ? (passwordField.type = 'text')
+                                        : (passwordField.type = 'password')
+                                " matSuffix>
+                        @if (passwordField.type === 'password') {
                         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye'"></mat-icon>
                         }
-                        @else{
+                        @if (passwordField.type === 'text') {
                         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye-slash'"></mat-icon>
                         }
-
-
                     </button>
-                    <mat-error>Password is required</mat-error>
+                    <mat-error> {{t('password')}}{{t('is-required')}} </mat-error>
                 </mat-form-field>
 
                 <!-- Actions -->
                 <div class="inline-flex items-center justify-between w-full mt-1.5">
-                    <div></div>
-                    <a class="text-md font-medium text-primary-500 hover:underline" [routerLink]="['/forgot-password']">忘記密碼?
+                    <mat-checkbox class="-ml-2" [formControlName]="'rememberMe'">
+                        {{t('remember-me')}}
+                    </mat-checkbox>
+                    <a class="text-md font-medium  hover:underline" [routerLink]="['/forgot-password']">
+                        {{t('forgot-password')}}?
                     </a>
                 </div>
 
                 <!-- Submit button -->
                 <button class="fuse-mat-button-large w-full mt-6" mat-stroked-button [disabled]="signInForm.disabled" (click)="signIn()">
-                    @if(!signInForm.disabled){<span>登入</span>}
+                    @if(!signInForm.disabled){<span> {{t('sign-in')}} </span>}
                     @else{<mat-progress-spinner [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>}
                 </button>
 

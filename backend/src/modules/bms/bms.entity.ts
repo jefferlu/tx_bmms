@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "../users/users.entity";
+import { User } from "../user/user.entity";
 
 @Entity()
 export class Bmms_Master {

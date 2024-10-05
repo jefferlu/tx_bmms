@@ -103,12 +103,15 @@ export class AuthService {
      */
     signOut(): Observable<any> {
         // Remove the access token from the local storage
-        localStorage.removeItem(USER_KEY);
-        this._apsCredentials.remove();
+        // localStorage.removeItem(USER_KEY);        
+
+        // Remove all from the local cookie
         this._cookieService.deleteAll();
 
         // Set the authenticated flag to false
         this._authenticated = false;
+
+        this._apsCredentials.remove();
 
         // Return the observable
         return of(true);

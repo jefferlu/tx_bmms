@@ -3,14 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { User } from './modules/users/users.entity';
 import { FilesModule } from './modules/files/files.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { TranslateJobModule } from './modules/translate-job/translate-job.module';
 import { BmmsMasterModule } from './modules/bms/bms.module';
 import { Bmms_Master } from './modules/bms/bms.entity';
+import { User } from './modules/user/user.entity';
 import { ApsModule } from './modules/aps/aps.module';
+
 
 @Module({
     imports: [

@@ -1,10 +1,10 @@
 {
-    "/elfinder": {
+    "/media-files": {
         "target": "https://bmms.giantcld.com", 
         "secure": false, 
         "changeOrigin": true,
         "pathRewrite": {
-            "^/elfinder": "/elfinder" 
+            "^/elfinder": "/media-files" 
         }
     }
 }

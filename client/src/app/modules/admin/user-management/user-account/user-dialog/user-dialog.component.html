@@ -1,0 +1,95 @@
+<div class="flex flex-col min-w-72 flex-auto md:w-160 md:min-w-160 -m-6" *transloco="let t">
+    <div class="m-8">
+        <form [formGroup]="form">
+
+            <!-- Title -->
+            <div class="mb-6">
+                <span class="w-full text-2xl">
+                    @if(user.id){
+                    {{ t('edit') }} {{ t('auth-user') }}
+                    }
+                    @else{
+                    {{ t('create') }} {{ t('auth-user') }}
+                    }
+                </span>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <mat-form-field class="flex-auto w-full fuse-mat-dense">
+                    <mat-label>{{ t('username') }}</mat-label>
+                    <!-- <mat-icon matPrefix class="hidden sm:flex icon-size-5" [svgIcon]="'heroicons_outline:user'"></mat-icon> -->
+                    <input matInput [formControlName]="'username'" [spellcheck]="false">
+                    @if(form.get('username').hasError('required')){<mat-error>User Name is required.</mat-error>}
+                </mat-form-field>
+            </div>
+
+            <!-- Name & Role -->
+            <div class="mt-1">
+                <div class="flex">
+                    <mat-form-field class="w-full fuse-mat-dense">
+                        <mat-label>{{ t('email') }}</mat-label>
+                        <input matInput [formControlName]="'email'">
+                        @if(form.get('email').hasError('required')){<mat-error>Email is required.</mat-error>}
+                        @if(form.get('email').hasError('email')){<mat-error>Email format error.</mat-error>}
+                    </mat-form-field>
+
+                    <mat-form-field class="flex-auto w-full max-w-24 sm:max-w-40 ml-2 sm:ml-4 fuse-mat-dense">
+                        <mat-label>{{ t('auth-permission') }}</mat-label>
+                        <mat-select [panelClass]="'h-auto max-h-none'" [formControlName]="'is_staff'" disableOptionCentering #roleSelect="matSelect">
+
+                            @for(role of roles; track trackByFn($index,role)){
+                            <mat-option class="h-auto py-4 leading-none" [value]="role.value">
+                                <div class="font-medium">{{role.label}}</div>
+                                <div class="mt-1.5 text-sm whitespace-normal leading-normal text-secondary">{{role.description}}</div>
+                            </mat-option>
+                            }
+
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mt-1">
+                <div class="flex">
+                    <mat-form-field class="flex-1 fuse-mat-dense">
+                        <mat-label>{{ t('password') }}</mat-label>
+                        <input type="password" matInput [formControlName]="'password'" autocomplete="password">
+                        @if(form.get('password').hasError('required')){<mat-error> Password is required.</mat-error>}
+                    </mat-form-field>
+                    <mat-form-field class="flex-1 w-full ml-2 sm:ml-4 fuse-mat-dense">
+                        <mat-label>{{ t('password') }} ({{ t('confirm')  }})</mat-label>
+                        <input type="password" matInput [formControlName]="'password2'" autocomplete="password">
+                        @if(form.get('password2').hasError('required')){<mat-error>Password confirmation is required.</mat-error>}
+                        @if(form.get('password2').hasError('mustMatch')){<mat-error>Passwords must match.</mat-error>}
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <!-- Edit Actions -->
+            <div class="flex items-center justify-between mt-4 mb-2">
+
+                <!-- Delete -->
+                <div class="flex items-center space-x-2">
+                    @if(user.id){
+                    <button type="button" mat-icon-button (click)="onDelete()">
+                        <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                    </button>
+                    }
+                </div>
+
+                <!-- Save -->
+                <div>
+                    <button mat-stroked-button class="mr-2" (click)="onSave()">
+                        <mat-icon class="pr-2" [svgIcon]="'heroicons_outline:bookmark-square'"></mat-icon>{{ t('save') }}
+                    </button>
+                    <button mat-stroked-button mat-dialog-close="false">
+                        <mat-icon class="pr-2" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>{{ t('close') }}
+                    </button>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
