@@ -3,10 +3,10 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { FuseNavigationService, FuseVerticalNavigationComponent } from '@fuse/components/navigation';
-import { AvailableLangs, TranslocoService } from '@jsverse/transloco';
+import { FuseNavigationItem, FuseNavigationService, FuseVerticalNavigationComponent } from '@fuse/components/navigation';
+import { AvailableLangs, Translation, TranslocoService } from '@jsverse/transloco';
 import { LocalStorageService } from 'app/core/services/local-storage/local-storage.service';
-import { take } from 'rxjs';
+import { firstValueFrom, take } from 'rxjs';
 
 @Component({
     selector: 'languages',
@@ -100,7 +100,7 @@ export class LanguagesComponent implements OnInit, OnDestroy {
      * @param lang
      * @private
      */
-    private _updateNavigation(lang: string): void {
+    private async _updateNavigation(lang: string) {
         // For the demonstration purposes, we will only update the Dashboard names
         // from the navigation but you can do a full swap and change the entire
         // navigation data.
@@ -119,65 +119,20 @@ export class LanguagesComponent implements OnInit, OnDestroy {
         // Get the flat navigation data
         const navigation = navComponent.navigation;
 
-        /* Get the menu item and update its title */
-        const processFunctionsItem = this._fuseNavigationService.getItem('bim_information_listing', navigation);
-        if (processFunctionsItem) {
-            this._translocoService.selectTranslate('bim-information-listing').pipe(take(1))
-                .subscribe((translation) => {
-                    // Set the title
-                    processFunctionsItem.title = translation;
+        // Get all i18n translation dictionary
+        const translations = await firstValueFrom(this._translocoService.selectTranslation());
 
-                    // Refresh the navigation component
-                    navComponent.refresh();
-                });
-        }
+        // Recursive get the item and update its title
+        this._translateNavigation(navigation, translations);
+        
+        navComponent.refresh();
+        
+    }
 
-        const bimModelViewerItem = this._fuseNavigationService.getItem('bim_model_viewer', navigation);
-        if (bimModelViewerItem) {
-            this._translocoService.selectTranslate('bim-model-viewer').pipe(take(1))
-                .subscribe((translation) => {
-                    // Set the title
-                    bimModelViewerItem.title = translation;
-
-                    // Refresh the navigation component
-                    navComponent.refresh();
-                });
-        }
-
-        const bimDataImportItem = this._fuseNavigationService.getItem('bim_data_import', navigation);
-        if (bimDataImportItem) {
-            this._translocoService.selectTranslate('bim-data-import').pipe(take(1))
-                .subscribe((translation) => {
-                    // Set the title
-                    bimDataImportItem.title = translation;
-
-                    // Refresh the navigation component
-                    navComponent.refresh();
-                });
-        }
-
-        const userManagementItem = this._fuseNavigationService.getItem('user_management', navigation);
-        if (userManagementItem) {
-            this._translocoService.selectTranslate('user-management').pipe(take(1))
-                .subscribe((translation) => {
-                    // Set the title
-                    userManagementItem.title = translation;
-
-                    // Refresh the navigation component
-                    navComponent.refresh();
-                });
-        }
-
-        const systemAdministrationItem = this._fuseNavigationService.getItem('system_administration', navigation);
-        if (systemAdministrationItem) {
-            this._translocoService.selectTranslate('system-administration').pipe(take(1))
-                .subscribe((translation) => {
-                    // Set the title
-                    systemAdministrationItem.title = translation;
-
-                    // Refresh the navigation component
-                    navComponent.refresh();
-                });
-        }
+    private _translateNavigation(navigation: FuseNavigationItem[], translations: Translation) {
+        navigation.forEach(nav => {            
+            nav.title = translations[nav.id] || nav.id;            
+            if (nav.children) this._translateNavigation(nav.children, translations);
+        })
     }
 }

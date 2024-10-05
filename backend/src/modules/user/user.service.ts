@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -26,31 +26,43 @@ export class UserService {
         return this.userRepository.findOneBy({ id });
     }
 
-    async create(userDto: UserDto): Promise<User> {        
-        userDto.password = await this.hashPassword(userDto.password)        
-        return this.userRepository.save(userDto);
+    async create(userDto: UserDto): Promise<any> {
+        try {
+            userDto.password = await this.hashPassword(userDto.password);
+            return await this.userRepository.save(userDto);
+        } catch (error) {
+            // 假設使用 TypeORM，這裡檢查錯誤代碼          
+            // if (error.code === '23505') { // PostgreSQL unique violation code
+            //     return { error: true, code: error.code, message: 'Email already exists' };
+            // }
+            // 處理其他潛在錯誤
+            // throw new InternalServerErrorException('An error occurred while creating the user');
+            return { error: true, code: error.code, message: error.message };
+        }
     }
 
     async update(id: number, userDto: Partial<UserDto>): Promise<any> {
 
-        // 使用 findOneBy 查詢現有的用戶
-        const user = await this.userRepository.findOneBy({ id });
+        try {
+            // 使用 findOneBy 查詢現有的用戶
+            const user = await this.userRepository.findOneBy({ id });
 
-        if (!user) {
-            throw new NotFoundException('User not found');
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+
+            if (userDto.password) {
+                userDto.password = await this.hashPassword(userDto.password);
+            }
+
+            // 將 DTO 資料手動賦值給現有的 User 實體
+            Object.assign(user, userDto);
+
+            // 保存更新，這樣 @BeforeUpdate 就會被觸發
+            return await this.userRepository.save(user);
+        } catch (error) {
+            return { error: true, code: error.code, message: error.message };
         }
-        console.log(userDto)
-        if (userDto.password) {
-            userDto.password = await this.hashPassword(userDto.password);
-        } else {
-            delete userDto.password; // 如果沒有傳入 password，則刪除此屬性
-        }
-
-        // 將 DTO 資料手動賦值給現有的 User 實體
-        Object.assign(user, userDto);
-
-        // 保存更新，這樣 @BeforeUpdate 就會被觸發
-        return await this.userRepository.save(user);
     }
 
     async delete(id: number): Promise<void> {

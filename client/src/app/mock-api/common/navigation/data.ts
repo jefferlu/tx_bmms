@@ -1167,42 +1167,42 @@ export const defaultNavigation: FuseNavigationItem[] = [
 ];
 export const compactNavigation: FuseNavigationItem[] = [
     {
-        id: 'bim_information_listing',
+        id: 'bim-information-listing',
         title: '圖資檢索',
         type: 'basic',
         icon: 'heroicons_outline:magnifying-glass',
         link: '/process-functions',
     },
     {
-        id: 'bim_model_viewer',
+        id: 'bim-model-viewer',
         title: '模型檢視',
         type: 'basic',
         icon: 'heroicons_outline:photo',
         link: '/bim-model-viewer',
     },
     // {
-    //     id: 'bim_model_conversion',
+    //     id: 'bim-model-conversion',
     //     title: '模型轉換',
     //     type: 'basic',
     //     icon: 'heroicons_outline:arrow-path-rounded-square',
     //     link: '/bim-model-conversion',
     // },   
     {
-        id: 'bim_data_import',
+        id: 'bim-data-import',
         title: '模型匯入',
         type: 'basic',
         icon: 'heroicons_outline:inbox-arrow-down',
         link: '/bim-data-import',
     },   
     {
-        id: 'user_management',
+        id: 'user-management',
         title: '使用者管理',
         type: 'basic',
         icon: 'heroicons_outline:users',
         link: '/user-management',
     },   
     {
-        id: 'system_administration',
+        id: 'system-administration',
         title: '系統管理',
         type: 'basic',
         icon: 'heroicons_outline:cog-6-tooth',

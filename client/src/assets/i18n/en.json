@@ -74,5 +74,6 @@
     "auth-user" : "Authorized User",
     "auth-permission" : "Authorized Permission",
     "auth-group" : "Authorized Group",
-    "cancel" : "Cancel"
+    "cancel" : "Cancel",
+    "email-already-exists": "Email already exists"
 }
