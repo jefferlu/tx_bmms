@@ -60,15 +60,6 @@
     <ng-container *ngIf="data.actions.confirm.show || data.actions.cancel.show">
         <div class="flex items-center justify-center sm:justify-end px-6 py-4 space-x-3 bg-gray-50 dark:bg-black dark:bg-opacity-10">
 
-            <!-- Cancel -->
-            <ng-container *ngIf="data.actions.cancel.show">
-                <button
-                    mat-stroked-button
-                    [matDialogClose]="'cancelled'">
-                    {{data.actions.cancel.label}}
-                </button>
-            </ng-container>
-
             <!-- Confirm -->
             <ng-container *ngIf="data.actions.confirm.show">
                 <button
@@ -76,6 +67,15 @@
                     [color]="data.actions.confirm.color"
                     [matDialogClose]="'confirmed'">
                     {{data.actions.confirm.label}}
+                </button>
+            </ng-container>
+
+            <!-- Cancel -->
+            <ng-container *ngIf="data.actions.cancel.show">
+                <button
+                    mat-stroked-button
+                    [matDialogClose]="'cancelled'">
+                    {{data.actions.cancel.label}}
                 </button>
             </ng-container>
 

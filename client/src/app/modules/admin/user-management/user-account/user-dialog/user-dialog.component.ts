@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -9,8 +9,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { FuseValidators } from '@fuse/validators';
 import { Subject } from 'rxjs';
 import { ToastService } from 'app/layout/common/toast/toast.service';
-import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { TranslocoModule } from '@jsverse/transloco';
+import { UserAccountService } from '../user-account.service';
 
 @Component({
     selector: 'app-user-dialog',
@@ -36,16 +36,16 @@ export class UserDialogComponent implements OnInit, OnDestroy {
 
     constructor(
         @Inject(MAT_DIALOG_DATA) private _data: any,
-        private _changeDetectorRef: ChangeDetectorRef,
         private _formBuilder: UntypedFormBuilder,
         private _matDialogRef: MatDialogRef<UserDialogComponent>,
-        private _fuseConfirmationService: FuseConfirmationService,
-        private _toastService: ToastService,        
+        private _toastService: ToastService,
+        private _userAccountService: UserAccountService
     ) { }
 
     ngOnInit(): void {
 
         this.user = this._data.user;
+
         if (!this.user.is_staff) this.user.is_staff = false;
 
         // Setup the roles
@@ -60,8 +60,8 @@ export class UserDialogComponent implements OnInit, OnDestroy {
         ];
 
         this.form = this._formBuilder.group({
-            username: [this.user.username, [Validators.required]],
-            email: [this.user.email || '', [Validators.email]],
+            username: [this.user.username, []],
+            email: [this.user.email || '', [Validators.email, Validators.required]],
             is_staff: [this.user.is_staff],
             password: [''],
             password2: [''],
@@ -78,6 +78,7 @@ export class UserDialogComponent implements OnInit, OnDestroy {
     }
 
     onSave(): void {
+
         let request: any;
         if (this.form.invalid) return;
 
@@ -93,56 +94,28 @@ export class UserDialogComponent implements OnInit, OnDestroy {
             if (this.form.get('password').value)
                 request.password = this.form.get('password').value
 
-            // this._masterPageService.update('users', request).subscribe({
-            //     next: (res) => {
-            //         if (res) {
-            //             this._toastService.open({ message: 'The user has been updated.' });
-            //             this._matDialogRef.close();
-            //         }
-            //     }
-            // });
+            this._userAccountService.update(request).subscribe({
+                next: (res) => {
+                    if (res) {
+                        this._toastService.open({ message: 'The user has been updated.' });
+                        this._matDialogRef.close();
+                    }
+                }
+            });
         }
 
         // Create user
         else {
-
             request = this.form.value;
-            // this._masterPageService.create('users', this.form.value).subscribe({
-            //     next: (res) => {
-            //         if (res) {
-            //             this._toastService.open({ message: 'The user has been created.' });
-            //             this._matDialogRef.close();
-            //         }
-            //     }
-            // });
+            this._userAccountService.create(this.form.value).subscribe({
+                next: (res) => {
+                    if (res) {
+                        this._toastService.open({ message: 'The user has been created.' });
+                        this._matDialogRef.close();
+                    }
+                }
+            });
         }
-    }
-
-    onDelete(): void {
-        let dialogRef = this._fuseConfirmationService.open({
-            message: `Are you sure to delete?`,
-            icon: { color: 'warn' },
-            actions: { confirm: { label: 'Delete', color: 'warn' } }
-
-        });
-
-        dialogRef.afterClosed().subscribe(result => {
-            if (result === 'confirmed') {
-                this.delete();
-                this._changeDetectorRef.markForCheck();
-            }
-        });
-
-    }
-
-    delete(): void {
-        // this._masterPageService.delete('users', this.user.id).subscribe({
-        //     next: (res) => {
-        //         this._toastService.open({ message: 'The user has been deleted.' });
-
-        //         this._matDialogRef.close();
-        //     }
-        // });
     }
 
     trackByFn(index: number, item: any): any {
