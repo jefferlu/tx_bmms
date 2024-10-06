@@ -1,4 +1,4 @@
-import { CurrencyPipe, NgClass } from '@angular/common';
+import { CurrencyPipe, NgClass, NgSwitchCase, NgSwitch } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -32,6 +32,8 @@ import { FuseAlertComponent } from '@fuse/components/alert';
         FuseAlertComponent,
         MatRadioModule,
         NgClass,
+        NgSwitch,
+        NgSwitchCase,
         MatIconModule,
         MatFormFieldModule,
         MatInputModule,
@@ -72,13 +74,13 @@ export class BackupRestoreComponent implements OnInit {
         // Setup the plans
         this.plans = [
             {
-                value: 'basic',
+                value: 'backup',
                 label: '立即備份資料庫',
                 details: '產生資料庫備份檔',
-                price: '2024-08-20-03-20-25.bak',
+                price: '',
             },
             {
-                value: 'team',
+                value: 'restore',
                 label: '還原資料庫',
                 details: '還原前次資料庫備份',
                 price: '2024-08-15-00-12-01.bak',
