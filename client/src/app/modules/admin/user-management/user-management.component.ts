@@ -1,13 +1,14 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { NgClass, NgFor, NgSwitch, NgSwitchCase } from '@angular/common';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { Subject } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { UserAccountComponent } from './user-account/user-account.component';
 import { RoleListComponent } from './role-list/role-list.component';
 import { LogQueryComponent} from './log-query/log-query.component';
 import { TranslocoModule } from '@jsverse/transloco';
+import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
 
 @Component({
     selector: 'app-user-management',
@@ -31,7 +32,10 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     selectedPanel: string = 'user-account';
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-    constructor() { }
+    constructor(
+        private _changeDetectorRef: ChangeDetectorRef,
+        private _fuseMediaWatcherService: FuseMediaWatcherService
+    ) { }
 
     ngOnInit(): void {
 
@@ -58,6 +62,23 @@ export class UserManagementComponent implements OnInit, OnDestroy {
                 title: '權限設定'
             }
         ];
+
+        // Subscribe to media changes
+        this._fuseMediaWatcherService.onMediaChange$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(({ matchingAliases }) => {
+                // Set the drawerMode and drawerOpened
+                if (matchingAliases.includes('lg')) {
+                    this.drawerMode = 'side';
+                    this.drawerOpened = true;
+                } else {
+                    this.drawerMode = 'over';
+                    this.drawerOpened = false;
+                }
+
+                // Mark for check
+                this._changeDetectorRef.markForCheck();
+            });
     }
 
     goToPanel(panel: string): void {

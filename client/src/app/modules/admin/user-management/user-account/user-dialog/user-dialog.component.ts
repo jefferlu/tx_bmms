@@ -9,7 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { FuseValidators } from '@fuse/validators';
 import { Subject } from 'rxjs';
 import { ToastService } from 'app/layout/common/toast/toast.service';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { UserAccountService } from '../user-account.service';
 
 @Component({
@@ -38,6 +38,7 @@ export class UserDialogComponent implements OnInit, OnDestroy {
         @Inject(MAT_DIALOG_DATA) private _data: any,
         private _formBuilder: UntypedFormBuilder,
         private _matDialogRef: MatDialogRef<UserDialogComponent>,
+        private _translocoService: TranslocoService,
         private _toastService: ToastService,
         private _userAccountService: UserAccountService
     ) { }
@@ -96,9 +97,16 @@ export class UserDialogComponent implements OnInit, OnDestroy {
 
             this._userAccountService.update(request).subscribe({
                 next: (res) => {
+                    let msg: string;
                     if (res) {
-                        this._toastService.open({ message: 'The user has been updated.' });
-                        this._matDialogRef.close();
+                        if (res.error) {
+                            msg = (res.code === '23505') ? this._translocoService.translate('email-already-exists') : res.message;
+                            console.log(msg)
+                            this._toastService.open({ type: 'warn', message: msg });
+                        } else {
+                            this._matDialogRef.close();
+                            this._toastService.open({ message: 'The user has been created.' });
+                        }
                     }
                 }
             });
@@ -109,11 +117,19 @@ export class UserDialogComponent implements OnInit, OnDestroy {
             request = this.form.value;
             this._userAccountService.create(this.form.value).subscribe({
                 next: (res) => {
+                    let msg: string;
                     if (res) {
-                        this._toastService.open({ message: 'The user has been created.' });
-                        this._matDialogRef.close();
+                        if (res.error) {
+                            msg = (res.code === '23505') ? this._translocoService.translate('email-already-exists') : res.message;
+                            console.log(msg)
+                            this._toastService.open({ type: 'warn', message: msg });
+                        } else {
+                            this._matDialogRef.close();
+                            this._toastService.open({ message: 'The user has been created.' });
+                        }
                     }
-                }
+                },
+
             });
         }
     }

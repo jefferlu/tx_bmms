@@ -34,9 +34,12 @@ export class UserAccountService {
     create(request: any): Observable<any> {
         return this._appService.post('users', request).pipe(
             tap((res: any) => {
-                const data = this._users.getValue();
-                const records = [...data, res];
-                this._users.next(records)
+                console.log(res)
+                if (!res.error) {
+                    const data = this._users.getValue();
+                    const records = [...data, res];
+                    this._users.next(records)
+                }
             })
         )
     }
@@ -44,13 +47,14 @@ export class UserAccountService {
     update(request: any): Observable<any> {
         return this._appService.put(`users/${request.id}`, null, request).pipe(
             tap((res: any) => {
-                console.log(res)
-                const data = this._users.getValue();
-                if (data) {
-                    const records = data.map((user: any) =>
-                        user.id === res.id ? { ...user, ...res } : user
-                    );
-                    this._users.next(records);
+                if (!res.error) {
+                    const data = this._users.getValue();
+                    if (data) {
+                        const records = data.map((user: any) =>
+                            user.id === res.id ? { ...user, ...res } : user
+                        );
+                        this._users.next(records);
+                    }
                 }
             })
         )

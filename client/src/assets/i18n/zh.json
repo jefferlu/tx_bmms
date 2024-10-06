@@ -71,8 +71,9 @@
     "edit": "編輯",
     "confirm": "確認",
     "close": "關閉",
-    "auth-user" : "授權帳戶",
-    "auth-permission" : "權限",
-    "auth-group" : "權限群組",
-    "cancel" : "取消"
+    "auth-user": "授權帳戶",
+    "auth-permission": "權限",
+    "auth-group": "權限群組",
+    "cancel": "取消",
+    "email-already-exists": "電子郵件已存在"
 }
