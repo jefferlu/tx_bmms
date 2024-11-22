@@ -9,8 +9,8 @@ async function bootstrap() {
 
     // Swagger 
     const config = new DocumentBuilder()
-        .setTitle('BMMS')
-        .setDescription('The cats API description')
+        .setTitle('BIM Model Management System API')
+        .setDescription('The BMMS API description')
         .setVersion('1.0')
         .build();
     const document = SwaggerModule.createDocument(app, config);
