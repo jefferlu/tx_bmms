@@ -1,9 +1,9 @@
 <!-- Loading bar -->
-<!-- <fuse-loading-bar></fuse-loading-bar> -->
+<!-- <gts-loading-bar></gts-loading-bar> -->
 <ngx-spinner bdColor = "rgba(0, 0, 0, 0.4)" size = "medium" color = "#fff" type = "ball-clip-rotate" [fullScreen] = "true"><p style="color: white" *transloco="let t" > {{t('loading')}}... </p></ngx-spinner>
 
 <!-- Navigation -->
-<fuse-vertical-navigation
+<gts-vertical-navigation
     class="dark bg-gray-900 print:hidden"
     [appearance]="'compact'"
     [mode]="isScreenSmall ? 'over' : 'side'"
@@ -11,7 +11,7 @@
     [navigation]="navigation.compact"
     [opened]="!isScreenSmall">
     <!-- Navigation header hook -->
-    <ng-container fuseVerticalNavigationContentHeader>
+    <ng-container gtsVerticalNavigationContentHeader>
         <!-- Logo -->
         <div class="flex items-center justify-center h-20 mt-3 mb-4">
             <img
@@ -20,7 +20,7 @@
                 alt="Logo image">
         </div>
     </ng-container>
-</fuse-vertical-navigation>
+</gts-vertical-navigation>
 
 <!-- Wrapper -->
 <div class="flex flex-col flex-auto w-full min-w-0" *transloco="let t">
@@ -41,7 +41,7 @@
         <!-- Components -->
         <div class="flex items-center pl-2 ml-auto space-x-0.5 sm:space-x-2">
             <languages></languages>
-            <!--<fuse-fullscreen class="hidden md:block"></fuse-fullscreen>
+            <!--<gts-fullscreen class="hidden md:block"></gts-fullscreen>
             <search [appearance]="'bar'"></search>
             <shortcuts></shortcuts>
             <messages></messages>
@@ -65,7 +65,7 @@
 
     <!-- Footer -->
     <!-- <div class="relative flex flex-0 items-center justify-start w-full h-14 px-4 md:px-6 z-49 border-t bg-card dark:bg-transparent print:hidden">
-        <span class="font-medium text-secondary">Fuse &copy; {{currentYear}}</span>
+        <span class="font-medium text-secondary">Gts &copy; {{currentYear}}</span>
     </div> -->
 
 </div>

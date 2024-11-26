@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { FuseNavigationItem, FuseNavigationService, FuseVerticalNavigationComponent } from '@fuse/components/navigation';
+import { GtsNavigationItem, GtsNavigationService, GtsVerticalNavigationComponent } from '@gts/components/navigation';
 import { AvailableLangs, Translation, TranslocoService } from '@jsverse/transloco';
 import { LocalStorageService } from 'app/core/services/local-storage/local-storage.service';
 import { firstValueFrom, take } from 'rxjs';
@@ -26,7 +26,7 @@ export class LanguagesComponent implements OnInit, OnDestroy {
      * Constructor
      */
     constructor(
-        private _fuseNavigationService: FuseNavigationService,
+        private _gtsNavigationService: GtsNavigationService,
         private _translocoService: TranslocoService,
         private _localStorageService: LocalStorageService
     ) {
@@ -109,7 +109,7 @@ export class LanguagesComponent implements OnInit, OnDestroy {
         // it's up to you.
 
         // Get the component -> navigation data -> item
-        const navComponent = this._fuseNavigationService.getComponent<FuseVerticalNavigationComponent>('mainNavigation');
+        const navComponent = this._gtsNavigationService.getComponent<GtsVerticalNavigationComponent>('mainNavigation');
 
         // Return if the navigation component does not exist
         if (!navComponent) {
@@ -129,7 +129,7 @@ export class LanguagesComponent implements OnInit, OnDestroy {
         
     }
 
-    private _translateNavigation(navigation: FuseNavigationItem[], translations: Translation) {
+    private _translateNavigation(navigation: GtsNavigationItem[], translations: Translation) {
         navigation.forEach(nav => {            
             nav.title = translations[nav.id] || nav.id;            
             if (nav.children) this._translateNavigation(nav.children, translations);

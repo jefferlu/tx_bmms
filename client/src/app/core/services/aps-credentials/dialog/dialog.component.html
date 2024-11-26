@@ -10,7 +10,7 @@
             <div class="grid sm:grid-cols-4 gap-6 w-full mt-8">
                 <!-- Client ID -->
                 <div class="sm:col-span-4">
-                    <mat-form-field class="w-full fuse-mat-dense" [subscriptSizing]="'dynamic'">
+                    <mat-form-field class="w-full gts-mat-dense" [subscriptSizing]="'dynamic'">
                         <mat-label>{{t('client-id')}}</mat-label>
                         <input type="password" matInput [formControlName]="'clientId'" #clientIdField>
                         <button mat-icon-button type="button"
@@ -31,7 +31,7 @@
 
                 <!-- Client Secret -->
                 <div class="sm:col-span-4">
-                    <mat-form-field class="w-full fuse-mat-dense" [subscriptSizing]="'dynamic'">
+                    <mat-form-field class="w-full gts-mat-dense" [subscriptSizing]="'dynamic'">
                         <mat-label>{{t('client-secret')}}</mat-label>
                         <input type="password" matInput [formControlName]="'clientSecret'" #secretIdField>
                         <button mat-icon-button type="button" (click)="
@@ -55,7 +55,7 @@
 
                 <!-- Bucket Name -->
                 <div class="sm:col-span-4">
-                    <mat-form-field class="w-full fuse-mat-dense" [subscriptSizing]="'dynamic'">
+                    <mat-form-field class="w-full gts-mat-dense" [subscriptSizing]="'dynamic'">
                         <mat-label>{{t('bucket-key')}}</mat-label>
                         <input [formControlName]="'bucketKey'" matInput>
                         @if(form.get('bucketKey').hasError('required')){

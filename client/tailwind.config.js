@@ -1,7 +1,7 @@
 const path = require('path');
 const colors = require('tailwindcss/colors');
 const defaultTheme = require('tailwindcss/defaultTheme');
-const generatePalette = require(path.resolve(__dirname, ('src/@fuse/tailwind/utils/generate-palette')));
+const generatePalette = require(path.resolve(__dirname, ('src/@gts/tailwind/utils/generate-palette')));
 
 /**
  * Custom palettes
@@ -192,61 +192,61 @@ const config = {
             typography: ({ theme }) => ({
                 DEFAULT: {
                     css: {
-                        color: 'var(--fuse-text-default)',
+                        color: 'var(--gts-text-default)',
                         '[class~="lead"]': {
-                            color: 'var(--fuse-text-secondary)'
+                            color: 'var(--gts-text-secondary)'
                         },
                         a: {
-                            color: 'var(--fuse-primary-500)'
+                            color: 'var(--gts-primary-500)'
                         },
                         strong: {
-                            color: 'var(--fuse-text-default)'
+                            color: 'var(--gts-text-default)'
                         },
                         'ol > li::before': {
-                            color: 'var(--fuse-text-secondary)'
+                            color: 'var(--gts-text-secondary)'
                         },
                         'ul > li::before': {
-                            backgroundColor: 'var(--fuse-text-hint)'
+                            backgroundColor: 'var(--gts-text-hint)'
                         },
                         hr: {
-                            borderColor: 'var(--fuse-border)'
+                            borderColor: 'var(--gts-border)'
                         },
                         blockquote: {
-                            color: 'var(--fuse-text-default)',
-                            borderLeftColor: 'var(--fuse-border)'
+                            color: 'var(--gts-text-default)',
+                            borderLeftColor: 'var(--gts-border)'
                         },
                         h1: {
-                            color: 'var(--fuse-text-default)'
+                            color: 'var(--gts-text-default)'
                         },
                         h2: {
-                            color: 'var(--fuse-text-default)'
+                            color: 'var(--gts-text-default)'
                         },
                         h3: {
-                            color: 'var(--fuse-text-default)'
+                            color: 'var(--gts-text-default)'
                         },
                         h4: {
-                            color: 'var(--fuse-text-default)'
+                            color: 'var(--gts-text-default)'
                         },
                         'figure figcaption': {
-                            color: 'var(--fuse-text-secondary)'
+                            color: 'var(--gts-text-secondary)'
                         },
                         code: {
-                            color: 'var(--fuse-text-default)',
+                            color: 'var(--gts-text-default)',
                             fontWeight: '500'
                         },
                         'a code': {
-                            color: 'var(--fuse-primary)'
+                            color: 'var(--gts-primary)'
                         },
                         pre: {
                             color: theme('colors.white'),
                             backgroundColor: theme('colors.gray.800')
                         },
                         thead: {
-                            color: 'var(--fuse-text-default)',
-                            borderBottomColor: 'var(--fuse-border)'
+                            color: 'var(--gts-text-default)',
+                            borderBottomColor: 'var(--gts-border)'
                         },
                         'tbody tr': {
-                            borderBottomColor: 'var(--fuse-border)'
+                            borderBottomColor: 'var(--gts-border)'
                         },
                         'ol[type="A" s]': false,
                         'ol[type="a" s]': false,
@@ -281,10 +281,10 @@ const config = {
     },
     plugins: [
 
-        // Fuse - Tailwind plugins
-        require(path.resolve(__dirname, ('src/@fuse/tailwind/plugins/utilities'))),
-        require(path.resolve(__dirname, ('src/@fuse/tailwind/plugins/icon-size'))),
-        require(path.resolve(__dirname, ('src/@fuse/tailwind/plugins/theming')))({ themes }),
+        // Gts - Tailwind plugins
+        require(path.resolve(__dirname, ('src/@gts/tailwind/plugins/utilities'))),
+        require(path.resolve(__dirname, ('src/@gts/tailwind/plugins/icon-size'))),
+        require(path.resolve(__dirname, ('src/@gts/tailwind/plugins/theming')))({ themes }),
 
         // Other third party and/or custom plugins
         require('@tailwindcss/typography')({ modifiers: ['sm', 'lg'] })

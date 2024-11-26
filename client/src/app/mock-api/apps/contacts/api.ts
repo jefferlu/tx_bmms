@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiService, FuseMockApiUtils } from '@fuse/lib/mock-api';
+import { GtsMockApiService, GtsMockApiUtils } from '@gts/lib/mock-api';
 import { contacts as contactsData, countries as countriesData, tags as tagsData } from 'app/mock-api/apps/contacts/data';
 import { assign, cloneDeep } from 'lodash-es';
 import { from, map } from 'rxjs';
@@ -14,7 +14,7 @@ export class ContactsMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -32,7 +32,7 @@ export class ContactsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Contacts - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/contacts/all')
             .reply(() =>
             {
@@ -49,7 +49,7 @@ export class ContactsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Contacts Search - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/contacts/search')
             .reply(({request}) =>
             {
@@ -76,7 +76,7 @@ export class ContactsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Contact - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/contacts/contact')
             .reply(({request}) =>
             {
@@ -96,13 +96,13 @@ export class ContactsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Contact - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/apps/contacts/contact')
             .reply(() =>
             {
                 // Generate a new contact
                 const newContact = {
-                    id          : FuseMockApiUtils.guid(),
+                    id          : GtsMockApiUtils.guid(),
                     avatar      : null,
                     name        : 'New Contact',
                     emails      : [],
@@ -127,7 +127,7 @@ export class ContactsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Contact - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/contacts/contact')
             .reply(({request}) =>
             {
@@ -158,7 +158,7 @@ export class ContactsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Contact - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/apps/contacts/contact')
             .reply(({request}) =>
             {
@@ -181,21 +181,21 @@ export class ContactsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Countries - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/contacts/countries')
             .reply(() => [200, cloneDeep(this._countries)]);
 
         // -----------------------------------------------------------------------------------------------------
         // @ Tags - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/contacts/tags')
             .reply(() => [200, cloneDeep(this._tags)]);
 
         // -----------------------------------------------------------------------------------------------------
         // @ Tags - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/apps/contacts/tag')
             .reply(({request}) =>
             {
@@ -203,7 +203,7 @@ export class ContactsMockApi
                 const newTag = cloneDeep(request.body.tag);
 
                 // Generate a new GUID
-                newTag.id = FuseMockApiUtils.guid();
+                newTag.id = GtsMockApiUtils.guid();
 
                 // Unshift the new tag
                 this._tags.unshift(newTag);
@@ -215,7 +215,7 @@ export class ContactsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Tags - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/contacts/tag')
             .reply(({request}) =>
             {
@@ -246,7 +246,7 @@ export class ContactsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Tag - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/apps/contacts/tag')
             .reply(({request}) =>
             {
@@ -309,7 +309,7 @@ export class ContactsMockApi
             })
         ;
 
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/apps/contacts/avatar')
             .reply(({request}) =>
             {

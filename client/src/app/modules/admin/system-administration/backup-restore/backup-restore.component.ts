@@ -18,7 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
-import { FuseAlertComponent } from '@fuse/components/alert';
+import { GtsAlertComponent } from '@gts/components/alert';
 
 @Component({
     selector: 'backup-restore',
@@ -29,7 +29,7 @@ import { FuseAlertComponent } from '@fuse/components/alert';
     imports: [
         FormsModule,
         ReactiveFormsModule,
-        FuseAlertComponent,
+        GtsAlertComponent,
         MatRadioModule,
         NgClass,
         NgSwitch,

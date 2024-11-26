@@ -11,7 +11,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { UserDialogComponent } from './user-dialog/user-dialog.component';
 import { UserAccountService } from './user-account.service';
 import { Subject, takeUntil } from 'rxjs';
-import { FuseConfirmationService } from '@fuse/services/confirmation';
+import { GtsConfirmationService } from '@gts/services/confirmation';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 
 @Component({
@@ -43,7 +43,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     constructor(
         private _matDialog: MatDialog,
         private _changeDetectorRef: ChangeDetectorRef,
-        private _fuseConfirmationService: FuseConfirmationService,
+        private _gtsConfirmationService: GtsConfirmationService,
         private _toastService: ToastService,
         private _userAccountService: UserAccountService,        
     ) { }
@@ -162,7 +162,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     }
 
     onDelete(user: any = {}): void {
-        let dialogRef = this._fuseConfirmationService.open({
+        let dialogRef = this._gtsConfirmationService.open({
             message: `Are you sure to delete?`,
             icon: { color: 'warn' },
             actions: { confirm: { label: 'Delete', color: 'warn' } }

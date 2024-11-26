@@ -20,7 +20,7 @@
                         @else{ {{ object.progress }} }                        
                     </td>
                     <td class="text-center ">
-                        <button class="fuse-alert-dismiss-button" mat-icon-button (click)="onExtraMetadata(object)"
+                        <button class="gts-alert-dismiss-button" mat-icon-button (click)="onExtraMetadata(object)"
                             [disabled]="object.status!=='success' && object.status!=='failed' && object.status!=='complete'">
                             <mat-icon [svgIcon]="'heroicons_outline:inbox-arrow-down'"></mat-icon>
                         </button>

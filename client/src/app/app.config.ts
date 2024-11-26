@@ -7,7 +7,7 @@ import { LuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { routes } from './app.routes';
 import { provideAuth } from './core/auth/auth.provider';
 import { provideIcons } from './core/icons/icons.provider';
-import { provideFuse } from '@fuse';
+import { provideGts } from '@gts';
 import { mockApiServices } from './mock-api';
 import { TranslocoHttpLoader } from './core/transloco/transloco-loader';
 import { provideTransloco, provideTransloco as provideTransloco_alias, TranslocoService } from '@jsverse/transloco';
@@ -57,12 +57,12 @@ export const appConfig: ApplicationConfig = {
         },
         provideAuth(),
         provideIcons(),
-        provideFuse({
+        provideGts({
             mockApi: {
                 delay: 0,
                 services: mockApiServices,
             },
-            fuse: {
+            gts: {
                 layout: 'compact',
                 scheme: 'dark',
                 screens: {

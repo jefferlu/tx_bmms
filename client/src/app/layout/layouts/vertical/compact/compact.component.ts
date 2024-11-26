@@ -3,9 +3,9 @@ import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
-import { FuseLoadingBarComponent } from '@fuse/components/loading-bar';
-import { FuseNavigationService, FuseVerticalNavigationComponent } from '@fuse/components/navigation';
-import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
+import { GtsLoadingBarComponent } from '@gts/components/loading-bar';
+import { GtsNavigationService, GtsVerticalNavigationComponent } from '@gts/components/navigation';
+import { GtsMediaWatcherService } from '@gts/services/media-watcher';
 import { TranslocoModule } from '@jsverse/transloco';
 import { NavigationService } from 'app/core/navigation/navigation.service';
 import { Navigation } from 'app/core/navigation/navigation.types';
@@ -22,7 +22,7 @@ import { Subject, takeUntil } from 'rxjs';
     imports: [
         NgIf, RouterOutlet, TranslocoModule,
         MatButtonModule, MatIconModule, TranslocoModule, NgxSpinnerModule,
-        FuseLoadingBarComponent, FuseVerticalNavigationComponent,
+        GtsLoadingBarComponent, GtsVerticalNavigationComponent,
         LanguagesComponent, UserComponent
     ],
 })
@@ -38,8 +38,8 @@ export class CompactLayoutComponent implements OnInit, OnDestroy {
         private _activatedRoute: ActivatedRoute,
         private _router: Router,
         private _navigationService: NavigationService,
-        private _fuseMediaWatcherService: FuseMediaWatcherService,
-        private _fuseNavigationService: FuseNavigationService,
+        private _gtsMediaWatcherService: GtsMediaWatcherService,
+        private _gtsNavigationService: GtsNavigationService,
     ) {
     }
 
@@ -70,7 +70,7 @@ export class CompactLayoutComponent implements OnInit, OnDestroy {
             });
 
         // Subscribe to media changes
-        this._fuseMediaWatcherService.onMediaChange$
+        this._gtsMediaWatcherService.onMediaChange$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(({ matchingAliases }) => {
                 // Check if the screen is small
@@ -98,7 +98,7 @@ export class CompactLayoutComponent implements OnInit, OnDestroy {
      */
     toggleNavigation(name: string): void {
         // Get the navigation
-        const navigation = this._fuseNavigationService.getComponent<FuseVerticalNavigationComponent>(name);
+        const navigation = this._gtsNavigationService.getComponent<GtsVerticalNavigationComponent>(name);
 
         if (navigation) {
             // Toggle the opened status

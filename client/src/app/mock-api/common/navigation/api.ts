@@ -1,21 +1,21 @@
 import { Injectable } from '@angular/core';
-import { FuseNavigationItem } from '@fuse/components/navigation';
-import { FuseMockApiService } from '@fuse/lib/mock-api';
+import { GtsNavigationItem } from '@gts/components/navigation';
+import { GtsMockApiService } from '@gts/lib/mock-api';
 import { compactNavigation, defaultNavigation, futuristicNavigation, horizontalNavigation } from 'app/mock-api/common/navigation/data';
 import { cloneDeep } from 'lodash-es';
 
 @Injectable({providedIn: 'root'})
 export class NavigationMockApi
 {
-    private readonly _compactNavigation: FuseNavigationItem[] = compactNavigation;
-    private readonly _defaultNavigation: FuseNavigationItem[] = defaultNavigation;
-    private readonly _futuristicNavigation: FuseNavigationItem[] = futuristicNavigation;
-    private readonly _horizontalNavigation: FuseNavigationItem[] = horizontalNavigation;
+    private readonly _compactNavigation: GtsNavigationItem[] = compactNavigation;
+    private readonly _defaultNavigation: GtsNavigationItem[] = defaultNavigation;
+    private readonly _futuristicNavigation: GtsNavigationItem[] = futuristicNavigation;
+    private readonly _horizontalNavigation: GtsNavigationItem[] = horizontalNavigation;
 
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -33,7 +33,7 @@ export class NavigationMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Navigation - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/common/navigation')
             .reply(() =>
             {

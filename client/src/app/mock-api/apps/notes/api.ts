@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiUtils } from '@fuse/lib/mock-api';
-import { FuseMockApiService } from '@fuse/lib/mock-api/mock-api.service';
+import { GtsMockApiUtils } from '@gts/lib/mock-api';
+import { GtsMockApiService } from '@gts/lib/mock-api/mock-api.service';
 import { labels as labelsData, notes as notesData } from 'app/mock-api/apps/notes/data';
 import { cloneDeep } from 'lodash-es';
 
@@ -13,7 +13,7 @@ export class NotesMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -31,7 +31,7 @@ export class NotesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Labels - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/notes/labels')
             .reply(() => [
                 200,
@@ -41,13 +41,13 @@ export class NotesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Labels - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/apps/notes/labels')
             .reply(({request}) =>
             {
                 // Create a new label
                 const label = {
-                    id   : FuseMockApiUtils.guid(),
+                    id   : GtsMockApiUtils.guid(),
                     title: request.body.title,
                 };
 
@@ -63,7 +63,7 @@ export class NotesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Labels - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/notes/labels')
             .reply(({request}) =>
             {
@@ -93,7 +93,7 @@ export class NotesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Labels - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/apps/notes/labels')
             .reply(({request}) =>
             {
@@ -118,7 +118,7 @@ export class NotesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Note Tasks - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/apps/notes/tasks')
             .reply(({request}) =>
             {
@@ -138,7 +138,7 @@ export class NotesMockApi
                         }
 
                         note.tasks.push({
-                            id       : FuseMockApiUtils.guid(),
+                            id       : GtsMockApiUtils.guid(),
                             content  : task,
                             completed: false,
                         });
@@ -163,7 +163,7 @@ export class NotesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Notes - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/notes/all')
             .reply(() =>
             {
@@ -188,7 +188,7 @@ export class NotesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Notes - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/apps/notes')
             .reply(({request}) =>
             {
@@ -196,7 +196,7 @@ export class NotesMockApi
                 const note = request.body.note;
 
                 // Add an id
-                note.id = FuseMockApiUtils.guid();
+                note.id = GtsMockApiUtils.guid();
 
                 // Push the note
                 this._notes.push(note);
@@ -210,7 +210,7 @@ export class NotesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Notes - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/notes')
             .reply(({request}) =>
             {
@@ -239,7 +239,7 @@ export class NotesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Notes - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/apps/notes')
             .reply(({request}) =>
             {

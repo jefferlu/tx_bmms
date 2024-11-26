@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiService } from '@fuse/lib/mock-api';
+import { GtsMockApiService } from '@gts/lib/mock-api';
 import { activities as activitiesData } from 'app/mock-api/pages/activities/data';
 import { cloneDeep } from 'lodash-es';
 
@@ -11,7 +11,7 @@ export class ActivitiesMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -29,7 +29,7 @@ export class ActivitiesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Activities - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/pages/activities')
             .reply(() => [200, cloneDeep(this._activities)]);
     }

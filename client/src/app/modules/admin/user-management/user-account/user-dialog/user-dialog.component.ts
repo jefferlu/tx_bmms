@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { FuseValidators } from '@fuse/validators';
+import { GtsValidators } from '@gts/validators';
 import { Subject } from 'rxjs';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -66,7 +66,7 @@ export class UserDialogComponent implements OnInit, OnDestroy {
             is_staff: [this.user.is_staff],
             password: [''],
             password2: [''],
-        }, { validators: FuseValidators.mustMatch('password', 'password2') });
+        }, { validators: GtsValidators.mustMatch('password', 'password2') });
 
         // 控制密碼欄位是否必填
         if (!this.user.id) {

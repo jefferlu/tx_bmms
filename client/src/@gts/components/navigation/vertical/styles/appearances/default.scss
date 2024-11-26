@@ -1,0 +1,597 @@
+/* Variables */
+:root {
+    --gts-vertical-navigation-width: 280px;
+}
+
+gts-vertical-navigation {
+    position: sticky;
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+    top: 0;
+    width: var(--gts-vertical-navigation-width);
+    min-width: var(--gts-vertical-navigation-width);
+    max-width: var(--gts-vertical-navigation-width);
+    height: 100vh;
+    min-height: 100vh;
+    max-height: 100vh;
+    z-index: 200;
+
+    /* ----------------------------------------------------------------------------------------------------- */
+    /* @ Navigation Drawer
+    /* ----------------------------------------------------------------------------------------------------- */
+
+    /* Animations */
+    &.gts-vertical-navigation-animations-enabled {
+        transition-duration: 400ms;
+        transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+        transition-property: visibility, margin-left, margin-right, transform, width, max-width, min-width;
+
+        /* Wrapper */
+        .gts-vertical-navigation-wrapper {
+            transition-duration: 400ms;
+            transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition-property: width, max-width, min-width;
+        }
+    }
+
+    /* Over mode */
+    &.gts-vertical-navigation-mode-over {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+    }
+
+    /* Left position */
+    &.gts-vertical-navigation-position-left {
+
+        /* Side mode */
+        &.gts-vertical-navigation-mode-side {
+            margin-left: calc(#{var(--gts-vertical-navigation-width)} * -1);
+
+            &.gts-vertical-navigation-opened {
+                margin-left: 0;
+            }
+        }
+
+        /* Over mode */
+        &.gts-vertical-navigation-mode-over {
+            left: 0;
+            transform: translate3d(-100%, 0, 0);
+
+            &.gts-vertical-navigation-opened {
+                transform: translate3d(0, 0, 0);
+            }
+        }
+
+        /* Wrapper */
+        .gts-vertical-navigation-wrapper {
+            left: 0;
+        }
+    }
+
+    /* Right position */
+    &.gts-vertical-navigation-position-right {
+
+        /* Side mode */
+        &.gts-vertical-navigation-mode-side {
+            margin-right: calc(var(--gts-vertical-navigation-width) * -1);
+
+            &.gts-vertical-navigation-opened {
+                margin-right: 0;
+            }
+        }
+
+        /* Over mode */
+        &.gts-vertical-navigation-mode-over {
+            right: 0;
+            transform: translate3d(100%, 0, 0);
+
+            &.gts-vertical-navigation-opened {
+                transform: translate3d(0, 0, 0);
+            }
+        }
+
+        /* Wrapper */
+        .gts-vertical-navigation-wrapper {
+            right: 0;
+        }
+    }
+
+    /* Inner mode */
+    &.gts-vertical-navigation-inner {
+        position: relative;
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        box-shadow: none;
+
+        .gts-vertical-navigation-wrapper {
+            position: relative;
+            overflow: visible;
+            height: auto;
+
+            .gts-vertical-navigation-content {
+                overflow: visible !important;
+            }
+        }
+    }
+
+    /* Wrapper */
+    .gts-vertical-navigation-wrapper {
+        position: absolute;
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 10;
+        background: inherit;
+        box-shadow: inset -1px 0 0 var(--gts-border);
+
+        /* Header */
+        .gts-vertical-navigation-header {
+
+        }
+
+        /* Content */
+        .gts-vertical-navigation-content {
+            flex: 1 1 auto;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+
+            /* Divider */
+            > gts-vertical-navigation-divider-item {
+                margin: 24px 0;
+            }
+
+            /* Group */
+            > gts-vertical-navigation-group-item {
+                margin-top: 24px;
+            }
+        }
+
+        /* Footer */
+        .gts-vertical-navigation-footer {
+
+        }
+    }
+
+    /* Aside wrapper */
+    .gts-vertical-navigation-aside-wrapper {
+        position: absolute;
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        top: 0;
+        bottom: 0;
+        left: var(--gts-vertical-navigation-width);
+        width: var(--gts-vertical-navigation-width);
+        height: 100%;
+        z-index: 5;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        transition-duration: 400ms;
+        transition-property: left, right;
+        transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+        background: inherit;
+
+        > gts-vertical-navigation-aside-item {
+            padding: 24px 0;
+
+            /* First item of the aside */
+            > .gts-vertical-navigation-item-wrapper {
+                display: none !important;
+            }
+        }
+    }
+
+    &.gts-vertical-navigation-position-right {
+
+        .gts-vertical-navigation-aside-wrapper {
+            left: auto;
+            right: var(--gts-vertical-navigation-width);
+        }
+    }
+
+    /* ----------------------------------------------------------------------------------------------------- */
+    /* @ Navigation Items
+    /* ----------------------------------------------------------------------------------------------------- */
+
+    /* Navigation items common */
+    gts-vertical-navigation-aside-item,
+    gts-vertical-navigation-basic-item,
+    gts-vertical-navigation-collapsable-item,
+    gts-vertical-navigation-divider-item,
+    gts-vertical-navigation-group-item,
+    gts-vertical-navigation-spacer-item {
+        display: flex;
+        flex-direction: column;
+        flex: 1 0 auto;
+        user-select: none;
+
+        .gts-vertical-navigation-item-wrapper {
+
+            .gts-vertical-navigation-item {
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                padding: 10px 16px;
+                font-size: 13px;
+                font-weight: 500;
+                line-height: 20px;
+                text-decoration: none;
+                border-radius: 6px;
+
+                /* Disabled state */
+                &.gts-vertical-navigation-item-disabled {
+                    cursor: default;
+                    opacity: 0.4;
+                }
+
+                .gts-vertical-navigation-item-icon {
+                    margin-right: 16px;
+                }
+
+                .gts-vertical-navigation-item-title-wrapper {
+
+                    .gts-vertical-navigation-item-subtitle {
+                        font-size: 11px;
+                        line-height: 1.5;
+                    }
+                }
+
+                .gts-vertical-navigation-item-badge {
+                    margin-left: auto;
+
+                    .gts-vertical-navigation-item-badge-content {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 10px;
+                        font-weight: 600;
+                        white-space: nowrap;
+                        height: 20px;
+                    }
+                }
+            }
+        }
+    }
+
+    /* Aside, Basic, Collapsable, Group */
+    gts-vertical-navigation-aside-item,
+    gts-vertical-navigation-basic-item,
+    gts-vertical-navigation-collapsable-item,
+    gts-vertical-navigation-group-item {
+
+        > .gts-vertical-navigation-item-wrapper {
+            margin: 0 12px;
+        }
+    }
+
+    /* Aside, Basic, Collapsable */
+    gts-vertical-navigation-aside-item,
+    gts-vertical-navigation-basic-item,
+    gts-vertical-navigation-collapsable-item {
+        margin-bottom: 4px;
+
+        .gts-vertical-navigation-item {
+            cursor: pointer;
+        }
+    }
+
+    /* Aside */
+    gts-vertical-navigation-aside-item {
+
+    }
+
+    /* Basic */
+    gts-vertical-navigation-basic-item {
+
+    }
+
+    /* Collapsable */
+    gts-vertical-navigation-collapsable-item {
+
+        > .gts-vertical-navigation-item-wrapper {
+
+            .gts-vertical-navigation-item {
+
+                .gts-vertical-navigation-item-badge {
+
+                    + .gts-vertical-navigation-item-arrow {
+                        margin-left: 8px;
+                    }
+                }
+
+                .gts-vertical-navigation-item-arrow {
+                    height: 20px;
+                    line-height: 20px;
+                    margin-left: auto;
+                    transition: transform 300ms cubic-bezier(0.25, 0.8, 0.25, 1),
+                    color 375ms cubic-bezier(0.25, 0.8, 0.25, 1);
+                }
+            }
+        }
+
+        &.gts-vertical-navigation-item-expanded {
+
+            > .gts-vertical-navigation-item-wrapper {
+
+                .gts-vertical-navigation-item {
+
+                    .gts-vertical-navigation-item-arrow {
+                        transform: rotate(90deg);
+                    }
+                }
+            }
+        }
+
+        > .gts-vertical-navigation-item-children {
+
+            > *:first-child {
+                margin-top: 6px;
+            }
+
+            > *:last-child {
+                padding-bottom: 6px;
+
+                > .gts-vertical-navigation-item-children {
+
+                    > *:last-child {
+                        padding-bottom: 0;
+                    }
+                }
+            }
+
+            .gts-vertical-navigation-item {
+                padding: 10px 16px;
+            }
+        }
+
+        /* 1st level */
+        .gts-vertical-navigation-item-children {
+            overflow: hidden;
+
+            .gts-vertical-navigation-item {
+                padding-left: 56px;
+            }
+
+            /* 2nd level */
+            .gts-vertical-navigation-item-children {
+
+                .gts-vertical-navigation-item {
+                    padding-left: 72px;
+                }
+
+                /* 3rd level */
+                .gts-vertical-navigation-item-children {
+
+                    .gts-vertical-navigation-item {
+                        padding-left: 88px;
+                    }
+
+                    /* 4th level */
+                    .gts-vertical-navigation-item-children {
+
+                        .gts-vertical-navigation-item {
+                            padding-left: 104px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /* Divider */
+    gts-vertical-navigation-divider-item {
+        margin: 12px 0;
+
+        .gts-vertical-navigation-item-wrapper {
+            height: 1px;
+            box-shadow: 0 1px 0 0;
+        }
+    }
+
+    /* Group */
+    gts-vertical-navigation-group-item {
+
+        > .gts-vertical-navigation-item-wrapper {
+
+            .gts-vertical-navigation-item {
+
+                .gts-vertical-navigation-item-badge,
+                .gts-vertical-navigation-item-icon {
+                    display: none !important;
+                }
+
+                .gts-vertical-navigation-item-title-wrapper {
+
+                    .gts-vertical-navigation-item-title {
+                        font-size: 12px;
+                        font-weight: 600;
+                        letter-spacing: 0.05em;
+                        text-transform: uppercase;
+                    }
+                }
+            }
+        }
+    }
+
+    /* Spacer */
+    gts-vertical-navigation-spacer-item {
+        margin: 6px 0;
+    }
+}
+
+/* ----------------------------------------------------------------------------------------------------- */
+/* @ Overlay
+/* ----------------------------------------------------------------------------------------------------- */
+.gts-vertical-navigation-overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 170;
+    opacity: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+
+    + .gts-vertical-navigation-aside-overlay {
+        background-color: transparent;
+    }
+}
+
+/* ----------------------------------------------------------------------------------------------------- */
+/* @ Aside overlay
+/* ----------------------------------------------------------------------------------------------------- */
+.gts-vertical-navigation-aside-overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 169;
+    opacity: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ----------------------------------------------------------------------------------------------------- */
+/* @ Navigation Items Colors
+/* ----------------------------------------------------------------------------------------------------- */
+
+/* Navigation items common */
+gts-vertical-navigation-aside-item,
+gts-vertical-navigation-basic-item,
+gts-vertical-navigation-collapsable-item,
+gts-vertical-navigation-group-item {
+
+    .gts-vertical-navigation-item-wrapper {
+
+        .gts-vertical-navigation-item {
+            color: currentColor;
+
+            .gts-vertical-navigation-item-icon {
+                @apply text-current opacity-60;
+            }
+
+            .gts-vertical-navigation-item-title-wrapper {
+
+                .gts-vertical-navigation-item-title {
+                    @apply text-current opacity-80;
+                }
+
+                .gts-vertical-navigation-item-subtitle {
+                    @apply text-current opacity-50;
+                }
+            }
+        }
+    }
+}
+
+/* Aside, Basic, Collapsable */
+gts-vertical-navigation-aside-item,
+gts-vertical-navigation-basic-item,
+gts-vertical-navigation-collapsable-item {
+
+    > .gts-vertical-navigation-item-wrapper {
+
+        .gts-vertical-navigation-item {
+
+            /* Active state */
+            &:not(.gts-vertical-navigation-item-disabled) {
+
+                &.gts-vertical-navigation-item-active,
+                &.gts-vertical-navigation-item-active-forced {
+                    @apply bg-gray-800 bg-opacity-5 dark:bg-white dark:bg-opacity-12;
+
+                    .gts-vertical-navigation-item-icon {
+                        @apply opacity-100;
+                    }
+
+                    .gts-vertical-navigation-item-title {
+                        @apply opacity-100;
+                    }
+
+                    .gts-vertical-navigation-item-subtitle {
+                        @apply opacity-100;
+                    }
+                }
+            }
+
+            /* Hover state */
+            &:not(.gts-vertical-navigation-item-active-forced):not(.gts-vertical-navigation-item-active):not(.gts-vertical-navigation-item-disabled) {
+
+                &:hover {
+                    @apply bg-gray-800 bg-opacity-5 dark:bg-white dark:bg-opacity-12;
+
+                    .gts-vertical-navigation-item-icon {
+                        @apply opacity-100;
+                    }
+
+                    .gts-vertical-navigation-item-title,
+                    .gts-vertical-navigation-item-arrow {
+                        @apply opacity-100;
+                    }
+
+                    .gts-vertical-navigation-item-subtitle {
+                        @apply opacity-100;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Collapsable */
+gts-vertical-navigation-collapsable-item {
+
+    /* Expanded state */
+    &.gts-vertical-navigation-item-expanded {
+
+        > .gts-vertical-navigation-item-wrapper {
+
+            .gts-vertical-navigation-item {
+
+                .gts-vertical-navigation-item-icon {
+                    @apply opacity-100;
+                }
+
+                .gts-vertical-navigation-item-title,
+                .gts-vertical-navigation-item-arrow {
+                    @apply opacity-100;
+                }
+
+                .gts-vertical-navigation-item-subtitle {
+                    @apply opacity-100;
+                }
+            }
+        }
+    }
+}
+
+/* Group */
+gts-vertical-navigation-group-item {
+
+    > .gts-vertical-navigation-item-wrapper {
+
+        .gts-vertical-navigation-item {
+
+            .gts-vertical-navigation-item-title-wrapper {
+
+                .gts-vertical-navigation-item-title {
+                    @apply opacity-100 text-primary-600 dark:text-primary-400;
+                }
+            }
+        }
+    }
+}

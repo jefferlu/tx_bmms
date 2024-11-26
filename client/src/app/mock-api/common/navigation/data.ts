@@ -1,7 +1,7 @@
 /* eslint-disable */
-import { FuseNavigationItem } from '@fuse/components/navigation';
+import { GtsNavigationItem } from '@gts/components/navigation';
 
-export const defaultNavigation: FuseNavigationItem[] = [
+export const defaultNavigation: GtsNavigationItem[] = [
     {
         id: 'dashboards',
         title: 'Dashboards',
@@ -695,11 +695,11 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 link: '/ui/material-components',
             },
             {
-                id: 'user-interface.fuse-components',
-                title: 'Fuse Components',
+                id: 'user-interface.gts-components',
+                title: 'Gts Components',
                 type: 'basic',
                 icon: 'heroicons_outline:square-3-stack-3d',
-                link: '/ui/fuse-components',
+                link: '/ui/gts-components',
             },
             {
                 id: 'user-interface.other-components',
@@ -962,7 +962,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
     {
         id: 'documentation',
         title: 'Documentation',
-        subtitle: 'Everything you need to know about Fuse',
+        subtitle: 'Everything you need to know about Gts',
         type: 'group',
         icon: 'heroicons_outline:information-circle',
         children: [
@@ -992,11 +992,11 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 link: '/ui/material-components',
             },
             {
-                id: 'user-interface.fuse-components',
-                title: 'Fuse Components',
+                id: 'user-interface.gts-components',
+                title: 'Gts Components',
                 type: 'basic',
                 icon: 'heroicons_outline:square-3-stack-3d',
-                link: '/ui/fuse-components',
+                link: '/ui/gts-components',
             },
             {
                 id: 'user-interface.other-components',
@@ -1165,7 +1165,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
         ],
     },
 ];
-export const compactNavigation: FuseNavigationItem[] = [
+export const compactNavigation: GtsNavigationItem[] = [
     {
         id: 'bim-information-listing',
         title: '圖資檢索',
@@ -1232,7 +1232,7 @@ export const compactNavigation: FuseNavigationItem[] = [
     // },
 
 ];
-export const futuristicNavigation: FuseNavigationItem[] = [
+export const futuristicNavigation: GtsNavigationItem[] = [
     {
         id: 'dashboards',
         title: 'DASHBOARDS',
@@ -1272,7 +1272,7 @@ export const futuristicNavigation: FuseNavigationItem[] = [
         children: [], // This will be filled from defaultNavigation so we don't have to manage multiple sets of the same navigation
     },
 ];
-export const horizontalNavigation: FuseNavigationItem[] = [
+export const horizontalNavigation: GtsNavigationItem[] = [
     {
         id: 'dashboards',
         title: 'Dashboards',

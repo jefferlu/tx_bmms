@@ -16,7 +16,7 @@
 
             <!-- Email -->
             <div>
-                <mat-form-field class="w-full fuse-mat-dense">
+                <mat-form-field class="w-full gts-mat-dense">
                     <mat-label>{{ t('email') }}</mat-label>
                     <input matInput [formControlName]="'email'">
                     @if(form.get('email').hasError('required')){<mat-error>Email is required.</mat-error>}
@@ -27,14 +27,14 @@
             <!-- Name & Role -->
             <div class="mt-1">
                 <div class="flex">
-                    <mat-form-field class="flex-auto w-full fuse-mat-dense">
+                    <mat-form-field class="flex-auto w-full gts-mat-dense">
                         <mat-label>{{ t('username') }}</mat-label>
                         <!-- <mat-icon matPrefix class="hidden sm:flex icon-size-5" [svgIcon]="'heroicons_outline:user'"></mat-icon> -->
                         <input matInput [formControlName]="'username'" [spellcheck]="false">
                         @if(form.get('username').hasError('required')){<mat-error>User Name is required.</mat-error>}
                     </mat-form-field>
 
-                    <mat-form-field class="flex-auto w-full max-w-24 sm:max-w-40 ml-2 sm:ml-4 fuse-mat-dense">
+                    <mat-form-field class="flex-auto w-full max-w-24 sm:max-w-40 ml-2 sm:ml-4 gts-mat-dense">
                         <mat-label>{{ t('role') }}</mat-label>
                         <mat-select [panelClass]="'h-auto max-h-none'" [formControlName]="'is_staff'" disableOptionCentering #roleSelect="matSelect">
 
@@ -53,12 +53,12 @@
             <!-- Password -->
             <div class="mt-1">
                 <div class="flex">
-                    <mat-form-field class="flex-1 fuse-mat-dense">
+                    <mat-form-field class="flex-1 gts-mat-dense">
                         <mat-label>{{ t('password') }}</mat-label>
                         <input type="password" matInput [formControlName]="'password'" autocomplete="password">
                         @if(form.get('password').hasError('required')){<mat-error> Password is required.</mat-error>}
                     </mat-form-field>
-                    <mat-form-field class="flex-1 w-full ml-2 sm:ml-4 fuse-mat-dense">
+                    <mat-form-field class="flex-1 w-full ml-2 sm:ml-4 gts-mat-dense">
                         <mat-label>{{ t('password') }} ({{ t('confirm') }})</mat-label>
                         <input type="password" matInput [formControlName]="'password2'" autocomplete="password">
                         @if(form.get('password2').hasError('required')){<mat-error>Password confirmation is required.</mat-error>}

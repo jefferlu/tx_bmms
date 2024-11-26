@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiService, FuseMockApiUtils } from '@fuse/lib/mock-api';
+import { GtsMockApiService, GtsMockApiUtils } from '@gts/lib/mock-api';
 import { messages as messagesData } from 'app/mock-api/common/messages/data';
 import { assign, cloneDeep } from 'lodash-es';
 
@@ -11,7 +11,7 @@ export class MessagesMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -29,14 +29,14 @@ export class MessagesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Messages - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/common/messages')
             .reply(() => [200, cloneDeep(this._messages)]);
 
         // -----------------------------------------------------------------------------------------------------
         // @ Messages - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/common/messages')
             .reply(({request}) =>
             {
@@ -44,7 +44,7 @@ export class MessagesMockApi
                 const newMessage = cloneDeep(request.body.message);
 
                 // Generate a new GUID
-                newMessage.id = FuseMockApiUtils.guid();
+                newMessage.id = GtsMockApiUtils.guid();
 
                 // Unshift the new message
                 this._messages.unshift(newMessage);
@@ -56,7 +56,7 @@ export class MessagesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Messages - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/common/messages')
             .reply(({request}) =>
             {
@@ -87,7 +87,7 @@ export class MessagesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Messages - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/common/messages')
             .reply(({request}) =>
             {
@@ -113,7 +113,7 @@ export class MessagesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Mark all as read - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/common/messages/mark-all-as-read')
             .reply(() =>
             {
@@ -132,7 +132,7 @@ export class MessagesMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Toggle read status - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/common/messages/toggle-read-status')
             .reply(({request}) =>
             {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiService, FuseMockApiUtils } from '@fuse/lib/mock-api';
+import { GtsMockApiService, GtsMockApiUtils } from '@gts/lib/mock-api';
 import { brands as brandsData, categories as categoriesData, products as productsData, tags as tagsData, vendors as vendorsData } from 'app/mock-api/apps/ecommerce/inventory/data';
 import { assign, cloneDeep } from 'lodash-es';
 
@@ -15,7 +15,7 @@ export class ECommerceInventoryMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -33,21 +33,21 @@ export class ECommerceInventoryMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Categories - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/ecommerce/inventory/categories')
             .reply(() => [200, cloneDeep(this._categories)]);
 
         // -----------------------------------------------------------------------------------------------------
         // @ Brands - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/ecommerce/inventory/brands')
             .reply(() => [200, cloneDeep(this._brands)]);
 
         // -----------------------------------------------------------------------------------------------------
         // @ Products - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/ecommerce/inventory/products', 300)
             .reply(({request}) =>
             {
@@ -134,7 +134,7 @@ export class ECommerceInventoryMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Product - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/ecommerce/inventory/product')
             .reply(({request}) =>
             {
@@ -154,13 +154,13 @@ export class ECommerceInventoryMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Product - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/apps/ecommerce/inventory/product')
             .reply(() =>
             {
                 // Generate a new product
                 const newProduct = {
-                    id         : FuseMockApiUtils.guid(),
+                    id         : GtsMockApiUtils.guid(),
                     category   : '',
                     name       : 'A New Product',
                     description: '',
@@ -191,7 +191,7 @@ export class ECommerceInventoryMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Product - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/ecommerce/inventory/product')
             .reply(({request}) =>
             {
@@ -222,7 +222,7 @@ export class ECommerceInventoryMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Product - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/apps/ecommerce/inventory/product')
             .reply(({request}) =>
             {
@@ -245,14 +245,14 @@ export class ECommerceInventoryMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Tags - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/ecommerce/inventory/tags')
             .reply(() => [200, cloneDeep(this._tags)]);
 
         // -----------------------------------------------------------------------------------------------------
         // @ Tags - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/apps/ecommerce/inventory/tag')
             .reply(({request}) =>
             {
@@ -260,7 +260,7 @@ export class ECommerceInventoryMockApi
                 const newTag = cloneDeep(request.body.tag);
 
                 // Generate a new GUID
-                newTag.id = FuseMockApiUtils.guid();
+                newTag.id = GtsMockApiUtils.guid();
 
                 // Unshift the new tag
                 this._tags.unshift(newTag);
@@ -272,7 +272,7 @@ export class ECommerceInventoryMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Tags - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/ecommerce/inventory/tag')
             .reply(({request}) =>
             {
@@ -303,7 +303,7 @@ export class ECommerceInventoryMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Tag - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/apps/ecommerce/inventory/tag')
             .reply(({request}) =>
             {
@@ -335,7 +335,7 @@ export class ECommerceInventoryMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Vendors - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/ecommerce/inventory/vendors')
             .reply(() => [200, cloneDeep(this._vendors)]);
     }

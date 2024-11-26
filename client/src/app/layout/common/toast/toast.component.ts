@@ -1,18 +1,18 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_SNACK_BAR_DATA } from '@angular/material/snack-bar';
-import { FuseAlertComponent } from '@fuse/components/alert/alert.component';
-import { FuseAlertType } from '@fuse/components/alert/alert.types';
+import { GtsAlertComponent } from '@gts/components/alert/alert.component';
+import { GtsAlertType } from '@gts/components/alert/alert.types';
 
 @Component({
     selector: 'app-toast',
     templateUrl: './toast.component.html',
     styleUrls: ['./toast.component.scss'],
     standalone: true,
-    imports: [FuseAlertComponent]
+    imports: [GtsAlertComponent]
 })
 export class ToastComponent {
 
-    type: FuseAlertType = 'primary';
+    type: GtsAlertType = 'primary';
     constructor(@Inject(MAT_SNACK_BAR_DATA) public data: any) {
 
     }

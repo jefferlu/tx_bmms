@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiService, FuseMockApiUtils } from '@fuse/lib/mock-api';
+import { GtsMockApiService, GtsMockApiUtils } from '@gts/lib/mock-api';
 import { filters as filtersData, folders as foldersData, labels as labelsData, mails as mailsData, settings as settingsData } from 'app/mock-api/apps/mailbox/data';
 import { assign, cloneDeep } from 'lodash-es';
 
@@ -15,7 +15,7 @@ export class MailboxMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -33,14 +33,14 @@ export class MailboxMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Settings - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/mailbox/settings')
             .reply(() => [200, cloneDeep(this._settings)]);
 
         // -----------------------------------------------------------------------------------------------------
         // @ Settings - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/mailbox/settings')
             .reply(({request}) =>
             {
@@ -57,7 +57,7 @@ export class MailboxMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Folders - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/mailbox/folders')
             .reply(() =>
             {
@@ -108,21 +108,21 @@ export class MailboxMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Filters - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/mailbox/filters')
             .reply(() => [200, cloneDeep(this._filters)]);
 
         // -----------------------------------------------------------------------------------------------------
         // @ Labels - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/mailbox/labels')
             .reply(() => [200, cloneDeep(this._labels)]);
 
         // -----------------------------------------------------------------------------------------------------
         // @ Labels - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/apps/mailbox/label')
             .reply(({request}) =>
             {
@@ -130,7 +130,7 @@ export class MailboxMockApi
                 const label = cloneDeep(request.body.label);
 
                 // Generate an id
-                label.id = FuseMockApiUtils.guid();
+                label.id = GtsMockApiUtils.guid();
 
                 // Generate a slug
                 label.slug = label.title.toLowerCase()
@@ -166,7 +166,7 @@ export class MailboxMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Labels - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/mailbox/label')
             .reply(({request}) =>
             {
@@ -203,7 +203,7 @@ export class MailboxMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Labels - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/apps/mailbox/label')
             .reply(({request}) =>
             {
@@ -230,7 +230,7 @@ export class MailboxMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Mails - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/mailbox/mails', 625)
             .reply(({request}) =>
             {
@@ -326,7 +326,7 @@ export class MailboxMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Mail - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/mailbox/mail')
             .reply(({request}) =>
             {
@@ -348,7 +348,7 @@ export class MailboxMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Mail - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/mailbox/mail')
             .reply(({request}) =>
             {

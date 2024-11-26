@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiService } from '@fuse/lib/mock-api';
+import { GtsMockApiService } from '@gts/lib/mock-api';
 import { chats as chatsData, contacts as contactsData, messages as messagesData, profile as profileData } from 'app/mock-api/apps/chat/data';
 import { assign, cloneDeep, omit } from 'lodash-es';
 
@@ -14,7 +14,7 @@ export class ChatMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -46,7 +46,7 @@ export class ChatMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Chats - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/chat/chats')
             .reply(() =>
             {
@@ -60,7 +60,7 @@ export class ChatMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Chat - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/chat/chat')
             .reply(({request}) =>
             {
@@ -80,7 +80,7 @@ export class ChatMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Chat - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/chat/chat')
             .reply(({request}) =>
             {
@@ -111,7 +111,7 @@ export class ChatMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Contacts - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/chat/contacts')
             .reply(() =>
             {
@@ -131,7 +131,7 @@ export class ChatMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Contact Details - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/chat/contact')
             .reply(({request}) =>
             {
@@ -151,7 +151,7 @@ export class ChatMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Profile - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/chat/profile')
             .reply(() =>
             {

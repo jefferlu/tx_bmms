@@ -1,15 +1,17 @@
 import { DOCUMENT, NgIf } from '@angular/common';
 import { Component, Inject, OnDestroy, OnInit, Renderer2, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { FuseConfig, FuseConfigService } from '@fuse/services/config';
-import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
-import { FusePlatformService } from '@fuse/services/platform';
-import { FUSE_VERSION } from '@fuse/version';
+import { GtsConfig, GtsConfigService } from '@gts/services/config';
+import { GtsMediaWatcherService } from '@gts/services/media-watcher';
+import { GtsPlatformService } from '@gts/services/platform';
+// import { GTS_VERSION } from '@gts/version';
+import { GTS_VERSION } from '@gts/version'
 import { combineLatest, filter, map, Subject, takeUntil } from 'rxjs';
 import { EmptyLayoutComponent } from './layouts/empty/empty.component';
 import { CompactLayoutComponent } from './layouts/vertical/compact/compact.component';
 import { TranslocoService } from '@jsverse/transloco';
 import { LocalStorageService } from 'app/core/services/local-storage/local-storage.service';
+;
 
 @Component({
     selector: 'layout',
@@ -20,7 +22,7 @@ import { LocalStorageService } from 'app/core/services/local-storage/local-stora
     imports: [NgIf, EmptyLayoutComponent, CompactLayoutComponent],
 })
 export class LayoutComponent implements OnInit, OnDestroy {
-    config: FuseConfig;
+    config: GtsConfig;
     layout: string;
     scheme: 'dark' | 'light';
     theme: string;
@@ -34,9 +36,9 @@ export class LayoutComponent implements OnInit, OnDestroy {
         @Inject(DOCUMENT) private _document: any,
         private _renderer2: Renderer2,
         private _router: Router,
-        private _fuseConfigService: FuseConfigService,
-        private _fuseMediaWatcherService: FuseMediaWatcherService,
-        private _fusePlatformService: FusePlatformService,
+        private _gtsConfigService: GtsConfigService,
+        private _gtsMediaWatcherService: GtsMediaWatcherService,
+        private _gtsPlatformService: GtsPlatformService,
         private _translocoService: TranslocoService,
         private _localStorageService: LocalStorageService
     ) {
@@ -52,8 +54,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         // Set the theme and scheme based on the configuration
         combineLatest([
-            this._fuseConfigService.config$,
-            this._fuseMediaWatcherService.onMediaQueryChange$(['(prefers-color-scheme: dark)', '(prefers-color-scheme: light)']),
+            this._gtsConfigService.config$,
+            this._gtsMediaWatcherService.onMediaQueryChange$(['(prefers-color-scheme: dark)', '(prefers-color-scheme: light)']),
         ]).pipe(
             takeUntil(this._unsubscribeAll),
             map(([config, mql]) => {
@@ -81,9 +83,9 @@ export class LayoutComponent implements OnInit, OnDestroy {
         });
 
         // Subscribe to config changes
-        this._fuseConfigService.config$
+        this._gtsConfigService.config$
             .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((config: FuseConfig) => {
+            .subscribe((config: GtsConfig) => {
                 // Store the config
                 this.config = config;
 
@@ -101,10 +103,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
         });
 
         // Set the app version
-        this._renderer2.setAttribute(this._document.querySelector('[ng-version]'), 'fuse-version', FUSE_VERSION);
+        this._renderer2.setAttribute(this._document.querySelector('[ng-version]'), 'gts-version', GTS_VERSION);
 
         // Set the OS name
-        this._renderer2.addClass(this._document.body, this._fusePlatformService.osName);
+        this._renderer2.addClass(this._document.body, this._gtsPlatformService.osName);
 
         // Set language from localStorage
         if (this._localStorageService.language)

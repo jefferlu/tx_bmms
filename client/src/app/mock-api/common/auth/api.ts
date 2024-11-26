@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiService } from '@fuse/lib/mock-api';
+import { GtsMockApiService } from '@gts/lib/mock-api';
 import { user as userData } from 'app/mock-api/common/user/data';
 import Base64 from 'crypto-js/enc-base64';
 import Utf8 from 'crypto-js/enc-utf8';
@@ -15,7 +15,7 @@ export class AuthMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Set the mock-api
         this._secret = 'YOUR_VERY_CONFIDENTIAL_SECRET_FOR_SIGNING_JWT_TOKENS!!!';
@@ -36,7 +36,7 @@ export class AuthMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Forgot password - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/auth/forgot-password', 1000)
             .reply(() =>
                 [
@@ -48,7 +48,7 @@ export class AuthMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Reset password - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/auth/reset-password', 1000)
             .reply(() =>
                 [
@@ -60,7 +60,7 @@ export class AuthMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Sign in - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/auth/sign-in', 1500)
             .reply(({request}) =>
             {
@@ -87,7 +87,7 @@ export class AuthMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Sign in using the access token - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/auth/sign-in-with-token')
             .reply(({request}) =>
             {
@@ -119,7 +119,7 @@ export class AuthMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Sign up - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/auth/sign-up', 1500)
             .reply(() =>
 
@@ -133,7 +133,7 @@ export class AuthMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Unlock session - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/auth/unlock-session', 1500)
             .reply(({request}) =>
             {
@@ -208,7 +208,7 @@ export class AuthMockApi
         // Define token payload
         const payload = {
             iat: iat,
-            iss: 'Fuse',
+            iss: 'Gts',
             exp: exp,
         };
 

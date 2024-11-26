@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiService, FuseMockApiUtils } from '@fuse/lib/mock-api';
+import { GtsMockApiService, GtsMockApiUtils } from '@gts/lib/mock-api';
 import { boards as boardsData, cards as cardsData, labels as labelsData, lists as listsData, members as membersData } from 'app/mock-api/apps/scrumboard/data';
 import { assign, cloneDeep } from 'lodash-es';
 
@@ -16,7 +16,7 @@ export class ScrumboardMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -34,7 +34,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Boards - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/scrumboard/boards')
             .reply(({request}) =>
             {
@@ -56,7 +56,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Board - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/scrumboard/board')
             .reply(({request}) =>
             {
@@ -96,7 +96,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ List - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/apps/scrumboard/board/list')
             .reply(({request}) =>
             {
@@ -104,7 +104,7 @@ export class ScrumboardMockApi
                 const newList = cloneDeep(request.body.list);
 
                 // Generate a new GUID
-                newList.id = FuseMockApiUtils.guid();
+                newList.id = GtsMockApiUtils.guid();
 
                 // Store the new list
                 this._lists.push(newList);
@@ -118,7 +118,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ List - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/scrumboard/board/list')
             .reply(({request}) =>
             {
@@ -150,7 +150,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Lists - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/scrumboard/board/lists')
             .reply(({request}) =>
             {
@@ -182,7 +182,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ List - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/apps/scrumboard/board/list')
             .reply(({request}) =>
             {
@@ -205,7 +205,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Card - PUT
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPut('api/apps/scrumboard/board/card')
             .reply(({request}) =>
             {
@@ -213,7 +213,7 @@ export class ScrumboardMockApi
                 const newCard = cloneDeep(request.body.card);
 
                 // Generate a new GUID
-                newCard.id = FuseMockApiUtils.guid();
+                newCard.id = GtsMockApiUtils.guid();
 
                 // Unshift the new card
                 this._cards.push(newCard);
@@ -227,7 +227,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Card - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/scrumboard/board/card')
             .reply(({request}) =>
             {
@@ -266,7 +266,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Cards - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/scrumboard/board/cards')
             .reply(({request}) =>
             {
@@ -304,7 +304,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Card - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/apps/scrumboard/board/card')
             .reply(({request}) =>
             {
@@ -324,7 +324,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Card Positions - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/scrumboard/board/card/positions')
             .reply(({request}) =>
             {
@@ -351,7 +351,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Labels - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/scrumboard/board/labels')
             .reply(({request}) =>
             {
@@ -370,7 +370,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Label - PUT
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPut('api/apps/scrumboard/board/label')
             .reply(({request}) =>
             {
@@ -378,7 +378,7 @@ export class ScrumboardMockApi
                 const newLabel = cloneDeep(request.body.label);
 
                 // Generate a new GUID
-                newLabel.id = FuseMockApiUtils.guid();
+                newLabel.id = GtsMockApiUtils.guid();
 
                 // Unshift the new label
                 this._labels.unshift(newLabel);
@@ -392,7 +392,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Label - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/apps/scrumboard/board/label')
             .reply(({request}) =>
             {
@@ -425,7 +425,7 @@ export class ScrumboardMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Label - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/apps/scrumboard/board/label')
             .reply(({request}) =>
             {

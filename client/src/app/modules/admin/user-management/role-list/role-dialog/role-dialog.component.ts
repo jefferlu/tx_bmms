@@ -6,10 +6,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { FuseValidators } from '@fuse/validators';
+import { GtsValidators } from '@gts/validators';
 import { Subject } from 'rxjs';
 import { ToastService } from 'app/layout/common/toast/toast.service';
-import { FuseConfirmationService } from '@fuse/services/confirmation';
+import { GtsConfirmationService } from '@gts/services/confirmation';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -39,7 +39,7 @@ export class RoleDialogComponent implements OnInit, OnDestroy {
         private _changeDetectorRef: ChangeDetectorRef,
         private _formBuilder: UntypedFormBuilder,
         private _matDialogRef: MatDialogRef<RoleDialogComponent>,
-        private _fuseConfirmationService: FuseConfirmationService,
+        private _gtsConfirmationService: GtsConfirmationService,
         private _toastService: ToastService,        
     ) { }
 
@@ -65,7 +65,7 @@ export class RoleDialogComponent implements OnInit, OnDestroy {
             is_staff: [this.user.is_staff],
             password: [''],
             password2: [''],
-        }, { validators: FuseValidators.mustMatch('password', 'password2') });
+        }, { validators: GtsValidators.mustMatch('password', 'password2') });
 
         // 控制密碼欄位是否必填
         if (!this.user.id) {
@@ -119,7 +119,7 @@ export class RoleDialogComponent implements OnInit, OnDestroy {
     }
 
     onDelete(): void {
-        let dialogRef = this._fuseConfirmationService.open({
+        let dialogRef = this._gtsConfirmationService.open({
             message: `Are you sure to delete?`,
             icon: { color: 'warn' },
             actions: { confirm: { label: 'Delete', color: 'warn' } }

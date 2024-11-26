@@ -8,8 +8,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
-import { fuseAnimations } from '@fuse/animations';
+import { GtsAlertComponent, GtsAlertType } from '@gts/components/alert';
+import { gtsAnimations } from '@gts/animations';
 import { AuthService } from 'app/core/auth/auth.service';
 import { TranslocoModule } from '@jsverse/transloco';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -19,11 +19,11 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     standalone: true,
     templateUrl: './sign-in.component.html',
     styleUrl: './sign-in.component.scss',
-    animations: fuseAnimations,
+    animations: gtsAnimations,
     imports: [
         RouterLink, FormsModule, ReactiveFormsModule, TranslocoModule, MatCheckboxModule,
         MatButtonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatProgressSpinnerModule,
-        FuseAlertComponent
+        GtsAlertComponent
     ],
 })
 export class SignInComponent {
@@ -31,7 +31,7 @@ export class SignInComponent {
     signInForm: UntypedFormGroup;
     showAlert: boolean = false;
 
-    alert: { type: FuseAlertType; message: string } = {
+    alert: { type: GtsAlertType; message: string } = {
         type: 'success',
         message: '123'
     };

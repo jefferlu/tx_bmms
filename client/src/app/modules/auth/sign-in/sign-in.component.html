@@ -16,16 +16,16 @@
 
             <!-- Alert -->
             @if(showAlert){
-            <fuse-alert class="mt-8" [appearance]="'outline'" [showIcon]="false" [type]="alert.type" [@shake]="alert.type === 'error'">
+            <gts-alert class="mt-8" [appearance]="'outline'" [showIcon]="false" [type]="alert.type" [@shake]="alert.type === 'error'">
                 {{alert.message}}
-            </fuse-alert>
+            </gts-alert>
             }
 
             <!-- Sign in form -->
             <form class="mt-8 sm:w-80 mx-auto" [formGroup]="signInForm" #signInNgForm="ngForm">
 
                 <!-- Email field -->
-                <mat-form-field class="w-full fuse-mat-dense">
+                <mat-form-field class="w-full gts-mat-dense">
                     <mat-label> {{t('email')}} </mat-label>
                     <input id="email" matInput [formControlName]="'email'" />
                     @if(signInForm.get('email').hasError('required')) {<mat-error> {{t('email')}}{{t('is-required')}} </mat-error>}
@@ -33,7 +33,7 @@
                 </mat-form-field>
 
                 <!-- Password field -->
-                <mat-form-field class="w-full mt-1 fuse-mat-dense">
+                <mat-form-field class="w-full mt-1 gts-mat-dense">
                     <mat-label> {{t('password')}} </mat-label>
                     <input id="password" matInput type="password" [formControlName]="'password'" #passwordField />
                     <button mat-icon-button type="button" (click)="
@@ -62,7 +62,7 @@
                 </div>
 
                 <!-- Submit button -->
-                <button class="fuse-mat-button-large w-full mt-6" mat-stroked-button [disabled]="signInForm.disabled" (click)="signIn()">
+                <button class="gts-mat-button-large w-full mt-6" mat-stroked-button [disabled]="signInForm.disabled" (click)="signIn()">
                     @if(!signInForm.disabled){<span> {{t('sign-in')}} </span>}
                     @else{<mat-progress-spinner [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>}
                 </button>

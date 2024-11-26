@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, catchError, of, switchMap } from 'rxjs';
-import { FuseConfirmationService } from '@fuse/services/confirmation';
+import { GtsConfirmationService } from '@gts/services/confirmation';
 import { environment } from 'environments/environment';
 
 
@@ -14,7 +14,7 @@ export class AppService {
 
     constructor(
         private _httpClient: HttpClient,
-        private _fuseConfirmationService: FuseConfirmationService
+        private _gtsConfirmationService: GtsConfirmationService
     ) { }
 
     get(method: string, kwargs?: any, request?: any): Observable<any> {
@@ -37,7 +37,7 @@ export class AppService {
             // catchError((e) => {
 
             //     console.log(e.error.detail ? e.error.detail : e.message)
-            //     const dialogRef = this._fuseConfirmationService.open({
+            //     const dialogRef = this._gtsConfirmationService.open({
             //         // title: e.statusText,
             //         title: `API Error: get()`,
             //         message: e.error.detail ? e.error.detail : e.message,
@@ -59,7 +59,7 @@ export class AppService {
             // catchError((e) => {
             //     console.log(e)
             //     console.log(e.error.detail ? e.error.detail : e.message)
-            //     const dialogRef = this._fuseConfirmationService.open({
+            //     const dialogRef = this._gtsConfirmationService.open({
             //         // title: e.statusText,
             //         title: `API post() Error: ${method} `,
             //         message: e.error.detail ? e.error.detail : e.message,
@@ -92,7 +92,7 @@ export class AppService {
             // catchError((e) => {
             //     console.log(e)
             //     console.log(e.error.detail ? e.error.detail : e.message)
-            //     const dialogRef = this._fuseConfirmationService.open({
+            //     const dialogRef = this._gtsConfirmationService.open({
             //         // title: e.statusText,
             //         title: `API put() Error: ${method} `,
             //         message: e.error.detail ? e.error.detail : e.message,

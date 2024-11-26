@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiService } from '@fuse/lib/mock-api/mock-api.service';
+import { GtsMockApiService } from '@gts/lib/mock-api/mock-api.service';
 import { items as itemsData } from 'app/mock-api/apps/file-manager/data';
 import { cloneDeep } from 'lodash-es';
 
@@ -11,7 +11,7 @@ export class FileManagerMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -29,7 +29,7 @@ export class FileManagerMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Items - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/file-manager')
             .reply(({request}) =>
             {

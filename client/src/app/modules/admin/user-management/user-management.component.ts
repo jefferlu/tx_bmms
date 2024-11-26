@@ -8,7 +8,7 @@ import { UserAccountComponent } from './user-account/user-account.component';
 import { RoleListComponent } from './role-list/role-list.component';
 import { LogQueryComponent} from './log-query/log-query.component';
 import { TranslocoModule } from '@jsverse/transloco';
-import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
+import { GtsMediaWatcherService } from '@gts/services/media-watcher';
 
 @Component({
     selector: 'app-user-management',
@@ -34,7 +34,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
-        private _fuseMediaWatcherService: FuseMediaWatcherService
+        private _gtsMediaWatcherService: GtsMediaWatcherService
     ) { }
 
     ngOnInit(): void {
@@ -64,7 +64,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         ];
 
         // Subscribe to media changes
-        this._fuseMediaWatcherService.onMediaChange$
+        this._gtsMediaWatcherService.onMediaChange$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(({ matchingAliases }) => {
                 // Set the drawerMode and drawerOpened

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { FuseNavigationItem, FuseNavigationService } from '@fuse/components/navigation';
-import { FuseMockApiService } from '@fuse/lib/mock-api';
+import { GtsNavigationItem, GtsNavigationService } from '@gts/components/navigation';
+import { GtsMockApiService } from '@gts/lib/mock-api';
 import { contacts } from 'app/mock-api/apps/contacts/data';
 import { tasks } from 'app/mock-api/apps/tasks/data';
 import { defaultNavigation } from 'app/mock-api/common/navigation/data';
@@ -9,7 +9,7 @@ import { cloneDeep } from 'lodash-es';
 @Injectable({providedIn: 'root'})
 export class SearchMockApi
 {
-    private readonly _defaultNavigation: FuseNavigationItem[] = defaultNavigation;
+    private readonly _defaultNavigation: GtsNavigationItem[] = defaultNavigation;
     private readonly _contacts: any[] = contacts;
     private readonly _tasks: any[] = tasks;
 
@@ -17,8 +17,8 @@ export class SearchMockApi
      * Constructor
      */
     constructor(
-        private _fuseMockApiService: FuseMockApiService,
-        private _fuseNavigationService: FuseNavigationService,
+        private _gtsMockApiService: GtsMockApiService,
+        private _gtsNavigationService: GtsNavigationService,
     )
     {
         // Register Mock API handlers
@@ -35,12 +35,12 @@ export class SearchMockApi
     registerHandlers(): void
     {
         // Get the flat navigation and store it
-        const flatNavigation = this._fuseNavigationService.getFlatNavigation(this._defaultNavigation);
+        const flatNavigation = this._gtsNavigationService.getFlatNavigation(this._defaultNavigation);
 
         // -----------------------------------------------------------------------------------------------------
         // @ Search results - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/common/search')
             .reply(({request}) =>
             {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiService, FuseMockApiUtils } from '@fuse/lib/mock-api';
+import { GtsMockApiService, GtsMockApiUtils } from '@gts/lib/mock-api';
 import { shortcuts as shortcutsData } from 'app/mock-api/common/shortcuts/data';
 import { assign, cloneDeep } from 'lodash-es';
 
@@ -11,7 +11,7 @@ export class ShortcutsMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -29,14 +29,14 @@ export class ShortcutsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Shortcuts - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/common/shortcuts')
             .reply(() => [200, cloneDeep(this._shortcuts)]);
 
         // -----------------------------------------------------------------------------------------------------
         // @ Shortcuts - POST
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPost('api/common/shortcuts')
             .reply(({request}) =>
             {
@@ -44,7 +44,7 @@ export class ShortcutsMockApi
                 const newShortcut = cloneDeep(request.body.shortcut);
 
                 // Generate a new GUID
-                newShortcut.id = FuseMockApiUtils.guid();
+                newShortcut.id = GtsMockApiUtils.guid();
 
                 // Unshift the new shortcut
                 this._shortcuts.unshift(newShortcut);
@@ -56,7 +56,7 @@ export class ShortcutsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Shortcuts - PATCH
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onPatch('api/common/shortcuts')
             .reply(({request}) =>
             {
@@ -87,7 +87,7 @@ export class ShortcutsMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Shortcuts - DELETE
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onDelete('api/common/shortcuts')
             .reply(({request}) =>
             {

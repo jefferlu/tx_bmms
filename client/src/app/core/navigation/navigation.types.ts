@@ -1,9 +1,9 @@
-import { FuseNavigationItem } from '@fuse/components/navigation';
+import { GtsNavigationItem } from '@gts/components/navigation';
 
 export interface Navigation
 {
-    compact: FuseNavigationItem[];
-    default: FuseNavigationItem[];
-    futuristic: FuseNavigationItem[];
-    horizontal: FuseNavigationItem[];
+    compact: GtsNavigationItem[];
+    default: GtsNavigationItem[];
+    futuristic: GtsNavigationItem[];
+    horizontal: GtsNavigationItem[];
 }

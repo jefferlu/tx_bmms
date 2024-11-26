@@ -4,7 +4,7 @@
  * @author tora60 from pragmaMx.org
  * @author Timo-Linde <info@timo-linde.de>
  * @author OSWorX <https://osworx.net>
- * @author Maximilian Schwarz <info@deefuse.de>
+ * @author Maximilian Schwarz <info@deegts.de>
  * @author SF Webdesign <webdesign@stephan-frank.de>
  * @version 2019-12-13
  */
@@ -18,7 +18,7 @@
 	}
 }(this, function(elFinder) {
 	elFinder.prototype.i18.de = {
-		translator : 'JPG & Mace &lt;dev@flying-datacenter.de&gt;, tora60 from pragmaMx.org, Timo-Linde &lt;info@timo-linde.de&gt;, OSWorX &lt;info@osworx.net&gt;, Maximilian Schwarz &lt;info@deefuse.de&gt;, SF Webdesign &lt;webdesign@stephan-frank.de&gt;',
+		translator : 'JPG & Mace &lt;dev@flying-datacenter.de&gt;, tora60 from pragmaMx.org, Timo-Linde &lt;info@timo-linde.de&gt;, OSWorX &lt;info@osworx.net&gt;, Maximilian Schwarz &lt;info@deegts.de&gt;, SF Webdesign &lt;webdesign@stephan-frank.de&gt;',
 		language   : 'Deutsch',
 		direction  : 'ltr',
 		dateFormat : 'j. F Y H:i', // 3. März 2020 14:58

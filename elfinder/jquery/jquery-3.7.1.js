@@ -5350,7 +5350,7 @@ function leverageNative( el, type, isSetup ) {
 
 					// Store arguments for use when handling the inner native event
 					// There will always be at least one argument (an event object), so this array
-					// will not be confused with a leftover capture object.
+					// will not be congtsd with a leftover capture object.
 					saved = slice.call( arguments );
 					dataPriv.set( this, type, saved );
 

@@ -10,15 +10,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
-import { fuseAnimations } from '@fuse/animations/public-api';
+import { gtsAnimations } from '@gts/animations/public-api';
 import { debounceTime, filter, map, Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector     : 'search',
     templateUrl  : './search.component.html',
     encapsulation: ViewEncapsulation.None,
-    exportAs     : 'fuseSearch',
-    animations   : fuseAnimations,
+    exportAs     : 'gtsSearch',
+    animations   : gtsAnimations,
     standalone   : true,
     imports      : [NgIf, MatButtonModule, MatIconModule, FormsModule, MatAutocompleteModule, ReactiveFormsModule, MatOptionModule, NgFor, RouterLink, NgTemplateOutlet, MatFormFieldModule, MatInputModule, NgClass],
     providers    : [

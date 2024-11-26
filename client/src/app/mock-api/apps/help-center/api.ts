@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FuseMockApiService } from '@fuse/lib/mock-api';
+import { GtsMockApiService } from '@gts/lib/mock-api';
 import { faqCategories as faqCategoriesData, faqs as faqsData, guideCategories as guideCategoriesData, guideContent as guideContentData, guides as guidesData } from 'app/mock-api/apps/help-center/data';
 import { cloneDeep } from 'lodash-es';
 
@@ -15,7 +15,7 @@ export class HelpCenterMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor(private _gtsMockApiService: GtsMockApiService)
     {
         // Register Mock API handlers
         this.registerHandlers();
@@ -33,7 +33,7 @@ export class HelpCenterMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ FAQs - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/help-center/faqs')
             .reply(({request}) =>
             {
@@ -85,7 +85,7 @@ export class HelpCenterMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Guides - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/help-center/guides')
             .reply(({request}) =>
             {
@@ -143,7 +143,7 @@ export class HelpCenterMockApi
         // -----------------------------------------------------------------------------------------------------
         // @ Guide - GET
         // -----------------------------------------------------------------------------------------------------
-        this._fuseMockApiService
+        this._gtsMockApiService
             .onGet('api/apps/help-center/guide')
             .reply(({request}) =>
             {
