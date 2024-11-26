@@ -27,7 +27,7 @@ export class ApsCredentialsService {
     open(): MatDialogRef<ApsCredentialsDialogComponent> {
 
         return this._matDialog.open(ApsCredentialsDialogComponent, {
-            width: '30vw',
+            width: '35vw',
             height: '60vh',
             disableClose: true
         })
