@@ -40,7 +40,6 @@ import { GtsAlertComponent } from '@gts/components/alert';
         MatSelectModule,
         MatOptionModule,
         MatButtonModule,
-        CurrencyPipe,
     ],
 })
 export class BackupRestoreComponent implements OnInit {

@@ -1,0 +1,19 @@
+services:
+  
+    backend:
+        build: backend
+        container_name: backend
+        ports:
+            - "8000:8000"
+        # depends_on:
+        #     - db
+
+    # db:
+    #     image: postgres:17.2
+    #     container_name: db
+
+    # nginx:
+    #     image: nginx:alpine
+    #     container_name: webserver
+    #     ports:
+    #         - "4000:80"
