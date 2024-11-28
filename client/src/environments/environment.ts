@@ -4,9 +4,9 @@
 
 export const environment = {
     production: false,
+    apiUrl: 'http://localhost:8000/api',
     user_key: 'tx_bmms_user',
     language_key: 'tx_bmms_languages',
-    host: 'http://localhost:3000',
     downloadUrl: '../',
     staticUrl: '',
     mediaUrl: 'media/',

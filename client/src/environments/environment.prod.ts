@@ -1,9 +1,10 @@
 export const environment = {
     production: true,
+    apiUrl: 'http://backend:8000/api',
     user_key: 'tx_bmms_user',
     language_key: 'tx_bmms_languages',
-    host: 'localhost:8000', //localhost   
-    downloadUrl: '',
+    host: 'http://backend:8000',
+    downloadUrl: 'http://backend:8000',
     staticUrl: 'static/ng/',
     mediaUrl: 'media/',
     aps: {

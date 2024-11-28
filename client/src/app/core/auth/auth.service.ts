@@ -1,49 +1,39 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
 import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
 
-import { AuthUtils } from 'app/core/auth/auth.utils';
 import { UserService } from 'app/core/user/user.service';
-import { environment } from 'environments/environment';
-import { CookieService } from 'ngx-cookie-service';
+import { CookieOptions, CookieService } from 'ngx-cookie-service';
 import { ApsCredentialsService } from '../services/aps-credentials/aps-credentials.service';
+import { Router } from '@angular/router';
+import { AppService } from '../services/app.service';
 
-const endpoint = environment.host;
-const USER_KEY: string = environment.user_key;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+    private _accessToken: string | null = null;
     private _authenticated: boolean = false;
 
-    /**
-     * Constructor
-     */
-    constructor(
-        private _httpClient: HttpClient,
-        private _userService: UserService,
-        private _cookieService: CookieService,
-        private _apsCredentials: ApsCredentialsService,
-        private _sanitizer: DomSanitizer,
-    ) {
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Accessors
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Setter & getter for access token
-     */
-    set token(res: any) {
-        this._cookieService.set('access', res.access);
-    }
+    private _router = inject(Router);
+    private _httpClient = inject(HttpClient);
+    private _cookieService = inject(CookieService)
+    private _appService = inject(AppService);
+    private _userService = inject(UserService);
 
     get accessToken(): string {
-        return localStorage.getItem('accessToken') ?? '';
+        return this._accessToken;
     }
 
+    set refreshToken(refresh: string) {
+        let options: CookieOptions = { expires: 30, path: '/', secure: true }
+        this._cookieService.set('bmms-refresh-token', refresh, options);
+    }
+
+    get refreshToken(): string {
+        return this._cookieService.get('bmms-refresh-token');
+    }
     // -----------------------------------------------------------------------------------------------------
     // @ Public methods
     // -----------------------------------------------------------------------------------------------------
@@ -63,7 +53,11 @@ export class AuthService {
      * @param password
      */
     resetPassword(password: string): Observable<any> {
-        return this._httpClient.post('api/auth/reset-password', password);
+        return this._appService.post(`reset-password`, { "password": password }).pipe(
+            switchMap((response: any) => {
+                return of(response);
+            })
+        );
     }
 
     /**
@@ -74,89 +68,97 @@ export class AuthService {
     signIn(credentials: { email: string; password: string }): Observable<any> {
         // Throw error, if the user is already logged in
         if (this._authenticated) {
-            return throwError('User is already logged in.');
+            return throwError(() => 'User is already logged in.')  // Detail error message
+            // return throwError('User is already logged in.');
         }
 
-        return this._httpClient.post(`${endpoint}/api/login`, credentials).pipe(
+        return this._appService.post(`core/login`, credentials).pipe(
             switchMap((response: any) => {
+                // Store the access token in the local storage
 
-
-                // Store the access token in the cookie
-                this.token = response;
+                this._accessToken = response.access;
+                this.refreshToken = response.refresh;
 
                 // Set the authenticated flag to true
                 this._authenticated = true;
 
-                // Store the user on the user service                
+                // Store the user on the user service
                 this._userService.user = response.user;
 
                 // Return a new observable with the response
                 return of(response);
             }),
+            catchError((error) => {
+                // Log the error here to see if it's getting caught
+                console.error('Error in signIn method:', error);
+                return throwError(() => error);
+            })
         );
     }
 
     /**
+     * Sign in using the access token
+     */
+    signInUsingToken(): Observable<any> {
+
+        // Sign in using the token                
+        return this._appService.post(`core/refresh-token`, { refresh: this.refreshToken }).pipe(
+            switchMap((response: any) => {
+
+                this._accessToken = response.access;
+                this.refreshToken = response.refresh;
+
+
+                // Set the authenticated flag to true
+                this._authenticated = true;
+
+                // Store the user on the user service
+                this._userService.user = response.user;
+
+                // Return true
+                return of(true);
+            }),
+            catchError((error) => {
+
+                this.signOut();
+                this._router.navigate(['/sign-in']);
+                // return throwError(() => error)
+                return of(false)
+            })
+        );
+    }
+
 
     /**
      * Sign out
      */
     signOut(): Observable<any> {
-        // Remove the access token from the local storage
-        // localStorage.removeItem(USER_KEY);        
-
         // Remove all from the local cookie
-        this._cookieService.deleteAll();
+        this._accessToken = null;
+        this._cookieService.deleteAll('/');
 
         // Set the authenticated flag to false
         this._authenticated = false;
-
-        this._apsCredentials.remove();
 
         // Return the observable
         return of(true);
     }
 
     /**
-     * Sign up
-     *
-     * @param user
-     */
-    signUp(user: { name: string; email: string; password: string; company: string }): Observable<any> {
-        return this._httpClient.post('api/auth/sign-up', user);
-    }
-
-    /**
-     * Unlock session
-     *
-     * @param credentials
-     */
-    unlockSession(credentials: { email: string; password: string }): Observable<any> {
-        return this._httpClient.post('api/auth/unlock-session', credentials);
-    }
-
-    /**
      * Check the authentication status
      */
     check(): Observable<boolean> {
-        // Check if the user is logged in
 
+        // Check if the user is logged in
         if (this._authenticated) {
             return of(true);
         }
 
-        // Check the access token availability
-        if (!this._cookieService.get('access')) {
-            return of(false);
+        // If the refresh token exists, and it didn't expire, sign in using it
+        if (this.refreshToken) {
+            return this.signInUsingToken();
         }
 
-        // Check the access token expire date
-        if (AuthUtils.isTokenExpired(this._cookieService.get('access'))) {
-            return of(false);
-        }
-
-        // If the access token exists, and it didn't expire, sign in using it
-        // return this.signInUsingToken();
-        return of(true);
+        return of(false)
     }
 }

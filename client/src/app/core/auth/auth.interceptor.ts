@@ -1,58 +1,74 @@
-import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpRequest } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthService } from 'app/core/auth/auth.service';
-import { AuthUtils } from 'app/core/auth/auth.utils';
-import { CookieService } from 'ngx-cookie-service';
-import { catchError, Observable, throwError } from 'rxjs';
+import { AuthService } from './auth.service';
+import { catchError, of, switchMap, throwError } from 'rxjs';
+import { Router } from '@angular/router';
 
-/**
- * Intercept
- *
- * @param req
- * @param next
- */
-export const authInterceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+
+    const router = inject(Router);
     const authService = inject(AuthService);
-    const cookieService = inject(CookieService);
 
-    // Clone the request object
     let newReq = req.clone();
 
-    // Request
-    //
-    // If the access token didn't expire, add the Authorization header.
-    // We won't add the Authorization header if the access token expired.
-    // This will force the server to return a "401 Unauthorized" response
-    // for the protected API routes which our response interceptor will
-    // catch and delete the access token from the local storage while logging
-    // the user out from the app.
-    if (cookieService.get('access') && !AuthUtils.isTokenExpired(cookieService.get('access'))) {
+    // 如果 `accessToken` 存在，則在標頭中加入 Authorization
+    if (authService.accessToken) {
 
-        req.headers.set('Authorization', 'Bearer ' + cookieService.get('access'))
+        req.headers.set('Authorization', 'Bearer ' + authService.accessToken)
         newReq = req.clone({
             setHeaders: {
-                'Authorization': `Bearer ${cookieService.get('access')}`,
+                'Authorization': `Bearer ${authService.accessToken}`,
             }
         });
     }
 
-
     // Response
     return next(newReq).pipe(
-        catchError((error) => {
-            // Catch "401 Unauthorized" responses
-            if (error instanceof HttpErrorResponse && error.status === 401) {
-                // Sign out
-                authService.signOut();
+        catchError((error: HttpErrorResponse) => {
 
-                // Reload the app
-                if (!error.url.includes('api/login')) {
-                    location.reload();
+            const errorCode = error.error?.code;
+            // console.log(error.error)
+            if (errorCode === 'token_not_valid') {
+
+                const tokenClass = error.error.messages?.[0]?.token_class;
+
+                // Access token is invalid
+                if (tokenClass === 'AccessToken') {
+                    return authService.signInUsingToken().pipe(
+                        switchMap(() => {
+
+                            // Reattempt the original request after refreshing token
+                            const retryReq = req.clone({
+                                setHeaders: {
+                                    'Authorization': `Bearer ${authService.accessToken}`,
+                                }
+                            });
+                            return next(retryReq);
+                        }),
+                        catchError(() => {
+                            // If refresh token fails, navigate to sign-in
+                            authService.signOut();
+                            router.navigate(['/sign-in']);
+                            return of(null);
+                        })
+                    );
+                }
+                // Refresh token is invalid
+                else {
+                    authService.signOut();
+                    router.navigate(['/sign-in']);
+                    return of(null);
                 }
             }
+            else if(errorCode === 'no-navigation-permission'){
+                
+                authService.signOut();
+                return throwError(() => error);
+            }
 
-            // return throwError(() => new Error(error));
-            return throwError(() => error)  // Detail error message
+            // Throw the error so it can be handled by the original call
+                 
+            return throwError(() => error);
         }),
     );
 };

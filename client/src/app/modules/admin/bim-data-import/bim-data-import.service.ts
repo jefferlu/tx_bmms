@@ -3,7 +3,7 @@ import { Injectable, NgZone } from '@angular/core';
 import { environment } from 'environments/environment';
 import { BehaviorSubject, Observable, Observer, catchError, of, switchMap, tap } from 'rxjs';
 
-const endpoint = environment.host;
+const endpoint = environment.apiUrl;
 
 @Injectable({
     providedIn: 'root'

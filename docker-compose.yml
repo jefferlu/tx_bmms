@@ -1,10 +1,20 @@
 services:
-  
+    client:
+        build: client
+        container_name: client
+        networks:
+            - internal_network
+        environment:
+            - API_BASE_URL=http://backend:8000/
+        ports:
+            - "4000:80"
+
     backend:
         build: backend
         container_name: backend
-        ports:
-            - "8000:8000"
+        networks:
+            - internal_network
+        
         # depends_on:
         #     - db
 
@@ -17,3 +27,7 @@ services:
     #     container_name: webserver
     #     ports:
     #         - "4000:80"
+
+networks:
+    internal_network:
+        driver: bridge
