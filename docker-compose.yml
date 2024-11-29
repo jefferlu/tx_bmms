@@ -1,6 +1,6 @@
 services:
     client:
-        build: ../client
+        build: client
         container_name: client
         networks:
             - internal_network
@@ -12,7 +12,7 @@ services:
             - "4000:80"
 
     backend:
-        build: ../backend
+        build: backend
         container_name: backend
         networks:
             - internal_network
@@ -21,7 +21,7 @@ services:
             - media_data:/app/media-root
 
     elfinder:
-        build: ../elfinder
+        build: elfinder
         container_name: elfinder
         networks:
             - internal_network
