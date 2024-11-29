@@ -9,23 +9,14 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     nginx \
-    locales \
-    fonts-noto-cjk \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# 生成所需的 UTF-8 語系
-# RUN locale-gen en_US.UTF-8 && locale-gen zh_TW.UTF-8
-
-# 設置默認語系為 UTF-8
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US:en
-ENV LC_ALL=en_US.UTF-8
 
 # 複製 elFinder
 COPY . .
 
-RUN chown -R www-data:www-data media-files && \
-    chmod -R 755 /app/media-files
+RUN mkdir -p media-files media-files/.trash && \
+    chown -R www-data:www-data media-files && \
+    chmod -R 755 media-files
 
 # 複製 Nginx 配置文件
 COPY ./nginx.conf /etc/nginx/sites-available/default
