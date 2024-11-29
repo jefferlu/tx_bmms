@@ -14,9 +14,7 @@ export const environment = {
         apiUrl: 'https://developer.api.autodesk.com',
         key: 'asp-credentials'
     },
-    elfinder: {
-        apiUrl: 'https://bmms.giantcld.com'
-    }
+    elfinder: 'https://bmms.giantcld.com'
 };
 
 /*

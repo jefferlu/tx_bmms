@@ -17,9 +17,9 @@ channels = {extras = ["daphne"], version = "*"}
 django-mptt = "*"
 django-admin-interface = "*"
 pyjwt = "*"
+gunicorn = "*"
 
 [dev-packages]
-gunicorn = "*"
 
 [requires]
 python_version = "3.11"

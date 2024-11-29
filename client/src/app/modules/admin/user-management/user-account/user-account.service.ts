@@ -24,7 +24,7 @@ export class UserAccountService {
     }
 
     list(): Observable<any> {
-        return this._appService.get('users').pipe(
+        return this._appService.get('core/users').pipe(
             tap((res: any) => {
                 this._users.next(res);
             })

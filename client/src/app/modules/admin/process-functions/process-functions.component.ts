@@ -14,7 +14,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { environment } from 'environments/environment';
 
 declare var $: any;
-const endpoint = environment.elfinder.apiUrl;
+const endpoint = environment.elfinder;
 
 @Component({
     selector: 'app-process-functions',
@@ -24,7 +24,6 @@ const endpoint = environment.elfinder.apiUrl;
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
     imports: [
-        RouterOutlet, JsonPipe,
         MatButtonModule, MatIconModule,
         TreeModule, TableModule,
         TranslocoModule,

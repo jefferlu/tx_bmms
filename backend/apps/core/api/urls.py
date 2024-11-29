@@ -15,6 +15,7 @@ class OptionalSlashRouter(DefaultRouter):
 
 
 router = OptionalSlashRouter()
+router.register(r'users', views.UserViewSet)
 
 
 urlpatterns = [

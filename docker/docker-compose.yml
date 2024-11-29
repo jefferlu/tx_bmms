@@ -1,0 +1,40 @@
+services:
+    client:
+        build: ../client
+        container_name: client
+        networks:
+            - internal_network
+        volumes:
+            - static_data:/app/static-root
+            - media_data:/app/media-root
+            - media_files:/app/media-files
+        ports:
+            - "4000:80"
+
+    backend:
+        build: ../backend
+        container_name: backend
+        networks:
+            - internal_network
+        volumes:
+            - static_data:/app/static-root
+            - media_data:/app/media-root
+
+    elfinder:
+        build: ../elfinder
+        container_name: elfinder
+        networks:
+            - internal_network
+        volumes:
+            - media_files:/app/media-files
+        ports:
+            - "9000:80"
+
+volumes:
+    static_data:
+    media_data:
+    media_files:
+
+networks:
+    internal_network:
+        driver: bridge

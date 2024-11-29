@@ -25,6 +25,11 @@ urlpatterns = [
     path('', RedirectView.as_view(url='redoc/', permanent=False)),
     path('admin/', admin.site.urls),
     path('api/core/', include('apps.core.api.urls')),
+
+    # openapi
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
 if settings.DEBUG:
