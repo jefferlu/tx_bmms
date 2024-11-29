@@ -28,7 +28,7 @@ services:
         volumes:
             - media_files:/app/media-files
         ports:
-            - "9000:80"
+            - "8000:80"
 
 volumes:
     static_data:
