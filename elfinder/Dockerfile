@@ -24,8 +24,7 @@ ENV LC_ALL=en_US.UTF-8
 # 複製 elFinder
 COPY . .
 
-RUN mkdir media-files /app/media-files/.trash && \
-    chown -R www-data:www-data /app/media-files && \
+RUN chown -R www-data:www-data media-files && \
     chmod -R 755 /app/media-files
 
 # 複製 Nginx 配置文件
