@@ -2,8 +2,11 @@ services:
     client:
         build: client
         container_name: client
+        restart: always
         networks:
             - internal_network
+        environment:
+            - NODE_ENV=production
         volumes:
             - static_data:/app/static-root
             - media_data:/app/media-root
@@ -14,11 +17,41 @@ services:
     backend:
         build: backend
         container_name: backend
+        restart: always
+        entrypoint: ./entrypoint.sh
         networks:
             - internal_network
         volumes:
             - static_data:/app/static-root
             - media_data:/app/media-root
+        depends_on:
+            - postgres
+
+    postgres:
+        image: bitnami/postgresql:latest
+        container_name: postgres
+        restart: always
+        networks:
+            - internal_network
+        environment:
+            POSTGRESQL_USERNAME: bmms
+            POSTGRESQL_PASSWORD: qbZucM8vvGwpfTd
+            POSTGRESQL_DATABASE: bmms
+        volumes:
+            - postgresql_data:/bitnami/postgresql
+        ports:
+            - 5433:5432
+
+    forge-api:
+        build: forge-api
+        container_name: forge-api
+        restart: always
+        networks:
+            - internal_network
+        environment:
+            - NODE_ENV=production
+        # ports:
+        #     - "3000:3000"
 
     elfinder:
         build: elfinder
@@ -28,12 +61,13 @@ services:
         volumes:
             - media_files:/app/media-files
         ports:
-            - "8000:80"
+            - "9000:80"
 
 volumes:
     static_data:
     media_data:
     media_files:
+    postgresql_data:
 
 networks:
     internal_network:

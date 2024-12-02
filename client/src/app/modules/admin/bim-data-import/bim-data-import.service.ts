@@ -3,7 +3,7 @@ import { Injectable, NgZone } from '@angular/core';
 import { environment } from 'environments/environment';
 import { BehaviorSubject, Observable, Observer, catchError, of, switchMap, tap } from 'rxjs';
 
-const endpoint = environment.apiUrl;
+const endpoint = environment.forgeUrl;
 
 @Injectable({
     providedIn: 'root'
@@ -20,7 +20,7 @@ export class BimDataImportService {
 
     uploadFile(file: File): Observable<any> {
 
-        const url = `${endpoint}/api/upload`;
+        const url = `${endpoint}/upload`;
         const formData = new FormData();
         formData.append('file', file, encodeURIComponent(file.name));
 
@@ -40,22 +40,22 @@ export class BimDataImportService {
     }
 
     getObjects(data: any): Observable<any> {
-        const url = `${endpoint}/api/aps/objects`;
+        const url = `${endpoint}/objects`;
 
         return this._httpClient.post<any>(url, data);
     }
 
     getObject(name: string): Observable<any> {
-        const url = `${endpoint}/api/aps/object`;
+        const url = `${endpoint}/object`;
         return this._httpClient.post<any>(url, { 'name': name });
     }
 
     sse(action: string, name: string, credentials?: any): Observable<any> {
 
-        // const url = `${endpoint}/api/aps/${action}/${name}`;
-        const url = `${endpoint}/api/aps/${action}?name=${name}&clientId=${credentials.clientId}&clientSecret=${credentials.clientSecret}&bucketKey=${credentials.bucketKey}`;
+        const url = `${endpoint}/${action}?name=${name}&clientId=${credentials.clientId}&clientSecret=${credentials.clientSecret}&bucketKey=${credentials.bucketKey}`;
+        // const url = `http://localhost:3000/${action}?name=${name}&clientId=${credentials.clientId}&clientSecret=${credentials.clientSecret}&bucketKey=${credentials.bucketKey}`;
 
-            console.log(url)
+        console.log(url)
 
         return new Observable((observer: Observer<any>) => {
             const eventSource: EventSource = new EventSource(url);

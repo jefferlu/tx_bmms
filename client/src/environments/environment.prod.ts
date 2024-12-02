@@ -1,6 +1,7 @@
 export const environment = {
     production: true,
     apiUrl: 'api',
+    forgeUrl: 'forgeUrl',
     user_key: 'tx_bmms_user',
     language_key: 'tx_bmms_languages',
     downloadUrl: 'https://bmms.giantcld.com',

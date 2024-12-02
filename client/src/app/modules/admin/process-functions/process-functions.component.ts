@@ -57,9 +57,11 @@ export class ProcessFunctionsComponent implements OnInit, AfterViewInit, OnDestr
         console.log(this.page)
         this.page.svf = {
             "id": 6,
-            "name": "SL_OM_IN(整合)_A棟.nwd",
-            "filePath": "./uploads/SL_OM_IN(%E6%95%B4%E5%90%88)_A%E6%A3%9F.nwd",
-            "svfPath": "downloads/dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvU0xfT01fSU4oJUU2JTk1JUI0JUU1JTkwJTg4KV9BJUU2JUEzJTlGLm53ZA/4755652b-a8e4-4d79-b049-b9ee252c3efe"
+            "name": "SL_OM_IN(整合)_A棟.nwd", 
+            "filePath": "./uploads/SL_OM_IN(%E6%95%B4%E5%90%88)_A%E6%A3%9F.nwd", 
+            // "svfPath": "downloads/dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvU0xfT01fSU4oJUU2JTk1JUI0JUU1JTkwJTg4KV9BJUU2JUEzJTlGLm53ZA/4755652b-a8e4-4d79-b049-b9ee252c3efe"
+            "svfPath":"assets/downloads/api/M3-SE/Resource/3D/66962af7-0ae4-4b15-ae0b-0dbba901a673-000c9ef2"
+            // "svfPath":"assets/downloads/vscode/M3-SE/dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvVDMtVFAwMS1UWDEtWFgtWFhYLU0zLVNFLTAwNzAwLTcwMDIucnZ0/407b931a-5787-573b-581d-5b899a978233"
         }
 
 

@@ -5,6 +5,7 @@
 export const environment = {
     production: false,
     apiUrl: 'http://localhost:8000/api',
+    forgeUrl: 'http://localhost:3000',
     user_key: 'tx_bmms_user',
     language_key: 'tx_bmms_languages',
     downloadUrl: '../',

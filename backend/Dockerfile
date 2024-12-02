@@ -8,8 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput
+COPY settings_docker.py ./tx_bmms/settings.py
 
-
-# 啟動 Gunicorn 和 Nginx
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "tx_bmms.wsgi:application"]
+# 啟動 Gunicorn
+# CMD ["gunicorn", "--bind", "0.0.0.0:80", "tx_bmms.wsgi:application"]
