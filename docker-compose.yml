@@ -39,8 +39,8 @@ services:
             POSTGRESQL_DATABASE: bmms
         volumes:
             - postgresql_data:/bitnami/postgresql
-        ports:
-            - 5433:5432
+        # ports:
+        #     - 5433:5432
     
     elfinder:
         build: elfinder
@@ -49,8 +49,8 @@ services:
             - internal_network
         volumes:
             - media_files:/app/media-files
-        ports:
-            - "9000:80"
+        # ports:
+        #     - "9000:80"
 
 volumes:
     static_data:
