@@ -29,6 +29,7 @@ DEBUG = True
 
 AUTH_USER_MODEL = 'account.User'
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['*']
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
