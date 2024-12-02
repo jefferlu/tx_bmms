@@ -10,5 +10,7 @@ COPY . .
 
 COPY settings_docker.py ./tx_bmms/settings.py
 
+RUN chmod +x entrypoint.sh
+
 # 啟動 Gunicorn
-# CMD ["gunicorn", "--bind", "0.0.0.0:80", "tx_bmms.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "tx_bmms.wsgi:application"]

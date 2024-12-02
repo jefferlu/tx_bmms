@@ -27,8 +27,6 @@ SECRET_KEY = 'django-insecure-=qxo)i^(3nhpn@=dfdfw^$du=jiayia=955h4gjnqj59do=#bu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-FORGE_API_URL = "http://forge-api/"
-
 AUTH_USER_MODEL = 'account.User'
 ALLOWED_HOSTS = ['*']
 
