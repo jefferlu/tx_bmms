@@ -41,18 +41,7 @@ services:
             - postgresql_data:/bitnami/postgresql
         ports:
             - 5433:5432
-
-    forge-api:
-        build: forge-api
-        container_name: forge-api
-        restart: always
-        networks:
-            - internal_network
-        environment:
-            - NODE_ENV=production
-        # ports:
-        #     - "3000:3000"
-
+    
     elfinder:
         build: elfinder
         container_name: elfinder
