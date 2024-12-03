@@ -22,8 +22,7 @@ services:
         entrypoint: ./entrypoint.sh
         networks:
             - internal_network
-        environment:            
-            - DEBUG=FALSE
+        environment:
             - CSRF_TRUSTED_ORIGINS=https://bmms.giantcld.com
         volumes:
             - unix_socket:/run
