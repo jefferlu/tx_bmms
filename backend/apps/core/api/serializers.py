@@ -21,7 +21,7 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
-
+        
         data = super().validate(attrs)
         update_last_login(None, self.user)
 

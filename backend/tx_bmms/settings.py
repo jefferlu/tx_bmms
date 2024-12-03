@@ -26,7 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=qxo)i^(3nhpn@=dfdfw^$du=jiayia=955h4gjnqj59do=#bu'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 AUTH_USER_MODEL = 'account.User'
 ALLOWED_HOSTS = ['*']
@@ -40,7 +41,8 @@ LOGOUT_REDIRECT_URL = '/admin/login/'
 CORS_ALLOW_ALL_ORIGINS = True
 
 # CSRF Trusted Origins
-# CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 
 SIMPLE_JWT = {
@@ -153,17 +155,28 @@ ASGI_APPLICATION = 'tx_bmms.asgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bmms',
-        'USER': 'bmms',
-        'PASSWORD': 'qbZucM8vvGwpfTd',
-        'HOST': 'localhost',
-        'PORT': '5433',
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'bmms',
+            'USER': 'bmms',
+            'PASSWORD': 'qbZucM8vvGwpfTd',
+            'HOST': 'localhost',
+            'PORT': '5433',
+        }
     }
-}
-
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'bmms',
+            'USER': 'bmms',
+            'PASSWORD': 'qbZucM8vvGwpfTd',
+            'HOST': 'postgres',
+            'PORT': '5432',
+        }
+    }
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
