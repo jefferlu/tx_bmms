@@ -28,6 +28,7 @@ if not User.objects.filter(email='admin@example.com').exists(): \
     User.objects.create_superuser('admin@example.com', '123')"
 
 # 啟動 Gunicorn
-echo "Starting Gunicorn..."
-# exec gunicorn --bind 0.0.0.0:80 tx_bmms.wsgi:application
-exec daphne tx_bmms.asgi:application -b 0.0.0.0 -p 80  
+echo "Starting Daphne..."
+# exec gunicorn --bind 0.0.0.0:8000 tx_bmms.wsgi:application
+# exec daphne tx_bmms.asgi:application -b 0.0.0.0 -p 80  
+exec daphne tx_bmms.asgi:application -u /run/backend.sock 
