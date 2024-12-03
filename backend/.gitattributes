@@ -1,0 +1,2 @@
+# 確保所有 shell script 使用 LF 格式
+*.sh text eol=lf
