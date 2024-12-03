@@ -5,11 +5,11 @@ FROM php:8.2-fpm
 WORKDIR /app
 
 # 安裝 elFinder 需要的基本依賴（去除不必要的庫）
-RUN apt-get update && apt-get install -y \
+RUN apt update && apt install -y \
     unzip \
     git \
     nginx \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    && apt clean && rm -rf /var/lib/apt/lists/*
 
 # 複製 elFinder
 COPY . .
