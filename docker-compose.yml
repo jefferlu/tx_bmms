@@ -39,8 +39,8 @@ services:
             POSTGRESQL_DATABASE: bmms
         volumes:
             - postgresql_data:/bitnami/postgresql
-        # ports:
-        #     - 5433:5432
+        ports:
+            - 5433:5432
     
     elfinder:
         build: elfinder

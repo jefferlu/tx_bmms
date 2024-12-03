@@ -29,7 +29,6 @@ DEBUG = True
 
 AUTH_USER_MODEL = 'account.User'
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['*']
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
@@ -154,10 +153,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'bmms',
         'USER': 'bmms',
-        'PASSWORD': 'qbZucM8vvGwpfTd',
+        'PASSWORD': 'qbZucM8vvGwpfTd',      
         'HOST': 'postgres',
         'PORT': '5432',
-        
     }
 }
 
