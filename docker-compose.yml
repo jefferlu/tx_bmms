@@ -22,6 +22,8 @@ services:
         entrypoint: ./entrypoint.sh
         networks:
             - internal_network
+        environment:
+            - CSRF_TRUSTED_ORIGINS=https://bmms.giantcld.com,  # 只有一個domain時，結尾需有逗號
         volumes:
             - unix_socket:/run
             - static_data:/app/static-root

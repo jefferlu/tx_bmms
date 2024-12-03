@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 from datetime import timedelta
 from django.conf.locale.en import formats as en_formats
@@ -37,6 +38,10 @@ LOGOUT_REDIRECT_URL = '/admin/login/'
 # Application definition
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# CSRF Trusted Origins
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),  # access token 有效期設為 24 小時
@@ -153,7 +158,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'bmms',
         'USER': 'bmms',
-        'PASSWORD': 'qbZucM8vvGwpfTd',      
+        'PASSWORD': 'qbZucM8vvGwpfTd',
         'HOST': 'postgres',
         'PORT': '5432',
     }
