@@ -32,19 +32,38 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
     canUpload: boolean = false;
     progress: number = 0;
 
-    files: any[];
+    files: any[] = [];
 
     products;
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     constructor(
-        private _cdr: ChangeDetectorRef,
+        private _changeDetectorRef: ChangeDetectorRef,
         private _bimDataImportService: BimDataImportService,
         private _apsCredentials: ApsCredentialsService
     ) { }
 
-    ngOnInit(): void { }
+    ngOnInit(): void {
+        // Start event stream
+        this._bimDataImportService.sse('file')
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe({
+                next: (data: any) => {
+                    console.log('data', data)
+                }
+            });
+
+        // Get objects
+        // this._bimDataImportService.getObjects()
+        //     .pipe(takeUntil(this._unsubscribeAll))
+        //     .subscribe((data: any) => {
+        //         console.log(data)
+        //         // this.files = [...this._bimDataImportService.files, ...data];
+        //         this._changeDetectorRef.markForCheck();
+        //     });
+        // this.files = this._bimDataImportService.files;
+    }
 
     triggerFileInput(): void {
         this.fileInput.nativeElement.click();
@@ -55,28 +74,29 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
         // this.page.files = event.target.files;
 
         if (event.target.files) {
-            this.files = Array.from(event.target.files).map((file: any) => ({
+            const selectedFiles = Array.from(event.target.files).map((file: any) => ({
                 name: file.name,
                 size: file.size,
                 type: file.type,
                 lastModified: file.lastModified,
                 file: file
             }));
+
+            // 從 BimDataImportService 中獲取現有檔案列表
+            const existingFiles = this._bimDataImportService.files || [];
+            // const existingFiles = this.files || [];
+
+            // 合併檔案
+            const newFiles = [
+                ...existingFiles,
+                ...selectedFiles.filter(selectedFile =>
+                    !existingFiles.some(existingFile => existingFile.name === selectedFile.name)
+                )
+            ];
+            
+            this._bimDataImportService.files = newFiles;  
+            this.files = newFiles;          
         }
-
-        // this.page.files = event.target.files;
-
-        // this.form.patchValue({ file: '' });
-        // if (this.fileInput.files && this.fileInput.files.length > 0) {
-
-        //     // 將選擇的文件名顯示在 mat-input 中
-        //     this.form.patchValue({ file: this.fileInput.files[0].name });
-
-        //     this.canUpload = true;
-        // }
-
-
-        console.log(this.files, event.target.files)
     }
 
     onUpload(file: any): void {
@@ -91,33 +111,42 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
     }
 
     private _upload(file: any) {
-        this._bimDataImportService.uploadFile(file.file)
+        // this._bimDataImportService.sse('upload-object', file.name, this._apsCredentials.credientials)
+        //     .pipe(takeUntil(this._unsubscribeAll))
+        //     .subscribe({
+        //         next: res => {
+
+        //             console.log(res)
+
+        //             file.status = JSON.parse(res.data).status;
+        //             file.progress = JSON.parse(res.data).progress;
+
+        //             // console.log(file.status, file.progress)
+        //             console.log(JSON.parse(res.data))
+        //             this._cdr.markForCheck();
+        //         },
+        //         error: err => {
+        //             console.log('error', err)
+        //         }
+        //     });
+
+        this._bimDataImportService.upload(file.file)
+            .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
                 next: (res) => {
-
                     file.status = 'process';
                     if (res.type == HttpEventType.UploadProgress) {
                         let progress = Math.round(100 * (res.loaded / res.total));
+                        console.log(progress)
                         // file.status = `${progress} %`;
 
                         // if (progress === 100) file.status = 'inprogress';
-                        this._cdr.markForCheck();
+                        this._changeDetectorRef.markForCheck();
                     }
 
                 },
                 complete: () => {
                     // websocket emit upload-object
-
-                    this._bimDataImportService.sse('upload-object', file.name, this._apsCredentials.credientials)
-                        .pipe(takeUntil(this._unsubscribeAll))
-                        .subscribe(res => {
-
-                            file.status = JSON.parse(res.data).status;
-                            file.progress = JSON.parse(res.data).progress;
-
-                            console.log(file.status, file.progress)
-                            this._cdr.markForCheck();
-                        });
                 }
             });
     }
@@ -127,7 +156,6 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
-        // Unsubscribe from all subscriptions
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
     }

@@ -37,10 +37,21 @@ LOGOUT_REDIRECT_URL = '/admin/login/'
 
 # Application definition
 
+EVENTSTREAM_STORAGE_CLASS = 'django_eventstream.storage.DjangoModelStorage'
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 # CSRF Trusted Origins
+<<<<<<< jeffer
 # CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+=======
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+        if origin.strip() and not origin.startswith('*')  # 過濾掉空字符串和 "*"
+    ]
+>>>>>>> local
 
 
 SIMPLE_JWT = {
@@ -84,7 +95,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 INSTALLED_APPS = [
-    'daphne',
+    'daphne',    
     'admin_interface',
     'colorfield',
     'django.contrib.admin',
@@ -98,6 +109,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    "django_eventstream",
     'drf_spectacular',
     'mptt',
 

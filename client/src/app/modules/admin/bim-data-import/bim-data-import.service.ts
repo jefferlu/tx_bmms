@@ -1,82 +1,52 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, NgZone } from '@angular/core';
+import { AppService } from 'app/core/services/app.service';
 import { environment } from 'environments/environment';
-import { BehaviorSubject, Observable, Observer, catchError, of, switchMap, tap } from 'rxjs';
-
-const endpoint = environment.forgeUrl;
+import { BehaviorSubject, Observable, shareReplay, tap } from 'rxjs';
 
 @Injectable({
     providedIn: 'root'
 })
 export class BimDataImportService {
 
+    private _files: any[] = [];
     private _objects: BehaviorSubject<any> = new BehaviorSubject(null);
-    private _object: BehaviorSubject<any> = new BehaviorSubject(null);
 
-    constructor(
-        private _httpClient: HttpClient,
-        private _ngZone: NgZone
-    ) { }
+    constructor(private _appService: AppService) { }
 
-    uploadFile(file: File): Observable<any> {
+    get files(): any[] {
+        return this._files;
+    }
 
-        const url = `${endpoint}/upload`;
-        const formData = new FormData();
-        formData.append('file', file, encodeURIComponent(file.name));
+    set files(value: any) {
+        this._files = value;
+    }
 
+    get objects$(): Observable<any> {
+        return this._objects.asObservable();
+    }
 
-        return this._httpClient.post(url, formData, {
-            reportProgress: true,
-            observe: 'events'
-        }).pipe(
-            switchMap((response: any) => {
-                return of(response);
-            }),
-            catchError(error => {
-                console.error('Error uploading file:', error);
-                throw error; // Rethrow the error to propagate it to the subscriber
+    getObjects(): Observable<any> {
+        return this._appService.get('forge/objects').pipe(
+            tap((res: any) => {
+                this._objects.next(res);
             })
         );
     }
 
-    getObjects(data: any): Observable<any> {
-        const url = `${endpoint}/objects`;
+    upload(file: File): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file, encodeURIComponent(file.name));
 
-        return this._httpClient.post<any>(url, data);
+        return this._appService.post('forge/bim-data-import', formData, { reportProgress: true, observe: 'events' });
     }
 
-    getObject(name: string): Observable<any> {
-        const url = `${endpoint}/object`;
-        return this._httpClient.post<any>(url, { 'name': name });
-    }
-
-    sse(action: string, name: string, credentials?: any): Observable<any> {
-
-        const url = `${endpoint}/${action}?name=${name}&clientId=${credentials.clientId}&clientSecret=${credentials.clientSecret}&bucketKey=${credentials.bucketKey}`;
-        // const url = `http://localhost:3000/${action}?name=${name}&clientId=${credentials.clientId}&clientSecret=${credentials.clientSecret}&bucketKey=${credentials.bucketKey}`;
-
-        console.log(url)
-
-        return new Observable((observer: Observer<any>) => {
-            const eventSource: EventSource = new EventSource(url);
-            eventSource.onmessage = (event: MessageEvent) => {
-                this._ngZone.run(() => {
-                    observer.next(event);
-                })
-            }
-
-            eventSource.onerror = (error) => {
-                this._ngZone.run(() => {
-                    console.error('SSE Connection Error:', error);
-                    observer.error(error);
-                    eventSource.close();
-                });
-            }
-
-            return () => {
-                eventSource.close();
-                console.log('event source close')
-            };
-        });
+    sse(fileid: string): Observable<any> {
+        return this._appService.sse(`forge/events/${fileid}`).pipe(
+            shareReplay(1),
+            tap((res: any) => { })
+        );
     }
 }
+
+

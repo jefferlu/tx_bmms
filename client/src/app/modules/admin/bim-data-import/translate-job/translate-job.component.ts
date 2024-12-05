@@ -29,49 +29,49 @@ export class TranslateJobComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
-        if (!this._apsCredentials.check()) {
-            this._apsCredentials.open().afterClosed().subscribe(res => {
-                if (res != 'confirmed') return;
-                this._getObjects();
-            });
-        }
-        else { this._getObjects(); }
+        // if (!this._apsCredentials.check()) {
+        //     this._apsCredentials.open().afterClosed().subscribe(res => {
+        //         if (res != 'confirmed') return;
+        //         this._getObjects();
+        //     });
+        // }
+        // else { this._getObjects(); }
     }
 
     private _getObjects() {
-        this._spinner.show();
-        this._bimDataImportService.getObjects(this._apsCredentials.credientials)
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((res) => {
-                this.objects = res;
-                this._cdr.markForCheck();
-                this._spinner.hide();
-            })
+        // this._spinner.show();
+        // this._bimDataImportService.getObjects(this._apsCredentials.credientials)
+        //     .pipe(takeUntil(this._unsubscribeAll))
+        //     .subscribe((res) => {
+        //         this.objects = res;
+        //         this._cdr.markForCheck();
+        //         this._spinner.hide();
+        //     })
     }
 
     onTranslateJob(object: any) {
-        object.status = 'inprogress';
-        object.progress = 'start translating...';
-        this._bimDataImportService.sse('translate-job', object.objectKey, this._apsCredentials.credientials)
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(res => {
-                object.status = JSON.parse(res.data).status;
-                object.progress = JSON.parse(res.data).progress;
-                this._cdr.markForCheck();
-            });
+        // object.status = 'inprogress';
+        // object.progress = 'start translating...';
+        // this._bimDataImportService.sse('translate-job', object.objectKey, this._apsCredentials.credientials)
+        //     .pipe(takeUntil(this._unsubscribeAll))
+        //     .subscribe(res => {
+        //         object.status = JSON.parse(res.data).status;
+        //         object.progress = JSON.parse(res.data).progress;
+        //         this._cdr.markForCheck();
+        //     });
     }
 
     onRefreshObject(object: any) {
-        this._bimDataImportService.getObject(object.objectKey)
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(res => {
-                // object = res; //loose variable connection
+        // this._bimDataImportService.getObject(object.objectKey)
+        //     .pipe(takeUntil(this._unsubscribeAll))
+        //     .subscribe(res => {
+        //         // object = res; //loose variable connection
 
-                object.status = res.status;
-                object.progress = res.progress;
-                object.refresh = res.refresh;
-                this._cdr.markForCheck();
-            })
+        //         object.status = res.status;
+        //         object.progress = res.progress;
+        //         object.refresh = res.refresh;
+        //         this._cdr.markForCheck();
+        //     })
     }
 
     trackByFn(index: number, item: any): any {

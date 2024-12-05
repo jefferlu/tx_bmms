@@ -18,6 +18,9 @@ django-mptt = "*"
 django-admin-interface = "*"
 pyjwt = "*"
 gunicorn = "*"
+pandas = "*"
+requests = "*"
+django-eventstream = {extras = ["drf"], version = "*"}
 
 [dev-packages]
 
