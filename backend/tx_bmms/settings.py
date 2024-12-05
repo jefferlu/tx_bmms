@@ -26,7 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=qxo)i^(3nhpn@=dfdfw^$du=jiayia=955h4gjnqj59do=#bu'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 AUTH_USER_MODEL = 'account.User'
 ALLOWED_HOSTS = ['*']
@@ -37,21 +38,11 @@ LOGOUT_REDIRECT_URL = '/admin/login/'
 
 # Application definition
 
-EVENTSTREAM_STORAGE_CLASS = 'django_eventstream.storage.DjangoModelStorage'
-
 CORS_ALLOW_ALL_ORIGINS = True
 
 # CSRF Trusted Origins
-<<<<<<< jeffer
-# CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-=======
 if not DEBUG:
-    CSRF_TRUSTED_ORIGINS = [
-        origin.strip()
-        for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-        if origin.strip() and not origin.startswith('*')  # 過濾掉空字符串和 "*"
-    ]
->>>>>>> local
+    CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 
 SIMPLE_JWT = {
@@ -95,7 +86,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 INSTALLED_APPS = [
-    'daphne',    
+    'daphne',
     'admin_interface',
     'colorfield',
     'django.contrib.admin',
@@ -109,7 +100,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
-    "django_eventstream",
     'drf_spectacular',
     'mptt',
 
@@ -165,17 +155,28 @@ ASGI_APPLICATION = 'tx_bmms.asgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bmms',
-        'USER': 'bmms',
-        'PASSWORD': 'qbZucM8vvGwpfTd',
-        'HOST': 'localhost',
-        'PORT': '5433',
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'bmms',
+            'USER': 'bmms',
+            'PASSWORD': 'qbZucM8vvGwpfTd',
+            'HOST': 'localhost',
+            'PORT': '5433',
+        }
     }
-}
-
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'bmms',
+            'USER': 'bmms',
+            'PASSWORD': 'qbZucM8vvGwpfTd',
+            'HOST': 'postgres',
+            'PORT': '5432',
+        }
+    }
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
