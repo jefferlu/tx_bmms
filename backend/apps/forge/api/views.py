@@ -1,5 +1,6 @@
 import os
 import json
+import base64
 import pandas as pd
 from django.core.files.storage import FileSystemStorage, default_storage
 from django.core.files.base import ContentFile
@@ -12,7 +13,7 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from django_eventstream import send_event
 
-from ..aps_toolkit import Auth, Bucket, Derivative, SVFReader
+from ..aps_toolkit import Auth, Bucket, Derivative, SVFReader,DbReader
 from . import serializers
 
 CLIENT_ID = '94MGPGEtqunCJS6XyZAAnztSSIrtfOLsVWQEkLNQ7uracrAC'
@@ -85,6 +86,10 @@ class BimDataImportView(APIView):
         token = auth.auth2leg()
         bucket = Bucket(token)
 
+        objectId= "urn:adsk.objects:os.object:bmms_oss/box.ipt".encode("utf-8")
+        encoded_data = base64.urlsafe_b64encode(objectId).rstrip(b'=')
+        urn = encoded_data.decode("utf-8")
+
         # Upload file to OSS
         print('start upload_object...')
         object = bucket.upload_object(BUCKET, f'media-root/uploads/{file_name}', file_name)
@@ -92,7 +97,7 @@ class BimDataImportView(APIView):
 
         # Translate job
         print('start translate_job...')
-        urn = 'dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvYm94LmlwdA'
+        # urn = 'dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvYm94LmlwdA'
         derivative = Derivative(urn, token)
         translate_job = derivative.translate_job('')
         print('translate_job done.')
@@ -107,6 +112,9 @@ class BimDataImportView(APIView):
             os.makedirs(dir)
         svfReader.download(dir, manifests_item)
         print('svfDownload done.')
+
+
+        db = DbReader(urn, token) 
 
         # total_steps = 10  # 假設處理步驟為 10 步
         # for step in range(total_steps):

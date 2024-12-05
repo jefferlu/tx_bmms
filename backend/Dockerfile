@@ -8,8 +8,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-COPY settings_docker.py ./tx_bmms/settings.py
-
 RUN chmod +x entrypoint.sh
 
 # 啟動 Gunicorn
