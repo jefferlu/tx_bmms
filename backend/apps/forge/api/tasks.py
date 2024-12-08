@@ -10,51 +10,8 @@ from celery import shared_task
 from ..aps_toolkit import Auth, Bucket, Derivative, SVFReader, DbReader
 
 
-@shared_task()
-def bim_data_import1(client_id, client_secret, bucket_key, file_name, group_name):
-    channel_layer = get_channel_layer()
-
-    def send_progress(message):
-        async_to_sync(channel_layer.group_send)(
-            group_name,
-            {
-                "type": "progress.message",
-                "message": message
-            },
-        )
-    try:
-        # 取得 API token
-        auth = Auth(client_id, client_secret)
-        token = auth.auth2leg()
-        bucket = Bucket(token)
-
-        # Step 1: 上傳檔案到 Autodesk OSS
-        send_progress(f"Starting upload for file {file_name}...")
-
-        print('Uploading file to Autodesk OSS...')
-
-        # 假設每個上傳的步驟進度為 10%
-        object_data = bucket.upload_object(bucket_key, f'media-root/uploads/{file_name}', file_name)
-        send_progress({"progress": 10, "status": "上傳檔案中..."})
-
-        urn = bucket.get_urn(object_data['objectId'])
-        send_progress({"progress": 50, "status": "檔案上傳完成，處理中..."})
-
-        # 這裡可以新增其他處理步驟，並更新進度
-        # 假設有些轉換或處理過程，進度逐步更新
-        # send_progress({"progress": 80, "status": "轉換處理中..."})
-
-        # # Step 2: 完成
-        # send_progress('finish', f"檔案 {file_name} 上傳並處理完成")
-        # print('Upload to OSS completed.')
-
-    except Exception as e:
-        send_progress(str(e))
-        print(f"Error: {e}")
-
-
 @shared_task
-def bin_data_import(client_id, client_secret, bucket_key, file_name, group_name):
+def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name):
     def send_progress(message):
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
