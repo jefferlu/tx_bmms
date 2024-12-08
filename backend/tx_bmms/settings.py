@@ -36,14 +36,41 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/admin/login/'
 
-# Application definition
+# 設定 PostgreSQL 主機和端口
+POSTGRES = {
+    'HOST': 'localhost' if DEBUG else 'postgres',
+    'PORT': 5433 if DEBUG else 5432
+}
 
+# 設定 Redis 主機和端口
+REDIS = {
+    'HOST': 'localhost' if DEBUG else 'redis',
+    'PORT': 6379,
+    'DB': 1 if DEBUG else 0
+}
+
+# CORS definition
 CORS_ALLOW_ALL_ORIGINS = True
 
 # CSRF Trusted Origins
-if not DEBUG:
-    CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+CSRF_TRUSTED_ORIGINS = [] if DEBUG else os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 
+# Celery
+CELERY_BROKER_URL = f'redis://{REDIS["HOST"]}:{REDIS["PORT"]}/{REDIS["DB"]}'
+CELERY_RESULT_BACKEND = f'redis://{REDIS["HOST"]}:{REDIS["PORT"]}/{REDIS["DB"]}'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+# Django channels
+CHANNEL_LAYERS = {
+    'default': {        
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(REDIS['HOST'], REDIS['PORT'])],
+        },
+    },
+}
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),  # access token 有效期設為 24 小時
@@ -102,6 +129,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
     'mptt',
+    'django_celery_results',
 
     # commands
     # 'daemon',
@@ -155,28 +183,17 @@ ASGI_APPLICATION = 'tx_bmms.asgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'bmms',
-            'USER': 'bmms',
-            'PASSWORD': 'qbZucM8vvGwpfTd',
-            'HOST': 'localhost',
-            'PORT': '5433',
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'bmms',
+        'USER': 'bmms',
+        'PASSWORD': 'qbZucM8vvGwpfTd',
+        'HOST': POSTGRES['HOST'],
+        'PORT':  POSTGRES['PORT'],
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'bmms',
-            'USER': 'bmms',
-            'PASSWORD': 'qbZucM8vvGwpfTd',
-            'HOST': 'postgres',
-            'PORT': '5432',
-        }
-    }
+}
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 

@@ -19,12 +19,12 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tx_bmms.settings')
 # is populated before importing code that may import ORM models.
 django_asgi_app = get_asgi_application()
 
-# from apps.websocket.routing import websocket_urlpatterns
+from apps.forge.api.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,  #  default HTTP routing (Django)
-    # "websocket": AllowedHostsOriginValidator(
-    #     AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
-    # ),
+    "websocket": AllowedHostsOriginValidator(
+        AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
+    ),
 
 })

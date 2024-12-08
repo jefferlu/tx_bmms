@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 from .Token import Token
 import os
+import base64
 
 
 class PublicKey(Enum):
@@ -16,6 +17,11 @@ class Bucket:
         self.token = token
         self.region = region
         self.host = "https://developer.api.autodesk.com/oss/v2/buckets"
+
+    def get_urn(self, object_id: str) -> str:
+        encoded_data = base64.urlsafe_b64encode(object_id.encode("utf-8")).rstrip(b'=')
+        urn = encoded_data.decode("utf-8")
+        return urn
 
     def get_all_buckets(self) -> pd.DataFrame:
         """
@@ -154,6 +160,7 @@ class Bucket:
         }
         url = f"{self.host}/{bucket_name}/objects/{object_name}"
         response = requests.put(url, headers=headers, data=stream)
+        print('-->', response, url)
         if response.status_code != 200:
             raise Exception(response.reason)
         return response.json()

@@ -130,11 +130,13 @@ class SVFReader:
     def read_properties(self) -> PropReader:
         return PropReader(self.urn, self.token, self.region)
 
-    def download(self, output_dir, manifest_item: [ManifestItem] = None):
+    def download(self, output_dir, manifest_item: list[ManifestItem] = None, send_progress=None):
         if manifest_item:
             resources = self.derivative.read_svf_resource_item(manifest_item)
-            for resource in resources:
+            for resource in resources:                
                 localpath = resource.local_path
+                print(localpath)
+                send_progress(localpath)
                 combined_path = join(output_dir, localpath)
                 if not os.path.exists(os.path.dirname(combined_path)):
                     os.makedirs(os.path.dirname(combined_path))
@@ -144,6 +146,8 @@ class SVFReader:
             for _, items in resources.items():
                 for source in items:
                     localpath = source.local_path
+                    print(localpath)
+                    send_progress(localpath)
                     combined_path = join(output_dir, localpath)
                     if not os.path.exists(os.path.dirname(combined_path)):
                         os.makedirs(os.path.dirname(combined_path))

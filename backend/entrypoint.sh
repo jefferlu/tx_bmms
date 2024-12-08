@@ -27,8 +27,13 @@ User = get_user_model()
 if not User.objects.filter(email='admin@example.com').exists(): \
     User.objects.create_superuser('admin@example.com', '123')"
 
-# 啟動 Gunicorn
+# 啟動 Celery Worker
+echo "Starting Celery Worker..."
+celery -A tx_bmms worker --loglevel=info &  # 使用&將其放到背景
+# celery -A tx_bmms worker --pool=solo --loglevel=info # for windows os
+
+# 啟動 Daphne
 echo "Starting Daphne..."
-# exec gunicorn --bind 0.0.0.0:8000 tx_bmms.wsgi:application
-# exec daphne tx_bmms.asgi:application -b 0.0.0.0 -p 80  
-exec daphne tx_bmms.asgi:application -u /run/backend.sock 
+# exec gunicorn --bind 0.0.0.0:81 tx_bmms.wsgi:application
+exec daphne tx_bmms.asgi:application -b 0.0.0.0 -p 80  
+# celery -A tx_bmms  worker --loglevel=info    

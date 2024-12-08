@@ -15,6 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import os
+from  pathlib import Path
 import requests
 from .Auth import Auth
 import pandas as pd
@@ -49,7 +50,7 @@ class DbReader:
                 break
         url = f"{self.host}/modelderivative/v2/designdata/{self.urn}/manifest/{self.path}"
         response = requests.get(url, headers=headers)
-        temp_path = os.path.join(os.path.dirname(__file__), "database")
+        temp_path = os.path.join(Path(__file__).parent.parent.parent.parent, "media-root/database")
         extension = self.path.split(".")[-1]
         temp_path = os.path.join(temp_path, self.urn + "." + extension)
         self.db_path = temp_path

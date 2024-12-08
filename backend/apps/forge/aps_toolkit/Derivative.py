@@ -39,7 +39,7 @@ class Derivative:
         self.region = region
         self.host = "https://developer.api.autodesk.com"
 
-    def translate_job(self, root_file_name: str, type: str = "svf", generate_master_views: bool = False):
+    def translate_job(self, type: str = "svf", generate_master_views: bool = False):
         url = "https://developer.api.autodesk.com/modelderivative/v2/designdata/job"
         access_token = self.token.access_token
         if not access_token:
@@ -47,7 +47,7 @@ class Derivative:
         payload = json.dumps({
             "input": {
                 "urn": self.urn,
-                "rootFilename": root_file_name
+                # "rootFilename": root_file_name
             },
             "output": {
                 "destination": {

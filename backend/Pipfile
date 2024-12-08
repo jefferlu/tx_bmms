@@ -20,7 +20,10 @@ pyjwt = "*"
 gunicorn = "*"
 pandas = "*"
 requests = "*"
-django-eventstream = {extras = ["drf"], version = "*"}
+celery = "*"
+redis = "*"
+django-celery-results = "*"
+channels-redis = "*"
 
 [dev-packages]
 

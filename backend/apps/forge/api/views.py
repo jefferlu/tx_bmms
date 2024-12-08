@@ -1,9 +1,11 @@
-import os
 import json
 import base64
-import pandas as pd
-from django.core.files.storage import FileSystemStorage, default_storage
+import redis
+from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -11,17 +13,15 @@ from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
 from rest_framework.response import Response
 
 from drf_spectacular.utils import extend_schema
-from django_eventstream import send_event
 
-from ..aps_toolkit import Auth, Bucket, Derivative, SVFReader,DbReader
+from utils.utils import Utils
+from ..aps_toolkit import Auth, Bucket
 from . import serializers
+from apps.forge.api.tasks import bim_data_import
 
 CLIENT_ID = '94MGPGEtqunCJS6XyZAAnztSSIrtfOLsVWQEkLNQ7uracrAC'
 CLIENT_SECRET = 'G5tBYHoxe9xbpsisxGo5kBZOCPwEFCCuXIYr8kms28SSRuuVAHR0G766A3RKFQXy'
-BUCKET = 'bmms_oss'
-
-auth = Auth(CLIENT_ID, CLIENT_SECRET)
-token = auth.auth2leg()
+BUCKET_KEY = 'bmms_oss'
 
 
 @extend_schema(
@@ -30,7 +30,6 @@ token = auth.auth2leg()
     tags=['APS']
 )
 class BucketView(APIView):
-
     def get(self, request):
         auth = Auth(CLIENT_ID, CLIENT_SECRET)
         token = auth.auth2leg()
@@ -51,7 +50,7 @@ class ObjectView(APIView):
         auth = Auth(CLIENT_ID, CLIENT_SECRET)
         token = auth.auth2leg()
         bucket = Bucket(token)
-        objects = json.loads(bucket.get_objects(BUCKET).to_json(orient='records'))
+        objects = json.loads(bucket.get_objects(BUCKET_KEY).to_json(orient='records'))
 
         serializer = serializers.ObjectSerializer(objects, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -70,78 +69,179 @@ class BimDataImportView(APIView):
         if not file:
             return Response({"error": "No file provided"}, status=400)
 
-        print('file saved')
+        Utils.checkRedis('localhost')
+        
         # Save file
+        print('Saving file...')
         file_path = f'uploads/{file.name}'
         if default_storage.exists(file_path):
             default_storage.delete(file_path)
         default_storage.save(file_path, ContentFile(file.read()))
 
-        self.handle_file_processing(file.name, file_path)
+        # 執行Autodesk Model Derivative API轉換
+        bim_data_import.delay(CLIENT_ID, CLIENT_SECRET, BUCKET_KEY, file.name, 'progress_group')
+        # bin_data_import(CLIENT_ID, CLIENT_SECRET, BUCKET_KEY, file.name,'progress_group')
 
-        return Response({"file_url": file_path}, status=200)
+        # # 回應上傳成功的訊息
+        return Response({"message": f"File '{file.name}' is being processed."}, status=200)
 
-    def handle_file_processing(self, file_name, file_path):
-        auth = Auth(CLIENT_ID, CLIENT_SECRET)
-        token = auth.auth2leg()
-        bucket = Bucket(token)
+    # def handle_translation(self, file):
+    #     def send_sse_event(event_type='message', event_data=None):
+    #         """
+    #         發送 SSE 消息
+    #         """
+    #         send_event(f'file-{file.name}', event_type, event_data)
 
-        objectId= "urn:adsk.objects:os.object:bmms_oss/box.ipt".encode("utf-8")
-        encoded_data = base64.urlsafe_b64encode(objectId).rstrip(b'=')
-        urn = encoded_data.decode("utf-8")
+    #     auth = Auth(CLIENT_ID, CLIENT_SECRET)
+    #     token = auth.auth2leg()
+    #     bucket = Bucket(token)
 
-        # Upload file to OSS
-        print('start upload_object...')
-        object = bucket.upload_object(BUCKET, f'media-root/uploads/{file_name}', file_name)
-        print('upload_object done.')
+    #     # Step 1: 上傳檔案到 Autodesk OSS
+    #     print('Uploading file to Autodesk OSS...')
+    #     send_sse_event('upload_object', {'status': 'start'})
+    #     object_data = bucket.upload_object_stream(BUCKET, file, file.name)
+    #     encoded_data = base64.urlsafe_b64encode(object_data['objectId'].encode("utf-8")).rstrip(b'=')
+    #     urn = encoded_data.decode("utf-8")
 
-        # Translate job
-        print('start translate_job...')
-        # urn = 'dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvYm94LmlwdA'
-        derivative = Derivative(urn, token)
-        translate_job = derivative.translate_job('')
-        print('translate_job done.')
+    #     send_sse_event('upload_object', {'status': 'completed'})
+    #     print('Upload to OSS completed.')
 
-        # Download SVF
-        print('start svfDownload...')
-        svfReader = SVFReader(urn, token, "US")
-        manifests = svfReader.read_svf_manifest_items()
-        manifests_item = manifests[0]
-        dir = "downloads"
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-        svfReader.download(dir, manifests_item)
-        print('svfDownload done.')
+    #     # Step 2: 觸發轉檔
+    #     print('Triggering translation job...')
+    #     send_sse_event('translate_job', {'status': 'start'})
+    #     derivative = Derivative(urn, token)
+    #     translate_job_ret = derivative.translate_job()
+    #     print('Translation job triggered.')
+    #     send_sse_event('translate_job', {'status': 'triggered'})
+
+    #     # Step 3: 定期檢查轉檔狀態
+    #     print('Monitoring translation status...')
+    #     send_sse_event('monitor_translation', {'status': 'start'})
+    #     while True:
+    #         status = derivative.check_job_status()
+    #         print('-->', status)
+    #         progress = status.get("progress", "unknown")
+    #         print(f'Translation progress: {progress}')
+    #         send_sse_event('monitor_translation', {'status': progress})
+
+    #         if progress == "complete":
+    #             print('Translation complete. Ready to download.')
+    #             send_sse_event('monitor_translation', {'status': 'complete'})
+    #             break
+    #         elif progress == "failed":
+    #             print('Translation failed.')
+    #             send_sse_event('monitor_translation', {'status': 'failed'})
+    #             return
+    #         time.sleep(5)
+
+    #     # Step 4: 下載 SVF
+    #     print('Downloading SVF...')
+    #     send_sse_event('download_svf', {'status': 'start'})
+    #     svf_reader = SVFReader(urn, token, "US")
+    #     download_dir = "media-root/downloads"
+    #     if not os.path.exists(download_dir):
+    #         os.makedirs(download_dir)
+
+    #     manifests = svf_reader.read_svf_manifest_items()
+    #     if manifests:
+    #         manifest_item = manifests[0]
+    #         svf_reader.download(download_dir, manifest_item, send_sse_event)
+    #         print('SVF download completed.')
+    #         send_sse_event('download_svf', {'status': 'completed'})
+    #     else:
+    #         print('No manifest items found for download.')
+    #         send_sse_event('download_svf', {'status': 'failed'})
+
+    #     # 通知完成
+    #     send_sse_event('processing', {'status': 'completed'})
 
 
-        db = DbReader(urn, token) 
+# class BimDataImportView(APIView):
+#     parser_classes = (MultiPartParser, FormParser)
 
-        # total_steps = 10  # 假設處理步驟為 10 步
-        # for step in range(total_steps):
-        #     time.sleep(1)  # 假設每步處理需要 1 秒鐘
+#     def post(self, request, *args, **kwargs):
+#         file = request.FILES.get('file')
+#         if not file:
+#             return Response({"error": "No file provided"}, status=400)
 
-        #     # 每處理完一個步驟就透過 SSE 推送進度
-        #     send_sse_event('file_processing', file_name, {
-        #         'step': step + 1,
-        #         'total_steps': total_steps,
-        #         'status': 'processing'
-        #     })
+#         # Save file
+#         print('Saving file...')
+#         file_path = f'uploads/{file.name}'
+#         if default_storage.exists(file_path):
+#             default_storage.delete(file_path)
+#         default_storage.save(file_path, ContentFile(file.read()))
 
-        # # 假設處理完畢後推送完成訊息
-        # send_sse_event('file_processing', file_name, {
-        #     'step': total_steps,
-        #     'total_steps': total_steps,
-        #     'status': 'completed'
-        # })
+#         # Start processing in the background
+#         self.handle_processing(file.name)
 
+#         return Response({"file_url": file_path}, status=200)
 
-def send_sse_event(action, file_name, progress_data):
+#     def handle_processing(self, file_name):
+#         def send_sse_event(event_type='message', event_data=None):
+#             """
+#             發送 SSE 消息
+#             """
+#             send_event(f'file-{file_name}', event_type, event_data)
 
-    # send_event(<channel>, <event_type>, <event_data>)
-    send_event('file',
-               'message',
-               {
-                   'action': action,
-                   'file_name': file_name,
-                   **progress_data,  # 包括處理進度數據
-               })
+#         # 模擬檔案處理流程
+#         auth = Auth(CLIENT_ID, CLIENT_SECRET)
+#         token = auth.auth2leg()
+#         bucket = Bucket(token)
+
+#         # Step 1: 上傳檔案
+#         print('Uploading object to OSS...')
+#         send_sse_event('upload_object', {'status': 'start'})
+#         object_data = bucket.upload_object(BUCKET, f'media-root/uploads/{file_name}', file_name)
+#         encoded_data = base64.urlsafe_b64encode(object_data['objectId'].encode("utf-8")).rstrip(b'=')
+#         urn = encoded_data.decode("utf-8")
+#         print('Upload completed.')
+#         send_sse_event('upload_object', {'status': 'completed'})
+
+#         # Step 2: 觸發轉檔
+#         print('Triggering translation job...')
+#         send_sse_event('translate_job', {'status': 'start'})
+#         derivative = Derivative(urn, token)
+#         translate_job_ret = derivative.translate_job()
+#         print('Translation job triggered.')
+#         send_sse_event('translate_job', {'status': 'triggered'})
+
+#         # Step 3: 定期檢查轉檔狀態
+#         print('Monitoring translation status...')
+#         send_sse_event('monitor_translation', {'status': 'start'})
+#         while True:
+#             status = derivative.check_job_status()
+#             print('-->',status)
+#             progress = status.get("progress", "unknown")
+#             print(f'Translation progress: {progress}')
+#             send_sse_event('monitor_translation', {'status': progress})
+
+#             if progress == "complete":
+#                 print('Translation complete. Ready to download.')
+#                 send_sse_event('monitor_translation', {'status': 'complete'})
+#                 break
+#             elif progress == "failed":
+#                 print('Translation failed.')
+#                 send_sse_event('monitor_translation', {'status': 'failed'})
+#                 return
+#             time.sleep(5)
+
+#         # Step 4: 下載 SVF
+#         print('Downloading SVF...')
+#         send_sse_event('download_svf', {'status': 'start'})
+#         svf_reader = SVFReader(urn, token, "US")
+#         download_dir = "media-root/downloads"
+#         if not os.path.exists(download_dir):
+#             os.makedirs(download_dir)
+
+#         manifests = svf_reader.read_svf_manifest_items()
+#         if manifests:
+#             manifest_item = manifests[0]
+#             svf_reader.download(download_dir, manifest_item, send_sse_event)
+#             print('SVF download completed.')
+#             send_sse_event('download_svf', {'status': 'completed'})
+#         else:
+#             print('No manifest items found for download.')
+#             send_sse_event('download_svf', {'status': 'failed'})
+
+#         # 通知完成
+#         send_sse_event('processing', {'status': 'completed'})
