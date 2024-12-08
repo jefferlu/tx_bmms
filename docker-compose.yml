@@ -8,7 +8,6 @@ services:
         environment:
             - NODE_ENV=production
         volumes:
-            - unix_socket:/run
             - static_data:/app/static-root
             - media_data:/app/media-root
             - media_files:/app/media-files
@@ -22,15 +21,25 @@ services:
         entrypoint: ./entrypoint.sh
         networks:
             - internal_network
-        environment:            
+        environment:
             - DEBUG=FALSE
             - CSRF_TRUSTED_ORIGINS=https://bmms.giantcld.com
         volumes:
-            - unix_socket:/run
             - static_data:/app/static-root
             - media_data:/app/media-root
         depends_on:
             - postgres
+        ports:
+            - "8100:80"
+
+    redis:
+        image: redis:latest
+        container_name: redis
+        restart: always
+        networks:
+            - internal_network
+        ports:
+            - "6379:6379"
 
     postgres:
         image: bitnami/postgresql:latest
@@ -46,7 +55,7 @@ services:
             - postgresql_data:/bitnami/postgresql
         ports:
             - 5433:5432
-    
+
     elfinder:
         build: elfinder
         container_name: elfinder
@@ -58,7 +67,6 @@ services:
         #     - "9000:80"
 
 volumes:
-    unix_socket:
     static_data:
     media_data:
     media_files:

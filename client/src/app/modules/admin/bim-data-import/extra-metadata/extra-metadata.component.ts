@@ -39,28 +39,28 @@ export class ExtraMetadataComponent implements OnInit, OnDestroy {
     }
 
     private _getObjects() {
-        this._spinner.show();
-        this._bimDataImportService.getObjects(this._apsCredentials.credientials)
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((res) => {                
-                this.objects = res;
-                this._cdr.markForCheck();
-                this._spinner.hide();
-            })
+        // this._spinner.show();
+        // this._bimDataImportService.getObjects(this._apsCredentials.credientials)
+        //     .pipe(takeUntil(this._unsubscribeAll))
+        //     .subscribe((res) => {                
+        //         this.objects = res;
+        //         this._cdr.markForCheck();
+        //         this._spinner.hide();
+        //     })
     }
 
     onExtraMetadata(object: any) {
-        object.status = 'inprogress';
-        object.progress = 'start extracting...';
+        // object.status = 'inprogress';
+        // object.progress = 'start extracting...';
 
-        this._bimDataImportService.sse('extract-metadata', object.objectKey,this._apsCredentials.credientials)
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(res => {
+        // this._bimDataImportService.sse('extract-metadata', object.objectKey,this._apsCredentials.credientials)
+        //     .pipe(takeUntil(this._unsubscribeAll))
+        //     .subscribe(res => {
 
-                object.status = JSON.parse(res.data).status;
-                object.progress = JSON.parse(res.data).message;
-                this._cdr.markForCheck();
-            });
+        //         object.status = JSON.parse(res.data).status;
+        //         object.progress = JSON.parse(res.data).message;
+        //         this._cdr.markForCheck();
+        //     });
     }
 
     trackByFn(index: number, item: any): any {

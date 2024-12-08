@@ -1,10 +1,10 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable, NgZone } from '@angular/core';
 import { GtsConfirmationService } from '@gts/services/confirmation';
-import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
+import { WebSocketSubject } from 'rxjs/webSocket';
 
 import { environment } from 'environments/environment';
-import { catchError, firstValueFrom, Observable, Observer, of, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, Observer, of, switchMap, throwError } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 
 const endpoint = environment.apiUrl;
@@ -48,8 +48,9 @@ export class AppService {
         );
     }
 
-    post(method: string, request: any): Observable<any> {
-        return this._httpClient.post(`${endpoint}/${method}`, request).pipe(
+    post(method: string, request: any, options = {}): Observable<any> {
+
+        return this._httpClient.post(`${endpoint}/${method}`, request, options).pipe(
             switchMap((res: any) => {
                 return of(res);
             }),
@@ -113,13 +114,13 @@ export class AppService {
         let queryString = '';
         for (let key in kwargs) {
             if (queryString === '')
-                queryString = `?${key}=${kwargs[key]}`
+                queryString = `/?${key}=${kwargs[key]}`
             else
                 queryString += `&${key}=${kwargs[key]}`
 
         }
 
-        let url = `${endpoint}/${method}/${queryString}`;
+        let url = `${endpoint}/${method}${queryString}`;
         return new Observable((observer: Observer<any>) => {
             const eventSource: EventSource = new EventSource(url);
             eventSource.onmessage = (event: MessageEvent) => {
@@ -136,7 +137,10 @@ export class AppService {
                 });
             }
 
-
+            return () => {
+                eventSource.close();
+                console.log('SSE close.')
+            };
         });
     }
 

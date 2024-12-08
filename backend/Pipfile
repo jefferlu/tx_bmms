@@ -18,6 +18,12 @@ django-mptt = "*"
 django-admin-interface = "*"
 pyjwt = "*"
 gunicorn = "*"
+pandas = "*"
+requests = "*"
+celery = "*"
+redis = "*"
+django-celery-results = "*"
+channels-redis = "*"
 
 [dev-packages]
 
