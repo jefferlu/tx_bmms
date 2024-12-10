@@ -22,6 +22,7 @@
         "@angular/platform-browser-dynamic": "^17.0.0",
         "@angular/router": "^17.0.0",
         "@jsverse/transloco": "^7.4.2",
+        "@primeng/themes": "^18.0.0",
         "@types/crypto-js": "^4.2.1",
         "crypto-js": "^4.2.0",
         "lodash-es": "^4.17.21",
@@ -29,7 +30,7 @@
         "ngx-spinner": "^17.0.0",
         "perfect-scrollbar": "^1.5.5",
         "primeicons": "^7.0.0",
-        "primeng": "^17.18.0",
+        "primeng": "^18.0.0",
         "rxjs": "~7.8.0",
         "tslib": "^2.3.0",
         "zone.js": "~0.14.2"

@@ -1,0 +1,161 @@
+/* Primeng Overrides */
+.p-component {
+  @apply transition-none;
+}
+
+.p-inputtext {
+  @apply text-base text-default bg-transparent;
+  @apply border-gray-300 dark:border-gray-500 dark:bg-black dark:bg-opacity-5;
+  @apply transition-none;
+}
+
+/* Calendar */
+.p-datepicker {
+  @apply text-base text-default bg-default;
+  @apply border-gray-300 dark:border-gray-500;
+
+  .p-datepicker-header {
+    @apply text-base text-default bg-default;
+
+    .p-datepicker-title {
+      @apply text-default;
+    }
+  }
+}
+
+/* TreeSelet */
+.p-treeselect {
+  @apply text-base text-default bg-transparent;
+  @apply border-gray-300 dark:border-gray-500;
+  @apply transition-none;
+
+  .p-treeselect-label {
+    @apply transition-none;
+  }
+
+  .p-treeselect-panel {
+    @apply text-base text-default bg-default;
+    @apply border-gray-300 dark:border-gray-500;
+
+    .p-treeselect-header {
+      @apply text-base text-default bg-default;
+
+      .p-treeselect-items-wrapper {
+        @apply text-base text-default bg-default;
+      }
+    }
+
+    .p-treenode-content {
+      @apply text-default hover:bg-slate-300 dark:hover:bg-slate-800;
+    }
+  }
+}
+
+/* Tree */
+.p-tree {
+  @apply text-base text-default bg-default;
+}
+
+/* Dropdown */
+.p-dropdown {
+  @apply text-base text-default bg-transparent;
+  @apply border-gray-300 dark:border-gray-500;
+
+  .p-dropdown-panel {
+    @apply text-base text-default bg-default;
+    @apply border-gray-300 dark:border-gray-500;
+
+    .p-dropdown-header {
+      @apply text-base text-default bg-default;
+    }
+  }
+}
+
+/* MultiSelect */
+.p-multiselect {
+  @apply text-base text-default bg-transparent;
+  @apply border-gray-300 dark:border-gray-500;
+
+  .p-multiselect-panel {
+    @apply text-base text-default bg-default;
+    @apply border-gray-300 dark:border-gray-500;
+
+    .p-multiselect-header {
+      @apply text-base text-default bg-default;
+    }
+  }
+
+  .p-multiselect-token {
+    @apply text-default dark:bg-gray-800;
+  }
+}
+
+/* Checkbox */
+.p-checkbox {
+  @apply text-base text-default bg-default;
+
+  .p-checkbox-box {
+    @apply text-base text-default bg-default;
+  }
+}
+
+/* Table */
+.p-datatable {
+  .p-datatable-thead > tr > th {
+    @apply text-base text-default bg-default dark:bg-slate-700;
+    @apply border-b-0 border-gray-200;
+    @apply transition-none;
+  }
+
+  .p-datatable-tbody > tr {
+    @apply text-base text-default bg-transparent;
+
+    td {
+      @apply border-b border-gray-200;
+    }
+  }
+}
+
+.p-datatable-scrollable
+  > .p-datatable-table-container
+  > .p-datatable-table
+  > .p-datatable-thead {
+  @apply bg-transparent #{'!important'};
+}
+
+/* TreeTable */
+.p-treetable {
+  .p-treetable-scrollable-header {
+    @apply text-base text-default bg-default dark:bg-card;
+  }
+
+  .p-treetable-thead > tr > th {
+    @apply text-base text-default bg-default dark:bg-card;
+    @apply border-b-0 border-gray-200;
+    @apply transition-none;
+  }
+
+  .p-treetable-tbody > tr {
+    @apply text-base text-default bg-transparent;
+
+    td {
+      @apply border-b border-gray-200;
+
+      .p-treetable-toggler {
+        @apply text-default hover:bg-transparent;
+      }
+    }
+  }
+}
+
+.p-paginator {
+  @apply bg-transparent #{'!important'};
+}
+
+.p-datatable-paginator-bottom {
+  @apply border-b-0 #{'!important'};
+}
+
+/* .p-tabpanels {
+  @apply bg-transparent #{'!important'};
+} */

@@ -34,19 +34,19 @@ export class BimDataImportService {
         );
     }
 
-    upload(file: File): Observable<any> {
+    bimDataInport(file: File): Observable<any> {
         const formData = new FormData();
         formData.append('file', file, encodeURIComponent(file.name));
 
         return this._appService.post('forge/bim-data-import', formData, { reportProgress: true, observe: 'events' });
     }
 
-    sse(fileid: string): Observable<any> {
-        return this._appService.sse(`forge/events/${fileid}`).pipe(
-            shareReplay(1),
-            tap((res: any) => { })
-        );
-    }
+    // sse(fileid: string): Observable<any> {
+    //     return this._appService.sse(`forge/events/${fileid}`).pipe(
+    //         shareReplay(1),
+    //         tap((res: any) => { })
+    //     );
+    // }
 }
 
 

@@ -4,18 +4,14 @@
 
 export const environment = {
     production: false,
-    apiUrl: 'http://localhost:8000/api',
-    forgeUrl: 'http://localhost:3000',
-    user_key: 'tx_bmms_user',
-    language_key: 'tx_bmms_languages',
-    downloadUrl: '../',
-    staticUrl: '',
-    mediaUrl: 'media/',
-    aps: {
-        apiUrl: 'https://developer.api.autodesk.com',
-        key: 'asp-credentials'
-    },
-    elfinder: 'https://bmms.giantcld.com'
+    api: 'http://localhost:8000/api',
+    websocket: 'ws://localhost:8000/ws/progress',
+    elfinder: 'https://bmms.giantcld.com',
+    local_storage: {
+        user: 'tx_bmms_user',
+        language: 'tx_bmms_languages',
+        aps: 'tx_bmms_aps'
+    }
 };
 
 /*

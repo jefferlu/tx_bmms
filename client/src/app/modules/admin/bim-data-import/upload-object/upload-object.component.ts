@@ -130,7 +130,7 @@ export class UploadObjectComponent implements OnInit, OnDestroy {
         //         }
         //     });
 
-        this._bimDataImportService.upload(file.file)
+        this._bimDataImportService.bimDataInport(file.file)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
                 next: (res) => {

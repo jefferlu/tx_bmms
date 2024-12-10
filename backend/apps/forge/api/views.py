@@ -30,6 +30,7 @@ BUCKET_KEY = 'bmms_oss'
     tags=['APS']
 )
 class BucketView(APIView):
+    
     def get(self, request):
         auth = Auth(CLIENT_ID, CLIENT_SECRET)
         token = auth.auth2leg()

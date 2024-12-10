@@ -4,7 +4,7 @@ import { User } from 'app/core/user/user.types';
 import { environment } from 'environments/environment';
 import { map, Observable, ReplaySubject, tap } from 'rxjs';
 
-const USER_KEY: string = environment.user_key;
+const USER_KEY: string = environment.local_storage.user;
 
 @Injectable({ providedIn: 'root' })
 export class UserService {

@@ -43,10 +43,7 @@
                             "src/@gts/styles/main.scss",
                             "src/styles/styles.scss",
                             "src/styles/tailwind.scss",
-                            "node_modules/ngx-spinner/animations/ball-clip-rotate.css",
-                            "node_modules/primeicons/primeicons.css",
-                            "node_modules/primeng/resources/themes/aura-dark-blue/theme.css",
-                            "node_modules/primeng/resources/primeng.min.css",
+                            "node_modules/ngx-spinner/animations/ball-clip-rotate.css",                            
                             "src/assets/jqueryui/jquery-ui.min.css",
                             "src/assets/elfinder/css/elfinder.min.css",
                             "src/assets/elfinder/css/theme.css"

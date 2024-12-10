@@ -1,25 +1,23 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { inject, Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { GtsConfirmationService } from '@gts/services/confirmation';
-import { WebSocketSubject } from 'rxjs/webSocket';
 
 import { environment } from 'environments/environment';
-import { catchError, Observable, Observer, of, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 
-const endpoint = environment.apiUrl;
+const endpoint = environment.api;
 
 @Injectable({
     providedIn: 'root'
 })
 export class AppService {
 
-    private _ngZone = inject(NgZone);
-    private _httpClient = inject(HttpClient);
-    private _translocoService = inject(TranslocoService);
-    private _gtsConfirmationService = inject(GtsConfirmationService);
-
-    private socket$: WebSocketSubject<any>;
+    constructor(
+        private _httpClient: HttpClient,
+        private _translocoService: TranslocoService,
+        private _gtsConfirmationService: GtsConfirmationService
+    ) { }
 
     get(method: string, params?: any, request?: any): Observable<any> {
         let queryString = '';
@@ -109,40 +107,9 @@ export class AppService {
         );
     }
 
-    sse(method: string, kwargs?: any): Observable<any> {
 
-        let queryString = '';
-        for (let key in kwargs) {
-            if (queryString === '')
-                queryString = `/?${key}=${kwargs[key]}`
-            else
-                queryString += `&${key}=${kwargs[key]}`
 
-        }
 
-        let url = `${endpoint}/${method}${queryString}`;
-        return new Observable((observer: Observer<any>) => {
-            const eventSource: EventSource = new EventSource(url);
-            eventSource.onmessage = (event: MessageEvent) => {
-                this._ngZone.run(() => {
-                    observer.next(event);
-                })
-            }
-
-            eventSource.onerror = (error) => {
-                this._ngZone.run(() => {
-                    console.error('SSE Connection Error:', error);
-                    observer.error(error);
-                    eventSource.close();
-                });
-            }
-
-            return () => {
-                eventSource.close();
-                console.log('SSE close.')
-            };
-        });
-    }
 
     private _handleError(error: HttpErrorResponse) {
 

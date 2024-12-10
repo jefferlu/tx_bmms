@@ -12,7 +12,8 @@ import { mockApiServices } from './mock-api';
 import { TranslocoHttpLoader } from './core/transloco/transloco-loader';
 import { provideTransloco, provideTransloco as provideTransloco_alias, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
-
+import { providePrimeNG } from 'primeng/config';
+import Aura from '@primeng/themes/aura';
 
 // import { routes } from './app.routes';
 
@@ -114,9 +115,12 @@ export const appConfig: ApplicationConfig = {
                 prodMode: !isDevMode(),
             },
             loader: TranslocoHttpLoader
+        }),
+        providePrimeNG({
+            theme: {
+                preset: Aura
+            }
         })
-
-
 
     ]
 };

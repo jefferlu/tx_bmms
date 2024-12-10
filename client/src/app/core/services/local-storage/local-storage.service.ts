@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { UserService } from 'app/core/user/user.service';
 import { environment } from 'environments/environment';
 
-const LANGUAGE_KEY: string = environment.language_key;
+const LANGUAGE_KEY: string = environment.local_storage.language;
 
 @Injectable({
     providedIn: 'root'

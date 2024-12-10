@@ -1,0 +1,19 @@
+/* Angular Material Overrides */
+.mat-mdc-snack-bar-container.snackbar-customer {
+  .mdc-snackbar__surface {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+.mat-mdc-outlined-button {
+  /* Not disabled */
+  &:not([disabled="true"]) {
+    @apply border-gray-300 dark:border-gray-50 #{'!important'};
+  }
+}
+
+.mat-progress-spinner circle {
+  stroke: red !important;
+}

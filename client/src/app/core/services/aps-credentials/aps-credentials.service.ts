@@ -3,7 +3,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ApsCredentialsDialogComponent } from './dialog/dialog.component';
 import { environment } from 'environments/environment';
 
-const APS_CREDENTIALS_KEY: string = environment.aps.key;
+const APS_CREDENTIALS_KEY: string = environment.local_storage.aps;
 
 @Injectable({
     providedIn: 'root'
@@ -21,6 +21,7 @@ export class ApsCredentialsService {
     }
 
     check(): boolean {
+        console.log(this.credientials)
         return this.credientials ? true : false;
     }
 

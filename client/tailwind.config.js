@@ -25,11 +25,11 @@ const themes = {
         },
         accent: {
             ...colors.slate,
-            DEFAULT: colors.slate[800]
+            DEFAULT: colors.slate[100]
         },
         warn: {
             ...colors.red,
-            DEFAULT: colors.red[600]
+            DEFAULT: colors.slate[600]
         },
         'on-warn': {
             500: colors.red['50']

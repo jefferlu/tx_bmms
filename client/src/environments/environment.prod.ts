@@ -1,15 +1,11 @@
 export const environment = {
     production: true,
-    apiUrl: 'api',
-    forgeUrl: 'forgeUrl',
-    user_key: 'tx_bmms_user',
-    language_key: 'tx_bmms_languages',
-    downloadUrl: 'https://bmms.giantcld.com',
-    staticUrl: 'static/ng/',
-    mediaUrl: 'media/',
-    aps: {
-        apiUrl: 'https://developer.api.autodesk.com',
-        key: 'asp-credentials'
-    },
-    elfinder: ''
+    api: 'api',
+    websocket: 'ws://localhost:8000/ws/progress',
+    elfinder: '',
+    local_storage: {
+        user: 'tx_bmms_user',
+        language: 'tx_bmms_languages',
+        aps: 'tx_bmms_aps'
+    }
 };
