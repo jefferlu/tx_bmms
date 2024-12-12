@@ -28,31 +28,35 @@
                 <p-table class="w-full" [value]="files" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'">
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
+                            <th class="w-20">NO</th>
                             <th class="w-100">檔案名稱</th>
                             <th class="w-40">檔案大小</th>
-                            <th class="w-40">狀態</th>
+                            <th class="w-40 text-center">狀態</th>
                             <th>訊息</th>
                             <th class="w-20"></th>
                         </tr>
                     </ng-template>
-                    <ng-template pTemplate="body" let-file>
+                    <ng-template pTemplate="body" let-file let-index="rowIndex">
                         <tr [pSelectableRow]="file" class="hover:bg-hover">
+                            <td>{{index+1}}</td>
                             <td>{{file.name}}</td>
                             <td>{{file.size}}</td>
-                            <td>
-                                {{file.status}}
-                                <!-- @if(file.status==='process'){<mat-progress-bar class="" [mode]="'determinate'" [value]="file.progress"></mat-progress-bar>}
-                                @else if(file.status==='complete'){<i class="pi text-green-500 pi-check-circle"></i>}
-                                @else{<span class="text-green-900 dark:text-green-300">{{file.status||'準備上傳'}}</span>} -->
+                            <td class="text-center">
+                                <!-- {{file.status}} -->
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide" [ngClass]="{
+                                        'dark:bg-indigo-500 dark:text-red-50':  ['upload-object', 'translate-job', 'download-svf'].includes(file.status),
+                                        'dark:bg-green-600 dark:text-green-50':file.status === 'complete'}">
+                                    <span class="whitespace-nowrap leading-relaxed">{{ file.status }}</span>
+                                </span>
                             </td>
-                            <td>{{file.message}}</td>
+                            <td class="text-sm">{{file.message}}</td>
                             <td class="flex items-center">
                                 @if(file.status==='ready'){
                                 <button class="gts-alert-dismiss-button" mat-icon-button (click)="onBimDataImport(file)">
                                     <mat-icon [svgIcon]="'heroicons_outline:cloud-arrow-up'"></mat-icon>
                                 </button>
                                 }
-                                @else if(file.status==='completed'){
+                                @else if(file.status==='complete'){
                                 <mat-icon class="text-green-400 m-2" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
                                 }
                                 @else {

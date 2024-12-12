@@ -14,6 +14,10 @@ export class BimDataImportService {
 
     constructor(private _appService: AppService) { }
 
+    get hasObjectsData(): boolean {
+        return this._objects.value !== null;
+    }
+
     get files(): any[] {
         return this._files;
     }

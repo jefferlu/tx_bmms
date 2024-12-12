@@ -12,6 +12,8 @@ import { Navigation } from 'app/core/navigation/navigation.types';
 import { LanguagesComponent } from 'app/layout/common/languages/languages.component';
 import { UserComponent } from 'app/layout/common/user/user.component';
 import { NgxSpinnerModule } from 'ngx-spinner';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -22,9 +24,10 @@ import { Subject, takeUntil } from 'rxjs';
     imports: [
         NgIf, RouterOutlet, TranslocoModule,
         MatButtonModule, MatIconModule, TranslocoModule, NgxSpinnerModule,
-        GtsLoadingBarComponent, GtsVerticalNavigationComponent,
+        GtsLoadingBarComponent, GtsVerticalNavigationComponent,ToastModule,
         LanguagesComponent, UserComponent
     ],
+    providers:[MessageService]
 })
 export class CompactLayoutComponent implements OnInit, OnDestroy {
     isScreenSmall: boolean;

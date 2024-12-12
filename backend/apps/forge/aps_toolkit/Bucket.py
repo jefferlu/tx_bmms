@@ -103,7 +103,7 @@ class Bucket:
             "Authorization": f"Bearer {self.token.access_token}"
         }
         url = f"{self.host}/{bucket_name}/objects?limit={limit}"
-        all_items = []  # 用於存儲所有物件
+        all_objects = []  # 用於存儲所有物件
 
         while url:
             # print("Fetching URL:", url)
@@ -115,15 +115,15 @@ class Bucket:
                 raise Exception(response.reason)
 
             data = response.json()
-            all_items.extend(data["items"])  # 累加當前頁面的物件
+            all_objects.extend(data["items"])  # 累加當前頁面的物件
 
-            print("Fetched Items:", len(data["items"]))
+            # print("Fetched Items:", len(data["items"]))
 
             # 檢查是否有下一頁
             url = data.get("next")  # 如果有下一頁則更新 URL，否則結束迴圈
 
         # 將所有物件轉為 DataFrame 並返回
-        df = pd.DataFrame(all_items)
+        df = pd.DataFrame(all_objects)
         return df
 
     def upload_object(self, bucket_name: str, file_path: str, object_name: str) -> dict:

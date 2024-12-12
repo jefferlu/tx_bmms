@@ -84,8 +84,8 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name)
             send_progress('download-svf', 'No manifest items found for download.')
 
         # 通知完成
-        logger.info('BIM data imoport completed.')
-        send_progress('completed', 'BIM data imoport completed.')
+        logger.info('BIM data imoport complete.')
+        send_progress('complete', 'BIM data imoport completed.')
 
     except Exception as e:
         logger.info(str(e))

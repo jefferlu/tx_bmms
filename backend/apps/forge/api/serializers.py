@@ -9,6 +9,7 @@ class ObjectSerializer(serializers.Serializer):
     size = serializers.IntegerField()
     location = serializers.CharField()
     is_oss = serializers.SerializerMethodField()
+    # status = serializers.CharField()
 
-    def get_is_oss(self,obj):
+    def get_is_oss(self, obj):
         return True
