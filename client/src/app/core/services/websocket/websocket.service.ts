@@ -3,7 +3,7 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 
-const endpoint = environment.websocket;
+const websocketUrl = environment.websocket;
 
 @Injectable({
     providedIn: 'root'
@@ -13,8 +13,17 @@ export class WebsocketService {
     private _socket$: WebSocketSubject<any>;
 
     constructor(private _ngZone: NgZone) {
-        this._socket$ = webSocket(endpoint);
-        console.log('websocket connect')
+        let url;
+        if (websocketUrl) {
+            url = websocketUrl;
+        }
+        else {
+            const protocal = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            url = `${protocal}//${window.location.host}/ws/progress`;
+        }
+
+        this._socket$ = webSocket(url);
+        console.log(url)
         console.log(this._socket$)
     }
 
