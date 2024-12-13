@@ -23,7 +23,7 @@ export class WebsocketService {
         }
 
         this._socket$ = webSocket(url);
-        console.log(url)
+        console.log(url, 'connected')
         console.log(this._socket$)
     }
 
