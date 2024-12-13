@@ -140,6 +140,12 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                         this._changeDetectorRef.markForCheck();
                     }
                 },
+                error: (err) => {
+                    file.status = 'error';
+                    file.message = JSON.stringify(err);
+                    console.log(err)
+                    this._changeDetectorRef.markForCheck();
+                },
                 complete: () => {
                     // file.status = "complete"
                     // file.message = 'upload-completed'

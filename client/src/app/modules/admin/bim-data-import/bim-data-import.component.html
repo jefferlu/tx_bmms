@@ -33,7 +33,7 @@
                             <th class="w-40">檔案大小</th>
                             <th class="w-40 text-center">狀態</th>
                             <th>訊息</th>
-                            <th class="w-20"></th>
+                            <th class="w-20 text-center"></th>
                         </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-file let-index="rowIndex">
@@ -44,14 +44,15 @@
                             <td class="text-center">
                                 <!-- {{file.status}} -->
                                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide" [ngClass]="{
-                                        'dark:bg-indigo-500 dark:text-red-50':  ['upload-object', 'translate-job', 'download-svf'].includes(file.status),
+                                        'dark:bg-indigo-600 dark:text-indigo-50-50':  ['upload-object', 'translate-job', 'download-svf'].includes(file.status),
+                                        'dark:bg-red-600 dark:text-red-50':file.status === 'error',
                                         'dark:bg-green-600 dark:text-green-50':file.status === 'complete'}">
                                     <span class="whitespace-nowrap leading-relaxed">{{ file.status }}</span>
                                 </span>
                             </td>
                             <td class="text-sm">{{file.message}}</td>
-                            <td class="flex items-center">
-                                @if(file.status==='ready'){
+                            <td class="text-center">
+                                @if(['ready','error'].includes(file.status)){
                                 <button class="gts-alert-dismiss-button" mat-icon-button (click)="onBimDataImport(file)">
                                     <mat-icon [svgIcon]="'heroicons_outline:cloud-arrow-up'"></mat-icon>
                                 </button>

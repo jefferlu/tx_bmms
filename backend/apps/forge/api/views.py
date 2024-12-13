@@ -340,8 +340,8 @@ class BimDataImportView(APIView):
         default_storage.save(file_path, ContentFile(file.read()))
 
         # 執行Autodesk Model Derivative API轉換
-        # bim_data_import.delay(CLIENT_ID, CLIENT_SECRET, BUCKET_KEY, file.name, 'progress_group')
-        bim_data_import(CLIENT_ID, CLIENT_SECRET, BUCKET_KEY, file.name, 'progress_group')
+        bim_data_import.delay(CLIENT_ID, CLIENT_SECRET, BUCKET_KEY, file.name, 'progress_group')
+        # bim_data_import(CLIENT_ID, CLIENT_SECRET, BUCKET_KEY, file.name, 'progress_group')
 
         # # 回應上傳成功的訊息
         return Response({"message": f"File '{file.name}' is being processed."}, status=200)
