@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import os
-from  pathlib import Path
+from pathlib import Path
 import requests
 from .Auth import Auth
 import pandas as pd
@@ -24,7 +24,7 @@ from .Token import Token
 
 
 class DbReader:
-    def __init__(self, urn: str, token: Token = None):
+    def __init__(self, urn: str, token: Token = None, objectKey: str = ''):
         self.urn = urn
         if token is None:
             auth = Auth()
@@ -52,7 +52,12 @@ class DbReader:
         response = requests.get(url, headers=headers)
         temp_path = os.path.join(Path(__file__).parent.parent.parent.parent, "media-root/database")
         extension = self.path.split(".")[-1]
-        temp_path = os.path.join(temp_path, self.urn + "." + extension)
+
+        # file_name = self.urn if objectKey == '' else Path(objectKey).stem
+        file_name = self.urn if objectKey == '' else objectKey
+        extension = 'db'
+
+        temp_path = os.path.join(temp_path, file_name + "." + extension)
         self.db_path = temp_path
         if not os.path.exists(temp_path):
             os.makedirs(os.path.dirname(temp_path), exist_ok=True)

@@ -83,10 +83,16 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name)
             logger.info('No manifest items found for download.')
             send_progress('download-svf', 'No manifest items found for download.')
 
+        # Step 5: 下載 SQLite
+        logger.info('Downloading SQLite to server ...')
+        send_progress('download-sqlite', 'Downloading SQLite to server ...')
+        db = DbReader(urn, token, object_data['objectKey'])
+        print(db.db_path)
+
         # 通知完成
         logger.info('BIM data imoport complete.')
         send_progress('complete', 'BIM data imoport completed.')
 
     except Exception as e:
-        logger.info(str(e))
+        logger.error(str(e))
         send_progress('error', str(e))

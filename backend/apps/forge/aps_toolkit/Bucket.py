@@ -165,8 +165,7 @@ class Bucket:
             "Content-Type": "application/octet-stream"
         }
         url = f"{self.host}/{bucket_name}/objects/{object_name}"
-        response = requests.put(url, headers=headers, data=stream)
-        print('-->', response, url)
+        response = requests.put(url, headers=headers, data=stream)        
         if response.status_code != 200:
             raise Exception(response.reason)
         return response.json()

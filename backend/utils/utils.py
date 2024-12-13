@@ -1,6 +1,7 @@
 import sys
 import redis
 import traceback
+import sqlite3
 
 from django.conf import settings
 

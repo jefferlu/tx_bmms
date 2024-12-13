@@ -44,7 +44,7 @@ class PropDbReaderRevit(PropReader):
         and optional manifest items.
     """
 
-    def __int__(self, urn, token, region="US", manifest_item: [ManifestItem] = None):
+    def __int__(self, urn, token, region="US", manifest_item: list[ManifestItem] = None):
         super().__init__(urn, token, region, manifest_item)
 
     def _get_recursive_child(self, output, id, name):

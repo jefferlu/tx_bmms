@@ -37,7 +37,7 @@ class SVFReader:
         self.region = region
         self.derivative = Derivative(self.urn, self.token, self.region)
 
-    def read_contents(self, manifest_item: [ManifestItem] = None) -> list[SVFContent]:
+    def read_contents(self, manifest_item: list[ManifestItem] = None) -> list[SVFContent]:
         contents = []
         if manifest_item:
             content = self._read_contents_manifest(manifest_item)
@@ -49,7 +49,7 @@ class SVFReader:
                 contents.append(content)
         return contents
 
-    def _read_contents_manifest(self, manifest_item: [ManifestItem] = None) -> SVFContent:
+    def _read_contents_manifest(self, manifest_item: list[ManifestItem] = None) -> SVFContent:
         content = SVFContent()
         content.fragments = self.read_fragments(manifest_item).items().__iter__().__next__()[1]
         content.geometries = self.read_geometries(manifest_item).items().__iter__().__next__()[1]
@@ -68,7 +68,7 @@ class SVFReader:
         items = self.derivative.read_svf_manifest_items()
         return items
 
-    def read_fragments(self, manifest_item: [ManifestItem] = None) -> dict:
+    def read_fragments(self, manifest_item: list[ManifestItem] = None) -> dict:
         fragments = {}
         if manifest_item:
             resources = self.derivative.read_svf_resource_item(manifest_item)
@@ -82,7 +82,7 @@ class SVFReader:
             fragments = Fragments.parse_fragments_from_urn(self.urn, self.token, self.region)
         return fragments
 
-    def read_geometries(self, manifest_item: [ManifestItem] = None) -> dict:
+    def read_geometries(self, manifest_item: list[ManifestItem] = None) -> dict:
         geometries = {}
         if manifest_item:
             geos = SVFGeometries.parse_geos_from_manifest_item(self.derivative, manifest_item)
@@ -91,7 +91,7 @@ class SVFReader:
             geometries = SVFGeometries.parse_geometries_from_urn(self.urn, self.token, self.region)
         return geometries
 
-    def read_meshes(self, manifest_item: [ManifestItem] = None) -> dict:
+    def read_meshes(self, manifest_item: list[ManifestItem] = None) -> dict:
         meshes = {}
         if manifest_item:
             mesh = SVFMesh.parse_mesh_from_manifest_item(self.derivative, manifest_item)
@@ -100,7 +100,7 @@ class SVFReader:
             meshes = SVFMesh.parse_mesh_from_urn(self.urn, self.token, self.region)
         return meshes
 
-    def read_materials(self, manifest_item: [ManifestItem] = None) -> dict[str, list[Materials]]:
+    def read_materials(self, manifest_item: list[ManifestItem] = None) -> dict[str, list[Materials]]:
         materials = {}
         if manifest_item:
             mats = SVFMaterials.parse_materials_from_manifest_item(self.derivative, manifest_item)
@@ -109,7 +109,7 @@ class SVFReader:
             materials = SVFMaterials.parse_materials_from_urn(self.urn, self.token, self.region)
         return materials
 
-    def read_images(self, manifest_item: [ManifestItem] = None) -> dict[str, list[SVFImage]]:
+    def read_images(self, manifest_item: list[ManifestItem] = None) -> dict[str, list[SVFImage]]:
         images = {}
         if manifest_item:
             imgs = SVFImage.parse_images_from_derivative(self.derivative, manifest_item)
@@ -118,7 +118,7 @@ class SVFReader:
             images = SVFImage.parse_images_from_urn(self.urn, self.token, self.region)
         return images
 
-    def read_meta_data(self, manifest_item: [ManifestItem] = None) -> dict:
+    def read_meta_data(self, manifest_item: list[ManifestItem] = None) -> dict:
         meta_datas = {}
         if manifest_item:
             meta_data = SVFMetadata.parse_metadata_from_derivative(self.derivative, manifest_item)

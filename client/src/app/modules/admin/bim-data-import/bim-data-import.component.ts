@@ -136,15 +136,15 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                         let progress = Math.round(100 * (res.loaded / res.total));
                         console.log(progress)
                         file.status = "uploading"
-                        file.message = `${progress} %`;
+                        file.message = progress === 100 ? 'Saving file...' : `${progress} %`;
                         this._changeDetectorRef.markForCheck();
                     }
                 },
                 complete: () => {
-                    file.status = "completed"
-                    file.message = 'upload-completed'
-                    console.log('upload-completed')
-                    this._changeDetectorRef.markForCheck();
+                    // file.status = "complete"
+                    // file.message = 'upload-completed'
+                    // console.log('upload-completed')
+                    // this._changeDetectorRef.markForCheck();
                 }
             });
     }
