@@ -1,16 +1,17 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
-import { Subject, Subscription, takeUntil } from 'rxjs';
+import { finalize, Subject, Subscription, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { BimDataImportService } from './bim-data-import.service';
 import { ApsCredentialsService } from 'app/core/services/aps-credentials/aps-credentials.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TableModule } from 'primeng/table';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { WebsocketService } from 'app/core/services/websocket/websocket.service';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { NgClass } from '@angular/common';
+import { GtsConfirmationService } from '@gts/services/confirmation';
 
 @Component({
     selector: 'app-bim-data-import',
@@ -29,11 +30,15 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     private _subscription: Subscription = new Subscription();
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
+    isLoading: boolean;
+
     files: any[] = [];
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _toastService: ToastService,
+        private _translocoService: TranslocoService,
+        private _gtsConfirmationService: GtsConfirmationService,
         private _apsCredentials: ApsCredentialsService,
         private _websocketService: WebsocketService,
         private _bimDataImportService: BimDataImportService,
@@ -44,7 +49,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         this._subscription.add(
             this._websocketService.onMessage().subscribe({
                 next: (res) => {
-                    console.log(res)
+                    res.name = decodeURIComponent(res.name);
 
                     // 根據 WebSocket 訊息更新檔案列表中的檔案
                     this.files = this.files.map(file => {
@@ -58,7 +63,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                         return file;
                     });
 
-                    console.log(this.files);
                     this._changeDetectorRef.markForCheck();
                 },
                 error: (err) => console.error('WebSocket error:', err),
@@ -110,7 +114,10 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
             this._bimDataImportService.files = newFiles;
             this.files = newFiles;
 
-            console.log(this.files)
+            // 重置 input 的值
+            event.target.value = '';
+
+            // console.log(this.files)
         }
     }
 
@@ -134,7 +141,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                     file.status = 'process';
                     if (res.type == HttpEventType.UploadProgress) {
                         let progress = Math.round(100 * (res.loaded / res.total));
-                        console.log(progress)
                         file.status = "uploading"
                         file.message = progress === 100 ? 'Saving file...' : `${progress} %`;
                         this._changeDetectorRef.markForCheck();
@@ -142,8 +148,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                 },
                 error: (err) => {
                     file.status = 'error';
-                    file.message = JSON.stringify(err);
-                    console.log(err)
+                    file.message = JSON.stringify(err);                    
                     this._changeDetectorRef.markForCheck();
                 },
                 complete: () => {
@@ -153,6 +158,51 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                     // this._changeDetectorRef.markForCheck();
                 }
             });
+    }
+
+    onDelete(file: any) {        
+        if (file.status === 'ready') {
+            this.files = this.files.filter(e => e.name != file.name);
+            this._changeDetectorRef.markForCheck();
+        }
+        else {
+            const title = this._translocoService.translate('confirm-action');
+            const message = this._translocoService.translate('delete-confirm');
+            const deleteLabel = this._translocoService.translate('delete');
+            const cancelLabel = this._translocoService.translate('cancel');
+
+
+            let dialogRef = this._gtsConfirmationService.open({
+                title: title,
+                message: message,
+                icon: { color: 'warn' },
+                actions: { confirm: { label: deleteLabel, color: 'warn' }, cancel: { label: cancelLabel } }
+
+            });
+
+            dialogRef.afterClosed().subscribe(result => {
+                if (result === 'confirmed') {
+                    this._delete(file);
+                    this._changeDetectorRef.markForCheck();
+                }
+            });
+        }
+    }
+
+    private _delete(file: any) {        
+        this.isLoading = true;
+        this._bimDataImportService.delete(file.name).pipe(
+            finalize(() => {
+                this.isLoading = false;
+                this._changeDetectorRef.markForCheck();
+            })
+        ).subscribe({
+            next: (res) => {
+                this.files = this.files.filter(item => item.name !== file.name);
+                this._toastService.open({ message: this._translocoService.translate('delete-success') });
+                this._changeDetectorRef.markForCheck();
+            }
+        });
     }
 
     private _calculateFileSize(files: any[]) {
@@ -173,6 +223,8 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
             };
         });
     }
+
+
 
     ngOnDestroy(): void {
         this._unsubscribeAll.next(null);

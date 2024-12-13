@@ -45,12 +45,12 @@ export class BimDataImportService {
         return this._appService.post('forge/bim-data-import', formData, { reportProgress: true, observe: 'events' });
     }
 
-    // sse(fileid: string): Observable<any> {
-    //     return this._appService.sse(`forge/events/${fileid}`).pipe(
-    //         shareReplay(1),
-    //         tap((res: any) => { })
-    //     );
-    // }
+    delete(name: number): Observable<any> {
+        return this._appService.delete('forge/objects', name).pipe(
+            tap((res: any) => { })
+        );
+    }
+
 }
 
 

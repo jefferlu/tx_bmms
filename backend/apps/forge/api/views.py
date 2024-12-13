@@ -68,6 +68,17 @@ class ObjectView(APIView):
         serializer = serializers.ObjectSerializer(objects, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def delete(self, request, name=None):
+        try:
+            auth = Auth(CLIENT_ID, CLIENT_SECRET)
+            token = auth.auth2leg()
+            bucket = Bucket(token)
+            obj = bucket.delete_object(BUCKET_KEY, name)
+            
+            return Response(obj, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': f'{str(e)}'})
+
 
 class CompareSqliteView(APIView):
     def compare_models_without_metadata(self, model_1_db, model_2_db):
@@ -123,11 +134,11 @@ class CompareSqliteView(APIView):
             print(diff_df)
         else:
             print(diff_df)
-        
+
         # diff_dict = diff_df.to_dict(orient='records')
-        
+
         return Response({'result': diff_df}, status=status.HTTP_200_OK)
-      
+
 # class CompareSqliteView(APIView):
 #     def fetch_eav_data_from_db(self, db_file):
 #         """從 SQLite 資料庫中抓取 _objects_eav 的資料"""
