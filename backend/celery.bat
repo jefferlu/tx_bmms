@@ -1,0 +1,1 @@
+celery -A tx_bmms worker --pool=solo --loglevel=info
