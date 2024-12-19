@@ -346,8 +346,8 @@ class BimDataImportView(APIView):
 
         # Save file
         file_path = f'uploads/{file.name}'
-        if default_storage.exists(file_path):
-            default_storage.delete(file_path)
+        # if default_storage.exists(file_path):
+        #     default_storage.delete(file_path)
         default_storage.save(file_path, ContentFile(file.read()))
 
         # 執行Autodesk Model Derivative API轉換
