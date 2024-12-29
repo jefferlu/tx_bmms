@@ -1,54 +1,110 @@
-# BMMS System
-This project is a full-stack web application using Angular for the frontend and NestJS for the backend.
+# BMMS Angular + Django + ELFinder  Stack on Docker
 
-## Features
+Run the latest version of the [BMMS stack][tx_bmms] with Docker and Docker Compose.
 
-- **[Angular](https://angular.dev/) Frontend**: A powerful and modular frontend framework for building dynamic user interfaces.
-- **[NestJS](https://nestjs.com/) Backend**: A progressive Node.js framework for building efficient, reliable, and scalable server-side applications.
-- **RESTful API**: A well-structured API for communication between the frontend and backend.
-- **Authentication**: User authentication using JWT.
+It gives you the ability to import any 3D model by using APS platorm service of Autodesk  and
+the micro service ablility via Django backend.
 
+Based on the [official Docker images][elastic-docker] from Elastic:
 
-## Prerequisites
+Other available stack variants:
+
+---
+
+## tl;dr
+
+* 1. 安裝依賴更新，並重建構服務 
+```sh 
+docker compose build
+```
+
+*   or 強制安裝依賴更新
+```sh 
+docker compose build --no-cache
+```
+
+* 2. 啟動/停止服務 
+```sh
+docker compose up
+```
 
 ```sh
-npm install npm@latest -g
+docker compose down
 ```
-Please make sure that Node.js (version >= 16) is installed on your operating system.
 
+* 3. 啟動/停止單個服務 
+```sh
+docker compose up <服務名稱>
+```
 
+```sh
+docker compose stop <服務名稱>
+```
 
-# Installation
+---
 
-### Angular
-1. To install the `Angular CLI`, open a terminal window and run the following command:
+## Philosophy
 
-    ```sh
-    npm install -g @angular/cli
-    ```
-2. Install npm packages by using `npm CLI`
+We aim at providing the simplest possible entry into the 3D Model Management for anybody who feels like experimenting with
+this powerful combo of technologies. This project's default configuration is purposely minimal and unopinionated. It
+does not rely on any external dependency, and uses as little custom automation as necessary to get things up and
+running.
 
-    ```sh
-    cd client
-    npm install
-    ```
+---
 
-3. Run for a dev server
-    ```sh
-    ng serve
-    ```
-    Navigate to http://localhost:4200/
+### Host setup
 
-### NestJS
-1.  Install npm packages by using `npm CLI`
-    ```sh
-    cd backend
-    npm install
-    ```
-2. Run Nest project in development mode
-    ```sh
-    npm run start:dev -b swc
-    ```
-    Open http://localhost:3000 to see the application running.
+* [Docker Engine][docker-install] version **18.06.0** or newer
+* [Docker Compose][compose-install] version **2.0.0** or newer
+* 1.5 GB of RAM
 
-### [Live Demo](https://bmms.giantcld.com/)
+> [!NOTE]
+> Especially on Linux, make sure your user has the [required permissions][linux-postinstall] to interact with the Docker
+> daemon.
+
+By default, the stack exposes the following ports:
+
+* 4000:80: Front-End Client  http://localhost:4000/
+* 8100:80: Backend http://localhost:8100/
+* 6379:6379: Redis 
+* 5433:5432: PostgreSQL DB
+* internal_network: ELFinder
+
+### Docker Desktop
+
+#### Windows
+
+If you are using the legacy Hyper-V mode of _Docker Desktop for Windows_, ensure [File Sharing][win-filesharing] is
+enabled for the `C:` drive.
+
+#### macOS
+
+The default configuration of _Docker Desktop for Mac_ allows mounting files from `/Users/`, `/Volume/`, `/private/`,
+`/tmp` and `/var/folders` exclusively. Make sure the repository is cloned in one of those locations or follow the
+instructions from the [documentation][mac-filesharing] to add more locations.
+
+## Usage
+
+> [!WARNING]
+> You must rebuild the stack images with `docker compose build` whenever you switch branch or update the
+> [version](#version-selection) of an already existing stack.
+
+### Bringing up the stack
+
+Clone this repository onto the Docker host that will run the stack with the command below:
+
+```sh
+git clone https://gitlab.com/giantcld/tx_bmms.git
+```
+
+Then, initialize the Elasticsearch users and groups required by docker-elk by executing the command:
+
+```sh
+docker compose up setup
+```
+
+If everything went well and the setup completed without error, start the other stack components:
+
+```sh
+docker compose up
+```
