@@ -14,6 +14,9 @@ RUN apt update && apt install -y \
 # 複製 elFinder
 COPY . .
 
+# 複製 php.ini
+COPY ./php.ini /usr/local/etc/php/
+
 RUN mkdir -p media-files media-files/.trash && \
     chown -R www-data:www-data media-files && \
     chmod -R 755 media-files
