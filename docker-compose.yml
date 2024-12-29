@@ -59,6 +59,7 @@ services:
     elfinder:
         build: elfinder
         container_name: elfinder
+        restart: always
         networks:
             - internal_network
         volumes:
