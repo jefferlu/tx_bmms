@@ -20,7 +20,7 @@ python manage.py migrate --noinput
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-# 建立超級用戶
+# 建立超級用戶 (初使需要的管理者權限，可選步驟）
 echo "Creating superuser..."
 python manage.py shell -c "from django.contrib.auth import get_user_model; \
 User = get_user_model()
