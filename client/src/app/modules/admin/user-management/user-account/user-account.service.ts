@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { AppService } from 'app/core/services/app.service';
+import { AppService } from 'app/app.service';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 @Injectable({

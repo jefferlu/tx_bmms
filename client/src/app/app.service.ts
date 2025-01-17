@@ -48,8 +48,9 @@ export class AppService {
         );
     }
 
-    post(method: string, request: any): Observable<any> {
-        return this._httpClient.post(`${endpoint}/${method}`, request).pipe(
+    post(method: string, request: any, options = {}): Observable<any> {
+
+        return this._httpClient.post(`${endpoint}/${method}`, request, options).pipe(
             switchMap((res: any) => {
                 return of(res);
             }),

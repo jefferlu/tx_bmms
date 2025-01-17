@@ -8,7 +8,7 @@ import { UserService } from 'app/core/user/user.service';
 import { CookieOptions, CookieService } from 'ngx-cookie-service';
 import { ApsCredentialsService } from '../services/aps-credentials/aps-credentials.service';
 import { Router } from '@angular/router';
-import { AppService } from '../services/app.service';
+import { AppService } from '../../app.service';
 
 
 @Injectable({ providedIn: 'root' })

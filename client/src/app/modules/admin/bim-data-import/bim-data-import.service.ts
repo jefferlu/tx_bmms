@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, NgZone } from '@angular/core';
-import { AppService } from 'app/core/services/app.service';
+import { AppService } from 'app/app.service';
 import { environment } from 'environments/environment';
 import { BehaviorSubject, Observable, shareReplay, tap } from 'rxjs';
 
