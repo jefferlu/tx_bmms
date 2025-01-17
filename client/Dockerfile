@@ -6,7 +6,7 @@ WORKDIR /app
 # clar cache
 RUN npm cache clean --force
 
-COPY package*.json ./
+COPY package.json ./
 
 RUN npm i
 
