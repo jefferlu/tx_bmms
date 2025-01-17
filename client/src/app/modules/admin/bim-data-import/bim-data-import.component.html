@@ -28,7 +28,7 @@
                 <p-table class="w-full" [value]="files" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'">
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
-                            <th class="w-20 py-6">NO</th>
+                            <th class="w-20 py-6 pl-8">NO</th>
                             <th class="w-100">檔案名稱</th>
                             <th class="w-40">檔案大小</th>
                             <th class="w-40 text-center">狀態</th>
@@ -38,7 +38,7 @@
                     </ng-template>
                     <ng-template pTemplate="body" let-file let-index="rowIndex">
                         <tr [pSelectableRow]="file" class="hover:bg-hover">
-                            <td>{{index+1}}</td>
+                            <td class="pl-8">{{index+1}}</td>
                             <td>{{file.name}}</td>
                             <td>{{file.size}}</td>
                             <td class="text-center">
