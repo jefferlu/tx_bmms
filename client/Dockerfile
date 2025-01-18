@@ -1,12 +1,9 @@
 # Angular app Dockerfile
-FROM node:lts-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
-# clar cache
-RUN npm cache clean --force
-
-COPY package.json ./
+COPY package*.json ./
 
 RUN npm i
 
