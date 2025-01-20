@@ -15,7 +15,6 @@ django-auto-prefetching = "*"
 drf-spectacular = "*"
 channels = {extras = ["daphne"], version = "*"}
 django-mptt = "*"
-django-admin-interface = "*"
 pyjwt = "*"
 gunicorn = "*"
 pandas = "*"
@@ -24,6 +23,7 @@ celery = "*"
 redis = "*"
 django-celery-results = "*"
 channels-redis = "*"
+django-admin-interface = "*"
 
 [dev-packages]
 

@@ -4,7 +4,9 @@ export interface GtsNavigationItem
 {
     id?: string;
     title?: string;
+    title_locale?: string;
     subtitle?: string;
+    subtitle_locale?: string;
     type:
         | 'aside'
         | 'basic'

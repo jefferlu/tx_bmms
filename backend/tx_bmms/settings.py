@@ -38,10 +38,12 @@ LOGOUT_REDIRECT_URL = '/admin/login/'
 
 # 設定 PostgreSQL 主機和端口
 POSTGRES = {
-    'HOST': 'localhost' if DEBUG else 'postgres',
-    'PORT': 5433 if DEBUG else 5432
+    'HOST': os.getenv('HOST', 'giantcld.com'),
+    'PORT': os.getenv('PORT', 5432),
+    'USER': os.getenv('POSTGRESQL_USERNAME', 'giantcld'),
+    'PASSWORD': os.getenv('POSTGRESQL_PASSWORD', '90637925'),
+    'NAME': os.getenv('POSTGRESQL_DATABASE', 'bmms'),
 }
-
 # 設定 Redis 主機和端口
 REDIS = {
     'HOST': 'localhost' if DEBUG else 'redis',
@@ -183,12 +185,13 @@ ASGI_APPLICATION = 'tx_bmms.asgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bmms',
-        'USER': 'bmms',
-        'PASSWORD': 'qbZucM8vvGwpfTd',
+        'NAME':  POSTGRES['NAME'],
+        'USER':  POSTGRES['USER'],
+        'PASSWORD': POSTGRES['PASSWORD'],
         'HOST': POSTGRES['HOST'],
         'PORT':  POSTGRES['PORT'],
     }

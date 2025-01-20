@@ -11,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django_auto_prefetching import AutoPrefetchViewSetMixin
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
+from .. import models
 from . import serializers
 
 User = get_user_model()
@@ -81,3 +82,80 @@ class UserViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     serializer_class = serializers.UserSerializer
     queryset = User.objects.all().order_by('id')
 
+
+class NavigationViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated, )
+    serializer_class = serializers.NavigationSerializer
+    queryset = models.Navigation.objects.all().order_by('id')
+
+    def get_queryset(self):
+        user = self.request.user
+        return models.Navigation.objects.filter(
+            parent__isnull=True,
+        ).order_by('id')
+
+    def list(self, request, *args, **kwargs):
+        # qs = self.get_queryset()
+        # seriailzer = self.get_serializer(qs, many=True)
+
+        navigations = self.get_user_navigations(request.user)
+
+        if navigations is None:
+            return Response(
+                {
+                    "code": "no-navigation-permission",
+                    "detail": "您沒有任何可操作之功能權限"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # 包裝前端 Navigation 元件需要的格式
+        return Response({'compact': navigations})
+
+    def get_user_navigations(self, user):
+
+        def filter_navigation(navigation):
+            """
+            遞歸過濾導航結構，對type為collapsable的節點不檢查權限，僅需顯示其有權限的子節點。
+            """
+            if navigation.type in ['collapsable', 'group']:
+                # 遞歸過濾子節點，保留有權限的子節點
+                children_with_permissions = [
+                    filter_navigation(child) for child in navigation.get_children()
+                    if child in (allowed_navigations or child.type in ['collapsable', 'group'])
+                ]
+                children_with_permissions = [child for child in children_with_permissions if child is not None]
+
+                # 僅當存在有權限的子節點時顯示此collapsable節點
+                if children_with_permissions:
+                    navigation_data = serializers.NavigationSerializer(navigation).data
+                    navigation_data['children'] = children_with_permissions
+                    return navigation_data
+            elif navigation.type == 'basic' and navigation in allowed_navigations:
+                # 返回type為basic且用戶有權限的導航
+                return serializers.NavigationSerializer(navigation).data
+            return None
+
+        # 獲取用戶的權限
+        allowed_navigations = models.Navigation.objects.filter(
+            is_active=True).distinct()
+
+        # 如果是超級用戶，直接返回所有活躍導航項目
+        if not user.is_superuser:
+            # 篩選出用戶有權限的導航項目
+            allowed_navigations = [
+                navigation for navigation in allowed_navigations
+                if any(user.has_perm(f"{perm.content_type.app_label}.{perm.codename}") for perm in navigation.permissions.all())
+            ]
+
+        # 如果沒有可訪問的導航
+        if not allowed_navigations:
+            return None
+
+        # 處理所有根節點
+        root_navigations = models.Navigation.objects.filter(
+            parent__isnull=True, is_active=True).order_by('order')
+        filtered_navigations = [filter_navigation(nav) for nav in root_navigations]
+
+        # 移除None值，僅保留有權限的導航項目
+        return [nav for nav in filtered_navigations if nav is not None]

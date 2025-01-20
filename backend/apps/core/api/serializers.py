@@ -59,3 +59,22 @@ class UserSerializer(serializers.ModelSerializer):
             'date_joined': {'read_only': True},
             'last_login': {'read_only': True}
         }
+
+class NavigationSerializer(serializers.ModelSerializer):
+
+    children = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = '__all__'
+        model = models.Navigation
+
+    def get_children(self, obj) -> list:
+        children = obj.get_children()
+        return NavigationSerializer(children, many=True).data if children.exists() else []
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # 如果 'children' 欄位的值是空字串，則移除該欄位
+        if representation.get('children') == []:
+            representation.pop('children')
+        return representation

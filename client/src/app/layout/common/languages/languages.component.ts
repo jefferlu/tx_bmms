@@ -131,7 +131,8 @@ export class LanguagesComponent implements OnInit, OnDestroy {
 
     private _translateNavigation(navigation: GtsNavigationItem[], translations: Translation) {
         navigation.forEach(nav => {            
-            nav.title = translations[nav.id] || nav.id;            
+            nav.title = translations[nav.title_locale] || nav.title_locale;
+            nav.subtitle = translations[nav.subtitle_locale] || nav.subtitle_locale;
             if (nav.children) this._translateNavigation(nav.children, translations);
         })
     }

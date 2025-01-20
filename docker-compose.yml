@@ -24,6 +24,11 @@ services:
         environment:
             - DEBUG=FALSE
             - CSRF_TRUSTED_ORIGINS=https://bmms.giantcld.com
+            - POSTGRESQL_USERNAME=bmms
+            - POSTGRESQL_PASSWORD=qbZucM8vvGwpfTd
+            - POSTGRESQL_DATABASE=bmms
+            - HOST=postgres
+            - PORT=5432
         volumes:
             - static_data:/app/static-root
             - media_data:/app/media-root
