@@ -9,22 +9,9 @@ import { BehaviorSubject, Observable, shareReplay, tap } from 'rxjs';
 })
 export class BimDataImportService {
 
-    private _files: any[] = [];
     private _objects: BehaviorSubject<any> = new BehaviorSubject(null);
 
     constructor(private _appService: AppService) { }
-
-    get hasObjectsData(): boolean {
-        return this._objects.value !== null;
-    }
-
-    get files(): any[] {
-        return this._files;
-    }
-
-    set files(value: any) {
-        this._files = value;
-    }
 
     get objects$(): Observable<any> {
         return this._objects.asObservable();
@@ -50,7 +37,4 @@ export class BimDataImportService {
             tap((res: any) => { })
         );
     }
-
 }
-
-

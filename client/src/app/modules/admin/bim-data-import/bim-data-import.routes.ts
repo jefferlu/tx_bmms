@@ -7,13 +7,5 @@ import { of } from "rxjs";
 
 export default [{
     path: '',
-    component: BimDataImportComponent,
-    resolve: {
-        data: () => {
-            const bimDataImportService = inject(BimDataImportService);
-            if (bimDataImportService.hasObjectsData)
-                return of(true)
-            return bimDataImportService.getObjects();
-        }
-    },
+    component: BimDataImportComponent,    
 }] as Routes

@@ -16,7 +16,7 @@
                     <a mat-stroked-button (click)="triggerFileInput()">
                         <span class="inline-flex items-center cursor-pointer">
                             <mat-icon class="mr-2 icon-size-5" [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
-                            <span>選擇檔案</span>
+                            <span>{{t('select-file')}}</span>
                         </span>
                     </a>
                 </div>
@@ -24,6 +24,9 @@
 
             <!-- Content -->
             <div class="flex h-full overflow-y-auto bg-card rounded-xl">
+                <ngx-spinner bdColor="rgba(0, 0, 0, 0)" [color]="'var(--spinner-color)'" size="default" type="ball-clip-rotate" [fullScreen]="false">
+                    <p class="-mt-10">{{t('loading')}}</p>
+                </ngx-spinner>
                 <!-- @if(files?.length>0){ -->
                 <p-table class="w-full" [value]="files" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'">
                     <ng-template pTemplate="header">
@@ -64,7 +67,7 @@
                                 <mat-progress-spinner class="m-3" color="accent" [diameter]="16" [mode]="'indeterminate'"></mat-progress-spinner>
                                 }
 
-                                @if(['ready','complete'].includes(file.status)){
+                                @if(['ready','complete', 'error'].includes(file.status)){
                                 <button class="" mat-icon-button (click)="onDelete(file)">
                                     <mat-icon class="text-red-400" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
                                 </button>

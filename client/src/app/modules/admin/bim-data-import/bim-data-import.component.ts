@@ -12,6 +12,7 @@ import { WebsocketService } from 'app/core/services/websocket/websocket.service'
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { NgClass } from '@angular/common';
 import { GtsConfirmationService } from '@gts/services/confirmation';
+import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 
 @Component({
     selector: 'app-bim-data-import',
@@ -21,7 +22,7 @@ import { GtsConfirmationService } from '@gts/services/confirmation';
     standalone: true,
     imports: [
         MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-        TranslocoModule, TableModule, NgClass,
+        TranslocoModule, TableModule, NgClass, NgxSpinnerModule
     ],
 })
 export class BimDataImportComponent implements OnInit, OnDestroy {
@@ -37,6 +38,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _toastService: ToastService,
+        private _spinner: NgxSpinnerService,
         private _translocoService: TranslocoService,
         private _gtsConfirmationService: GtsConfirmationService,
         private _apsCredentials: ApsCredentialsService,
@@ -49,6 +51,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         this._subscription.add(
             this._websocketService.onMessage().subscribe({
                 next: (res) => {
+                    console.log(res)
                     res.name = decodeURIComponent(res.name);
 
                     // 根據 WebSocket 訊息更新檔案列表中的檔案
@@ -71,14 +74,13 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         );
 
         // Get objects
-        this._bimDataImportService.objects$
+        this._spinner.show()
+        this._bimDataImportService.getObjects()
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((data: any) => {
-                console.log(data)
                 data = this._calculateFileSize(data);
-                console.log(data)
-                this.files = [...this._bimDataImportService.files, ...data];
-                this._bimDataImportService.files = this.files;
+                this.files = data;
+                this._spinner.hide();
                 this._changeDetectorRef.markForCheck();
             });
 
@@ -95,25 +97,19 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         if (event.target.files) {
             const selectedFiles = this._calculateFileSize(event.target.files)
 
-            // 從 BimDataImportService 中獲取現有檔案列表
-            const existingFiles = this._bimDataImportService.files || [];
-
-            // const existingFiles = this.files || [];
-
             // 合併檔案
             const newFiles = [
                 ...selectedFiles.filter(selectedFile => {
-                    const isDuplicate = existingFiles.some(existingFile => existingFile.name === selectedFile.name);
+                    const isDuplicate = this.files.some(existingFile => existingFile.name === selectedFile.name);
 
                     if (isDuplicate)
-                        this._toastService.open({ message: `${selectedFile.name} already exists.` });
+                        this._toastService.open({ message: `${selectedFile.name} ${this._translocoService.translate('already-exists')}.` });
 
                     return !isDuplicate;
                 }),
-                ...existingFiles,
+                ...this.files,
             ];
 
-            this._bimDataImportService.files = newFiles;
             this.files = newFiles;
 
             // 重置 input 的值
@@ -124,7 +120,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     }
 
     onBimDataImport(file: any): void {
-
         // if (!this._apsCredentials.check()) {
         if (!this._apsCredentials.check()) {
             this._apsCredentials.open().afterClosed().subscribe(res => {
@@ -150,7 +145,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                 },
                 error: (err) => {
                     file.status = 'error';
-                    file.message = JSON.stringify(err);                    
+                    file.message = JSON.stringify(err);
                     this._changeDetectorRef.markForCheck();
                 },
                 complete: () => {
@@ -162,7 +157,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
             });
     }
 
-    onDelete(file: any) {        
+    onDelete(file: any) {
         if (file.status === 'ready') {
             this.files = this.files.filter(e => e.name != file.name);
             this._changeDetectorRef.markForCheck();
@@ -191,7 +186,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         }
     }
 
-    private _delete(file: any) {        
+    private _delete(file: any) {
         this.isLoading = true;
         this._bimDataImportService.delete(file.name).pipe(
             finalize(() => {

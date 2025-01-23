@@ -55,7 +55,7 @@ class ObjectView(APIView):
         auth = Auth(CLIENT_ID, CLIENT_SECRET)
         token = auth.auth2leg()
         bucket = Bucket(token)
-        objects = json.loads(bucket.get_objects(BUCKET_KEY).to_json(orient='records'))
+        objects = json.loads(bucket.get_objects(BUCKET_KEY, 100).to_json(orient='records'))
 
         # Check ojbect job status
         # for obj in objects:
@@ -74,7 +74,7 @@ class ObjectView(APIView):
             token = auth.auth2leg()
             bucket = Bucket(token)
             obj = bucket.delete_object(BUCKET_KEY, name)
-            
+
             return Response(obj, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': f'{str(e)}'})
