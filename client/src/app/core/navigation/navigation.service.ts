@@ -45,7 +45,6 @@ export class NavigationService {
     get(): Observable<Navigation> {
         return this._appService.get('core/navigations').pipe(
             tap((navigation: any) => {
-                console.log('--->', navigation)
                 this._navigation.next(navigation);
             })
         );

@@ -24,3 +24,15 @@ class NavigationAdmin(MPTTModelAdmin):
             kwargs["queryset"] = Permission.objects.filter(
                 Q(content_type__app_label='core') & Q(content_type__model='navigation'))  # 限定可設定之權限
         return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+
+@admin.register(models.Locale)
+class LocaleAdmin(admin.ModelAdmin):
+    list_display = ('lang', 'name', 'is_active',)
+
+
+@admin.register(models.Translation)
+class TranslationAdmin(admin.ModelAdmin):
+    list_display = ('locale__name', 'locale__lang', 'key',  'value', )
+    list_filter = ('locale',)
+    search_fields = ('key', 'value')

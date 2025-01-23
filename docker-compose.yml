@@ -57,6 +57,7 @@ services:
             POSTGRESQL_PASSWORD: qbZucM8vvGwpfTd
             POSTGRESQL_DATABASE: bmms
         volumes:
+            - ./db:/docker-entrypoint-initdb.d
             - postgresql_data:/bitnami/postgresql
         ports:
             - 5433:5432

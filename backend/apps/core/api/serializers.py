@@ -9,6 +9,7 @@ from .. import models
 
 User = get_user_model()
 
+
 class TokenObtainSerializer(TokenObtainPairSerializer):
 
     @classmethod
@@ -21,7 +22,7 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
-        
+
         data = super().validate(attrs)
         update_last_login(None, self.user)
 
@@ -60,6 +61,7 @@ class UserSerializer(serializers.ModelSerializer):
             'last_login': {'read_only': True}
         }
 
+
 class NavigationSerializer(serializers.ModelSerializer):
 
     children = serializers.SerializerMethodField()
@@ -78,3 +80,18 @@ class NavigationSerializer(serializers.ModelSerializer):
         if representation.get('children') == []:
             representation.pop('children')
         return representation
+
+
+class LocaleSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='lang')
+    label = serializers.ReadOnlyField(source='name')
+
+    class Meta:
+        model = models.Locale
+        fields = ['id', 'label',]
+
+
+class TranslationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Translation
+        fields = ['key', 'value']

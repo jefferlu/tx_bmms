@@ -10,10 +10,11 @@ import { provideIcons } from './core/icons/icons.provider';
 import { provideGts } from '@gts';
 import { mockApiServices } from './mock-api';
 import { TranslocoHttpLoader } from './core/transloco/transloco-loader';
-import { provideTransloco, provideTransloco as provideTransloco_alias, TranslocoService } from '@jsverse/transloco';
+import { provideTransloco, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
+import { LocaleService } from './core/services/locale/locale.service';
 
 // import { routes } from './app.routes';
 
@@ -48,11 +49,17 @@ export const appConfig: ApplicationConfig = {
         {
             provide: APP_INITIALIZER,
             useFactory: () => {
-                const translocoService = inject(TranslocoService);
-                const defaultLang = translocoService.getDefaultLang();
-                translocoService.setActiveLang(defaultLang);
+                const localeService = inject(LocaleService);
+                const translocoService = inject(TranslocoService);           
 
-                return () => firstValueFrom(translocoService.load(defaultLang));
+                return async () => {
+                    const availableLangs = await firstValueFrom(localeService.getData());
+                    translocoService.setAvailableLangs(availableLangs);
+
+                    const defaultLang = translocoService.getDefaultLang();
+                    translocoService.setActiveLang(defaultLang);
+                    await firstValueFrom(translocoService.load(defaultLang))
+                };
             },
             multi: true,
         },
@@ -103,18 +110,12 @@ export const appConfig: ApplicationConfig = {
         }),
         provideTransloco({
             config: {
-                availableLangs: [{
-                    id: 'zh',
-                    label: '繁體中文',
-                }, {
-                    id: 'en',
-                    label: 'English',
-                }],
+                availableLangs: [],
                 defaultLang: 'en',
                 reRenderOnLangChange: true,
                 prodMode: !isDevMode(),
             },
-            loader: TranslocoHttpLoader
+            loader: TranslocoHttpLoader,
         }),
         providePrimeNG({
             theme: {

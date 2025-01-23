@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 
 from rest_framework import viewsets, mixins, status, exceptions
 from rest_framework.views import APIView
@@ -83,7 +84,7 @@ class UserViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('id')
 
 
-class NavigationViewSet(viewsets.ModelViewSet):
+class NavigationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, )
     serializer_class = serializers.NavigationSerializer
     queryset = models.Navigation.objects.all().order_by('id')
@@ -159,3 +160,23 @@ class NavigationViewSet(viewsets.ModelViewSet):
 
         # 移除None值，僅保留有權限的導航項目
         return [nav for nav in filtered_navigations if nav is not None]
+
+
+class LocaleViewSet(viewsets.ModelViewSet):
+    permission_classes = ()
+    queryset = models.Locale.objects.filter(is_active=True,).order_by('id')
+    serializer_class = serializers.LocaleSerializer
+
+
+class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
+    serializer_class = serializers.TranslationSerializer
+    queryset = models.Translation.objects.all().order_by('id')
+
+    def list(self, request):
+        lang = request.GET.get('lang', 'en').lower()  # 預設語言為 'en'
+
+        qs = models.Translation.objects.filter(locale__lang=lang)
+        translations = {t.key: t.value for t in qs}
+
+        return Response(translations)
+        

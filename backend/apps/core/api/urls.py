@@ -17,6 +17,8 @@ class OptionalSlashRouter(DefaultRouter):
 router = OptionalSlashRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'navigations', views.NavigationViewSet)
+router.register(r'translations', views.TranslationViewSet)
+router.register(r'locales', views.LocaleViewSet)
 
 urlpatterns = [
     path('login', views.TokenObtainView.as_view(), name='token_obtain_pair'),

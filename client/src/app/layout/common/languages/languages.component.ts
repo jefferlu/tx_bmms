@@ -20,7 +20,6 @@ import { firstValueFrom, take } from 'rxjs';
 export class LanguagesComponent implements OnInit, OnDestroy {
     availableLangs: AvailableLangs;
     activeLang: string;
-    flagCodes: any;
 
     /**
      * Constructor
@@ -50,13 +49,7 @@ export class LanguagesComponent implements OnInit, OnDestroy {
 
             // Update the navigation
             this._updateNavigation(activeLang);
-        });
-
-        // Set the country iso codes for languages for flags
-        this.flagCodes = {
-            'en': 'us',
-            'zh': 'tw'
-        };
+        });        
     }
 
     /**

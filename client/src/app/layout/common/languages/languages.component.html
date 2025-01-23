@@ -1,45 +1,33 @@
 <!-- Button -->
-<button
-    mat-icon-button
-    [matMenuTriggerFor]="languages">
-    <ng-container *ngTemplateOutlet="flagImage; context: {$implicit: activeLang}"></ng-container>
-    <!-- <p class="text-xl">{{activeLang.toUpperCase()}}</p> -->
+<button mat-icon-button [matMenuTriggerFor]="languages">
+    <span class="relative w-6 shadow rounded-sm overflow-hidden">
+        <span class="absolute inset-0 ring-1 ring-inset ring-black ring-opacity-10"></span>
+        <img class="w-full" [src]="'assets/images/flags/language-translation-black-icon.svg'">
+    </span>
 </button>
 
 <!-- Language menu -->
-<mat-menu
-    [xPosition]="'before'"
-    #languages="matMenu">
+<mat-menu [xPosition]="'before'" #languages="matMenu">
     <ng-container *ngFor="let lang of availableLangs; trackBy: trackByFn">
-        <button
-            mat-menu-item
-            (click)="setActiveLang(lang.id)">
+        <button mat-menu-item (click)="setActiveLang(lang.id)">
             <span class="flex items-center">
                 <ng-container *ngTemplateOutlet="flagImage; context: {$implicit: lang.id}"></ng-container>
-                <span class="ml-3">{{lang.label}}</span>
+                <span>{{lang.label}}</span>
             </span>
         </button>
     </ng-container>
     <button class="ml-2" mat-icon-button matSuffix>
-        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon> 
+        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
     </button>
     <button class="ml-2" mat-icon-button matSuffix>
-        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:arrow-down-on-square-stack'"></mat-icon> 
+        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:arrow-down-on-square-stack'"></mat-icon>
     </button>
     <button class="ml-2" mat-icon-button matSuffix>
-        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:arrow-up-on-square-stack'"></mat-icon> 
+        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:arrow-up-on-square-stack'"></mat-icon>
     </button>
 </mat-menu>
 
 <!-- Flag image template -->
-<ng-template
-    let-lang
-    #flagImage>
-    <span class="relative w-6 shadow rounded-sm overflow-hidden">
-        <span class="absolute inset-0 ring-1 ring-inset ring-black ring-opacity-10"></span>
-        <img
-            class="w-full"
-            [src]="'assets/images/flags/' + flagCodes[lang].toUpperCase() + '.svg'"
-            [alt]="'Flag image for ' + lang">
-    </span>
+<ng-template let-lang #flagImage>
+    <mat-icon [svgIcon]="'heroicons_outline:globe-asia-australia'"></mat-icon>
 </ng-template>
