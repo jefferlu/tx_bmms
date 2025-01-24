@@ -1,6 +1,8 @@
 from django.db import models
+from django.conf import settings
+from django.contrib.auth.models import Permission, Group
 from mptt.models import MPTTModel, TreeForeignKey
-from django.contrib.auth.models import Permission
+from cryptography.fernet import Fernet
 
 
 class Navigation(MPTTModel):
@@ -54,3 +56,29 @@ class Translation(models.Model):
 
     def __str__(self):
         return f"{self.locale.lang} - {self.key}"
+
+
+class AutodeskCredentials(models.Model):
+    groups = models.ManyToManyField(Group, related_name='autodesk_credentials', blank=True)
+    client_id = models.CharField(max_length=255, unique=True)
+    _client_secret = models.BinaryField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def _get_cipher(self):
+        secret_key = getattr(settings, 'SECRET_KEY', None)
+        if not secret_key:
+            raise ValueError("SECRET_KEY 未設置，請在 settings.py 中定義")
+        return Fernet(secret_key.encode())
+
+    def set_client_secret(self, secret):
+        cipher = self._get_cipher()
+        self._client_secret = cipher.encrypt(secret.encode())
+
+    def get_client_secret(self):
+        cipher = self._get_cipher()
+        return cipher.decrypt(self._client_secret).decode()
+
+    def __str__(self):
+        return f"Autodesk Credentials ({self.client_id})"

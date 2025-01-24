@@ -36,3 +36,36 @@ class TranslationAdmin(admin.ModelAdmin):
     list_display = ('locale__name', 'locale__lang', 'key',  'value', )
     list_filter = ('locale',)
     search_fields = ('key', 'value')
+
+
+@admin.register(models.AutodeskCredentials)
+class AutodeskCredentialsAdmin(admin.ModelAdmin):
+    list_display = ('client_id', '_client_secret', 'groups', )
+
+    def groups(self, obj):
+        return ", ".join([group.name for group in obj.groups.all()])
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == 'groups':
+            kwargs['queryset'] = Group.objects.all()
+            return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+
+# admin.site.unregister(Group)  # 取消 Django 預設的註冊
+
+
+# @admin.register(Group)
+# class GroupAdmin(admin.ModelAdmin):
+#     list_display = ('name',)
+#     search_fields = ('name',)
+#     filter_horizontal = ('permissions',)
+
+#     def get_queryset(self, request):
+#         qs = super().get_queryset(request).order_by('id')
+#         return qs
+
+#     def formfield_for_manytomany(self, db_field, request, **kwargs):
+#         if db_field.name == "permissions":
+#             kwargs["queryset"] = Permission.objects.filter(
+#                 Q(content_type__app_label='core') & Q(content_type__model='navigation'))  # 限定可設定之權限
+#         return super().formfield_for_manytomany(db_field, request, **kwargs)
