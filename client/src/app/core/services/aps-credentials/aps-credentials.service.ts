@@ -20,8 +20,7 @@ export class ApsCredentialsService {
         return JSON.parse(localStorage.getItem(APS_CREDENTIALS_KEY)) ?? undefined;
     }
 
-    check(): boolean {
-        console.log(this.credientials)
+    check(): boolean {       
         return this.credientials ? true : false;
     }
 

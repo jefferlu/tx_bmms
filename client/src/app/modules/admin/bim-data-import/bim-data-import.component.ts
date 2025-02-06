@@ -120,14 +120,46 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     }
 
     onBimDataImport(file: any): void {
-        // if (!this._apsCredentials.check()) {
+
         if (!this._apsCredentials.check()) {
-            this._apsCredentials.open().afterClosed().subscribe(res => {
-                if (res != 'confirmed') return;
-                this._bimDataImport(file);
+            this._toastService.open({ message: this._translocoService.translate('no-aps-credentials') });
+            return;
+        }
+
+        if (file.status === 'ready') {
+            this._bimDataImport(file);
+        }
+        else {
+            const title = this._translocoService.translate('confirm-action');
+            const message = this._translocoService.translate('re-translate-confirm');
+            const deleteLabel = this._translocoService.translate('confirm');
+            const cancelLabel = this._translocoService.translate('cancel');
+
+
+            let dialogRef = this._gtsConfirmationService.open({
+                title: title,
+                message: message,
+                icon: { color: 'primary' },
+                actions: { confirm: { label: deleteLabel }, cancel: { label: cancelLabel } }
+
+            });
+
+            dialogRef.afterClosed().subscribe(res => {
+                if (res === 'confirmed') {
+                    this._bimDataImport(file);
+                }
             });
         }
-        else { this._bimDataImport(file); }
+
+        // if (!this._apsCredentials.check()) {
+        //     this._apsCredentials.open().afterClosed().subscribe(res => {
+        //         if (res != 'confirmed') return;
+        //         this._bimDataImport(file);
+        //     });
+        // }
+        // else { 
+        //     this._bimDataImport(file);
+        //  }
     }
 
     private _bimDataImport(file: any) {
@@ -173,12 +205,12 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                 title: title,
                 message: message,
                 icon: { color: 'warn' },
-                actions: { confirm: { label: deleteLabel, color: 'warn' }, cancel: { label: cancelLabel } }
+                actions: { confirm: { label: deleteLabel }, cancel: { label: cancelLabel } }
 
             });
 
-            dialogRef.afterClosed().subscribe(result => {
-                if (result === 'confirmed') {
+            dialogRef.afterClosed().subscribe(res => {
+                if (res === 'confirmed') {
                     this._delete(file);
                     this._changeDetectorRef.markForCheck();
                 }

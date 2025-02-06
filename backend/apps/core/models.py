@@ -14,6 +14,7 @@ class Navigation(MPTTModel):
         ('group', 'group'),
         ('spacer', 'spacer'),
     ]
+    
 
     title_locale = models.CharField(max_length=30)
     subtitle_locale = models.CharField(max_length=255, blank=True, null=True)
@@ -64,14 +65,14 @@ class AutodeskCredentials(models.Model):
     _client_secret = models.BinaryField()
 
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True)    
 
     def _get_cipher(self):
         secret_key = getattr(settings, 'SECRET_KEY', None)
         if not secret_key:
             raise ValueError("SECRET_KEY 未設置，請在 settings.py 中定義")
         return Fernet(secret_key.encode())
-
+    
     def set_client_secret(self, secret):
         cipher = self._get_cipher()
         self._client_secret = cipher.encrypt(secret.encode())

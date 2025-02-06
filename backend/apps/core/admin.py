@@ -51,21 +51,40 @@ class AutodeskCredentialsAdmin(admin.ModelAdmin):
             return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
-# admin.site.unregister(Group)  # 取消 Django 預設的註冊
+@admin.register(Permission)
+class PermissionAdmin(admin.ModelAdmin):
+    list_display = ('codename', 'name', )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # qs = qs.filter(content_type__app_label='core', content_type__model='navigation')
+        qs = qs.filter(Q(content_type__app_label='core') &
+                       Q(content_type__model='navigation')).order_by('codename')
+        return qs
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "content_type":
+            # 只顯示特定應用的 ContentType
+            kwargs["queryset"] = ContentType.objects.filter(
+                app_label='core', model='navigation')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-# @admin.register(Group)
-# class GroupAdmin(admin.ModelAdmin):
-#     list_display = ('name',)
-#     search_fields = ('name',)
-#     filter_horizontal = ('permissions',)
+admin.site.unregister(Group)  # 取消 Django 預設的註冊
 
-#     def get_queryset(self, request):
-#         qs = super().get_queryset(request).order_by('id')
-#         return qs
 
-#     def formfield_for_manytomany(self, db_field, request, **kwargs):
-#         if db_field.name == "permissions":
-#             kwargs["queryset"] = Permission.objects.filter(
-#                 Q(content_type__app_label='core') & Q(content_type__model='navigation'))  # 限定可設定之權限
-#         return super().formfield_for_manytomany(db_field, request, **kwargs)
+@admin.register(Group)
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    filter_horizontal = ('permissions',)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request).order_by('id')
+        return qs
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "permissions":
+            kwargs["queryset"] = Permission.objects.filter(
+                Q(content_type__app_label='core') & Q(content_type__model='navigation'))  # 限定可設定之權限
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
