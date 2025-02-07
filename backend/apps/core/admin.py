@@ -40,7 +40,7 @@ class TranslationAdmin(admin.ModelAdmin):
 
 @admin.register(models.AutodeskCredentials)
 class AutodeskCredentialsAdmin(admin.ModelAdmin):
-    list_display = ('client_id', '_client_secret', 'groups', )
+    list_display = ('client_id', '_client_secret', 'groups', 'created_at', 'updated_at', )
 
     def groups(self, obj):
         return ", ".join([group.name for group in obj.groups.all()])
