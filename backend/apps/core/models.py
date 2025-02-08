@@ -62,7 +62,7 @@ class Translation(models.Model):
 class AutodeskCredentials(models.Model):
     groups = models.ManyToManyField(Group, related_name='autodesk_credentials', blank=True)
     client_id = models.CharField(max_length=255, unique=True)
-    _client_secret = models.BinaryField()
+    client_secret = models.BinaryField()
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)    

@@ -7,7 +7,7 @@ import { RouterOutlet } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { BimModelViewerService } from './bim-model-viewer.service';
-import { DatePipe, NgClass } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { Subject, takeUntil } from 'rxjs';
@@ -21,7 +21,7 @@ import { NgxSpinnerService } from 'ngx-spinner';
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
     imports: [
-        NgClass, DatePipe, FormsModule, TranslocoModule, TableModule,
+        DatePipe, FormsModule, TranslocoModule, TableModule,
         MatIconModule, MatButtonModule, MatInputModule
     ],
 })
