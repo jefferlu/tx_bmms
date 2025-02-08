@@ -23,7 +23,7 @@ services:
             - internal_network
         environment:
             - DEBUG=FALSE
-            - CSRF_TRUSTED_ORIGINS=https://bmms.giantcld.com
+            - CSRF_TRUSTED_ORIGINS=https://bmms.gtsoftec.com
             - POSTGRESQL_USERNAME=bmms
             - POSTGRESQL_PASSWORD=qbZucM8vvGwpfTd
             - POSTGRESQL_DATABASE=bmms
