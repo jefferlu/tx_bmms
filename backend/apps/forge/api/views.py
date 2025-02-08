@@ -18,14 +18,16 @@ from rest_framework.pagination import PageNumberPagination
 
 from drf_spectacular.utils import extend_schema
 
-from utils.utils import Utils
+from apps.forge.api.tasks import bim_data_import
+from utils.utils import checkRedis, get_aps_credentials
 from ..aps_toolkit import Auth, Bucket, Derivative, PropReader
 from . import serializers
-from apps.forge.api.tasks import bim_data_import
+from apps.core import models
 
-CLIENT_ID = '94MGPGEtqunCJS6XyZAAnztSSIrtfOLsVWQEkLNQ7uracrAC'
-CLIENT_SECRET = 'G5tBYHoxe9xbpsisxGo5kBZOCPwEFCCuXIYr8kms28SSRuuVAHR0G766A3RKFQXy'
-BUCKET_KEY = 'bmms_oss'
+
+# CLIENT_ID = '94MGPGEtqunCJS6XyZAAnztSSIrtfOLsVWQEkLNQ7uracrAC'
+# CLIENT_SECRET = 'G5tBYHoxe9xbpsisxGo5kBZOCPwEFCCuXIYr8kms28SSRuuVAHR0G766A3RKFQXy'
+# BUCKET_KEY = 'bmms_oss'
 
 
 @extend_schema(
@@ -36,7 +38,10 @@ BUCKET_KEY = 'bmms_oss'
 class BucketView(APIView):
 
     def get(self, request):
-        auth = Auth(CLIENT_ID, CLIENT_SECRET)
+        client_id, client_secret, bucket_key = get_aps_credentials(request.user)
+
+        print(client_id, client_secret, bucket_key)
+        auth = Auth(client_id, client_secret)
         token = auth.auth2leg()
         bucket = Bucket(token)
         buckets = json.loads(bucket.get_all_buckets().to_json(orient='records'))
@@ -52,10 +57,12 @@ class BucketView(APIView):
 class ObjectView(APIView):
 
     def get(self, request):
-        auth = Auth(CLIENT_ID, CLIENT_SECRET)
+        client_id, client_secret, bucket_key = get_aps_credentials(request.user)
+
+        auth = Auth(client_id, client_secret)
         token = auth.auth2leg()
         bucket = Bucket(token)
-        objects = json.loads(bucket.get_objects(BUCKET_KEY, 100).to_json(orient='records'))
+        objects = json.loads(bucket.get_objects(bucket_key, 100).to_json(orient='records'))
 
         # Check ojbect job status
         # for obj in objects:
@@ -70,10 +77,12 @@ class ObjectView(APIView):
 
     def delete(self, request, name=None):
         try:
-            auth = Auth(CLIENT_ID, CLIENT_SECRET)
+            client_id, client_secret, bucket_key = get_aps_credentials(request.user)
+
+            auth = Auth(client_id, client_secret)
             token = auth.auth2leg()
             bucket = Bucket(token)
-            obj = bucket.delete_object(BUCKET_KEY, name)
+            obj = bucket.delete_object(bucket_key, name)
 
             return Response(obj, status=status.HTTP_200_OK)
         except Exception as e:
@@ -329,8 +338,8 @@ class CompareSqliteView(APIView):
 #             return Response({'error': f'An unexpected error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@ extend_schema(
-    summary="BIM Data Import",
+@extend_schema(
+    summary="BIM data import",
     description="Endpoint to import BIM data",
     tags=['APS']
 )
@@ -338,11 +347,13 @@ class BimDataImportView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
+        client_id, client_secret,bucket_key = get_aps_credentials(request.user)
+
         file = request.FILES.get('file')
         if not file:
             return Response({"error": "No file provided"}, status=400)
 
-        # Utils.checkRedis('localhost')
+        # checkRedis('localhost')
 
         # Save file
         file_path = f'uploads/{file.name}'
@@ -351,8 +362,30 @@ class BimDataImportView(APIView):
         default_storage.save(file_path, ContentFile(file.read()))
 
         # 執行Autodesk Model Derivative API轉換
-        bim_data_import.delay(CLIENT_ID, CLIENT_SECRET, BUCKET_KEY, file.name, 'progress_group')
+        bim_data_import.delay(client_id, client_secret, bucket_key, file.name, 'progress_group')
         # bim_data_import(CLIENT_ID, CLIENT_SECRET, BUCKET_KEY, file.name, 'progress_group')
 
         # # 回應上傳成功的訊息
         return Response({"message": f"File '{file.name}' is being processed."}, status=200)
+
+@extend_schema(
+    summary="BIM data reload",
+    description="Endpoint to import BIM data",
+    tags=['APS']
+)
+class BimDataReloadView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        client_id, client_secret,bucket_key = get_aps_credentials(request.user)
+
+        filename = request.data.get('filename')
+        if not filename:
+            return Response({"error": "No filename provided"}, status=400)
+
+
+        # 執行Autodesk Model Derivative API轉換
+        bim_data_import.delay(client_id, client_secret, bucket_key, filename, 'progress_group')
+        # bim_data_import(CLIENT_ID, CLIENT_SECRET, BUCKET_KEY, file.name, 'progress_group')
+
+        # # 回應上傳成功的訊息
+        return Response({"message": f"File '{filename}' is being processed."}, status=200)

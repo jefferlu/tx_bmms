@@ -5,6 +5,8 @@ from mptt.models import MPTTModel, TreeForeignKey
 from cryptography.fernet import Fernet
 
 # 公司別
+
+
 class Company(models.Model):
     name = models.CharField(max_length=255, unique=True)  # verbose_name="名稱"
 
@@ -13,7 +15,7 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
-    
+
 
 # 用戶資料
 class UserProfile(models.Model):
@@ -21,15 +23,15 @@ class UserProfile(models.Model):
         to='account.User', on_delete=models.CASCADE, related_name='user_profile')
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, related_name='user_profile')
-   
 
     def __str__(self):
         return f"{self.user.username} - {self.company.name}"
 
     # 刪除UserProfile時，關聯刪除User
-    def delete(self, *args, **kwargs):        
-        self.user.delete() # 刪除 User        
-        super().delete(*args, **kwargs)# 刪除 UserProfile 本身
+    def delete(self, *args, **kwargs):
+        self.user.delete()  # 刪除 User
+        super().delete(*args, **kwargs)  # 刪除 UserProfile 本身
+
 
 class Navigation(MPTTModel):
     TYPE_CHOICES = [
@@ -40,7 +42,6 @@ class Navigation(MPTTModel):
         ('group', 'group'),
         ('spacer', 'spacer'),
     ]
-    
 
     title_locale = models.CharField(max_length=30)
     subtitle_locale = models.CharField(max_length=255, blank=True, null=True)
@@ -87,27 +88,12 @@ class Translation(models.Model):
 
 class AutodeskCredentials(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="autodesk_credentials")
-    client_id = models.CharField(max_length=255, unique=True)
-    client_secret = models.BinaryField(editable=False)
+    client_id = models.CharField(max_length=255)
+    client_secret = models.CharField(max_length=255)
     bucket_key = models.CharField(max_length=255, unique=True)  # 新增 Bucket Key
 
-
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)    
-
-    def _get_cipher(self):
-        secret_key = getattr(settings, 'FERNET_SECRET_KEY', None)
-        if not secret_key:
-            raise ValueError("SECRET_KEY 未設置，請在 settings.py 中定義")
-        return Fernet(secret_key.encode())
-    
-    def set_client_secret(self, secret):
-        cipher = self._get_cipher()
-        self.client_secret = cipher.encrypt(secret.encode())
-
-    def get_client_secret(self):
-        cipher = self._get_cipher()
-        return cipher.decrypt(self.client_secret).decode()
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Autodesk Credentials ({self.client_id})"

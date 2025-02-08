@@ -52,52 +52,9 @@ class TranslationAdmin(admin.ModelAdmin):
     search_fields = ('key', 'value')
 
 
-class AutodeskCredentialsAdminForm(forms.ModelForm):
-    """ 自訂表單，允許輸入 client_secret """
-    client_secret_input = forms.CharField(
-        label="Client Secret",
-        widget=forms.PasswordInput(
-            attrs={"style": "width: 260px;"},
-            render_value=True
-        ),  # 顯示密碼輸入框
-        required=True
-    )
-
-    class Meta:
-        model = models.AutodeskCredentials
-        fields = ['company', 'bucket_key', 'client_id', ]  # **不要放 `client_secret`**
-        # fields = '__all__'
-
-    def save(self, commit=True):
-        """ 儲存時自動加密 `client_secret` """
-        instance = super().save(commit=False)
-
-        # 檢查使用者是否輸入了新的 `client_secret`
-        client_secret_value = self.cleaned_data.get('client_secret_input')
-        if client_secret_value:
-            instance.set_client_secret(client_secret_value)  # 加密並儲存
-
-        if commit:
-            instance.save()
-        return instance
-
-
 @admin.register(models.AutodeskCredentials)
 class AutodeskCredentialsAdmin(admin.ModelAdmin):
-    form = AutodeskCredentialsAdminForm
-    list_display = ('client_id', 'get_client_secret_display', 'created_at', 'updated_at')
-
-    def get_client_secret_display(self, obj):
-        """避免顯示完整密碼"""
-        secret = obj.get_client_secret()
-        return secret[:10] + "..." if secret else "N/A"
-    get_client_secret_display.short_description = 'Client Secret'
-
-    # def save_model(self, request, obj, form, change):
-    #     """儲存加密後的密碼"""
-    #     if 'client_secret' in form.cleaned_data and form.cleaned_data['client_secret']:
-    #         obj.set_client_secret(form.cleaned_data['client_secret'])  # 加密後存入
-    #     super().save_model(request, obj, form, change)
+    list_display = ('client_id', 'client_secret', 'bucket_key', 'created_at', 'updated_at',)
 
 
 @admin.register(Permission)
