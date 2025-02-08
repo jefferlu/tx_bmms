@@ -13,8 +13,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { environment } from 'environments/environment';
 
-declare var $: any;
-const endpoint = environment.elfinder;
+// declare var $: any;
+// const endpoint = environment.elfinder;
 
 @Component({
     selector: 'app-process-functions',
@@ -36,7 +36,7 @@ const endpoint = environment.elfinder;
 })
 export class ProcessFunctionsComponent implements OnInit, AfterViewInit, OnDestroy {
 
-    @ViewChild('elfinder') elfinderDiv!: ElementRef;
+    // @ViewChild('elfinder') elfinderDiv!: ElementRef;
 
     // @ViewChild('viewer') viewerContainer: ElementRef;
 
@@ -613,28 +613,28 @@ export class ProcessFunctionsComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     ngAfterViewInit(): void {
-        $(this.elfinderDiv.nativeElement).elfinder({
-            cssAutoLoad: false,               // Disable CSS auto loading
-            baseUrl: './elfinder/',
-            url: `${endpoint}/elfinder/php/connector.minimal.php`,  // connector URL (REQUIRED)
-            // lang: 'ru'                    // language (OPTIONAL)
-            height: '480px',            
-        }, (fm: any) => {
-            // `init` event callback function
-            fm.bind('init', function () { });
-            // Optional for set document.title dynamically.
-            var title = document.title;
-            fm.bind('open', function () {
-                var path = '',
-                    cwd = fm.cwd();
-                if (cwd) {
-                    path = fm.path(cwd.hash) || null;
-                }
-                document.title = path ? path + ':' + title : title;
-            }).bind('destroy', function () {
-                document.title = title;
-            });
-        });
+        // $(this.elfinderDiv.nativeElement).elfinder({
+        //     cssAutoLoad: false,               // Disable CSS auto loading
+        //     baseUrl: './elfinder/',
+        //     url: `${endpoint}/elfinder/php/connector.minimal.php`,  // connector URL (REQUIRED)
+        //     // lang: 'ru'                    // language (OPTIONAL)
+        //     height: '480px',            
+        // }, (fm: any) => {
+        //     // `init` event callback function
+        //     fm.bind('init', function () { });
+        //     // Optional for set document.title dynamically.
+        //     var title = document.title;
+        //     fm.bind('open', function () {
+        //         var path = '',
+        //             cwd = fm.cwd();
+        //         if (cwd) {
+        //             path = fm.path(cwd.hash) || null;
+        //         }
+        //         document.title = path ? path + ':' + title : title;
+        //     }).bind('destroy', function () {
+        //         document.title = title;
+        //     });
+        // });
     }
 
     ngOnDestroy(): void { }
