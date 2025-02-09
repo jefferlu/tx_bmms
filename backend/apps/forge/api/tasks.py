@@ -28,24 +28,24 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name)
             },
         )
 
-    try:
-        # Get aps token
-        auth = Auth(client_id, client_secret)
-        token = auth.auth2leg()
-        bucket = Bucket(token)
+    # try:
+    # Get aps token
+    auth = Auth(client_id, client_secret)
+    token = auth.auth2leg()
+    bucket = Bucket(token)
 
-        # Step 1: 上傳檔案到 Autodesk OSS
-        logger.info('Uploading file to Autodesk OSS...')
-        print('Uploading file to Autodesk OSS...')
-        send_progress('upload-object', 'Uploading file to Autodesk OSS...')
-        object_data = bucket.upload_object(bucket_key, f'media-root/uploads/{file_name}', file_name)
-        urn = bucket.get_urn(object_data['objectId'])
+    # Step 1: 上傳檔案到 Autodesk OSS
+    logger.info('Uploading file to Autodesk OSS...')
+    print('Uploading file to Autodesk OSS...')
+    send_progress('upload-object', 'Uploading file to Autodesk OSS...')
+    object_data = bucket.upload_object(bucket_key, f'media-root/uploads/{file_name}', file_name)
+    urn = bucket.get_urn(object_data['objectId'])
 
-        process_translation(urn, token, object_data, send_progress)
+    process_translation(urn, token, object_data, send_progress)
         
-    except Exception as e:
-        logger.error(str(e))
-        send_progress('error', str(e))
+    # except Exception as e:
+    #     logger.error(str(e))
+    #     send_progress('error', str(e))
 
 
 def process_translation(urn, token, object_data, send_progress):
