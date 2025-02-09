@@ -41,7 +41,13 @@ class Bucket:
         if response.status_code != 200:
             raise Exception(response.content)
         data = response.json()
+
+        print(data)
         df = pd.DataFrame(data["items"])
+
+        if df.empty:
+            return df
+
         milliseconds_since_epoch = df["createdDate"]
         seconds_since_epoch = milliseconds_since_epoch // 1000
         real_date = pd.to_datetime(seconds_since_epoch, unit="s")
@@ -165,7 +171,7 @@ class Bucket:
             "Content-Type": "application/octet-stream"
         }
         url = f"{self.host}/{bucket_name}/objects/{object_name}"
-        response = requests.put(url, headers=headers, data=stream)        
+        response = requests.put(url, headers=headers, data=stream)
         if response.status_code != 200:
             raise Exception(response.reason)
         return response.json()
