@@ -25,11 +25,17 @@ export class BimDataImportService {
         );
     }
 
-    bimDataInport(file: File): Observable<any> {
+    bimDataImport(file: File): Observable<any> {
         const formData = new FormData();
         formData.append('file', file, encodeURIComponent(file.name));
 
         return this._appService.post('forge/bim-data-import', formData, { reportProgress: true, observe: 'events' });
+    }
+
+    bimDataReload(filename: string): Observable<any> {
+        return this._appService.post('forge/bim-data-reload', { filename: filename }).pipe(
+            tap((res: any) => { })
+        )
     }
 
     delete(name: number): Observable<any> {

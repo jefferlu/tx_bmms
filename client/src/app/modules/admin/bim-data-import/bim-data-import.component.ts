@@ -146,7 +146,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
 
             dialogRef.afterClosed().subscribe(res => {
                 if (res === 'confirmed') {
-                    this._bimDataImport(file);
+                    this._bimDataReload(file);
                 }
             });
         }
@@ -163,7 +163,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     }
 
     private _bimDataImport(file: any) {
-        this._bimDataImportService.bimDataInport(file.file)
+        this._bimDataImportService.bimDataImport(file.file)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
                 next: (res) => {
@@ -185,6 +185,22 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                     // file.message = 'upload-completed'
                     // console.log('upload-completed')
                     // this._changeDetectorRef.markForCheck();
+                }
+            });
+    }
+
+    private _bimDataReload(file: any) {
+        console.log(file)
+        this._bimDataImportService.bimDataReload(file.name)
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe({
+                next: (res) => {
+                    file.status = 'process';                    
+                },
+                error: (err) => {
+                    file.status = 'error';
+                    file.message = JSON.stringify(err);
+                    this._changeDetectorRef.markForCheck();
                 }
             });
     }

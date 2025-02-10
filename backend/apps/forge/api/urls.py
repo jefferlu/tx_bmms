@@ -9,4 +9,5 @@ urlpatterns = [
     re_path(r'^objects/(?P<name>[\w\-.()%\s]+)$', views.ObjectView.as_view(), name='objects_delete'),
     re_path(r'^compare-sqlite/?$', views.CompareSqliteView.as_view(), name='compare_selite'),
     re_path(r'^bim-data-import/?$', views.BimDataImportView.as_view(), name='bim_data_import'),
+    re_path(r'^bim-data-reload/?$', views.BimDataReloadView.as_view(), name='bim_data_reload'),
 ]

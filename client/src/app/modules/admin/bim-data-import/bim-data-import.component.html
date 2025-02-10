@@ -55,15 +55,20 @@
                             </td>
                             <td class="text-sm">{{file.message}}</td>
                             <td class="text-center">
-                                @if(['ready','error'].includes(file.status)){
+                                @if(['ready'].includes(file.status)){
                                 <button mat-icon-button (click)="onBimDataImport(file)">
-                                    <mat-icon [svgIcon]="'heroicons_outline:cloud-arrow-up'"></mat-icon>
+                                    <mat-icon [svgIcon]="'heroicons_outline:arrow-up-tray'"></mat-icon>
                                 </button>
                                 }
-                                @else if(file.status==='complete'){
+                                @else if(['complete'].includes(file.status)){
                                 <button mat-icon-button (click)="onBimDataImport(file)">
                                     <mat-icon class="text-green-400 m-2" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
-                                </button>                                
+                                </button>
+                                }
+                                @else if(['error'].includes(file.status)){
+                                <button mat-icon-button (click)="onBimDataImport(file)">
+                                    <mat-icon [svgIcon]="'heroicons_outline:arrow-path-rounded-square'"></mat-icon>
+                                </button>
                                 }
                                 @else {
                                 <mat-progress-spinner class="m-3" color="accent" [diameter]="16" [mode]="'indeterminate'"></mat-progress-spinner>
