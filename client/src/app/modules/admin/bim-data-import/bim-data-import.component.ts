@@ -31,8 +31,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     private _subscription: Subscription = new Subscription();
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-    isLoading: boolean;
-
     files: any[] = [];
 
     constructor(
@@ -235,10 +233,10 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     }
 
     private _delete(file: any) {
-        this.isLoading = true;
+        this._spinner.show()
         this._bimDataImportService.delete(file.name).pipe(
             finalize(() => {
-                this.isLoading = false;
+                this._spinner.hide()
                 this._changeDetectorRef.markForCheck();
             })
         ).subscribe({
