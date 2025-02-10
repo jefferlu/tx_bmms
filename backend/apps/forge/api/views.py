@@ -19,7 +19,7 @@ from rest_framework.pagination import PageNumberPagination
 from drf_spectacular.utils import extend_schema
 
 from apps.forge.api.tasks import bim_data_import
-from utils.utils import checkRedis, get_aps_credentials
+from utils.utils import check_redis, get_aps_credentials, get_aps_bucket
 from ..aps_toolkit import Auth, Bucket, Derivative, PropReader
 from . import serializers
 from apps.core import models
@@ -39,17 +39,14 @@ class BucketView(APIView):
 
     def get(self, request):
         try:
-            client_id, client_secret, bucket_key = get_aps_credentials(request.user)
+            client_id, client_secret = get_aps_credentials(request.user)
 
-            print(client_id, client_secret, bucket_key)
             auth = Auth(client_id, client_secret)
             token = auth.auth2leg()
             bucket = Bucket(token)
-            buckets = json.loads(bucket.get_all_buckets().to_json(orient='records'))
+            data = json.loads(bucket.get_all_buckets().to_json(orient='records'))
 
-            import uuid
-            
-            return Response(buckets, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({'error': f'{str(e)}'})
@@ -64,7 +61,8 @@ class ObjectView(APIView):
 
     def get(self, request):
         try:
-            client_id, client_secret, bucket_key = get_aps_credentials(request.user)
+            client_id, client_secret = get_aps_credentials(request.user)
+            bucket_key = get_aps_bucket(client_id, client_secret)
 
             auth = Auth(client_id, client_secret)
             token = auth.auth2leg()
@@ -81,13 +79,14 @@ class ObjectView(APIView):
 
             serializer = serializers.ObjectSerializer(objects, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
         except Exception as e:
             return Response({'error': f'{str(e)}'})
-        
+
     def delete(self, request, name=None):
         try:
-            client_id, client_secret, bucket_key = get_aps_credentials(request.user)
+            client_id, client_secret = get_aps_credentials(request.user)
+            bucket_key = get_aps_bucket(client_id, client_secret)
 
             auth = Auth(client_id, client_secret)
             token = auth.auth2leg()
@@ -357,13 +356,14 @@ class BimDataImportView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
-        client_id, client_secret, bucket_key = get_aps_credentials(request.user)
+        client_id, client_secret = get_aps_credentials(request.user)
+        bucket_key = get_aps_bucket(client_id, client_secret)
 
         file = request.FILES.get('file')
         if not file:
             return Response({"error": "No file provided"}, status=400)
 
-        # checkRedis('localhost')
+        # check_redis('localhost')
 
         # Save file
         file_path = f'uploads/{file.name}'
@@ -372,8 +372,8 @@ class BimDataImportView(APIView):
         default_storage.save(file_path, ContentFile(file.read()))
 
         # 執行Autodesk Model Derivative API轉換
-        # bim_data_import.delay(client_id, client_secret, bucket_key, file.name, 'progress_group')
-        bim_data_import(client_id, client_id, bucket_key, file.name, 'progress_group')
+        bim_data_import.delay(client_id, client_secret, bucket_key, file.name, 'progress_group')        
+        # bim_data_import(client_id, client_secret, bucket_key, file.name, 'progress_group')
 
         # # 回應上傳成功的訊息
         return Response({"message": f"File '{file.name}' is being processed."}, status=200)
@@ -387,15 +387,16 @@ class BimDataImportView(APIView):
 class BimDataReloadView(APIView):
 
     def post(self, request, *args, **kwargs):
-        client_id, client_secret, bucket_key = get_aps_credentials(request.user)
+        client_id, client_secret = get_aps_credentials(request.user)
+        bucket_key = get_aps_bucket(client_id, client_secret)
 
         filename = request.data.get('filename')
         if not filename:
             return Response({"error": "No filename provided"}, status=400)
 
         # 執行Autodesk Model Derivative API轉換
-        bim_data_import.delay(client_id, client_secret, bucket_key, filename, 'progress_group')
-        # bim_data_import(CLIENT_ID, CLIENT_SECRET, BUCKET_KEY, file.name, 'progress_group')
+        # bim_data_import.delay(client_id, client_secret, bucket_key, filename, 'progress_group', True)
+        bim_data_import(client_id, client_secret, bucket_key, filename, 'progress_group', True)
 
         # # 回應上傳成功的訊息
         return Response({"message": f"File '{filename}' is being processed."}, status=200)

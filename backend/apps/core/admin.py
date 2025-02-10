@@ -54,7 +54,7 @@ class TranslationAdmin(admin.ModelAdmin):
 
 @admin.register(models.AutodeskCredentials)
 class AutodeskCredentialsAdmin(admin.ModelAdmin):
-    list_display = ('client_id', 'client_secret', 'bucket_key', 'created_at', 'updated_at',)
+    list_display = ('client_id', 'client_secret', 'created_at', 'updated_at',)
 
 
 @admin.register(Permission)

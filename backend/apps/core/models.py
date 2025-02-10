@@ -90,7 +90,6 @@ class AutodeskCredentials(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="autodesk_credentials")
     client_id = models.CharField(max_length=255)
     client_secret = models.CharField(max_length=255)
-    bucket_key = models.CharField(max_length=255, unique=True)  # 新增 Bucket Key
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

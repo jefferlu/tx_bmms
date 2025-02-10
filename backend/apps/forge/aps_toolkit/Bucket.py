@@ -3,7 +3,6 @@ import pandas as pd
 import requests
 from .Token import Token
 import os
-import base64
 
 
 class PublicKey(Enum):
@@ -17,11 +16,6 @@ class Bucket:
         self.token = token
         self.region = region
         self.host = "https://developer.api.autodesk.com/oss/v2/buckets"
-
-    def get_urn(self, object_id: str) -> str:
-        encoded_data = base64.urlsafe_b64encode(object_id.encode("utf-8")).rstrip(b'=')
-        urn = encoded_data.decode("utf-8")
-        return urn
 
     def get_all_buckets(self) -> pd.DataFrame:
         """
@@ -101,32 +95,30 @@ class Bucket:
             raise Exception(response.reason)
         return response.content
 
-    def get_objects(self, bucket_name: str, limit: int = 100) -> pd.DataFrame:
+    def get_objects(self, bucket_name: str, limit: int = 10) -> pd.DataFrame:
+        """
+          Retrieves all the objects in a specified bucket from the Autodesk OSS API.
 
+          This method sends a GET request to the Autodesk OSS API. It includes an Authorization header with a bearer token for authentication. The bucket name is passed in the URL of the request. If the response status code is not 200, it raises an exception with the response content.
+
+          Args:
+              bucket_name (str): The name of the bucket from which to retrieve objects.
+
+          Returns:
+              pd.DataFrame: A DataFrame containing all the objects in the specified bucket.
+          """
         headers = {
             "Authorization": f"Bearer {self.token.access_token}"
         }
         url = f"{self.host}/{bucket_name}/objects?limit={limit}"
         fetched_objects = []
-
         while url:
-            # print("Fetching URL:", url)
-            # print("Headers:", headers)
-
             response = requests.get(url, headers=headers)
             if response.status_code != 200:
-                # print("Error Response:", response.text)
                 raise Exception(response.reason)
-
             data = response.json()
-            fetched_objects.extend(data["items"])  # 累加當前頁面的物件
-
-            # print("Fetched Items:", len(data["items"]))
-
-            # 檢查是否有下一頁
-            url = data.get("next")  # 如果有下一頁則更新 URL，否則結束迴圈
-
-        # 將所有物件轉為 DataFrame 並返回
+            fetched_objects.extend(data["items"])
+            url = data.get("next")
         df = pd.DataFrame(fetched_objects)
         return df
 
@@ -152,26 +144,52 @@ class Bucket:
 
     def upload_object_stream(self, bucket_name: str, stream: bytes, object_name: str) -> dict:
         """
-           Uploads an object to a specified bucket in the Autodesk OSS API.
-
-           This method sends a PUT request to the Autodesk OSS API. It includes an Authorization header with a bearer token for authentication and a Content-Type header set to "application/octet-stream". The bucket name and object name are passed in the URL of the request, and the file to be uploaded is passed in the body of the request as binary data. If the response status code is not 200, it raises an exception with the response content.
-
-           Args:
-               bucket_name (str): The name of the bucket to which the object will be uploaded.
-               stream (bytes): The stream of the file to be uploaded.
-               object_name (str): The name of the object to be created in the bucket.
-
-           Returns:
-               dict: A dictionary containing the response from the Autodesk OSS API.
-           """
+        Uploads an object to a specified bucket in the Autodesk OSS API.
+        :param bucket_name:  The name of the bucket to which the object will be uploaded.
+        :param stream:  The stream of the file to be uploaded.
+        :param object_name:  The name of the object to be created in the bucket.
+        :return:  A dictionary containing the response from the Autodesk OSS API.
+        """
         headers = {
             "Authorization": f"Bearer {self.token.access_token}",
+            "Content-Type": "application/json"
+        }
+        url = f"{self.host}/{bucket_name}/objects/{object_name}/signeds3upload"
+
+        # First request to get the uploadKey
+        response = requests.get(url, headers=headers, json={})
+        if response.status_code != 200:
+            raise Exception(f"Error {response.status_code}: {response.text}")
+
+        data = response.json()
+        upload_key = data.get("uploadKey")
+        if not upload_key:
+            raise Exception("uploadKey not found in response")
+
+        # upload a file to a signed URL
+        url = data.get("urls")[0]
+        headers = {
             "Content-Type": "application/octet-stream"
         }
-        url = f"{self.host}/{bucket_name}/objects/{object_name}"
-        response = requests.put(url, headers=headers, data=stream)        
+        response = requests.put(url, headers=headers, data=stream)
         if response.status_code != 200:
-            raise Exception(response.reason)
+            raise Exception(f"Error {response.status_code}: {response.text}")
+        # Second request to upload the stream
+        headers = {
+            "Authorization": f"Bearer {self.token.access_token}",
+            "Content-Type": "application/json",
+            "x-ads-meta-Content-Type": "application/octet-stream"
+        }
+        #--data-raw
+        data_row = {
+            "uploadKey": upload_key,
+        }
+        # post data raw
+        url = f"{self.host}/{bucket_name}/objects/{object_name}/signeds3upload"
+        response = requests.post(url, headers=headers,json=data_row)
+        if response.status_code != 200:
+            raise Exception(f"Error {response.status_code}: {response.text}")
+
         return response.json()
 
     def delete_object(self, bucket_name: str, object_name: str) -> dict:
