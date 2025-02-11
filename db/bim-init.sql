@@ -5,7 +5,7 @@
 -- Dumped from database version 16.6 (Ubuntu 16.6-1.pgdg20.04+1)
 -- Dumped by pg_dump version 17.1
 
--- Started on 2025-02-11 01:16:51
+-- Started on 2025-02-11 12:15:25
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1272,6 +1272,8 @@ COPY public.core_translation (id, key, value, locale_id) FROM stdin;
 267	bim-media-viewer	File Management	1
 268	bim-media-viewer	文件管理	2
 53	loading	處理中	2
+269	re-translate-confirm	Confirm whether to reconvert	1
+270	re-translate-confirm	是否重新轉換?	2
 \.
 
 
@@ -1310,6 +1312,9 @@ COPY public.django_admin_log (id, action_time, object_id, object_repr, action_fl
 15	2025-02-10 22:07:23.686969+08	1	Autodesk Credentials (47aKP8JTOibKQTvtpdugm8r05baqLxtF)	2	[{"changed": {"fields": ["Client secret"]}}]	15	1
 16	2025-02-10 22:08:28.911127+08	1	Autodesk Credentials (47aKP8JTOibKQTvtpdugm8r05baqLxtF)	2	[]	15	1
 17	2025-02-11 01:15:40.835341+08	53	zh - loading	2	[{"changed": {"fields": ["Value"]}}]	18	1
+18	2025-02-11 12:13:00.313052+08	269	en - re-translate-confirm	1	[{"added": {}}]	18	1
+19	2025-02-11 12:13:27.066694+08	270	zh - re-translate-confirm	1	[{"added": {}}]	18	1
+20	2025-02-11 12:14:40.236612+08	270	zh - re-translate-confirm	2	[{"changed": {"fields": ["Value"]}}]	18	1
 \.
 
 
@@ -1605,6 +1610,9 @@ COPY public.token_blacklist_blacklistedtoken (id, blacklisted_at, token_id) FROM
 114	2025-02-11 01:07:51.041397+08	123
 115	2025-02-11 01:14:25.434186+08	124
 116	2025-02-11 01:15:57.567044+08	125
+117	2025-02-11 11:41:18.45586+08	126
+118	2025-02-11 12:13:30.217107+08	127
+119	2025-02-11 12:14:43.315623+08	128
 \.
 
 
@@ -1740,6 +1748,9 @@ COPY public.token_blacklist_outstandingtoken (id, token, created_at, expires_at,
 123	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc0MTc5OTIwMiwiaWF0IjoxNzM5MjA3MjAyLCJqdGkiOiJjM2MwMDUyYzE4Mzc0YzU4OTY4OWU3YTk0NWI4MjQ4YSIsInVzZXJfaWQiOjF9.CAbcE6QGd4tNDT65GVdvvJ6KqH3Z216r4IVdRbBUTAo	\N	2025-03-13 01:06:42+08	\N	c3c0052c18374c589689e7a945b8248a
 124	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc0MTc5OTQ3OSwiaWF0IjoxNzM5MjA3NDc5LCJqdGkiOiI0ZDNhODBiYmZkZWU0OWE4OWUxZmJjZDI3MTMyMDU4NSIsInVzZXJfaWQiOjF9.oToceV9jX_EWJGcLjasxWDp0lNrApePqiqHDYQTBONU	\N	2025-03-13 01:11:19+08	\N	4d3a80bbfdee49a89e1fbcd271320585
 125	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc0MTc5OTY2NSwiaWF0IjoxNzM5MjA3NjY1LCJqdGkiOiI1MTU1NTQ5YWFhNmM0MDcwODk3NjEzNWRiOWM1ODhhOCIsInVzZXJfaWQiOjF9.rvwpzIRqAMgWl4jeBJ_3cWJUYh-eE8vk3RqV6BmJwLo	\N	2025-03-13 01:14:25+08	\N	5155549aaa6c40708976135db9c588a8
+126	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc0MTgwMDAxMiwiaWF0IjoxNzM5MjA4MDEyLCJqdGkiOiI3ZTc3NDA3ZjNlODA0NzJiOTE5NDU2ZDI2ODQ2NTViZiIsInVzZXJfaWQiOjF9.U65E7crA6jHdY7aLCw5StnljAy-uO4IJRaICZ1oajY4	\N	2025-03-13 01:20:12+08	\N	7e77407f3e80472b919456d2684655bf
+127	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc0MTgzNzI3OCwiaWF0IjoxNzM5MjQ1Mjc4LCJqdGkiOiJlYjhlOTAzMDJlOWM0YWQ0YTZjOTdjYTc4YWQ0ZjkyZCIsInVzZXJfaWQiOjF9.Ljisq7UP0YPoaxwOJDDqd7sgfjjuX3VShmd011MfDeY	\N	2025-03-13 11:41:18+08	\N	eb8e90302e9c4ad4a6c97ca78ad4f92d
+128	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc0MTgzOTIxMCwiaWF0IjoxNzM5MjQ3MjEwLCJqdGkiOiIxNDgzYjYyMDU0ZDg0MGU4OGEyMzUzMjg3M2MxZmE4NyIsInVzZXJfaWQiOjF9.heUNgMRZTm2YcOgHmZrOPdIbp6sBwebe8Z8swP27OYw	\N	2025-03-13 12:13:30+08	\N	1483b62054d840e88a23532873c1fa87
 \.
 
 
@@ -1830,7 +1841,7 @@ SELECT pg_catalog.setval('public.core_company_id_seq', 1, true);
 -- Name: core_locale_id_seq; Type: SEQUENCE SET; Schema: public; Owner: giantcld
 --
 
-SELECT pg_catalog.setval('public.core_locale_id_seq', 1, false);
+SELECT pg_catalog.setval('public.core_locale_id_seq', 3, true);
 
 
 --
@@ -1839,7 +1850,7 @@ SELECT pg_catalog.setval('public.core_locale_id_seq', 1, false);
 -- Name: core_navigation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: giantcld
 --
 
-SELECT pg_catalog.setval('public.core_navigation_id_seq', 1, false);
+SELECT pg_catalog.setval('public.core_navigation_id_seq', 10, true);
 
 
 --
@@ -1857,7 +1868,7 @@ SELECT pg_catalog.setval('public.core_navigation_permissions_id_seq', 1, false);
 -- Name: core_translation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: giantcld
 --
 
-SELECT pg_catalog.setval('public.core_translation_id_seq', 1, false);
+SELECT pg_catalog.setval('public.core_translation_id_seq', 270, true);
 
 
 --
@@ -1875,7 +1886,7 @@ SELECT pg_catalog.setval('public.core_userprofile_id_seq', 1, true);
 -- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: giantcld
 --
 
-SELECT pg_catalog.setval('public.django_admin_log_id_seq', 17, true);
+SELECT pg_catalog.setval('public.django_admin_log_id_seq', 20, true);
 
 
 --
@@ -1929,7 +1940,7 @@ SELECT pg_catalog.setval('public.django_migrations_id_seq', 76, true);
 -- Name: token_blacklist_blacklistedtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: giantcld
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 116, true);
+SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 119, true);
 
 
 --
@@ -1938,7 +1949,7 @@ SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 116, 
 -- Name: token_blacklist_outstandingtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: giantcld
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 125, true);
+SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 128, true);
 
 
 --
@@ -2762,7 +2773,7 @@ REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2025-02-11 01:16:52
+-- Completed on 2025-02-11 12:15:26
 
 --
 -- PostgreSQL database dump complete
