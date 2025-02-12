@@ -21,7 +21,7 @@ export class BimModelViewerService {
     private _appService = inject(AppService);
 
     getBmmsList(slug?: any): Observable<any> {
-        return this._appService.get('bmms/list', slug).pipe(
+        return this._appService.get('forge/bim-model', slug).pipe(
             tap((response: any) => {
                 this._list.next(response);
             })

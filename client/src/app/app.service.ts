@@ -3,7 +3,7 @@ import { inject, Injectable, NgZone } from '@angular/core';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 
 import { environment } from 'environments/environment';
-import { catchError, firstValueFrom, Observable, Observer, of, switchMap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, firstValueFrom, Observable, Observer, of, switchMap, tap, throwError } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 
@@ -149,12 +149,12 @@ export class AppService {
 
         let messages = [];
         const errorCode = error.error?.code;
-        
+
         if (error.error instanceof ErrorEvent) {
             // 用戶端網路等相關錯誤
             messages.push(`An error occurred: ${error.error.message}`);
         } else {
-            
+
             // 後端有定義之error code轉換對應之多語系
             if (errorCode) {
                 messages.push(this._translocoService.translate(errorCode));
@@ -193,5 +193,14 @@ export class AppService {
                 }
             });
         }
+    }
+
+    // 暫時使用OSS, 需取得token
+    getToken(): Observable<any> {
+        return this.get('forge/auth').pipe(
+            switchMap((res: any) => {
+                return of(res);
+            })
+        );
     }
 }

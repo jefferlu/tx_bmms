@@ -9,8 +9,9 @@ from asgiref.sync import async_to_sync
 from celery import shared_task
 from celery.utils.log import get_task_logger
 
-from utils.utils import get_aps_urn
 from ..aps_toolkit import Auth, Bucket, Derivative, SVFReader, DbReader
+from ..services import get_aps_urn, get_conversion_version, process_sqlite_data
+from .. import models
 
 logger = get_task_logger(__name__)
 
@@ -46,16 +47,17 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
             objects = json.loads(bucket.get_objects(bucket_key, 100).to_json(orient='records'))
             object_data = next((item for item in objects if item['objectKey'] == file_name), None)
             urn = get_aps_urn(object_data['objectId'])
-            print(object_data['objectId'], urn)
 
-        process_translation(urn, token, object_data, send_progress)
+        process_translation(urn, token, file_name, object_data, send_progress)
 
     except Exception as e:
         logger.error(str(e))
         send_progress('error', str(e))
 
 
-def process_translation(urn, token, object_data, send_progress):
+def process_translation(urn, token, file_name, object_data, send_progress):
+
+    
     # Step 2: 開始轉檔
     logger.info('Triggering translation job...')
     print('Triggering translation job...')
@@ -96,7 +98,7 @@ def process_translation(urn, token, object_data, send_progress):
     print('Downloading SVF to server ...')
     send_progress('download-svf', 'Downloading SVF to server ...')
     svf_reader = SVFReader(urn, token, "US")
-    download_dir = "media-root/downloads"
+    download_dir = f"media-root/svf/{file_name}"
     if not os.path.exists(download_dir):
         os.makedirs(download_dir)
 
@@ -117,6 +119,27 @@ def process_translation(urn, token, object_data, send_progress):
     print('Downloading SQLite to server ...')
     send_progress('download-sqlite', 'Downloading SQLite to server ...')
     db = DbReader(urn, token, object_data['objectKey'])
+
+    # Step 6: 讀取 SQLite 並寫入資料庫
+
+    sqlite_path = f"media-root/database/{file_name}.sqlite"
+
+    bim_model, created = models.BIMModel.objects.get_or_create(
+        name=file_name,
+        defaults={}
+    )
+
+    bim_conversion_version = get_conversion_version(bim_model)
+    
+    bim_conversion = models.BIMConversion.objects.create(
+        bim_model=bim_model,
+        urn=urn,
+        version=bim_conversion_version,  # 這裡的版本號需要依照邏輯設定
+        original_file=f"media-root/upload{file_name}",  # 假設這裡是上傳的文件路徑
+        svf_file=f"media-root/svf/{file_name}",  # 假設這是下載後的 SVF 文件路徑
+    )
+
+    # process_sqlite_data(sqlite_path, bim_model.id)
 
     # 通知完成
     logger.info('BIM data imoport complete.')

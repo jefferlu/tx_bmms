@@ -45,6 +45,8 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
+        this._spinner.hide();
+
         // Subscribe webSocket message
         this._subscription.add(
             this._websocketService.onMessage().subscribe({

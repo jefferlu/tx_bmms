@@ -1,13 +1,9 @@
-import base64
-
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission, Group
 from django.db.models import Q
-from django import forms
 
 from mptt.admin import MPTTModelAdmin
-
 from . import models
 
 

@@ -11,7 +11,7 @@ import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { Subject, takeUntil } from 'rxjs';
-import { NgxSpinnerService } from 'ngx-spinner';
+import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 
 @Component({
     selector: 'app-bim-model-viewer',
@@ -22,11 +22,12 @@ import { NgxSpinnerService } from 'ngx-spinner';
     standalone: true,
     imports: [
         DatePipe, FormsModule, TranslocoModule, TableModule,
-        MatIconModule, MatButtonModule, MatInputModule
+        MatIconModule, MatButtonModule, MatInputModule, NgxSpinnerModule
     ],
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {
 
+    selectedItems!: any;
     searchBinName: string;
     page: any = {};
 
@@ -34,12 +35,14 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
-        private _spinnser: NgxSpinnerService,
+        private _spinner: NgxSpinnerService,
         private _bimModelViewerService: BimModelViewerService,
         private _matDialog: MatDialog
     ) { }
 
-    ngOnInit(): void { }
+    ngOnInit(): void {
+        this._spinner.hide();
+    }
 
     onSearch(): void {
         this.search();
@@ -48,7 +51,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     search(): void {
         let name = this.searchBinName || '';
 
-        this._spinnser.show();
+        this._spinner.show();
         this._bimModelViewerService.getBmmsList({ 'name': name })
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
@@ -56,7 +59,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
                     if (res) {
                         this.page.data = res;
                         this._changeDetectorRef.markForCheck();
-                        this._spinnser.hide();
+                        this._spinner.hide();
                     }
                 },
                 error: e => {
@@ -66,15 +69,33 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
             });
     }
 
-    onModelDialog(item): void {
+    onClickAggregated(): void {
+        if (!this.selectedItems) return;
+        this.showAggregatedDialog(this.selectedItems)
+    }
+
+    onClickCompare(): void {
+        if (!this.selectedItems) return;
+    }
+
+
+    showAggregatedDialog(items): void {
 
         this._matDialog.open(ApsViewerComponent, {
-            width: '70vw',
-            height: '90vh',
-            data: item
+            width: '99vw',
+            height: '95vh',
+            data: items
         })
     }
 
+    onDownloadCsv(): void {
+
+    }
+
+    onDownloadBim():void{
+
+    }
+    
     ngOnDestroy(): void {
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();

@@ -1,73 +1,84 @@
-<div class="absolute inset-0 flex w-full flex-auto flex-col overflow-auto" *transloco="let t">
-    <div class="mx-auto flex w-full max-w-screen-xl flex-wrap p-6 md:p-8">
-        <!-- <div class="flex w-full items-center justify-between">
+<div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full" *transloco="let t">
+    <div class="mx-auto flex w-full h-full max-w-screen-xl flex-wrap p-6">
+        <div class="flex flex-auto flex-col h-full sm:col-span-2 lg:col-span-3">
 
-            <div class="text-3xl font-semibold leading-8 tracking-tight">
-                {{t('bim-model-viewer')}}
-            </div>
-            <div class="text-secondary font-medium tracking-tight">
-                Monitor metrics, check reports and review performance
-            </div>
-        </div> -->
-
-        <div class="mt-1 grid w-full grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-xl shadow sm:col-span-2 lg:col-span-3">
+            <!-- Header -->
+            <div class="flex flex-row items-center justify-between pt-6">
 
                 <!-- Search -->
-                <div class="ml-10 mr-6 mt-6 flex items-center justify-between sm:mr-10">
+                <div class="flex items-center justify-between sm:mr-10">
                     <div class="flex flex-col">
                         <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 gts-mat-dense">
                             <input matInput [placeholder]="t('search-bim-name')" [(ngModel)]="searchBinName" />
 
                             <button mat-icon-button matSuffix (click)="onSearch()">
-                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
                             </button>
                         </mat-form-field>
                     </div>
                 </div>
 
-                <div class="ml-10 mr-6 mt-2 flex flex-auto flex-col result-table initial-height" >
-                    <p-table [value]="page.data" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="true" [rows]="9" [scrollable]="true" scrollHeight="100%">
-                        <ng-template pTemplate="header">
-                            <tr>
-                                <!-- <th>NO</th> -->
-                                <th class="min-w-20">{{t('file-label')}}</th>
-                                <th>{{t('upload-time')}}</th>
-                                <th>{{t('uploader')}}</th>
-                                <th class="text-center">{{t('download-cobie-csv')}}</th>
-                                <th class="text-center">{{t('download-bim-source')}}</th>
-                                <th>{{t('previous-backup-version')}}</th>
-                                <th class="text-center">{{t('restore-previous-version')}}</th>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="body" let-item let-no="rowIndex">
-                            <tr>
-                                <!-- <td>{{no+1}}</td> -->
-                                <td><span class="hover:cursor-pointer hover:text-slate-500" (click)="onModelDialog(item)">{{ item.name }}</span></td>
-                                <td>{{item.createdAt | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
-                                <td>{{item.uploader?.username}}</td>
-                                <td class="text-center">
-                                    <button mat-icon-button matSuffix (click)="onSearch()">
-                                        <mat-icon [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
-                                    </button>
-                                </td>
-                                <td class="text-center">
-                                    <button mat-icon-button matSuffix (click)="onSearch()">
-                                        <mat-icon [svgIcon]="'mat_outline:description'"></mat-icon>
-                                    </button>
-                                </td>
-                                <td>{{item.previousAt | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
-                                <td class="text-center">
-                                    <button mat-icon-button matSuffix (click)="onSearch()">
-                                        <mat-icon [svgIcon]="'mat_outline:history'"></mat-icon>
-                                    </button>
-                                </td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-
-
+                <!-- Actions -->
+                <div class="flex items-center space-x-3 sm:ml-2 sm:mt-0">
+                    <button mat-flat-button (click)="onClickAggregated()">
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:rectangle-group'"></mat-icon>
+                        <span class="ml-2">{{t('bim-aggregated')}}</span>
+                    </button>
+                    <button mat-flat-button (click)="onClickCompare()">
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:clipboard-document-list'"></mat-icon>
+                        <span class="ml-2">{{t('bim-compare')}}</span>
+                    </button>
                 </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex h-full overflow-y-auto bg-card rounded-xl">
+                <ngx-spinner bdColor="rgba(100, 0, 0, 0)" [color]="'var(--spinner-color)'" size="default" type="ball-clip-rotate" [fullScreen]="false">
+                    <p class="-mt-10">{{t('loading')}}</p>
+                </ngx-spinner>
+                <p-table class="w-full" [value]="page.data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [(selection)]="selectedItems">
+                    <ng-template pTemplate="header">
+                        <tr class="border-b-2">
+                            <th class="pl-8 w-16" style="width: 4rem"><p-tableHeaderCheckbox /></th>
+                            <th class="w-20 py-6">NO</th>
+                            <th class="min-w-20">{{t('file-label')}}</th>
+                            <th>{{t('upload-time')}}</th>
+                            <th>{{t('uploader')}}</th>
+                            <th class="text-center">{{t('download-cobie-csv')}}</th>
+                            <th class="text-center">{{t('download-bim-source')}}</th>
+                            <th class="text-center">{{t('previous-backup-version')}}</th>
+                            <th class="text-center">{{t('restore-previous-version')}}</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-item let-index="rowIndex">
+                        <tr class="hover:bg-hover">
+                            <td class="pl-8">
+                                <p-tableCheckbox [value]="item" />
+                            </td>
+                            <td>{{index+1}}</td>
+                            <!-- <td><span class="hover:cursor-pointer hover:text-slate-500" (click)="onModelDialog(item)">{{ item.name }}</span></td> -->
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.created_at | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+                            <td>{{item.uploader?.username }}</td>
+                            <td class="text-center">
+                                <button class="cursor-pointer" (click)="onDownloadCsv()">
+                                    <mat-icon [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
+                                </button>
+                            </td>
+                            <td class="text-center">
+                                <button (click)="onDownloadBim()">
+                                    <mat-icon [svgIcon]="'mat_outline:description'"></mat-icon>
+                                </button>
+                            </td>
+                            <td class="text-center">{{item.version}}</td>
+                            <td class="text-center">
+                                <button mat-icon-button matSuffix (click)="onSearch()">
+                                    <mat-icon [svgIcon]="'mat_outline:history'"></mat-icon>
+                                </button>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
             </div>
         </div>
     </div>

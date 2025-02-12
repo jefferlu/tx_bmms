@@ -6,11 +6,12 @@ from pathlib import Path
 
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.db.models import Subquery, OuterRef
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
 from rest_framework.response import Response
@@ -19,15 +20,29 @@ from rest_framework.pagination import PageNumberPagination
 from drf_spectacular.utils import extend_schema
 
 from apps.forge.api.tasks import bim_data_import
-from utils.utils import check_redis, get_aps_credentials, get_aps_bucket
+from apps.forge.services import check_redis, get_aps_credentials, get_aps_bucket
+
 from ..aps_toolkit import Auth, Bucket, Derivative, PropReader
 from . import serializers
-from apps.core import models
-
+from .. import models
 
 # CLIENT_ID = '94MGPGEtqunCJS6XyZAAnztSSIrtfOLsVWQEkLNQ7uracrAC'
 # CLIENT_SECRET = 'G5tBYHoxe9xbpsisxGo5kBZOCPwEFCCuXIYr8kms28SSRuuVAHR0G766A3RKFQXy'
 # BUCKET_KEY = 'bmms_oss'
+
+
+class AuthView(APIView):
+    def get(self, request):
+        try:
+            client_id, client_secret = get_aps_credentials(request.user)
+
+            auth = Auth(client_id, client_secret)
+            token = auth.auth2leg()
+            print(token.access_token)
+            return Response({'access_token': token.access_token}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'error': f'{str(e)}'})
 
 
 @extend_schema(
@@ -372,7 +387,7 @@ class BimDataImportView(APIView):
         default_storage.save(file_path, ContentFile(file.read()))
 
         # 執行Autodesk Model Derivative API轉換
-        bim_data_import.delay(client_id, client_secret, bucket_key, file.name, 'progress_group')        
+        bim_data_import.delay(client_id, client_secret, bucket_key, file.name, 'progress_group')
         # bim_data_import(client_id, client_secret, bucket_key, file.name, 'progress_group')
 
         # # 回應上傳成功的訊息
@@ -386,11 +401,10 @@ class BimDataImportView(APIView):
 )
 class BimDataReloadView(APIView):
 
-    def post(self, request, *args, **kwargs):        
+    def post(self, request, *args, **kwargs):
         client_id, client_secret = get_aps_credentials(request.user)
         bucket_key = get_aps_bucket(client_id, client_secret)
 
-        
         filename = request.data.get('filename')
         if not filename:
             return Response({"error": "No filename provided"}, status=400)
@@ -401,3 +415,35 @@ class BimDataReloadView(APIView):
 
         # # 回應上傳成功的訊息
         return Response({"message": f"File '{filename}' is being processed."}, status=200)
+
+
+class BIMModelViewSet(viewsets.ReadOnlyModelViewSet):
+    """ 只讀取 BIMModel 及最新的 BIMConversion """
+    queryset = models.BIMModel.objects.annotate(
+        latest_version=Subquery(
+            models.BIMConversion.objects.filter(
+                bim_model=OuterRef('id')
+            ).order_by('-version').values('version')[:1]
+        ),
+        latest_urn=Subquery(
+            models.BIMConversion.objects.filter(
+                bim_model=OuterRef('id')
+            ).order_by('-version').values('urn')[:1]
+        ),
+        latest_original_file=Subquery(
+            models.BIMConversion.objects.filter(
+                bim_model=OuterRef('id')
+            ).order_by('-version').values('original_file')[:1]
+        ),
+        latest_svf_file=Subquery(
+            models.BIMConversion.objects.filter(
+                bim_model=OuterRef('id')
+            ).order_by('-version').values('svf_file')[:1]
+        ),
+        latest_conversion_created_at=Subquery(
+            models.BIMConversion.objects.filter(
+                bim_model=OuterRef('id')
+            ).order_by('-version').values('created_at')[:1]
+        ),
+    )
+    serializer_class = serializers.BIMModelSerializer

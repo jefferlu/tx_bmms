@@ -140,6 +140,7 @@ INSTALLED_APPS = [
     # app
     'apps.account',
     'apps.core',
+    'apps.forge',
 ]
 
 MIDDLEWARE = [
