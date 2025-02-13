@@ -48,8 +48,8 @@ class TranslationAdmin(admin.ModelAdmin):
     search_fields = ('key', 'value')
 
 
-@admin.register(models.AutodeskCredentials)
-class AutodeskCredentialsAdmin(admin.ModelAdmin):
+@admin.register(models.ApsCredentials)
+class ApsCredentialsAdmin(admin.ModelAdmin):
     list_display = ('client_id', 'client_secret', 'created_at', 'updated_at',)
 
 

@@ -181,8 +181,9 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
         return Response(translations)
 
 
-class LocaleViewSet(viewsets.ModelViewSet):
+class ApsCredentialsViewSet(viewsets.ModelViewSet):
     permission_classes = ()
+    queryset = models.ApsCredentials.objects.all()
     serializer_class = serializers.LocaleSerializer
 
     def get_queryset(self):
