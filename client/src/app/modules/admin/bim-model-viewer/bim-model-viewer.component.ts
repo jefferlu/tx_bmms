@@ -1,17 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { RouterOutlet } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
-import { Subject, takeUntil } from 'rxjs';
+import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component';
+
 import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
+
 
 @Component({
     selector: 'app-bim-model-viewer',
@@ -41,7 +43,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
-        this._spinner.hide();
+        this._spinner.hide(); 
     }
 
     onSearch(): void {
@@ -76,12 +78,20 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     onClickCompare(): void {
         if (!this.selectedItems) return;
+        this.showCompareDialog(this.selectedItems)
     }
 
 
     showAggregatedDialog(items): void {
-
         this._matDialog.open(ApsViewerComponent, {
+            width: '99vw',
+            height: '95vh',
+            data: items
+        })
+    }
+
+    showCompareDialog(items): void {
+        this._matDialog.open(ApsDiffComponent, {
             width: '99vw',
             height: '95vh',
             data: items
@@ -92,10 +102,10 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     }
 
-    onDownloadBim():void{
+    onDownloadBim(): void {
 
     }
-    
+
     ngOnDestroy(): void {
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
