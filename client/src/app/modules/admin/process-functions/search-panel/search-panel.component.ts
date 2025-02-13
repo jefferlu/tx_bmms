@@ -8,8 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
     selector: 'app-search-panel',
     templateUrl: './search-panel.component.html',
     styleUrl: './search-panel.component.scss',
-    standalone: true,
-    imports: [NgClass, FormsModule, MatIconModule, MatButtonModule],
+    imports: [NgClass, FormsModule, MatIconModule, MatButtonModule]
 })
 export class SearchPanelComponent implements OnInit {
 

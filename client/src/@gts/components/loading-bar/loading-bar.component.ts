@@ -6,13 +6,12 @@ import { GtsLoadingService } from '@gts/services/loading';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector     : 'gts-loading-bar',
-    templateUrl  : './loading-bar.component.html',
-    styleUrls    : ['./loading-bar.component.scss'],
+    selector: 'gts-loading-bar',
+    templateUrl: './loading-bar.component.html',
+    styleUrls: ['./loading-bar.component.scss'],
     encapsulation: ViewEncapsulation.None,
-    exportAs     : 'gtsLoadingBar',
-    standalone   : true,
-    imports      : [NgIf, MatProgressBarModule],
+    exportAs: 'gtsLoadingBar',
+    imports: [NgIf, MatProgressBarModule]
 })
 export class GtsLoadingBarComponent implements OnChanges, OnInit, OnDestroy
 {

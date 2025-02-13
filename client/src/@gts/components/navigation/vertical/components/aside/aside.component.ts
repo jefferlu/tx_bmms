@@ -15,11 +15,10 @@ import { GtsVerticalNavigationComponent } from '@gts/components/navigation/verti
 import { filter, Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector       : 'gts-vertical-navigation-aside-item',
-    templateUrl    : './aside.component.html',
+    selector: 'gts-vertical-navigation-aside-item',
+    templateUrl: './aside.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone     : true,
-    imports        : [NgClass, MatTooltipModule, NgIf, MatIconModule, NgFor, GtsVerticalNavigationBasicItemComponent, GtsVerticalNavigationCollapsableItemComponent, GtsVerticalNavigationDividerItemComponent, GtsVerticalNavigationGroupItemComponent, GtsVerticalNavigationSpacerItemComponent],
+    imports: [NgClass, MatTooltipModule, NgIf, MatIconModule, NgFor, GtsVerticalNavigationBasicItemComponent, GtsVerticalNavigationCollapsableItemComponent, GtsVerticalNavigationDividerItemComponent, GtsVerticalNavigationGroupItemComponent, GtsVerticalNavigationSpacerItemComponent]
 })
 export class GtsVerticalNavigationAsideItemComponent implements OnChanges, OnInit, OnDestroy
 {

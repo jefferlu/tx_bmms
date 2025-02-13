@@ -6,9 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { GtsConfirmationConfig } from '@gts/services/confirmation/confirmation.types';
 
 @Component({
-    selector     : 'gts-confirmation-dialog',
-    templateUrl  : './dialog.component.html',
-    styles       : [
+    selector: 'gts-confirmation-dialog',
+    templateUrl: './dialog.component.html',
+    styles: [
         `
             .gts-confirmation-dialog-panel {
 
@@ -26,8 +26,7 @@ import { GtsConfirmationConfig } from '@gts/services/confirmation/confirmation.t
         `,
     ],
     encapsulation: ViewEncapsulation.None,
-    standalone   : true,
-    imports      : [NgIf, MatButtonModule, MatDialogModule, MatIconModule, NgClass],
+    imports: [NgIf, MatButtonModule, MatDialogModule, MatIconModule, NgClass]
 })
 export class GtsConfirmationDialogComponent
 {

@@ -19,7 +19,6 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
     templateUrl: './user-account.component.html',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         MatSidenavModule,
         MatFormFieldModule,
@@ -28,7 +27,8 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
         MatButtonModule,
         MatSelectModule,
         MatOptionModule,
-        TitleCasePipe],
+        TitleCasePipe
+    ]
 })
 export class UserAccountComponent implements OnInit, OnDestroy {
 

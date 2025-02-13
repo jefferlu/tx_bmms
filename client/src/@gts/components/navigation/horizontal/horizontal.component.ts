@@ -10,15 +10,14 @@ import { GtsHorizontalNavigationBranchItemComponent } from './components/branch/
 import { GtsHorizontalNavigationSpacerItemComponent } from './components/spacer/spacer.component';
 
 @Component({
-    selector       : 'gts-horizontal-navigation',
-    templateUrl    : './horizontal.component.html',
-    styleUrls      : ['./horizontal.component.scss'],
-    animations     : gtsAnimations,
-    encapsulation  : ViewEncapsulation.None,
+    selector: 'gts-horizontal-navigation',
+    templateUrl: './horizontal.component.html',
+    styleUrls: ['./horizontal.component.scss'],
+    animations: gtsAnimations,
+    encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    exportAs       : 'gtsHorizontalNavigation',
-    standalone     : true,
-    imports        : [NgFor, NgIf, GtsHorizontalNavigationBasicItemComponent, GtsHorizontalNavigationBranchItemComponent, GtsHorizontalNavigationSpacerItemComponent],
+    exportAs: 'gtsHorizontalNavigation',
+    imports: [NgFor, NgIf, GtsHorizontalNavigationBasicItemComponent, GtsHorizontalNavigationBranchItemComponent, GtsHorizontalNavigationSpacerItemComponent]
 })
 export class GtsHorizontalNavigationComponent implements OnChanges, OnInit, OnDestroy
 {

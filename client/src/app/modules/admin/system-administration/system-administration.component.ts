@@ -15,12 +15,11 @@ import { LogQueryComponent} from './log-query/log-query.component';
     styleUrl: './system-administration.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         NgFor, NgClass, NgSwitch, NgSwitchCase,
         MatSidenavModule, MatButtonModule, MatIconModule,
-        TranslocoModule, BackupRestoreComponent,LogQueryComponent
-    ],
+        TranslocoModule, BackupRestoreComponent, LogQueryComponent
+    ]
 })
 export class SystemAdministrationComponent implements OnInit, OnDestroy {
     @ViewChild('drawer') drawer: MatDrawer;

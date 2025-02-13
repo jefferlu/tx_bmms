@@ -18,8 +18,7 @@ import { LocalStorageService } from 'app/core/services/local-storage/local-stora
     templateUrl: './layout.component.html',
     styleUrls: ['./layout.component.scss'],
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
-    imports: [NgIf, EmptyLayoutComponent, CompactLayoutComponent],
+    imports: [NgIf, EmptyLayoutComponent, CompactLayoutComponent]
 })
 export class LayoutComponent implements OnInit, OnDestroy {
     config: GtsConfig;

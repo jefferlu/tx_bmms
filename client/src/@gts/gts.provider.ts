@@ -1,5 +1,5 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { APP_INITIALIZER, ENVIRONMENT_INITIALIZER, EnvironmentProviders, importProvidersFrom, inject, Provider } from '@angular/core';
+import { EnvironmentProviders, importProvidersFrom, inject, Provider, provideEnvironmentInitializer, provideAppInitializer } from '@angular/core';
 import { MATERIAL_SANITY_CHECKS } from '@angular/material/core';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
@@ -54,39 +54,15 @@ export const provideGts = (config: GtsProviderConfig): Array<Provider | Environm
         },
 
         importProvidersFrom(MatDialogModule),
-        {
-            provide : ENVIRONMENT_INITIALIZER,
-            useValue: () => inject(GtsConfirmationService),
-            multi   : true,
-        },
+        provideEnvironmentInitializer(() => inject(GtsConfirmationService)),
 
         provideHttpClient(withInterceptors([gtsLoadingInterceptor])),
-        {
-            provide : ENVIRONMENT_INITIALIZER,
-            useValue: () => inject(GtsLoadingService),
-            multi   : true,
-        },
+        provideEnvironmentInitializer(() => inject(GtsLoadingService)),
 
-        {
-            provide : ENVIRONMENT_INITIALIZER,
-            useValue: () => inject(GtsMediaWatcherService),
-            multi   : true,
-        },
-        {
-            provide : ENVIRONMENT_INITIALIZER,
-            useValue: () => inject(GtsPlatformService),
-            multi   : true,
-        },
-        {
-            provide : ENVIRONMENT_INITIALIZER,
-            useValue: () => inject(GtsSplashScreenService),
-            multi   : true,
-        },
-        {
-            provide : ENVIRONMENT_INITIALIZER,
-            useValue: () => inject(GtsUtilsService),
-            multi   : true,
-        },
+        provideEnvironmentInitializer(() => inject(GtsMediaWatcherService)),
+        provideEnvironmentInitializer(() => inject(GtsPlatformService)),
+        provideEnvironmentInitializer(() => inject(GtsSplashScreenService)),
+        provideEnvironmentInitializer(() => inject(GtsUtilsService)),
     ];
 
     // Mock Api services
@@ -94,12 +70,10 @@ export const provideGts = (config: GtsProviderConfig): Array<Provider | Environm
     {
         providers.push(
             provideHttpClient(withInterceptors([mockApiInterceptor])),
-            {
-                provide   : APP_INITIALIZER,
-                deps      : [...config.mockApi.services],
-                useFactory: () => (): any => null,
-                multi     : true,
-            },
+            provideAppInitializer(() => {
+        const initializerFn = (() => (): any => null)(inject(...config.mockApi.services));
+        return initializerFn();
+      }),
         );
     }
 

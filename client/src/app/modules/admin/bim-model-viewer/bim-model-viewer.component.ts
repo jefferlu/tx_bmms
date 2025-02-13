@@ -21,11 +21,10 @@ import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
     styleUrl: './bim-model-viewer.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         DatePipe, FormsModule, TranslocoModule, TableModule,
         MatIconModule, MatButtonModule, MatInputModule, NgxSpinnerModule
-    ],
+    ]
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {
 

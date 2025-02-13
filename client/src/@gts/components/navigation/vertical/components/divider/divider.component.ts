@@ -6,11 +6,10 @@ import { GtsVerticalNavigationComponent } from '@gts/components/navigation/verti
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector       : 'gts-vertical-navigation-divider-item',
-    templateUrl    : './divider.component.html',
+    selector: 'gts-vertical-navigation-divider-item',
+    templateUrl: './divider.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone     : true,
-    imports        : [NgClass],
+    imports: [NgClass]
 })
 export class GtsVerticalNavigationDividerItemComponent implements OnInit, OnDestroy
 {

@@ -13,7 +13,6 @@ import { TranslocoModule } from '@jsverse/transloco';
 import { RoleDialogComponent } from './role-dialog/role-dialog.component';
 @Component({
     selector: 'role-list',
-    standalone: true,
     templateUrl: './role-list.component.html',
     styleUrl: './role-list.component.scss',
     encapsulation: ViewEncapsulation.None,
@@ -22,10 +21,9 @@ import { RoleDialogComponent } from './role-dialog/role-dialog.component';
         NgFor, NgClass, NgSwitch, NgSwitchCase,
         MatSidenavModule, MatButtonModule, MatIconModule, TabViewModule,
         TranslocoModule, RoleProfileComponent,
-        MatFormFieldModule,  
-        MatInputModule, 
+        MatFormFieldModule,
+        MatInputModule,
     ]
-
 })
 export class RoleListComponent implements OnInit, OnDestroy {
 

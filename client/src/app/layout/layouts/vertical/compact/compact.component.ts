@@ -19,7 +19,6 @@ import { Subject, takeUntil } from 'rxjs';
     selector: 'compact-layout',
     templateUrl: './compact.component.html',
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
     imports: [
         NgIf, RouterOutlet, TranslocoModule,
         MatButtonModule, MatIconModule, TranslocoModule,

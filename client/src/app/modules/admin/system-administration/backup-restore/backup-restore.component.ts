@@ -25,7 +25,6 @@ import { GtsAlertComponent } from '@gts/components/alert';
     templateUrl: './backup-restore.component.html',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         FormsModule,
         ReactiveFormsModule,
@@ -40,7 +39,7 @@ import { GtsAlertComponent } from '@gts/components/alert';
         MatSelectModule,
         MatOptionModule,
         MatButtonModule,
-    ],
+    ]
 })
 export class BackupRestoreComponent implements OnInit {
     backupRestoreForm: UntypedFormGroup;

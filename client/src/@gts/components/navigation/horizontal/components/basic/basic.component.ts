@@ -11,11 +11,10 @@ import { GtsUtilsService } from '@gts/services/utils/utils.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector       : 'gts-horizontal-navigation-basic-item',
-    templateUrl    : './basic.component.html',
+    selector: 'gts-horizontal-navigation-basic-item',
+    templateUrl: './basic.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone     : true,
-    imports        : [NgClass, NgIf, RouterLink, RouterLinkActive, MatTooltipModule, NgTemplateOutlet, MatMenuModule, MatIconModule],
+    imports: [NgClass, NgIf, RouterLink, RouterLinkActive, MatTooltipModule, NgTemplateOutlet, MatMenuModule, MatIconModule]
 })
 export class GtsHorizontalNavigationBasicItemComponent implements OnInit, OnDestroy
 {

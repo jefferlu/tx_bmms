@@ -6,8 +6,7 @@ import { SideBySideDiffComponent } from 'ngx-diff';
     templateUrl: './aps-diff.component.html',
     styleUrl: './aps-diff.component.scss',
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
-    imports: [SideBySideDiffComponent],
+    imports: [SideBySideDiffComponent]
 })
 export class ApsDiffComponent implements OnInit {
 

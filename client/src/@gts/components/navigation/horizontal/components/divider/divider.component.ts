@@ -6,11 +6,10 @@ import { GtsNavigationItem } from '@gts/components/navigation/navigation.types';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector       : 'gts-horizontal-navigation-divider-item',
-    templateUrl    : './divider.component.html',
+    selector: 'gts-horizontal-navigation-divider-item',
+    templateUrl: './divider.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone     : true,
-    imports        : [NgClass],
+    imports: [NgClass]
 })
 export class GtsHorizontalNavigationDividerItemComponent implements OnInit, OnDestroy
 {

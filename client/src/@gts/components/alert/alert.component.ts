@@ -10,15 +10,14 @@ import { GtsUtilsService } from '@gts/services/utils/utils.service';
 import { filter, Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector       : 'gts-alert',
-    templateUrl    : './alert.component.html',
-    styleUrls      : ['./alert.component.scss'],
-    encapsulation  : ViewEncapsulation.None,
+    selector: 'gts-alert',
+    templateUrl: './alert.component.html',
+    styleUrls: ['./alert.component.scss'],
+    encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    animations     : gtsAnimations,
-    exportAs       : 'gtsAlert',
-    standalone     : true,
-    imports        : [NgIf, MatIconModule, MatButtonModule],
+    animations: gtsAnimations,
+    exportAs: 'gtsAlert',
+    imports: [NgIf, MatIconModule, MatButtonModule]
 })
 export class GtsAlertComponent implements OnChanges, OnInit, OnDestroy
 {

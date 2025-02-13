@@ -14,8 +14,7 @@ import { firstValueFrom, take } from 'rxjs';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     exportAs: 'languages',
-    standalone: true,
-    imports: [MatButtonModule, MatMenuModule, NgTemplateOutlet, NgFor, MatIconModule,],
+    imports: [MatButtonModule, MatMenuModule, NgTemplateOutlet, NgFor, MatIconModule,]
 })
 export class LanguagesComponent implements OnInit, OnDestroy {
     availableLangs: AvailableLangs;

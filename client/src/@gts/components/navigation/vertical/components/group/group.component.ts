@@ -12,11 +12,10 @@ import { GtsVerticalNavigationComponent } from '@gts/components/navigation/verti
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector       : 'gts-vertical-navigation-group-item',
-    templateUrl    : './group.component.html',
+    selector: 'gts-vertical-navigation-group-item',
+    templateUrl: './group.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone     : true,
-    imports        : [NgClass, NgIf, MatIconModule, NgFor, GtsVerticalNavigationBasicItemComponent, GtsVerticalNavigationCollapsableItemComponent, GtsVerticalNavigationDividerItemComponent, forwardRef(() => GtsVerticalNavigationGroupItemComponent), GtsVerticalNavigationSpacerItemComponent],
+    imports: [NgClass, NgIf, MatIconModule, NgFor, GtsVerticalNavigationBasicItemComponent, GtsVerticalNavigationCollapsableItemComponent, GtsVerticalNavigationDividerItemComponent, forwardRef(() => GtsVerticalNavigationGroupItemComponent), GtsVerticalNavigationSpacerItemComponent]
 })
 export class GtsVerticalNavigationGroupItemComponent implements OnInit, OnDestroy
 {

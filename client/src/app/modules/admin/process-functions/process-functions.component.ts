@@ -22,7 +22,6 @@ import { environment } from 'environments/environment';
     styleUrl: './process-functions.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         MatButtonModule, MatIconModule,
         TreeModule, TableModule,
@@ -31,8 +30,7 @@ import { environment } from 'environments/environment';
         ApsViewerComponent,
         MatMenuModule,
         MatDividerModule,
-    ],
-
+    ]
 })
 export class ProcessFunctionsComponent implements OnInit, AfterViewInit, OnDestroy {
 

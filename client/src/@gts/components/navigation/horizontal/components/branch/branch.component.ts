@@ -12,11 +12,10 @@ import { GtsNavigationItem } from '@gts/components/navigation/navigation.types';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector       : 'gts-horizontal-navigation-branch-item',
-    templateUrl    : './branch.component.html',
+    selector: 'gts-horizontal-navigation-branch-item',
+    templateUrl: './branch.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone     : true,
-    imports        : [NgIf, NgClass, MatMenuModule, NgTemplateOutlet, NgFor, GtsHorizontalNavigationBasicItemComponent, forwardRef(() => GtsHorizontalNavigationBranchItemComponent), GtsHorizontalNavigationDividerItemComponent, MatTooltipModule, MatIconModule],
+    imports: [NgIf, NgClass, MatMenuModule, NgTemplateOutlet, NgFor, GtsHorizontalNavigationBasicItemComponent, forwardRef(() => GtsHorizontalNavigationBranchItemComponent), GtsHorizontalNavigationDividerItemComponent, MatTooltipModule, MatIconModule]
 })
 export class GtsHorizontalNavigationBranchItemComponent implements OnInit, OnDestroy
 {

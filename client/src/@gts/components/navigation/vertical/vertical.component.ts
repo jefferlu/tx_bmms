@@ -18,15 +18,14 @@ import { GtsUtilsService } from '@gts/services/utils/utils.service';
 import { delay, filter, merge, ReplaySubject, Subject, Subscription, takeUntil } from 'rxjs';
 
 @Component({
-    selector       : 'gts-vertical-navigation',
-    templateUrl    : './vertical.component.html',
-    styleUrls      : ['./vertical.component.scss'],
-    animations     : gtsAnimations,
-    encapsulation  : ViewEncapsulation.None,
+    selector: 'gts-vertical-navigation',
+    templateUrl: './vertical.component.html',
+    styleUrls: ['./vertical.component.scss'],
+    animations: gtsAnimations,
+    encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    exportAs       : 'gtsVerticalNavigation',
-    standalone     : true,
-    imports        : [GtsScrollbarDirective, NgFor, NgIf, GtsVerticalNavigationAsideItemComponent, GtsVerticalNavigationBasicItemComponent, GtsVerticalNavigationCollapsableItemComponent, GtsVerticalNavigationDividerItemComponent, GtsVerticalNavigationGroupItemComponent, GtsVerticalNavigationSpacerItemComponent],
+    exportAs: 'gtsVerticalNavigation',
+    imports: [GtsScrollbarDirective, NgFor, NgIf, GtsVerticalNavigationAsideItemComponent, GtsVerticalNavigationBasicItemComponent, GtsVerticalNavigationCollapsableItemComponent, GtsVerticalNavigationDividerItemComponent, GtsVerticalNavigationGroupItemComponent, GtsVerticalNavigationSpacerItemComponent]
 })
 export class GtsVerticalNavigationComponent implements OnChanges, OnInit, AfterViewInit, OnDestroy
 {

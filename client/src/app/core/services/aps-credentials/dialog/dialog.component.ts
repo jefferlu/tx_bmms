@@ -13,11 +13,10 @@ import { ApsCredentialsService } from '../aps-credentials.service';
     templateUrl: './dialog.component.html',
     styleUrl: './dialog.component.scss',
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
     imports: [
         FormsModule, ReactiveFormsModule, TranslocoModule,
         MatButtonModule, MatIconModule, MatDialogModule, MatFormFieldModule, MatInputModule
-    ],
+    ]
 })
 export class ApsCredentialsDialogComponent implements OnInit {
 

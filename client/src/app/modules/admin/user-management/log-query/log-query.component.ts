@@ -17,7 +17,6 @@ import { MatInputModule } from '@angular/material/input';
     templateUrl: './log-query.component.html',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         RouterOutlet, JsonPipe,
         MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule,
@@ -25,8 +24,7 @@ import { MatInputModule } from '@angular/material/input';
         TranslocoModule,
         MatMenuModule,
         MatDividerModule,
-    ],
-
+    ]
 })
 export class LogQueryComponent implements OnInit, OnDestroy {
 

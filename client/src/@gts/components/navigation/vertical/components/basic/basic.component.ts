@@ -10,11 +10,10 @@ import { GtsUtilsService } from '@gts/services/utils/utils.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector       : 'gts-vertical-navigation-basic-item',
-    templateUrl    : './basic.component.html',
+    selector: 'gts-vertical-navigation-basic-item',
+    templateUrl: './basic.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone     : true,
-    imports        : [NgClass, NgIf, RouterLink, RouterLinkActive, MatTooltipModule, NgTemplateOutlet, MatIconModule],
+    imports: [NgClass, NgIf, RouterLink, RouterLinkActive, MatTooltipModule, NgTemplateOutlet, MatIconModule]
 })
 export class GtsVerticalNavigationBasicItemComponent implements OnInit, OnDestroy
 {

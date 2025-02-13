@@ -18,13 +18,12 @@ import { UserAccountService } from '../user-account.service';
     styleUrl: './user-dialog.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         FormsModule, ReactiveFormsModule,
         MatInputModule, MatIconModule, MatFormFieldModule,
         MatSelectModule, MatButtonModule, MatDialogModule,
         TranslocoModule
-    ],
+    ]
 })
 export class UserDialogComponent implements OnInit, OnDestroy {
 

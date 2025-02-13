@@ -19,11 +19,10 @@ import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
     templateUrl: './bim-data-import.component.html',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         MatButtonModule, MatIconModule, MatProgressSpinnerModule,
         TranslocoModule, TableModule, NgClass, NgxSpinnerModule
-    ],
+    ]
 })
 export class BimDataImportComponent implements OnInit, OnDestroy {
 

@@ -15,7 +15,6 @@ import { MatDividerModule } from '@angular/material/divider';
     templateUrl: './log-query.component.html',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         RouterOutlet, JsonPipe,
         MatButtonModule, MatIconModule,
@@ -23,8 +22,7 @@ import { MatDividerModule } from '@angular/material/divider';
         TranslocoModule,
         MatMenuModule,
         MatDividerModule,
-    ],
-
+    ]
 })
 export class LogQueryComponent implements OnInit, OnDestroy {
 

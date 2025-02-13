@@ -10,10 +10,7 @@ const endpoint = environment.elfinder;
     styleUrl: './bim-media-viewer.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
-    imports: [
-
-    ],
+    imports: []
 })
 export class BimMediaViewerComponent {
 

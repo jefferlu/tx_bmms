@@ -16,7 +16,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
     selector: 'app-sign-in',
-    standalone: true,
     templateUrl: './sign-in.component.html',
     styleUrl: './sign-in.component.scss',
     animations: gtsAnimations,
@@ -24,7 +23,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
         RouterLink, FormsModule, ReactiveFormsModule, TranslocoModule, MatCheckboxModule,
         MatButtonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatProgressSpinnerModule,
         GtsAlertComponent
-    ],
+    ]
 })
 export class SignInComponent {
 

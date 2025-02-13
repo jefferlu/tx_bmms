@@ -16,12 +16,11 @@ import { GtsMediaWatcherService } from '@gts/services/media-watcher';
     styleUrl: './user-management.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         NgFor, NgClass, NgSwitch, NgSwitchCase, TranslocoModule,
         MatSidenavModule, MatButtonModule, MatIconModule,
         UserAccountComponent, RoleListComponent, LogQueryComponent
-    ],
+    ]
 })
 export class UserManagementComponent implements OnInit, OnDestroy {
 

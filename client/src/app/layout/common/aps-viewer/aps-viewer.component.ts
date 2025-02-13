@@ -11,8 +11,7 @@ const env = environment;
     templateUrl: './aps-viewer.component.html',
     styleUrl: './aps-viewer.component.scss',
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
-    imports: [],
+    imports: []
 })
 export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 

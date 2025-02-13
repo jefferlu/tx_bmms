@@ -18,13 +18,12 @@ import { TranslocoModule } from '@jsverse/transloco';
     styleUrl: './role-dialog.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         FormsModule, ReactiveFormsModule,
         MatInputModule, MatIconModule, MatFormFieldModule,
         MatSelectModule, MatButtonModule, MatDialogModule,
         TranslocoModule
-    ],
+    ]
 })
 export class RoleDialogComponent implements OnInit, OnDestroy {
 

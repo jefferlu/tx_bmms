@@ -6,11 +6,10 @@ import { GtsNavigationItem } from '@gts/components/navigation/navigation.types';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector       : 'gts-horizontal-navigation-spacer-item',
-    templateUrl    : './spacer.component.html',
+    selector: 'gts-horizontal-navigation-spacer-item',
+    templateUrl: './spacer.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone     : true,
-    imports        : [NgClass],
+    imports: [NgClass]
 })
 export class GtsHorizontalNavigationSpacerItemComponent implements OnInit, OnDestroy
 {

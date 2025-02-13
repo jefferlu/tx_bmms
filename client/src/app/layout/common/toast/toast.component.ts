@@ -7,7 +7,6 @@ import { GtsAlertType } from '@gts/components/alert/alert.types';
     selector: 'app-toast',
     templateUrl: './toast.component.html',
     styleUrls: ['./toast.component.scss'],
-    standalone: true,
     imports: [GtsAlertComponent]
 })
 export class ToastComponent {

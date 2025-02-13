@@ -1,5 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import { APP_INITIALIZER, ApplicationConfig, inject, isDevMode } from '@angular/core';
+import { ApplicationConfig, inject, isDevMode, provideAppInitializer } from '@angular/core';
 import { PreloadAllModules, provideRouter, withInMemoryScrolling, withPreloading } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
@@ -46,9 +46,8 @@ export const appConfig: ApplicationConfig = {
             }
         },
         // Preload the default language before the app starts to prevent empty/jumping content
-        {
-            provide: APP_INITIALIZER,
-            useFactory: () => {
+        provideAppInitializer(() => {
+        const initializerFn = (() => {
                 const localeService = inject(LocaleService);
                 const translocoService = inject(TranslocoService);           
 
@@ -60,9 +59,9 @@ export const appConfig: ApplicationConfig = {
                     translocoService.setActiveLang(defaultLang);
                     await firstValueFrom(translocoService.load(defaultLang))
                 };
-            },
-            multi: true,
-        },
+            })();
+        return initializerFn();
+      }),
         provideAuth(),
         provideIcons(),
         provideGts({

@@ -15,12 +15,11 @@ import { GtsVerticalNavigationComponent } from '@gts/components/navigation/verti
 import { filter, Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector       : 'gts-vertical-navigation-collapsable-item',
-    templateUrl    : './collapsable.component.html',
-    animations     : gtsAnimations,
+    selector: 'gts-vertical-navigation-collapsable-item',
+    templateUrl: './collapsable.component.html',
+    animations: gtsAnimations,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone     : true,
-    imports        : [NgClass, MatTooltipModule, NgIf, MatIconModule, NgFor, GtsVerticalNavigationBasicItemComponent, forwardRef(() => GtsVerticalNavigationCollapsableItemComponent), GtsVerticalNavigationDividerItemComponent, GtsVerticalNavigationGroupItemComponent, GtsVerticalNavigationSpacerItemComponent],
+    imports: [NgClass, MatTooltipModule, NgIf, MatIconModule, NgFor, GtsVerticalNavigationBasicItemComponent, forwardRef(() => GtsVerticalNavigationCollapsableItemComponent), GtsVerticalNavigationDividerItemComponent, GtsVerticalNavigationGroupItemComponent, GtsVerticalNavigationSpacerItemComponent]
 })
 export class GtsVerticalNavigationCollapsableItemComponent implements OnInit, OnDestroy
 {
