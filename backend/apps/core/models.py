@@ -4,9 +4,8 @@ from django.contrib.auth.models import Permission, Group
 from mptt.models import MPTTModel, TreeForeignKey
 from cryptography.fernet import Fernet
 
+
 # 公司別
-
-
 class Company(models.Model):
     name = models.CharField(max_length=255, unique=True)  # verbose_name="名稱"
 
@@ -25,7 +24,7 @@ class UserProfile(models.Model):
         Company, on_delete=models.CASCADE, related_name='user_profile')
 
     def __str__(self):
-        return f"{self.user.username} - {self.company.name}"
+        return f"{self.user.email} - {self.company.name}"
 
     # 刪除UserProfile時，關聯刪除User
     def delete(self, *args, **kwargs):

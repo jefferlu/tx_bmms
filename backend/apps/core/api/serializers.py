@@ -95,3 +95,12 @@ class TranslationSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Translation
         fields = ['key', 'value']
+
+
+class ApsCredentialsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ApsCredentials
+        fields = "__all__"
+        # extra_kwargs = {
+        #     "client_secret": {"write_only": True},  # 避免返回敏感資料
+        # }

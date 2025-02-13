@@ -29,7 +29,7 @@ def get_aps_credentials(user):
     except AttributeError:
         raise NotFound("User's profile or company not found.")
 
-    credentials = core_models.AutodeskCredentials.objects.filter(company=company).first()
+    credentials = core_models.ApsCredentials.objects.filter(company=company).first()
     if not credentials:
         raise NotFound("No APS credentials found for the company.")
 

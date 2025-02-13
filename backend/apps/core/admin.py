@@ -50,7 +50,7 @@ class TranslationAdmin(admin.ModelAdmin):
 
 @admin.register(models.ApsCredentials)
 class ApsCredentialsAdmin(admin.ModelAdmin):
-    list_display = ('client_id', 'client_secret', 'created_at', 'updated_at',)
+    list_display = ('company', 'client_id', 'client_secret', 'created_at', 'updated_at',)
 
 
 @admin.register(Permission)

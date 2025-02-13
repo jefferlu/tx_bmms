@@ -184,7 +184,8 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
 class ApsCredentialsViewSet(viewsets.ModelViewSet):
     permission_classes = ()
     queryset = models.ApsCredentials.objects.all()
-    serializer_class = serializers.LocaleSerializer
+    serializer_class = serializers.ApsCredentialsSerializer
 
     def get_queryset(self):
-        return models.AutodeskCredentials.objects.filter(company=self.request.user.userprofile.company)
+        print(self.request.user.user_profile.company)
+        return models.ApsCredentials.objects.filter(company=self.request.user.user_profile.company)
