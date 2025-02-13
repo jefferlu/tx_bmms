@@ -22,7 +22,7 @@
     "@angular/platform-browser-dynamic": "^19.1.6",
     "@angular/router": "^19.1.6",
     "@jsverse/transloco": "^7.4.2",
-    "@primeng/themes": "^18.0.0",
+    "@primeng/themes": "^19.0.6",
     "@types/crypto-js": "^4.2.1",
     "crypto-js": "^4.2.0",
     "diff-match-patch-ts": "^0.6.0",
