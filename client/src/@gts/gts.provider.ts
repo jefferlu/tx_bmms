@@ -16,7 +16,7 @@ import { GtsUtilsService } from '@gts/services/utils';
 export type GtsProviderConfig = {
     mockApi?: {
         delay?: number;
-        services?: any[];
+        service?: any;
     },
     gts?: GtsConfig
 }
@@ -24,32 +24,31 @@ export type GtsProviderConfig = {
 /**
  * Gts provider
  */
-export const provideGts = (config: GtsProviderConfig): Array<Provider | EnvironmentProviders> =>
-{
+export const provideGts = (config: GtsProviderConfig): Array<Provider | EnvironmentProviders> => {
     // Base providers
     const providers: Array<Provider | EnvironmentProviders> = [
-        {
-            // Disable 'theme' sanity check
-            provide : MATERIAL_SANITY_CHECKS,
-            useValue: {
-                doctype: true,
-                theme  : false,
-                version: true,
-            },
-        },
+        // {
+        //     // Disable 'theme' sanity check
+        //     provide : MATERIAL_SANITY_CHECKS,
+        //     useValue: {
+        //         doctype: true,
+        //         theme  : false,
+        //         version: true,
+        //     },
+        // },
         {
             // Use the 'fill' appearance on Angular Material form fields by default
-            provide : MAT_FORM_FIELD_DEFAULT_OPTIONS,
+            provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
             useValue: {
                 appearance: 'fill',
             },
         },
         {
-            provide : GTS_MOCK_API_DEFAULT_DELAY,
+            provide: GTS_MOCK_API_DEFAULT_DELAY,
             useValue: config?.mockApi?.delay ?? 0,
         },
         {
-            provide : GTS_CONFIG,
+            provide: GTS_CONFIG,
             useValue: config?.gts ?? {},
         },
 
@@ -66,14 +65,12 @@ export const provideGts = (config: GtsProviderConfig): Array<Provider | Environm
     ];
 
     // Mock Api services
-    if ( config?.mockApi?.services )
-    {
+    if (config?.mockApi?.service) {
         providers.push(
             provideHttpClient(withInterceptors([mockApiInterceptor])),
             provideAppInitializer(() => {
-        const initializerFn = (() => (): any => null)(inject(...config.mockApi.services));
-        return initializerFn();
-      }),
+                const mockApiService = inject(config.mockApi.service);
+            }),
         );
     }
 

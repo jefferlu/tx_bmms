@@ -8,7 +8,7 @@ import { routes } from './app.routes';
 import { provideAuth } from './core/auth/auth.provider';
 import { provideIcons } from './core/icons/icons.provider';
 import { provideGts } from '@gts';
-import { mockApiServices } from './mock-api';
+import { MockApiService } from './mock-api';
 import { TranslocoHttpLoader } from './core/transloco/transloco-loader';
 import { provideTransloco, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
@@ -47,9 +47,9 @@ export const appConfig: ApplicationConfig = {
         },
         // Preload the default language before the app starts to prevent empty/jumping content
         provideAppInitializer(() => {
-        const initializerFn = (() => {
+            const initializerFn = (() => {
                 const localeService = inject(LocaleService);
-                const translocoService = inject(TranslocoService);           
+                const translocoService = inject(TranslocoService);
 
                 return async () => {
                     const availableLangs = await firstValueFrom(localeService.getData());
@@ -60,14 +60,14 @@ export const appConfig: ApplicationConfig = {
                     await firstValueFrom(translocoService.load(defaultLang))
                 };
             })();
-        return initializerFn();
-      }),
+            return initializerFn();
+        }),
         provideAuth(),
         provideIcons(),
         provideGts({
             mockApi: {
                 delay: 0,
-                services: mockApiServices,
+                service: MockApiService,
             },
             gts: {
                 layout: 'compact',

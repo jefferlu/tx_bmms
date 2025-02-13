@@ -16,7 +16,6 @@ import { MatDividerModule } from '@angular/material/divider';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        RouterOutlet, JsonPipe,
         MatButtonModule, MatIconModule,
         TreeModule, TableModule,
         TranslocoModule,

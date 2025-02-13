@@ -18,7 +18,7 @@ import { RoleDialogComponent } from './role-dialog/role-dialog.component';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        NgFor, NgClass, NgSwitch, NgSwitchCase,
+        NgFor,
         MatSidenavModule, MatButtonModule, MatIconModule, TabViewModule,
         TranslocoModule, RoleProfileComponent,
         MatFormFieldModule,

@@ -7,6 +7,7 @@ import { Subject } from 'rxjs';
 import { TranslocoModule } from '@jsverse/transloco';
 import { BackupRestoreComponent } from './backup-restore/backup-restore.component';
 import { LogQueryComponent} from './log-query/log-query.component';
+import { ApsCredentialsComponent } from "./aps-credentials/aps-credentials.component";
 
 
 @Component({
@@ -16,10 +17,11 @@ import { LogQueryComponent} from './log-query/log-query.component';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        NgFor, NgClass, NgSwitch, NgSwitchCase,
-        MatSidenavModule, MatButtonModule, MatIconModule,
-        TranslocoModule, BackupRestoreComponent, LogQueryComponent
-    ]
+    NgFor, NgClass, NgSwitch, NgSwitchCase,
+    MatSidenavModule, MatButtonModule, MatIconModule,
+    TranslocoModule, BackupRestoreComponent, LogQueryComponent,
+    ApsCredentialsComponent
+]
 })
 export class SystemAdministrationComponent implements OnInit, OnDestroy {
     @ViewChild('drawer') drawer: MatDrawer;
@@ -40,6 +42,11 @@ export class SystemAdministrationComponent implements OnInit, OnDestroy {
             },
             {
                 id: 'system-log-query',
+                icon: 'heroicons_outline:lock-closed',
+                title: '系統日誌'
+            },
+            {
+                id: 'aps-credentials',
                 icon: 'heroicons_outline:lock-closed',
                 title: '系統日誌'
             },

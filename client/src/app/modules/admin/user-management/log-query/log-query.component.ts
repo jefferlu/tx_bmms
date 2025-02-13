@@ -18,7 +18,6 @@ import { MatInputModule } from '@angular/material/input';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        RouterOutlet, JsonPipe,
         MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule,
         TreeModule, TableModule,
         TranslocoModule,
