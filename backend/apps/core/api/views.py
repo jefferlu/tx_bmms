@@ -179,4 +179,11 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
         translations = {t.key: t.value for t in qs}
 
         return Response(translations)
-        
+
+
+class LocaleViewSet(viewsets.ModelViewSet):
+    permission_classes = ()
+    serializer_class = serializers.LocaleSerializer
+
+    def get_queryset(self):
+        return models.AutodeskCredentials.objects.filter(company=self.request.user.userprofile.company)
