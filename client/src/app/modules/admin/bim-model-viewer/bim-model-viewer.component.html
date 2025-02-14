@@ -36,7 +36,8 @@
                 <ngx-spinner bdColor="rgba(100, 0, 0, 0)" [color]="'var(--spinner-color)'" size="default" type="ball-clip-rotate" [fullScreen]="false">
                     <p class="-mt-10">{{t('loading')}}</p>
                 </ngx-spinner>
-                <p-table class="w-full" [value]="page.data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [(selection)]="selectedItems">
+                <p-table class="w-full" [value]="page.data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'"
+                    [(selection)]="selectedItems">
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
                             <th class="pl-8 w-16" style="width: 4rem"><p-tableHeaderCheckbox /></th>
@@ -78,6 +79,22 @@
                             </td>
                         </tr>
                     </ng-template>
+
+                    <ng-template #emptymessage>
+
+                        <tr> 
+                            <td colspan="9" class="text-center border-0">
+                                <div class="flex flex-auto flex-col items-center justify-center h-128">
+                                    <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"></mat-icon>
+                                    <div class="text-secondary mt-4 font-semibold tracking-tight">
+                                        Select a conversation or start a new chat
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                    </ng-template>
+
                 </p-table>
             </div>
         </div>
