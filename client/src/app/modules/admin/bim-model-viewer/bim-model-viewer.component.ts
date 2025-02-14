@@ -4,7 +4,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { DatePipe } from '@angular/common';
@@ -13,6 +13,7 @@ import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.comp
 import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component';
 
 import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
+import { ToastService } from 'app/layout/common/toast/toast.service';
 
 
 @Component({
@@ -36,13 +37,15 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
+        private _translocoService: TranslocoService,
         private _spinner: NgxSpinnerService,
+        private _toastService: ToastService,
         private _bimModelViewerService: BimModelViewerService,
         private _matDialog: MatDialog
     ) { }
 
     ngOnInit(): void {
-        this._spinner.hide(); 
+        this._spinner.hide();
     }
 
     onSearch(): void {
@@ -71,12 +74,18 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     }
 
     onClickAggregated(): void {
-        if (!this.selectedItems) return;
+        if (!this.selectedItems){
+            this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-model')}.` });
+            return;
+        } 
         this.showAggregatedDialog(this.selectedItems)
     }
 
     onClickCompare(): void {
-        if (!this.selectedItems) return;
+        if (!this.selectedItems) {
+            this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-model')}.` });
+            return;
+        }
         this.showCompareDialog(this.selectedItems)
     }
 

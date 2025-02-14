@@ -24,10 +24,10 @@
                         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:rectangle-group'"></mat-icon>
                         <span class="ml-2">{{t('bim-aggregated')}}</span>
                     </button>
-                    <button mat-flat-button (click)="onClickCompare()">
+                    <!-- <button mat-flat-button (click)="onClickCompare()">
                         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:square-2-stack'"></mat-icon>
                         <span class="ml-2">{{t('bim-compare')}}</span>
-                    </button>
+                    </button> -->
                 </div>
             </div>
 
@@ -87,7 +87,7 @@
                                 <div class="flex flex-auto flex-col items-center justify-center h-128">
                                     <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"></mat-icon>
                                     <div class="text-secondary mt-4 font-semibold tracking-tight">
-                                        Select a conversation or start a new chat
+                                        {{t('no-data')}}
                                     </div>
                                 </div>
                             </td>
