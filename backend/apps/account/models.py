@@ -7,7 +7,7 @@ from .managers import CustomUserManager
 
 class User(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
-    username = models.CharField(_('username'), max_length=255, blank=True, null=True, unique=False)  # 保留其餘預設屬性
+    username = models.CharField(_('username'), max_length=255, blank=True, null=True, unique=False) 
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

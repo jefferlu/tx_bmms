@@ -19,7 +19,7 @@ class ObjectSerializer(serializers.Serializer):
 
 class BIMConversionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.BIMConversion
+        model = models.BimConversion
         fields = ['urn', 'version', 'original_file', 'svf_file', 'created_at']
 
 
@@ -31,6 +31,6 @@ class BIMModelSerializer(serializers.ModelSerializer):
     conversion_created_at = serializers.DateTimeField(source='latest_conversion_created_at', allow_null=True)
 
     class Meta:
-        model = models.BIMModel
+        model = models.BimModel
         fields = ['id', 'name', 'created_at', 'urn', 'version',
                   'original_file', 'svf_file', 'conversion_created_at',]

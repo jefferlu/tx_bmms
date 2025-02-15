@@ -419,29 +419,29 @@ class BimDataReloadView(APIView):
 
 class BIMModelViewSet(viewsets.ReadOnlyModelViewSet):
     """ 只讀取 BIMModel 及最新的 BIMConversion """
-    queryset = models.BIMModel.objects.annotate(
+    queryset = models.BimModel.objects.annotate(
         latest_version=Subquery(
-            models.BIMConversion.objects.filter(
+            models.BimConversion.objects.filter(
                 bim_model=OuterRef('id')
             ).order_by('-version').values('version')[:1]
         ),
         latest_urn=Subquery(
-            models.BIMConversion.objects.filter(
+            models.BimConversion.objects.filter(
                 bim_model=OuterRef('id')
             ).order_by('-version').values('urn')[:1]
         ),
         latest_original_file=Subquery(
-            models.BIMConversion.objects.filter(
+            models.BimConversion.objects.filter(
                 bim_model=OuterRef('id')
             ).order_by('-version').values('original_file')[:1]
         ),
         latest_svf_file=Subquery(
-            models.BIMConversion.objects.filter(
+            models.BimConversion.objects.filter(
                 bim_model=OuterRef('id')
             ).order_by('-version').values('svf_file')[:1]
         ),
         latest_conversion_created_at=Subquery(
-            models.BIMConversion.objects.filter(
+            models.BimConversion.objects.filter(
                 bim_model=OuterRef('id')
             ).order_by('-version').values('created_at')[:1]
         ),

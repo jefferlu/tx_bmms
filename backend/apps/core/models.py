@@ -86,7 +86,7 @@ class Translation(models.Model):
 
 
 class ApsCredentials(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="autodesk_credentials")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="aps_credentials")
     client_id = models.CharField(max_length=255)
     client_secret = models.CharField(max_length=255)
 
