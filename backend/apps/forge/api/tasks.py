@@ -57,7 +57,6 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
 
 def process_translation(urn, token, file_name, object_data, send_progress):
 
-    
     # Step 2: 開始轉檔
     logger.info('Triggering translation job...')
     print('Triggering translation job...')
@@ -124,14 +123,24 @@ def process_translation(urn, token, file_name, object_data, send_progress):
 
     sqlite_path = f"media-root/database/{file_name}.sqlite"
 
-    bim_model, created = models.BIMModel.objects.get_or_create(
+    parts = file_name.split('-')
+    if len(parts) >= 2:
+        parent_name = f"{parts[0]}-{parts[1]}"
+    else:
+        parent_name = 'Uncategorized'
+
+    # 創建父層 Tender
+    parent_tender, created = models.BimTender.objects.get_or_create(name=parent_name)
+
+    bim_model, created = models.BimModel.objects.get_or_create(
+        tender=parent_tender,
         name=file_name,
         defaults={}
     )
 
     bim_conversion_version = get_conversion_version(bim_model)
-    
-    bim_conversion = models.BIMConversion.objects.create(
+
+    bim_conversion = models.BimConversion.objects.create(
         bim_model=bim_model,
         urn=urn,
         version=bim_conversion_version,  # 這裡的版本號需要依照邏輯設定

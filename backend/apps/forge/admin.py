@@ -2,16 +2,21 @@ from django.contrib import admin
 from . import models
 
 
-@admin.register(models.BimCategory)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'description')
+@admin.register(models.BimTender)
+class BimTenderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'parent',)
 
 
 @admin.register(models.BimModel)
-class BIMModelAdmin(admin.ModelAdmin):
+class BimModelAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'created_at')
 
 
 @admin.register(models.BimConversion)
-class BIMConversionAdmin(admin.ModelAdmin):
+class BimConversionAdmin(admin.ModelAdmin):
     list_display = ('id', 'bim_model', 'urn', 'version', 'original_file', 'svf_file', 'created_at',)
+
+
+@admin.register(models.BimCategory)
+class BimCategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', )

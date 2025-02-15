@@ -2,17 +2,19 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 
 
-class Tender(MPTTModel):
+class BimTender(MPTTModel):
     name = models.CharField(max_length=255, unique=True)
     parent = TreeForeignKey('self', on_delete=models.CASCADE,
                             null=True, blank=True, related_name='children')
+    class Meta:
+        db_table = "forge_bim_tender"
 
     def __str__(self):
         return f"{self.name}"
 
 
 class BimModel(models.Model):
-    tender = models.ForeignKey(Tender, on_delete=models.CASCADE, related_name="bim_models")
+    tender = models.ForeignKey(BimTender, on_delete=models.CASCADE, related_name="bim_models")
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -30,13 +32,14 @@ class BimConversion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('bim_model', 'version')  # 確保同一個 BIMModel 不會有重複的版本號
+        unique_together = ('bim_model', 'version') 
         db_table = "forge_bim_conversion"
 
 
 class BimCategory(models.Model):
-    name = models.CharField(max_length=255, unique=True)  # 類別名稱
-    description = models.TextField(null=True, blank=True)  # 類別描述（可選）
+    name = models.CharField(max_length=255, unique=True) 
+    is_active = models.BooleanField(default=True)
+    description = models.TextField(null=True, blank=True)  
 
     class Meta:
         db_table = "forge_bim_category"

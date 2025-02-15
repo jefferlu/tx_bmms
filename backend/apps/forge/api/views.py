@@ -410,8 +410,8 @@ class BimDataReloadView(APIView):
             return Response({"error": "No filename provided"}, status=400)
 
         # 執行Autodesk Model Derivative API轉換
-        bim_data_import.delay(client_id, client_secret, bucket_key, filename, 'progress_group', True)
-        # bim_data_import(client_id, client_secret, bucket_key, filename, 'progress_group', True)
+        # bim_data_import.delay(client_id, client_secret, bucket_key, filename, 'progress_group', True)
+        bim_data_import(client_id, client_secret, bucket_key, filename, 'progress_group', True)
 
         # # 回應上傳成功的訊息
         return Response({"message": f"File '{filename}' is being processed."}, status=200)
