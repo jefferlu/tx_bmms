@@ -3,6 +3,7 @@ import json
 import sqlite3
 import pandas as pd
 from pathlib import Path
+from collections import defaultdict
 
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -38,7 +39,6 @@ class AuthView(APIView):
 
             auth = Auth(client_id, client_secret)
             token = auth.auth2leg()
-            print(token.access_token)
             return Response({'access_token': token.access_token}, status=status.HTTP_200_OK)
 
         except Exception as e:
@@ -90,7 +90,6 @@ class ObjectView(APIView):
             #     derivative = Derivative(urn, token)
             #     ret = derivative.check_job_status()
             #     obj['status'] = ret.get('progress', 'ready')
-            #     print(obj)
 
             serializer = serializers.ObjectSerializer(objects, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -120,7 +119,7 @@ class CompareSqliteView(APIView):
             # 連接到第一個資料庫並抓取數據，排除時間戳欄位
             connection_1 = sqlite3.connect(model_1_db)
             query = """
-            SELECT 
+            SELECT
                 eav1.entity_id,
                 t2.category,
                 t2.display_name,
@@ -387,8 +386,8 @@ class BimDataImportView(APIView):
         default_storage.save(file_path, ContentFile(file.read()))
 
         # 執行Autodesk Model Derivative API轉換
-        bim_data_import.delay(client_id, client_secret, bucket_key, file.name, 'progress_group')
-        # bim_data_import(client_id, client_secret, bucket_key, file.name, 'progress_group')
+        # bim_data_import.delay(client_id, client_secret, bucket_key, file.name, 'progress_group')
+        bim_data_import(client_id, client_secret, bucket_key, file.name, 'progress_group')
 
         # # 回應上傳成功的訊息
         return Response({"message": f"File '{file.name}' is being processed."}, status=200)
@@ -417,8 +416,8 @@ class BimDataReloadView(APIView):
         return Response({"message": f"File '{filename}' is being processed."}, status=200)
 
 
-class BIMModelViewSet(viewsets.ReadOnlyModelViewSet):
-    """ 只讀取 BIMModel 及最新的 BIMConversion """
+class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
+    """ 只讀取 BIMModel 及最新的 BimCategory """
     queryset = models.BimModel.objects.annotate(
         latest_version=Subquery(
             models.BimConversion.objects.filter(
@@ -444,6 +443,24 @@ class BIMModelViewSet(viewsets.ReadOnlyModelViewSet):
             models.BimConversion.objects.filter(
                 bim_model=OuterRef('id')
             ).order_by('-version').values('created_at')[:1]
-        ),
+        ),        
     )
-    serializer_class = serializers.BIMModelSerializer
+
+    serializer_class = serializers.BimModelSerializer
+
+    # def list(self, request, *args, **kwargs):
+
+    #     tender_dict = defaultdict(list)
+
+    #     for model in self.queryset:
+    #         tender_dict[model.tender.name].append(self.get_serializer(model).data)
+
+    #     response_data = [
+    #         {
+    #             "data": {"name": tender},
+    #             "children": [{"data": model_data} for model_data in models]
+    #         }
+    #         for tender, models in tender_dict.items()
+    #     ]
+
+    #     return Response(response_data)

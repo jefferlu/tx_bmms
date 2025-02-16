@@ -2,9 +2,9 @@ from django.contrib import admin
 from . import models
 
 
-@admin.register(models.BimTender)
-class BimTenderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'parent',)
+# @admin.register(models.BimTender)
+# class BimTenderAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'name', 'parent',)
 
 
 @admin.register(models.BimModel)

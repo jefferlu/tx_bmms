@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import urllib.parse
 import pandas as pd
 
 from channels.layers import get_channel_layer
@@ -16,7 +17,7 @@ from .. import models
 logger = get_task_logger(__name__)
 
 
-@shared_task
+# @shared_task
 def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name, is_reload=False):
 
     def send_progress(status, message):
@@ -30,29 +31,31 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
             },
         )
 
-    try:
-        # Get aps token
-        auth = Auth(client_id, client_secret)
-        token = auth.auth2leg()
-        bucket = Bucket(token)
+    # try:
+    # Get aps token
+    auth = Auth(client_id, client_secret)
+    token = auth.auth2leg()
+    bucket = Bucket(token)    
 
-        # Step 1: 上傳檔案到 Autodesk OSS
-        if not is_reload:
-            logger.info('Uploading file to Autodesk OSS...')
-            print('Uploading file to Autodesk OSS...')
-            send_progress('upload-object', 'Uploading file to Autodesk OSS...')
-            object_data = bucket.upload_object(bucket_key, f'media-root/uploads/{file_name}', file_name)
-            urn = get_aps_urn(object_data['objectId'])
-        else:
-            objects = json.loads(bucket.get_objects(bucket_key, 100).to_json(orient='records'))
-            object_data = next((item for item in objects if item['objectKey'] == file_name), None)
-            urn = get_aps_urn(object_data['objectId'])
+    # Step 1: 上傳檔案到 Autodesk OSS
+    if not is_reload:
+        logger.info('Uploading file to Autodesk OSS...')
+        print('Uploading file to Autodesk OSS...')
+        send_progress('upload-object', 'Uploading file to Autodesk OSS...')
 
-        process_translation(urn, token, file_name, object_data, send_progress)
+        object_data = bucket.upload_object(bucket_key, f'media-root/uploads/{file_name}', file_name)
+        urn = get_aps_urn(object_data['objectId'])
+    else:
+        objects = json.loads(bucket.get_objects(bucket_key, 100).to_json(orient='records'))
+        object_data = next((item for item in objects if item['objectKey'] == file_name), None)
+        urn = get_aps_urn(object_data['objectId'])
 
-    except Exception as e:
-        logger.error(str(e))
-        send_progress('error', str(e))
+    # file_name = urllib.parse.unquote(file_name)  # 反轉前端 encodeURIComponent()
+    process_translation(urn, token, file_name, object_data, send_progress)
+
+    # except Exception as e:
+    #     logger.error(str(e))
+    #     send_progress('error', str(e))
 
 
 def process_translation(urn, token, file_name, object_data, send_progress):
@@ -120,20 +123,19 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     db = DbReader(urn, token, object_data['objectKey'])
 
     # Step 6: 讀取 SQLite 並寫入資料庫
-
-    sqlite_path = f"media-root/database/{file_name}.sqlite"
-
-    parts = file_name.split('-')
-    if len(parts) >= 2:
-        parent_name = f"{parts[0]}-{parts[1]}"
-    else:
-        parent_name = 'Uncategorized'
-
-    # 創建父層 Tender
-    parent_tender, created = models.BimTender.objects.get_or_create(name=parent_name)
+    # Get All Categories
+    query = """
+        SELECT _objects_id.external_id, _objects_attr.category,_objects_attr.display_name, _objects_val.value
+        FROM _objects_id
+        JOIN _objects_eav ON _objects_id.id = _objects_eav.entity_id
+        JOIN _objects_attr ON _objects_eav.attribute_id = _objects_attr.id
+        JOIN _objects_val ON _objects_eav.value_id = _objects_val.id
+        WHERE _objects_attr.name LIKE '%Cobie%';
+    """
+    df = db.execute_query(query)
+    print('-->df', df)
 
     bim_model, created = models.BimModel.objects.get_or_create(
-        tender=parent_tender,
         name=file_name,
         defaults={}
     )

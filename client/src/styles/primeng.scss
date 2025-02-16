@@ -90,7 +90,6 @@
   }
 }
 
-
 /* Table */
 .p-datatable {
   .p-datatable-thead > tr > th {
@@ -146,8 +145,4 @@
 
 .p-datatable-paginator-bottom {
   @apply border-b-0 #{'!important'};
-}
-
-/* .p-tabpanels {
-  @apply bg-transparent #{'!important'};
-} */
+}   

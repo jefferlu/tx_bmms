@@ -27,7 +27,8 @@ export class BimDataImportService {
 
     bimDataImport(file: File): Observable<any> {
         const formData = new FormData();
-        formData.append('file', file, encodeURIComponent(file.name));
+        // formData.append('file', file, encodeURIComponent(file.name));
+        formData.append('file', file, file.name);
 
         return this._appService.post('forge/bim-data-import', formData, { reportProgress: true, observe: 'events' });
     }

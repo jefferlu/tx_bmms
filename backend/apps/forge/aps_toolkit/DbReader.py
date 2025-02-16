@@ -56,7 +56,7 @@ class DbReader:
         # file_name = self.urn if objectKey == '' else Path(objectKey).stem
         file_name = self.urn if objectKey == '' else objectKey
         extension = 'db'
-
+        
         temp_path = os.path.join(temp_path, file_name + "." + extension)
         self.db_path = temp_path
         if not os.path.exists(temp_path):
@@ -68,3 +68,4 @@ class DbReader:
     def execute_query(self, query: str):
         conn = sqlite3.connect(self.db_path)
         return pd.read_sql_query(query, conn)
+

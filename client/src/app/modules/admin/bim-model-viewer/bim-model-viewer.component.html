@@ -36,13 +36,13 @@
                 <ngx-spinner bdColor="rgba(100, 0, 0, 0)" [color]="'var(--spinner-color)'" size="default" type="ball-clip-rotate" [fullScreen]="false">
                     <p class="-mt-10">{{t('loading')}}</p>
                 </ngx-spinner>
-                <p-table class="w-full" [value]="page.data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'"
-                    [(selection)]="selectedItems">
+                <p-table class="w-full" [value]="data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [size]="'small'"
+                    rowGroupMode="subheader" groupRowsBy="tender" [(expandedRows)]="expandedRows" [(selection)]="selectedItems">
+
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
-                            <th class="pl-8 w-16" style="width: 4rem"><p-tableHeaderCheckbox /></th>
-                            <th class="w-20 py-6">NO</th>
-                            <th class="min-w-20">{{t('file-label')}}</th>
+                            <th class="w-20"></th>
+                            <th class="min-w-20 py-5">{{t('file-label')}}</th>
                             <th>{{t('upload-time')}}</th>
                             <th>{{t('uploader')}}</th>
                             <th class="text-center">{{t('download-cobie-csv')}}</th>
@@ -51,13 +51,26 @@
                             <th class="text-center">{{t('restore-previous-version')}}</th>
                         </tr>
                     </ng-template>
-                    <ng-template pTemplate="body" let-item let-index="rowIndex">
+
+                    <ng-template #groupheader let-item let-index="rowIndex" let-expanded="expanded">
+                        <tr>
+                            <td colspan="8">
+                                <span class="flex items-center">
+                                    <button pButton pRipple [pRowToggler]="item" text rounded plain class="mr-2 w-8 h-8 text-default bg-transparent"
+                                        [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+                                    </button>
+                                    <!-- <p-tableHeaderCheckbox /> -->
+                                    <span class="ml-2">{{item.tender}}</span>
+                                </span>
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template #expandedrow let-item>
                         <tr class="hover:bg-hover">
-                            <td class="pl-8">
+                            <td class="pl-12">
                                 <p-tableCheckbox [value]="item" />
                             </td>
-                            <td>{{index+1}}</td>
-                            <!-- <td><span class="hover:cursor-pointer hover:text-slate-500" (click)="onModelDialog(item)">{{ item.name }}</span></td> -->
                             <td>{{ item.name }}</td>
                             <td>{{ item.created_at | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
                             <td>{{item.uploader?.username }}</td>
@@ -81,10 +94,9 @@
                     </ng-template>
 
                     <ng-template #emptymessage>
-
-                        <tr> 
+                        <tr>
                             <td colspan="9" class="text-center border-0">
-                                <div class="flex flex-auto flex-col items-center justify-center h-128">
+                                <div class="flex flex-auto flex-col items-center justify-center h-140">
                                     <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"></mat-icon>
                                     <div class="text-secondary mt-4 font-semibold tracking-tight">
                                         {{t('no-data')}}
@@ -92,7 +104,6 @@
                                 </div>
                             </td>
                         </tr>
-
                     </ng-template>
 
                 </p-table>

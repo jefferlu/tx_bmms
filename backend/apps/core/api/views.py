@@ -187,5 +187,4 @@ class ApsCredentialsViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ApsCredentialsSerializer
 
     def get_queryset(self):
-        print(self.request.user.user_profile.company)
         return models.ApsCredentials.objects.filter(company=self.request.user.user_profile.company)

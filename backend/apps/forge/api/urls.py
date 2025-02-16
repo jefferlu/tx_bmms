@@ -14,7 +14,7 @@ class OptionalSlashRouter(DefaultRouter):
 
 
 router = OptionalSlashRouter()
-router.register(r'bim-model', views.BIMModelViewSet)
+router.register(r'bim-model', views.BimModelViewSet)
 
 urlpatterns = [
     re_path(r'^auth/?$', views.AuthView.as_view(), name='auth'),

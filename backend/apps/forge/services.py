@@ -48,7 +48,6 @@ def get_aps_bucket(client_id, client_secret):
 
     bocket_key = f'bmms_oss_{datetime.datetime.now().strftime("%y%m%d%H%M%S")}'
     ret = bucket.create_bucket(bocket_key, PublicKey.persistent)
-    print('ret-->', ret)
     return bocket_key
 
 
@@ -60,7 +59,7 @@ def get_aps_urn(object_id: str) -> str:
 
 def process_sqlite_data(svf_file_path, bim_model_id):
     """
-    讀取 SQLite 資料並存入 BIMConversion
+    讀取 SQLite 資料並存入 BimCategory
     """
     conn = sqlite3.connect(svf_file_path)
     cursor = conn.cursor()
@@ -76,23 +75,29 @@ def process_sqlite_data(svf_file_path, bim_model_id):
     last_conversion = bim_model.conversions.order_by('-version').first()
     new_version = last_conversion.version + 1 if last_conversion else 1
 
-    # 建立新的 BIMConversion 記錄
-    conversion = forge_models.BIMConversion.objects.create(
+    # 建立新的 BimCategory 記錄
+    conversion = forge_models.BimCategory.objects.create(
         bim_model=bim_model,
         version=new_version,
         svf_file=svf_file_path,
         status="completed"
     )
 
-    # 可以進一步存入其他資料表（如果有相關 BIM 屬性 Model）
-
     conn.close()
     return conversion
 
 
 def get_conversion_version(bim_model) -> int:
-
-    last_conversion = forge_models.BIMConversion.objects.filter(bim_model=bim_model).order_by("-version").first()
+    last_conversion = forge_models.BimConversion.objects.filter(bim_model=bim_model).order_by("-version").first()
     new_version = 1 if last_conversion is None else last_conversion.version + 1  # 取得最新版本 +1
 
     return new_version
+
+
+def get_tender_name(file_name) -> str:
+    parts = file_name.split('-')
+    if len(parts) >= 2:
+        tender_name = f"{parts[0]}-{parts[1]}"
+    else:
+        tender_name = 'Uncategorized'
+    return tender_name

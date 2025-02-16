@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Categories',
                 'db_table': 'forge_bim_category',
             },
-        ),
+        ),      
         migrations.CreateModel(
             name='BimModel',
             fields=[

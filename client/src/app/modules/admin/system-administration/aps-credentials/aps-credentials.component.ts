@@ -58,7 +58,7 @@ export class ApsCredentialsComponent implements OnInit {
         if (this.form.invalid) return;
 
         let request = this.form.value;
-        console.log(request, this.data)
+        
         // Update
         if (this.data.id) {
             request.id = this.data.id;

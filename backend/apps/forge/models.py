@@ -2,19 +2,19 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 
 
-class BimTender(MPTTModel):
-    name = models.CharField(max_length=255, unique=True)
-    parent = TreeForeignKey('self', on_delete=models.CASCADE,
-                            null=True, blank=True, related_name='children')
-    class Meta:
-        db_table = "forge_bim_tender"
+# class BimTender(MPTTModel):
+#     name = models.CharField(max_length=255, unique=True)
+#     parent = TreeForeignKey('self', on_delete=models.CASCADE,
+#                             null=True, blank=True, related_name='children')
+#     class Meta:
+#         db_table = "forge_bim_tender"
 
-    def __str__(self):
-        return f"{self.name}"
+#     def __str__(self):
+#         return f"{self.name}"
 
 
 class BimModel(models.Model):
-    tender = models.ForeignKey(BimTender, on_delete=models.CASCADE, related_name="bim_models")
+    # tender = models.ForeignKey(BimTender, on_delete=models.CASCADE, related_name="bim_models")
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -23,7 +23,6 @@ class BimModel(models.Model):
 
 
 class BimConversion(models.Model):
-
     bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name="conversions")
     urn = models.CharField(max_length=255)
     version = models.IntegerField()  # 轉換版本號，需手動設定
@@ -43,7 +42,7 @@ class BimCategory(models.Model):
 
     class Meta:
         db_table = "forge_bim_category"
-        verbose_name_plural = 'Categories'
+        verbose_name_plural = 'Bim categories'
 
     def __str__(self):
         return self.name
@@ -51,7 +50,7 @@ class BimCategory(models.Model):
 
 # class BIMObject(models.Model):
 #     """ 記錄 BIM 物件資訊（例如：門、窗、牆） """
-#     bim_conversion = models.ForeignKey(BIMConversion, on_delete=models.CASCADE, related_name="bim_objects")
+#     bim_conversion = models.ForeignKey(BimCategory, on_delete=models.CASCADE, related_name="bim_objects")
 #     object_id = models.CharField(max_length=255, unique=True)  # 物件唯一 ID（來自 APS）
 #     name = models.CharField(max_length=255)
 #     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="bim_objects")  # 使用外鍵參照 Category

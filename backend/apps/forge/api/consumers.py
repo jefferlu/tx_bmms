@@ -5,7 +5,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 class ProgressConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.group_name = 'progress_group'
-        print('Trying to connect and join group...')  # 輸出
+        print('Trying to connect and join group...') 
         # Join the WebSocket group
         await self.channel_layer.group_add(
             self.group_name,
