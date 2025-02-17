@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from django.db.models import Subquery, OuterRef
+from django.db.models import Subquery, OuterRef, Prefetch
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -409,15 +409,22 @@ class BimDataReloadView(APIView):
             return Response({"error": "No filename provided"}, status=400)
 
         # 執行Autodesk Model Derivative API轉換
-        bim_data_import.delay(client_id, client_secret, bucket_key, filename, 'progress_group', True)
-        # bim_data_import(client_id, client_secret, bucket_key, filename, 'progress_group', True)
+        # bim_data_import.delay(client_id, client_secret, bucket_key, filename, 'progress_group', True)
+        bim_data_import(client_id, client_secret, bucket_key, filename, 'progress_group', True)
 
         # # 回應上傳成功的訊息
         return Response({"message": f"File '{filename}' is being processed."}, status=200)
 
 
+class BimGroupViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = models.BimGroup.objects.all().prefetch_related(
+        Prefetch('bim_category', queryset=models.BimCategory.objects.filter(is_active=True))
+    )
+    serializer_class = serializers.BimGroupSerializer
+
+
 class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
-    """ 只讀取 BIMModel 及最新的 BimCategory """
+    """ 只查詢 BIMModel 及最新的 BimCategory """
     queryset = models.BimModel.objects.annotate(
         latest_version=Subquery(
             models.BimConversion.objects.filter(
@@ -443,7 +450,7 @@ class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
             models.BimConversion.objects.filter(
                 bim_model=OuterRef('id')
             ).order_by('-version').values('created_at')[:1]
-        ),        
+        ),
     )
 
     serializer_class = serializers.BimModelSerializer

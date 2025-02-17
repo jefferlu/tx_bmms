@@ -2,24 +2,15 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 
 
-# class BimTender(MPTTModel):
-#     name = models.CharField(max_length=255, unique=True)
-#     parent = TreeForeignKey('self', on_delete=models.CASCADE,
-#                             null=True, blank=True, related_name='children')
-#     class Meta:
-#         db_table = "forge_bim_tender"
-
-#     def __str__(self):
-#         return f"{self.name}"
-
-
 class BimModel(models.Model):
-    # tender = models.ForeignKey(BimTender, on_delete=models.CASCADE, related_name="bim_models")
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "forge_bim_model"
+
+    def __str__(self):
+        return self.name
 
 
 class BimConversion(models.Model):
@@ -31,14 +22,27 @@ class BimConversion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('bim_model', 'version') 
+        unique_together = ('bim_model', 'version')
         db_table = "forge_bim_conversion"
 
 
+class BimGroup(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(null=True, blank=True)
+    order = models.IntegerField(default=1)
+
+    class Meta:
+        db_table = "forge_bim_group"
+
+    def __str__(self):
+        return self.name
+
+
 class BimCategory(models.Model):
-    name = models.CharField(max_length=255, unique=True) 
+    bim_group = models.ForeignKey(BimGroup, on_delete=models.CASCADE, related_name='bim_category', null=True, blank=True)
+    name = models.CharField(max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
-    description = models.TextField(null=True, blank=True)  
+    description = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = "forge_bim_category"

@@ -18,7 +18,7 @@ class ObjectSerializer(serializers.Serializer):
         return True
 
 
-class BimCategorySerializer(serializers.ModelSerializer):
+class BimConversionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BimConversion
         fields = ['urn', 'version', 'original_file', 'svf_file', 'created_at']
@@ -37,5 +37,19 @@ class BimModelSerializer(serializers.ModelSerializer):
         fields = ['id', 'tender', 'name', 'created_at', 'urn', 'version',
                   'original_file', 'svf_file', 'conversion_created_at',]
 
-    def get_tender(self, obj):        
+    def get_tender(self, obj):
         return get_tender_name(obj.name)
+
+
+class BimCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.BimCategory
+        fields = ['id', 'name', 'is_active', 'description']
+
+
+class BimGroupSerializer(serializers.ModelSerializer):
+    bim_category = BimCategorySerializer(many=True, read_only=True)  # 嵌套 BimCategory 資料
+
+    class Meta:
+        model = models.BimGroup
+        fields = ['id', 'name', 'description', 'order', 'bim_category']

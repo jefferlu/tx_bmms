@@ -14,6 +14,7 @@ class OptionalSlashRouter(DefaultRouter):
 
 
 router = OptionalSlashRouter()
+router.register(r'bim-group', views.BimGroupViewSet)
 router.register(r'bim-model', views.BimModelViewSet)
 
 urlpatterns = [
