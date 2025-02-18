@@ -422,6 +422,12 @@ class BimGroupViewSet(viewsets.ReadOnlyModelViewSet):
     )
     serializer_class = serializers.BimGroupSerializer
 
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        # 移除 None (null) 的項目
+        response.data = [item for item in response.data if item is not None]
+        return response
+
 
 class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
     """ 只查詢 BIMModel 及最新的 BimCategory """

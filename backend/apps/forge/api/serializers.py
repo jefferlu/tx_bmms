@@ -56,5 +56,6 @@ class BimGroupSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        print(instance.id)
-        return representation 
+        if not representation.get('bim_category'):
+            return None  
+        return representation

@@ -1,57 +1,73 @@
-<div class="absolute inset-0 flex flex-col flex-auto w-full overflow-auto" *transloco="let t">
+<div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full" *transloco="let t">
+    <div class="mx-auto flex w-full h-full max-w-screen-xl flex-wrap p-6">
+        <div class="flex flex-auto flex-col h-full sm:col-span-2 lg:col-span-3">
 
-    <div class="flex flex-wrap w-full max-w-screen-xl mx-auto p-6 md:p-8">
+            <!-- Advanced search -->
 
-        <!-- Advanced search -->
-        <div class="grid grid-cols-1 gap-8 w-full mt-4">
             <div class="flex flex-col flex-auto bg-card shadow rounded-xl pb-6">
-                <div class="flex flex-row items-center justify-between p-8">
+                <div class="flex flex-row items-center justify-between p-4">
                     <!-- Header -->
-                    <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">{{t('advanced-search')}}
-                    </div>
-                   
+                    <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">{{t('advanced-search')}}</div>
+
                     <!-- Search -->
                     <div class="flex items-center space-x-3 sm:ml-2 sm:mt-0">
-                        <button mat-flat-button (click)="onSearch()">
-                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:rectangle-group'"></mat-icon>
-                            <span class="ml-2">{{t('bim-aggregated')}}</span>
-                        </button>                       
+                        <button mat-flat-button color="warn" (click)="onSearch()">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                            <span class="ml-2">{{t('search')}}</span>
+                        </button>
                     </div>
                 </div>
 
                 <app-search-panel [criteria]="criteria"></app-search-panel>
-                
-            </div>
-        </div>
 
-        <!-- Result table -->
-        <div class="grid grid-cols-1 gap-8 w-full mt-6">
-            <div class="flex flex-col flex-auto bg-card shadow rounded-xl py-6">
-                <div class="">
-                    <button mat-icon-button [matMenuTriggerFor]="exportMenu">
-                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:arrow-down-tray'"></mat-icon>
-                    </button>
-                    <mat-menu #exportMenu="matMenu">
-                        <button mat-menu-item>
-                            <span class="flex items-center">
-                                <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
-                                <span>匯出 CSV 檔案</span>
-                            </span>
+            </div>
+
+
+
+            <div class="flex flex-col flex-auto bg-card shadow rounded-xl py-2">
+                <div class="flex flex-row items-center justify-start p-4">
+                    <div>
+                        <div class="text-secondary font-medium text-lg">查詢結果 : 全部 29 筆資料 </div>
+                    </div>
+                    <div>
+                        <button mat-icon-button [matMenuTriggerFor]="exportMenu">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:arrow-down-tray'"></mat-icon>
                         </button>
-                        <button mat-menu-item>
-                            <span class="flex items-center">
-                                <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_solid:document-text'"></mat-icon>
-                                <span>匯出 TXT 檔</span>
-                            </span>
-                        </button>
-                    </mat-menu>
+                        <mat-menu #exportMenu="matMenu">
+                            <button mat-menu-item>
+                                <span class="flex items-center">
+                                    <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
+                                    <span>匯出 CSV 檔案</span>
+                                </span>
+                            </button>
+                            <button mat-menu-item>
+                                <span class="flex items-center">
+                                    <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_solid:document-text'"></mat-icon>
+                                    <span>匯出 TXT 檔</span>
+                                </span>
+                            </button>
+                        </mat-menu>
+                    </div>
+                    <div class="ml-auto">
+
+                        <!-- View model -->
+                        <div class="flex items-center space-x-3 sm:ml-2 sm:mt-0">
+                            <button mat-flat-button color="warn" (click)="onSearch()">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                                <span class="ml-2">{{t('bim-model-viewer')}}</span>
+                            </button>
+                        </div>
+
+                    </div>
                 </div>
+
+
                 <!-- Result table -->
-                <div class=" -mt-7 overflow-x-auto mx-10 result-table">
-                    <div class="text-secondary font-medium text-lg">查詢結果 : 全部 29 筆資料 </div>
-                    <p-table [value]="products" [tableStyle]="{ 'min-width': '50rem' }" [paginator]="true" [rows]="50">
+                <div class="flex h-full overflow-y-auto bg-card rounded-md">
+
+                    <p-table class="w-full" [value]="files" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'">
                         <ng-template pTemplate="header">
-                            <tr class="w-24 text-center">
+                            <tr class="border-b-2">
                                 <th>載入模型</th>
                                 <th>標別/檔案名稱</th>
                                 <th>空間區域名稱</th>
@@ -76,4 +92,5 @@
         </div>
 
     </div>
+
 </div>
