@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,12 +13,25 @@ import { MatIconModule } from '@angular/material/icon';
 export class SearchPanelComponent implements OnInit {
 
     @Input() criteria = [];
+    @Output() categoryChange = new EventEmitter<any[]>();
+    @Output() keywordChange = new EventEmitter<string>();
 
     ngOnInit(): void { }
 
+    onInputChange(event: Event) {
+        const inputElement = event.target as HTMLInputElement;
+        this.keywordChange.emit(inputElement.value);
+    }
+
     onSelected(item) {
-        console.log(item)
         item.selected = !item.selected;
+
+        const selectedItems = this.criteria
+            .flatMap(item => item.bim_category) // 展開每個 criteria 中的 bim_category 陣列
+            .filter(bc => bc.selected)          // 篩選出 selected 屬性為 true 的元素
+            .map(bc => bc.name);
+        
+        this.categoryChange.emit(selectedItems);
     }
 
     onCollapse(criterion) {

@@ -7,16 +7,19 @@ from collections import defaultdict
 
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from django.db.models import Subquery, OuterRef, Prefetch
+from django.db.models import Subquery, OuterRef, Prefetch, Q
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, pagination
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import ValidationError
+
+from django_auto_prefetching import AutoPrefetchViewSetMixin
 
 from drf_spectacular.utils import extend_schema
 
@@ -477,3 +480,69 @@ class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
     #     ]
 
     #     return Response(response_data)
+
+
+class StandardResultsSetPagination(pagination.PageNumberPagination):
+    page_size = 10  # 預設每頁顯示 10 筆
+    page_size_query_param = 'size'  # 前端可以透過 `size` 參數指定每頁大小
+    max_page_size = 100  # 限制最大頁數，避免前端要求太多數據
+
+
+class BimPropertyViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
+    serializer_class = serializers.BimPropertySerializer
+    pagination_class = StandardResultsSetPagination  # 啟用分頁
+
+    def get_queryset(self):
+        request = self.request
+        name = request.query_params.get('name', None)
+        categories = request.query_params.get('category', None)
+
+        # 至少要提供一個查詢參數
+        if not name and not categories:
+            raise ValidationError("請提供至少一個查詢參數 'name' 或 'category'。")
+
+        filters = Q()
+        if name:
+            filters &= Q(key__icontains=name)  # 模糊搜尋
+
+        if categories:
+            category_list = categories.split(',')
+            filters &= Q(category__name__in=category_list)
+
+        return models.BimProperty.objects.filter(filters).select_related(
+            'category', 'category__bim_group', 'conversion', 'conversion__bim_model'
+        )
+
+    # def list(self, request, *args, **kwargs):
+    #     # 取得查詢參數
+    #     name = request.query_params.get('name', None)
+    #     categories = request.query_params.get('category', None)
+
+    #     # 檢查是否有提供至少一個查詢參數
+    #     if not name and not categories:
+    #         raise ValidationError("請提供至少一個查詢參數 'name' 或 'category'。")
+
+    #     # 準備查詢條件
+    #     filters = Q()
+
+    #     if name:
+    #         filters &= Q(key__icontains=name)  # 用 `icontains` 進行不區分大小寫的模糊查詢
+
+    #     if categories:
+    #         # 支援多個 category 查詢，按逗號分隔
+    #         category_list = categories.split(',')
+    #         # 使用多個類別名稱查詢
+    #         filters &= Q(category__name__in=category_list)
+
+    #     # 根據條件過濾資料
+    #     bim_properties = models.BimProperty.objects.filter(filters).select_related(
+    #         'category',  'category__bim_group', 'conversion', 'conversion__bim_model',)
+
+    #     # 如果沒有開啟分頁，直接返回所有資料和總筆數
+    #     if not request.query_params.get('page', None):  # 如果沒有頁面參數，顯示所有資料
+    #         total_count = bim_properties.count()
+    #         data = serializers.BimPropertySerializer(bim_properties, many=True).data
+    #         return Response({'total_count': total_count, 'results': data})
+
+    #     # 預設的分頁方式
+    #     return super().list(request, *args, **kwargs)

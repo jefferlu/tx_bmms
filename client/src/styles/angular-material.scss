@@ -17,3 +17,7 @@
 .mat-progress-spinner circle {
   stroke: red !important;
 }
+
+.mat-mdc-dialog-surface {
+    @apply p-0 #{'!important'};    
+}

@@ -11,11 +11,16 @@ import { AppService } from 'app/app.service';
 export class ProcessFunctionsService {
 
     private _criteria: BehaviorSubject<InventoryProduct[] | null> = new BehaviorSubject(null);
+    private _data: BehaviorSubject<InventoryProduct[] | null> = new BehaviorSubject(null);
 
     constructor(private _appService: AppService) { }
 
     get criteria$(): Observable<any> {
         return this._criteria.asObservable();
+    }
+
+    get data$(): Observable<any> {
+        return this._data.asObservable();
     }
 
     getCriteria(): Observable<any> {
@@ -26,4 +31,11 @@ export class ProcessFunctionsService {
         );
     }
 
+    getData(request: any) {
+        return this._appService.get('forge/bim-property', request).pipe(
+            tap((res: any) => {
+                this._data.next(res);
+            })
+        );
+    }
 }

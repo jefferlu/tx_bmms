@@ -116,14 +116,13 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     #     logger.info('No manifest items found for download.')
     #     print('No manifest items found for download.')
     #     send_progress('download-svf', 'No manifest items found for download.')
-
     """ Step 5: 下載 SQLite """
     logger.info('Downloading SQLite to server ...')
     print('Downloading SQLite to server ...')
     send_progress('download-sqlite', 'Downloading SQLite to server ...')
     db = DbReader(urn, token, object_data['objectKey'])
 
-    """ Step 6: 讀取 SQLite 並寫入相關資料表 """    
+    """ Step 6: 讀取 SQLite 並寫入相關資料表 """
     query = """
         SELECT distinct _objects_attr.category
         FROM _objects_id
@@ -135,17 +134,13 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     df = db.execute_query(query)
     categories = df['category'].tolist()
 
-    # 查找資料庫中已經存在的BimCategory
+    # 寫入Category
     existing_categories = models.BimCategory.objects.filter(name__in=categories).values_list('name', flat=True)
     existing_categories_set = set(existing_categories)  # 複雜度O(1)
 
-    # 保留尚未存在的category
+    # 批量插入
     new_categories = [category for category in categories if category not in existing_categories_set]
-
-    # 批量創建新的BimCategory
     new_bim_categories = [models.BimCategory(name=category) for category in new_categories]
-
-    # 使用bulk_create批量插入
     with transaction.atomic():
         models.BimCategory.objects.bulk_create(new_bim_categories)
 
@@ -154,7 +149,7 @@ def process_translation(urn, token, file_name, object_data, send_progress):
         name=file_name,
         defaults={}
     )
-    
+
     # 取得最新版本號
     bim_conversion_version = get_conversion_version(bim_model)
 
@@ -167,7 +162,43 @@ def process_translation(urn, token, file_name, object_data, send_progress):
         svf_file=f"media-root/svf/{file_name}",  # 假設這是下載後的 SVF 文件路徑
     )
 
-    # process_sqlite_data(sqlite_path, bim_model.id)
+    # 寫入 BimProperty    
+    query = """
+        SELECT ids.id AS dbid, attrs.category AS category, COALESCE(NULLIF(attrs.display_name, ''),attrs.name) AS name, vals.value AS value
+        FROM _objects_eav eav
+        LEFT JOIN _objects_id ids ON ids.id = eav.entity_id
+        LEFT JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
+        LEFT JOIN _objects_val vals on vals.id = eav.value_id   
+        WHERE attrs.display_name like 'COBie%'
+        ORDER BY dbid
+    """
+    property_df  = db.execute_query(query)
+    categories = df['category'].tolist()
+
+    bim_category_mapping = {category.name: category for category in models.BimCategory.objects.all()}
+    bim_properties = []
+
+    for row in property_df.itertuples():
+        category_name = row.category
+        bim_category = bim_category_mapping.get(category_name)
+
+        # 若該類別不存在，則跳過（或者你也可以選擇創建新類別並插入）
+        if not bim_category:
+            continue  # 或者可以選擇創建新的類別並將其加到映射
+
+        # 建立 BIMProperty 物件
+        bim_property = models.BIMProperty(
+            category=bim_category,  # 使用查詢到的 BimCategory 實例
+            conversion=bim_conversion,  # 假設每個 BIMProperty 都與 BimConversion 關聯
+            name=row.name,
+            value=row.value,
+            dbid=row.dbid
+        )
+        bim_properties.append(bim_property)
+
+    # 批量插入 BIMProperty
+    with transaction.atomic():
+        models.BIMProperty.objects.bulk_create(bim_properties)
 
     # 通知完成
     logger.info('BIM data imoport complete.')

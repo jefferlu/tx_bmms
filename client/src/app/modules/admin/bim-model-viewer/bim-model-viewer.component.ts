@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
+import { finalize, Subject, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -33,8 +33,6 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     selectedItems!: any;
     searchBinName: string;
 
-    expandedRows: any;
-
     data: any;
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
@@ -50,6 +48,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this._spinner.hide();
+        this.data=[];
     }
 
     onSearch(): void {
@@ -61,16 +60,18 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
         this._spinner.show();
         this._bimModelViewerService.getBmmsList({ 'name': name })
-            .pipe(takeUntil(this._unsubscribeAll))
+            .pipe(
+                takeUntil(this._unsubscribeAll),
+                finalize(() => {
+                    this._spinner.hide();
+                })
+            )
             .subscribe({
                 next: (res) => {
                     if (res) {
                         this.data = res;
-
+                        console.log(res)
                         this._changeDetectorRef.markForCheck();
-                        this._spinner.hide();
-
-                        this.expandedRows = res[0];
                     }
                 },
                 error: e => {

@@ -1,10 +1,9 @@
 <div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full" *transloco="let t">
     <div class="mx-auto flex w-full h-full max-w-screen-xl flex-wrap p-6">
-        <div class="flex flex-auto flex-col h-full sm:col-span-2 lg:col-span-3">
+        <div class="flex flex-auto flex-col h-full ">
 
             <!-- Advanced search -->
-
-            <div class="flex flex-col flex-auto bg-card shadow rounded-xl pb-6">
+            <div class="flex flex-col bg-card shadow rounded-md mb-4 py-2">
                 <div class="flex flex-row items-center justify-between p-4">
                     <!-- Header -->
                     <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">{{t('advanced-search')}}</div>
@@ -17,19 +16,18 @@
                         </button>
                     </div>
                 </div>
-
-                <app-search-panel [criteria]="criteria"></app-search-panel>
-
+                <app-search-panel [criteria]="criteria" (keywordChange)="onKeywordChange($event)"
+                    (categoryChange)="onCategoryChange($event)"></app-search-panel>
             </div>
 
+            <div class="flex flex-col flex-auto bg-card shadow rounded-md py-2 overflow-y-auto">
 
-
-            <div class="flex flex-col flex-auto bg-card shadow rounded-xl py-2">
                 <div class="flex flex-row items-center justify-start p-4">
+                    @if(data){
                     <div>
-                        <div class="text-secondary font-medium text-lg">查詢結果 : 全部 29 筆資料 </div>
+                        <div class="text-secondary font-medium text-lg">查詢結果 : 全部 {{data?.count}} 筆資料 </div>
                     </div>
-                    <div>
+                    <div class="pl-2">
                         <button mat-icon-button [matMenuTriggerFor]="exportMenu">
                             <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:arrow-down-tray'"></mat-icon>
                         </button>
@@ -48,12 +46,13 @@
                             </button>
                         </mat-menu>
                     </div>
-                    <div class="ml-auto">
+                    }
 
+                    <div class="ml-auto">
                         <!-- View model -->
                         <div class="flex items-center space-x-3 sm:ml-2 sm:mt-0">
-                            <button mat-flat-button color="warn" (click)="onSearch()">
-                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                            <button mat-flat-button color="warn" (click)="onClickAggregated()">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:photo'"></mat-icon>
                                 <span class="ml-2">{{t('bim-model-viewer')}}</span>
                             </button>
                         </div>
@@ -61,31 +60,48 @@
                     </div>
                 </div>
 
-
                 <!-- Result table -->
-                <div class="flex h-full overflow-y-auto bg-card rounded-md">
+                <div class="flex h-full overflow-y-auto">
+                    <ngx-spinner bdColor="rgba(100, 0, 0, 0)" [color]="'var(--spinner-color)'" size="default" type="ball-clip-rotate" [fullScreen]="false">
+                        <p class="-mt-10">{{t('loading')}}</p>
+                    </ngx-spinner>
 
-                    <p-table class="w-full" [value]="files" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'">
+                    <p-table class="w-full" [value]="data?.results" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'"
+                        [rows]="100" [virtualScrollItemSize]="46" [lazy]="true" (onLazyLoad)="loadBimProperties($event)"
+                        [(selection)]="selectedItems">
                         <ng-template pTemplate="header">
                             <tr class="border-b-2">
-                                <th>載入模型</th>
+                                <th class="w-20 pl-8"><p-tableHeaderCheckbox /></th>
                                 <th>標別/檔案名稱</th>
-                                <th>空間區域名稱</th>
-                                <th>構件類型</th>
-                                <th>樓層名稱</th>
+                                <th>群組</th>
+                                <th>分類</th>
+                                <th>屬性</th>
+                                <th>值</th>
+                                <th>DBID</th>
                             </tr>
                         </ng-template>
-                        <ng-template pTemplate="body" let-product>
-                            <tr>
-                                <td class="w-24 text-center">
-                                    <input type="checkbox" [(ngModel)]="product.selected" (change)="onProductSelected(product)" />
+                        <ng-template pTemplate="body" let-item>
+                            <tr class="hover:bg-hover">
+                                <td class="pl-8">
+                                    <p-tableCheckbox [value]="item" />
                                 </td>
-                                <td>{{ product.code }}</td>
-                                <td>{{ product.name }}</td>
-                                <td>{{ product.category }}</td>
-                                <td>{{ product.inventoryStatus }}</td>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.group }}</td>
+                                <td>{{ item.category }}</td>
+                                <td>{{ item.key }}</td>
+                                <td>{{ item.value }}</td>
+                                <td>{{ item.dbid }}</td>
                             </tr>
                         </ng-template>
+
+                        <!-- <ng-template #loadingbody let-columns="columns">
+                            <tr style="height:46px">
+                                <td *ngFor="let col of columns; let even = even">
+                                    <p-skeleton [ngStyle]="{'width': even ? (col.field === 'year' ? '30%' : '40%') : '60%'}" />
+                                </td>
+                            </tr>
+                        </ng-template> -->
+
                     </p-table>
                 </div>
             </div>
