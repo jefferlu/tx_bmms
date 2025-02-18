@@ -18,8 +18,8 @@ class BimConversionAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.BimGroup)
-class BimCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'order', )
+class BimGroupAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'description', 'order', )
 
 
 @admin.register(models.BimCategory)

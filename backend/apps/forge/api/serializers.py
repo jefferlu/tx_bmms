@@ -38,7 +38,7 @@ class BimModelSerializer(serializers.ModelSerializer):
                   'original_file', 'svf_file', 'conversion_created_at',]
 
     def get_tender(self, obj):
-        return get_tender_name(obj.name)
+        return get_tender_name(obj.name)    
 
 
 class BimCategorySerializer(serializers.ModelSerializer):
@@ -53,3 +53,8 @@ class BimGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BimGroup
         fields = ['id', 'name', 'description', 'order', 'bim_category']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        print(instance.id)
+        return representation 

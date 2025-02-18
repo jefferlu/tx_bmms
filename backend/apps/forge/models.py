@@ -8,6 +8,7 @@ class BimModel(models.Model):
 
     class Meta:
         db_table = "forge_bim_model"
+        ordering = ["id"]
 
     def __str__(self):
         return self.name
@@ -24,6 +25,7 @@ class BimConversion(models.Model):
     class Meta:
         unique_together = ('bim_model', 'version')
         db_table = "forge_bim_conversion"
+        ordering = ["id"]
 
 
 class BimGroup(models.Model):
@@ -33,13 +35,15 @@ class BimGroup(models.Model):
 
     class Meta:
         db_table = "forge_bim_group"
+        ordering = ["id"]
 
     def __str__(self):
         return self.name
 
 
 class BimCategory(models.Model):
-    bim_group = models.ForeignKey(BimGroup, on_delete=models.CASCADE, related_name='bim_category', null=True, blank=True)
+    bim_group = models.ForeignKey(BimGroup, on_delete=models.CASCADE,
+                                  related_name='bim_category', null=True, blank=True)
     name = models.CharField(max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
     description = models.TextField(null=True, blank=True)
@@ -47,6 +51,7 @@ class BimCategory(models.Model):
     class Meta:
         db_table = "forge_bim_category"
         verbose_name_plural = 'Bim categories'
+        ordering = ["id"]
 
     def __str__(self):
         return self.name

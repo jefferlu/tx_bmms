@@ -1,88 +1,46 @@
-<div class="absolute inset-0 flex flex-col flex-auto w-full overflow-auto">
+<div class="absolute inset-0 flex flex-col flex-auto w-full overflow-auto" *transloco="let t">
 
     <div class="flex flex-wrap w-full max-w-screen-xl mx-auto p-6 md:p-8">
 
-        <!-- Title -->
-        <!-- <div class="flex items-center justify-between w-full" *transloco="let t">
-            <div>
-                <h2 class="text-3xl font-semibold tracking-tight leading-8">{{t('bim-information-listing')}}</h2>
-                <div class="font-medium tracking-tight text-secondary text-lg">{{t('bim-information-listing-desc')}}</div>
-            </div>
-        </div> -->
-
-        <div class="grid grid-cols-1 xl:grid-cols-1 gap-4 w-full mt-2">
-
-            <!-- elFinder -->
-            <!-- <div class="relative flex flex-col flex-auto bg-card shadow rounded-lg overflow-hidden">
-                <div #elfinder></div>
-            </div> -->
-
-            <!-- BIM viewer -->
-            <div class="flex flex-col flex-auto bg-card shadow rounded-lg xl:col-span-2">
-                <div class="flex flex-col flex-auto h-120">
-
-                    @if(true){
-                    <aps-viewer class="relative w-full h-full" [option]="page"></aps-viewer>
-                    }
-                    @else {
-                    <!-- Select chat or start new -->
-                    <div class="flex flex-col flex-auto items-center justify-center bg-gray-100 dark:bg-transparent">
-                        <mat-icon class="icon-size-24" [svgIcon]="'heroicons_outline:viewfinder-circle'"></mat-icon>
-                        <div class="mt-4 text-2xl font-semibold tracking-tight text-secondary">Select one or more
-                            derivatives</div>
-                    </div>
-                    }
-
-                </div>
-            </div>
-        </div>
-
         <!-- Advanced search -->
-        <div class="grid grid-cols-1 gap-8 w-full mt-4" *transloco="let t">
+        <div class="grid grid-cols-1 gap-8 w-full mt-4">
             <div class="flex flex-col flex-auto bg-card shadow rounded-xl pb-6">
-                <div class="p-8">
+                <div class="flex flex-row items-center justify-between p-8">
+                    <!-- Header -->
                     <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">{{t('advanced-search')}}
                     </div>
-                    <!-- <div class="text-secondary font-medium text-lg">1 pending, 4 completed</div> -->
+                   
+                    <!-- Search -->
+                    <div class="flex items-center space-x-3 sm:ml-2 sm:mt-0">
+                        <button mat-flat-button (click)="onSearch()">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:rectangle-group'"></mat-icon>
+                            <span class="ml-2">{{t('bim-aggregated')}}</span>
+                        </button>                       
+                    </div>
                 </div>
 
                 <app-search-panel [criteria]="criteria"></app-search-panel>
-
-                <!-- {{criteria[0]|json}} -->
-
-
+                
             </div>
         </div>
 
         <!-- Result table -->
-        <div class="grid grid-cols-1 gap-8 w-full mt-6" *transloco="let t">
+        <div class="grid grid-cols-1 gap-8 w-full mt-6">
             <div class="flex flex-col flex-auto bg-card shadow rounded-xl py-6">
-                <div class="ml-60 mt-5">
-                    <button
-                        mat-icon-button
-                        [matMenuTriggerFor]="exportMenu"
-                    >
-                        <mat-icon
-                            class="icon-size-5"
-                            [svgIcon]="'heroicons_mini:arrow-down-tray'"
-                        ></mat-icon>
+                <div class="">
+                    <button mat-icon-button [matMenuTriggerFor]="exportMenu">
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:arrow-down-tray'"></mat-icon>
                     </button>
                     <mat-menu #exportMenu="matMenu">
                         <button mat-menu-item>
                             <span class="flex items-center">
-                                <mat-icon
-                                    class="mr-3 icon-size-5"
-                                    [svgIcon]="'heroicons_outline:file-csv'"
-                                ></mat-icon>
+                                <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
                                 <span>匯出 CSV 檔案</span>
                             </span>
                         </button>
                         <button mat-menu-item>
                             <span class="flex items-center">
-                                <mat-icon
-                                    class="mr-3 icon-size-5"
-                                    [svgIcon]="'heroicons_solid:document-text'"
-                                ></mat-icon>
+                                <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_solid:document-text'"></mat-icon>
                                 <span>匯出 TXT 檔</span>
                             </span>
                         </button>
@@ -103,7 +61,7 @@
                         </ng-template>
                         <ng-template pTemplate="body" let-product>
                             <tr>
-                                <td class="w-24 text-center"> 
+                                <td class="w-24 text-center">
                                     <input type="checkbox" [(ngModel)]="product.selected" (change)="onProductSelected(product)" />
                                 </td>
                                 <td>{{ product.code }}</td>

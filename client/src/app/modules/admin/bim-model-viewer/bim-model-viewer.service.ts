@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { AppService } from 'app/app.service';
 import { BehaviorSubject, map, Observable, take, tap } from 'rxjs';
 
@@ -10,6 +10,8 @@ export class BimModelViewerService {
     private _list: BehaviorSubject<any[] | null> = new BehaviorSubject(null);
     private _detail: BehaviorSubject<any | null> = new BehaviorSubject(null);
 
+    constructor(private _appService: AppService) { }
+
     get bmmsList$(): Observable<any[]> {
         return this._list.asObservable();
     }
@@ -17,8 +19,6 @@ export class BimModelViewerService {
     get bmmsDetail$(): Observable<any> {
         return this._detail.asObservable();
     }
-
-    private _appService = inject(AppService);
 
     getBmmsList(slug?: any): Observable<any> {
         return this._appService.get('forge/bim-model', slug).pipe(

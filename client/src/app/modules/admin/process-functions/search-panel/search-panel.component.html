@@ -4,7 +4,7 @@
     <div class='flex flex-wrap gap-2'>
         @for(criterion of criteria;track criterion){
 
-        @for(item of criterion.items;track item){
+        @for(item of criterion.bim_category;track item){
         @if(item.selected){
         <span class='flex items-center py-1 px-2 rounded cursor-pointer text-center border bg-gray-600 border-gray-400' (click)="onSelected(item)">{{item.name}}
             <mat-icon class="icon-size-5 ml-1" [svgIcon]="'heroicons_mini:x-mark'"></mat-icon>
@@ -23,10 +23,6 @@
                 class="px-2 py-1.5 border rounded min-w-64 focus:border-white bg-gray-700 border-gray-600 placeholder:text-gray-400 text-white"
                 placeholder="請輸入關鍵字..." />
         </div>
-        <button mat-icon-button>
-            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:magnifying-glass'"></mat-icon>
-        </button>
-
     </div>
 </div>
 
@@ -34,10 +30,10 @@
 <!-- 動態條件 -->
 @for(criterion of criteria;track criterion){
 <div class="flex items-center mx-10 px-6 py-4 md:px-8 cursor-pointer border-b">
-    <div class="flex-shrink-0 self-start items-center justify-center mr-4 leading-8 font-semibold">{{criterion.field}} :</div>
+    <div class="flex-shrink-0 self-start items-center justify-center mr-4 leading-8 font-semibold">{{criterion.name}} :</div>
 
     <div class='gap-2' [ngClass]="{'flex flex-wrap':criterion.collapse, 'inline-flex overflow-hidden whitespace-nowrap mr-6':!criterion.collapse}">
-        @for(item of criterion.items;track item){
+        @for(item of criterion.bim_category;track item){
         <!-- <span class="hover:shadow hover:bg-blue-900 cursor-pointer">{{item.name}}</span> -->
         <span class='py-1 px-2 rounded cursor-pointer text-center border hover:border-gray-600'
         

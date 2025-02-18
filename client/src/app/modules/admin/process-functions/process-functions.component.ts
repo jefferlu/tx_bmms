@@ -1,20 +1,16 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterOutlet } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
 import { TreeNode } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { TreeModule } from 'primeng/tree';
-import { JsonPipe } from '@angular/common';
 import { ApsViewerComponent } from "../../../layout/common/aps-viewer/aps-viewer.component";
 import { SearchPanelComponent } from './search-panel/search-panel.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { environment } from 'environments/environment';
-
-// declare var $: any;
-// const endpoint = environment.elfinder;
+import { ProcessFunctionsService } from './process-functions.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-process-functions',
@@ -29,17 +25,12 @@ import { environment } from 'environments/environment';
         SearchPanelComponent,
         ApsViewerComponent,
         MatMenuModule,
-        MatDividerModule,
+        MatDividerModule
     ]
 })
 export class ProcessFunctionsComponent implements OnInit, AfterViewInit, OnDestroy {
 
-    // @ViewChild('elfinder') elfinderDiv!: ElementRef;
-
-    // @ViewChild('viewer') viewerContainer: ElementRef;
-
-    // viewer: any;
-    // options: any;
+    private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     page = {}
 
@@ -48,9 +39,24 @@ export class ProcessFunctionsComponent implements OnInit, AfterViewInit, OnDestr
 
     criteria: any[];
 
-    constructor() { }
+    constructor(
+        private _changeDetectorRef: ChangeDetectorRef,
+        private _processFunctionsService: ProcessFunctionsService
+    ) { }
 
     ngOnInit(): void {
+
+        // Get criteria
+        this._processFunctionsService.criteria$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((data: any) => {
+                this.criteria = data;
+                console.log(this.criteria)
+
+                // Mark for check
+                this._changeDetectorRef.markForCheck();
+            });
+
 
         // this.page.svf = {
         //     "id": 6,
@@ -508,106 +514,106 @@ export class ProcessFunctionsComponent implements OnInit, AfterViewInit, OnDestr
             }
         ];
 
-        this.criteria = [
-            {
-                field: '空間區域名稱',
-                collapse: false,
-                items: [
-                    { name: '旅客大廳', selected: false },
-                    { name: '走廊', selected: false },
-                    { name: '辦公區', selected: false },
-                    { name: '停車場', selected: false },
-                    { name: '接待區', selected: false },
-                    { name: '道路', selected: false },
-                    { name: '旅客大廳', selected: false },
-                    { name: '捷運聯絡道', selected: false },
-                    { name: 'T#辦公區', selected: false },
-                    { name: 'A區停車場', selected: false },
-                    { name: '接機停等區', selected: false },
-                    { name: '聯外道路', selected: false },
-                    { name: '男廁', selected: false },
-                    { name: 'A1座位區', selected: false },
-                    { name: '女廁', selected: false },
-                    { name: 'B1座位區', selected: false },
-                    { name: '航空公司櫃台', selected: false },
-                    { name: '旅客電梯', selected: false },
-                    { name: '貨梯', selected: false }]
-            },
-            {
-                field: '樓層名稱',
-                collapse: false,
-                items: [
-                    { name: 'B4', selected: false },
-                    { name: 'B3', selected: false },
-                    { name: 'B2', selected: false },
-                    { name: 'B1', selected: false },
-                    { name: '1F', selected: false },
-                    { name: '2F', selected: false },
-                    { name: '3F', selected: false },
-                    { name: '4F', selected: false },
-                    { name: '5F', selected: false },
-                    { name: '6F', selected: false },
-                    { name: '7F', selected: false },
-                    { name: '8F', selected: false },
-                    { name: 'RF', selected: false }]
-            },
-            {
-                field: '管理系統分類',
-                collapse: false,
-                items: [
-                    { name: '空調系統', selected: false },
-                    { name: '空橋設備', selected: false },
-                    { name: '電梯設備', selected: false },
-                    { name: '天然氣管線', selected: false },
-                    { name: '消防管線', selected: false },
-                    { name: '汙水系統', selected: false },
-                    { name: '焚化爐系統', selected: false },
-                    { name: '電力系統', selected: false },
-                    { name: 'BHS系統', selected: false },
-                    { name: 'PMS營運系統', selected: false },
-                    { name: '空調系統', selected: false },
-                    { name: '空橋設備', selected: false },
-                    { name: '電梯設備', selected: false },
-                    { name: '天然氣管線', selected: false },
-                    { name: '消防管線', selected: false },
-                    { name: '汙水系統', selected: false },
-                    { name: '焚化爐系統', selected: false },
-                    { name: '電力系統', selected: false },
-                    { name: 'BHS系統', selected: false },
-                    { name: 'PMS營運系統', selected: false },
-                    { name: '跑道', selected: false }]
-            },
-            {
-                field: '構件類型',
-                collapse: false,
-                items: [
-                    { name: '建築工程', selected: false },
-                    { name: '結構工程', selected: false },
-                    { name: '照明設備', selected: false },
-                    { name: '瓦斯天然氣管線', selected: false },
-                    { name: '給水管線', selected: false },
-                    { name: '排水管線', selected: false },
-                    { name: '汙水管線', selected: false },
-                    { name: '消防管線', selected: false },
-                    { name: '消防設備', selected: false },
-                    { name: '電力線架', selected: false },
-                    { name: '電力設備', selected: false },
-                    { name: '弱電槽線', selected: false },
-                    { name: '照明設備', selected: false },
-                    { name: '瓦斯管線', selected: false },
-                    { name: '給水管線', selected: false },
-                    { name: '排水管線', selected: false },
-                    { name: '汙水管線', selected: false },
-                    { name: '消防管線', selected: false },
-                    { name: '消防設備', selected: false },
-                    { name: '電力線架', selected: false },
-                    { name: '電力設備', selected: false },
-                    { name: '弱電槽線', selected: false },
-                    { name: '弱電設備', selected: false },
-                    { name: '油管監控', selected: false },
-                    { name: '機場油管', selected: false }]
-            }
-        ];
+        // this.criteria = [
+        //     {
+        //         field: '空間區域名稱',
+        //         collapse: false,
+        //         items: [
+        //             { name: '旅客大廳', selected: false },
+        //             { name: '走廊', selected: false },
+        //             { name: '辦公區', selected: false },
+        //             { name: '停車場', selected: false },
+        //             { name: '接待區', selected: false },
+        //             { name: '道路', selected: false },
+        //             { name: '旅客大廳', selected: false },
+        //             { name: '捷運聯絡道', selected: false },
+        //             { name: 'T#辦公區', selected: false },
+        //             { name: 'A區停車場', selected: false },
+        //             { name: '接機停等區', selected: false },
+        //             { name: '聯外道路', selected: false },
+        //             { name: '男廁', selected: false },
+        //             { name: 'A1座位區', selected: false },
+        //             { name: '女廁', selected: false },
+        //             { name: 'B1座位區', selected: false },
+        //             { name: '航空公司櫃台', selected: false },
+        //             { name: '旅客電梯', selected: false },
+        //             { name: '貨梯', selected: false }]
+        //     },
+        //     {
+        //         field: '樓層名稱',
+        //         collapse: false,
+        //         items: [
+        //             { name: 'B4', selected: false },
+        //             { name: 'B3', selected: false },
+        //             { name: 'B2', selected: false },
+        //             { name: 'B1', selected: false },
+        //             { name: '1F', selected: false },
+        //             { name: '2F', selected: false },
+        //             { name: '3F', selected: false },
+        //             { name: '4F', selected: false },
+        //             { name: '5F', selected: false },
+        //             { name: '6F', selected: false },
+        //             { name: '7F', selected: false },
+        //             { name: '8F', selected: false },
+        //             { name: 'RF', selected: false }]
+        //     },
+        //     {
+        //         field: '管理系統分類',
+        //         collapse: false,
+        //         items: [
+        //             { name: '空調系統', selected: false },
+        //             { name: '空橋設備', selected: false },
+        //             { name: '電梯設備', selected: false },
+        //             { name: '天然氣管線', selected: false },
+        //             { name: '消防管線', selected: false },
+        //             { name: '汙水系統', selected: false },
+        //             { name: '焚化爐系統', selected: false },
+        //             { name: '電力系統', selected: false },
+        //             { name: 'BHS系統', selected: false },
+        //             { name: 'PMS營運系統', selected: false },
+        //             { name: '空調系統', selected: false },
+        //             { name: '空橋設備', selected: false },
+        //             { name: '電梯設備', selected: false },
+        //             { name: '天然氣管線', selected: false },
+        //             { name: '消防管線', selected: false },
+        //             { name: '汙水系統', selected: false },
+        //             { name: '焚化爐系統', selected: false },
+        //             { name: '電力系統', selected: false },
+        //             { name: 'BHS系統', selected: false },
+        //             { name: 'PMS營運系統', selected: false },
+        //             { name: '跑道', selected: false }]
+        //     },
+        //     {
+        //         field: '構件類型',
+        //         collapse: false,
+        //         items: [
+        //             { name: '建築工程', selected: false },
+        //             { name: '結構工程', selected: false },
+        //             { name: '照明設備', selected: false },
+        //             { name: '瓦斯天然氣管線', selected: false },
+        //             { name: '給水管線', selected: false },
+        //             { name: '排水管線', selected: false },
+        //             { name: '汙水管線', selected: false },
+        //             { name: '消防管線', selected: false },
+        //             { name: '消防設備', selected: false },
+        //             { name: '電力線架', selected: false },
+        //             { name: '電力設備', selected: false },
+        //             { name: '弱電槽線', selected: false },
+        //             { name: '照明設備', selected: false },
+        //             { name: '瓦斯管線', selected: false },
+        //             { name: '給水管線', selected: false },
+        //             { name: '排水管線', selected: false },
+        //             { name: '汙水管線', selected: false },
+        //             { name: '消防管線', selected: false },
+        //             { name: '消防設備', selected: false },
+        //             { name: '電力線架', selected: false },
+        //             { name: '電力設備', selected: false },
+        //             { name: '弱電槽線', selected: false },
+        //             { name: '弱電設備', selected: false },
+        //             { name: '油管監控', selected: false },
+        //             { name: '機場油管', selected: false }]
+        //     }
+        // ];
 
     }
 

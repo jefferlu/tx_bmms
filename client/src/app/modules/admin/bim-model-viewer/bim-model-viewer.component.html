@@ -10,7 +10,7 @@
                     <div class="flex flex-col">
                         <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 gts-mat-dense">
                             <input matInput [placeholder]="t('search-bim-name')" [(ngModel)]="searchBinName" />
-
+                            
                             <button mat-icon-button matSuffix (click)="onSearch()">
                                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
                             </button>
@@ -32,7 +32,7 @@
             </div>
 
             <!-- Content -->
-            <div class="flex h-full overflow-y-auto bg-card rounded-xl">
+            <div class="flex h-full overflow-y-auto bg-card rounded-md">
                 <ngx-spinner bdColor="rgba(100, 0, 0, 0)" [color]="'var(--spinner-color)'" size="default" type="ball-clip-rotate" [fullScreen]="false">
                     <p class="-mt-10">{{t('loading')}}</p>
                 </ngx-spinner>

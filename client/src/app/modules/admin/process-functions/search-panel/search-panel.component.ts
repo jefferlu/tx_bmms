@@ -17,6 +17,7 @@ export class SearchPanelComponent implements OnInit {
     ngOnInit(): void { }
 
     onSelected(item) {
+        console.log(item)
         item.selected = !item.selected;
     }
 

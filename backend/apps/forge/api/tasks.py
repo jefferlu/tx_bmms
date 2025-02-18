@@ -12,7 +12,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 
 from ..aps_toolkit import Auth, Bucket, Derivative, SVFReader, DbReader
-from ..services import get_aps_urn, get_conversion_version, process_sqlite_data
+from ..services import get_aps_urn, get_conversion_version
 from .. import models
 
 logger = get_task_logger(__name__)
@@ -61,7 +61,7 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
 
 def process_translation(urn, token, file_name, object_data, send_progress):
 
-    # # Step 2: 開始轉檔
+    # """ Step 2: 開始轉檔 """
     # logger.info('Triggering translation job...')
     # print('Triggering translation job...')
     # send_progress('translate-job', 'Triggering translation job...')
@@ -72,7 +72,7 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     #     send_progress('error', translate_job_ret['developerMessage'])
     #     return
 
-    # # Step 3: 定期檢查轉檔狀態
+    # """ Step 3: 定期檢查轉檔狀態 """
     # logger.info('Monitoring translation status...')
     # print('Monitoring translation status...')
     # send_progress('translate-job', 'Monitoring translation status...')
@@ -96,7 +96,7 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     #         return
     #     time.sleep(5)
 
-    # # Step 4: 下載 SVF
+    # """ Step 4: 下載 SVF """
     # logger.info('Downloading SVF to server ...')
     # print('Downloading SVF to server ...')
     # send_progress('download-svf', 'Downloading SVF to server ...')
@@ -117,14 +117,13 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     #     print('No manifest items found for download.')
     #     send_progress('download-svf', 'No manifest items found for download.')
 
-    # Step 5: 下載 SQLite
+    """ Step 5: 下載 SQLite """
     logger.info('Downloading SQLite to server ...')
     print('Downloading SQLite to server ...')
     send_progress('download-sqlite', 'Downloading SQLite to server ...')
     db = DbReader(urn, token, object_data['objectKey'])
 
-    # Step 6: 讀取 SQLite 並寫入資料庫
-    # 6.1 取得並寫入All Categories
+    """ Step 6: 讀取 SQLite 並寫入相關資料表 """    
     query = """
         SELECT distinct _objects_attr.category
         FROM _objects_id
@@ -150,15 +149,16 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     with transaction.atomic():
         models.BimCategory.objects.bulk_create(new_bim_categories)
 
-    print('-->df', df['category'].tolist())
-
+    # 寫入 BimModel
     bim_model, created = models.BimModel.objects.get_or_create(
         name=file_name,
         defaults={}
     )
-
+    
+    # 取得最新版本號
     bim_conversion_version = get_conversion_version(bim_model)
 
+    # 寫入 BimConversion
     bim_conversion = models.BimConversion.objects.create(
         bim_model=bim_model,
         urn=urn,
