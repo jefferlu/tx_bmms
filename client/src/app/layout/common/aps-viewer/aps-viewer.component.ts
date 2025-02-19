@@ -132,6 +132,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
             Autodesk.Viewing.Initializer(options, () => {
                 this.viewer.init(container, options).then(() => {
+                    console.log('Viewer 初始化完成');
+
+                    this.addCustomButton();
+
                     const bubbleNodes = [];
 
                     // 逐一載入每個模型的 .svf 檔案
@@ -153,9 +157,40 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                             console.error('載入模型失敗', errorMsg);
                         });
                     });
+
+                    // 監聽 TOOLBAR_CREATED_EVENT
+                    this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+                        console.log('Toolbar 已創建，加入按鈕');
+                        this.addCustomButton();
+                    });
+                    
                 });
             });
         });
+    }
+
+    addCustomButton(): void {
+        if (!this.viewer.toolbar) {
+            console.error('Viewer toolbar 尚未準備好');
+            return;
+        }
+
+        // 建立按鈕
+        const button = new Autodesk.Viewing.UI.Button('customButton');
+        button.icon.classList.add('fas', 'fa-cube'); // 使用 FontAwesome 圖示
+        button.setToolTip('自訂功能按鈕');
+
+        // 設定點擊事件
+        button.onClick = () => {
+            alert('你點擊了自訂按鈕！');
+        };
+
+        // 建立工具列群組
+        const subToolbar = new Autodesk.Viewing.UI.ControlGroup('customToolbar');
+        subToolbar.addControl(button);
+
+        // 加入 Viewer Toolbar
+        this.viewer.toolbar.addControl(subToolbar);
     }
 
     ngOnDestroy(): void {
