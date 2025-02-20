@@ -26,7 +26,7 @@ import { MatDialog } from '@angular/material/dialog';
         MatMenuModule, MatDividerModule,
         TreeModule, TableModule, SkeletonModule,
         TranslocoModule, NgxSpinnerModule,
-        SearchPanelComponent, ApsViewerComponent,
+        SearchPanelComponent,
     ]
 })
 export class ProcessFunctionsComponent implements OnInit, OnDestroy {
@@ -72,6 +72,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
 
     }
+
 
     onCategoryChange(categories: any[]) {
         this.categories = categories;
@@ -139,14 +140,14 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         //     return;
         // }
 
-        this.showAggregatedDialog(this.selectedItems)
+        this.showAggregatedDialog()
     }
 
-    showAggregatedDialog(items): void {
+    showAggregatedDialog(): void {        
         this._matDialog.open(ApsViewerComponent, {
             width: '99vw',
             height: '95vh',
-            data: items
+            data: this.selectedItems
         })
     }
 

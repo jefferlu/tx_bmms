@@ -48,7 +48,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this._spinner.hide();
-        this.data=[];
+        this.data = [];
     }
 
     onSearch(): void {
@@ -91,7 +91,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.showAggregatedDialog(this.selectedItems)
+        this.showAggregatedDialog();
     }
 
     onClickCompare(): void {
@@ -103,11 +103,11 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     }
 
 
-    showAggregatedDialog(items): void {
+    showAggregatedDialog(): void {  ``      
         this._matDialog.open(ApsViewerComponent, {
             width: '99vw',
             height: '95vh',
-            data: items
+            data: this.selectedItems
         })
     }
 

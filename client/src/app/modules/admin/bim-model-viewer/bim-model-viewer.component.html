@@ -37,7 +37,7 @@
                     <p class="-mt-10">{{t('loading')}}</p>
                 </ngx-spinner>
                 <p-table class="w-full" [value]="data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [size]="'small'"
-                    rowGroupMode="subheader" groupRowsBy="tender" [(expandedRows)]="expandedRows" [(selection)]="selectedItems">
+                    rowGroupMode="subheader" groupRowsBy="tender" [(selection)]="selectedItems">
 
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
@@ -76,12 +76,12 @@
                             <td>{{item.uploader?.username }}</td>
                             <td class="text-center">
                                 <button class="cursor-pointer" (click)="onDownloadCsv()">
-                                    <mat-icon [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
+                                    <mat-icon class="mt-1" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
                                 </button>
                             </td>
                             <td class="text-center">
                                 <button (click)="onDownloadBim()">
-                                    <mat-icon [svgIcon]="'mat_outline:description'"></mat-icon>
+                                    <mat-icon class="mt-1" [svgIcon]="'heroicons_outline:file-obj'"></mat-icon>
                                 </button>
                             </td>
                             <td class="text-center">{{item.version}}</td>

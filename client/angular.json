@@ -53,8 +53,19 @@
                             "src/assets/jquery/jquery-3.7.1.min.js",
                             "src/assets/jqueryui/jquery-ui.min.js",
                             "src/assets/elfinder/js/elfinder.full.js",
+                            "node_modules/xlsx/dist/xlsx.full.min.js",
                             "src/assets/elfinder/js/extras/editors.default.min.js",
-                            "src/assets/elfinder/js/extras/quicklook.googledocs.min.js"
+                            "src/assets/elfinder/js/extras/quicklook.googledocs.min.js",
+                            "src/assets/aps/extensions/CustomPropertyPanel.js",
+                            "src/assets/aps/extensions/DownloadPanel.js",
+                            "src/assets/aps/extensions/ForgeXLS.js",
+                            "src/assets/aps/extensions/DownloadPanel.js",
+                            "src/assets/aps/extensions/modeldata.js",
+                            "src/assets/aps/extensions/SaveSelectionObject.js",
+                            "src/assets/aps/extensions/SearchPanel.js",
+                            "src/assets/aps/extensions/Snoop.js",
+                            "src/assets/aps/extensions/ToolbarExtension.js",
+                            "src/assets/aps/extensions/TransExplorerExtension.js"
                         ],
                         "outputHashing": "all"
                     },
