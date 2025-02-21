@@ -50,7 +50,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         this._subscription.add(
             this._websocketService.onMessage().subscribe({
                 next: (res) => {
-                    console.log(res)
+
                     res.name = decodeURIComponent(res.name);
 
                     // 根據 WebSocket 訊息更新檔案列表中的檔案
@@ -120,10 +120,10 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
 
     onBimDataImport(file: any): void {
 
-        if (!this._apsCredentials.check()) {
-            this._toastService.open({ message: this._translocoService.translate('no-aps-credentials') });
-            return;
-        }
+        // if (!this._apsCredentials.check()) {
+        //     this._toastService.open({ message: this._translocoService.translate('no-aps-credentials') });
+        //     return;
+        // }
 
         if (file.status === 'ready') {
             this._bimDataImport(file);
@@ -189,7 +189,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     }
 
     private _bimDataReload(file: any) {
-        console.log(file)
+
         this._bimDataImportService.bimDataReload(file.name)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
