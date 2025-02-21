@@ -23,5 +23,5 @@ class BimConversionAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.BimProperty)
-class BIMPropertyAdmin(admin.ModelAdmin):
+class BimPropertyAdmin(admin.ModelAdmin):
     list_display = ('category', 'conversion', 'dbid', 'key', 'value',)

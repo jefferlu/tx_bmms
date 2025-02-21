@@ -18,7 +18,7 @@ from .. import models
 logger = get_task_logger(__name__)
 
 
-# @shared_task
+@shared_task
 def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name, is_reload=False):
 
     def send_progress(status, message):
@@ -187,19 +187,19 @@ def process_translation(urn, token, file_name, object_data, send_progress):
         if not bim_category:
             continue  # 或者可以選擇創建新的類別並將其加到映射
 
-        # 建立 BIMProperty 物件
-        bim_property = models.BIMProperty(
+        # 建立 BimProperty 物件
+        bim_property = models.BimProperty(
             category=bim_category,  # 使用查詢到的 BimCategory 實例
-            conversion=bim_conversion,  # 假設每個 BIMProperty 都與 BimConversion 關聯
-            name=row.name,
+            conversion=bim_conversion,  # 假設每個 BimProperty 都與 BimConversion 關聯
+            key=row.name,
             value=row.value,
             dbid=row.dbid
         )
         bim_properties.append(bim_property)
 
-    # 批量插入 BIMProperty
+    # 批量插入 BimProperty
     with transaction.atomic():
-        models.BIMProperty.objects.bulk_create(bim_properties)
+        models.BimProperty.objects.bulk_create(bim_properties)
 
     # 通知完成
     logger.info('BIM data imoport complete.')
