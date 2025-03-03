@@ -4,7 +4,7 @@ from . import models
 
 @admin.register(models.BimGroup)
 class BimGroupAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'description', 'order', )
+    list_display = ('name', 'cobie', 'description', 'order', )
 
 
 @admin.register(models.BimCategory)

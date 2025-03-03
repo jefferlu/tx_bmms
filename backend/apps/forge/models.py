@@ -4,6 +4,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 
 class BimGroup(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    cobie = models.CharField(max_length=255, unique=True)
     description = models.TextField(null=True, blank=True)
     order = models.IntegerField(default=1)
 
