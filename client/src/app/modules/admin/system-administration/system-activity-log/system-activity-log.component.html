@@ -8,7 +8,7 @@
             </div>
 
             <!-- Search -->
-            <div class="flex items-center justify-between sm:mr-10">
+            <!-- <div class="flex items-center justify-between sm:mr-10">
                 <div class="flex flex-col">
                     <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 gts-mat-dense">
                         <input matInput [placeholder]="t('search')" [(ngModel)]="searchBinName" />
@@ -18,47 +18,37 @@
                         </button>
                     </mat-form-field>
                 </div>
-            </div>
+            </div> -->
 
+            <div class="flex flex-wrap gap-4 pb-4">
+                <div class="flex items-center">
+                    <p-radiobutton name="client" value="client" [(ngModel)]="container" inputId="container1" (click)="onClick('client')"/>
+                    <label for="container1" class="ml-2">Client</label>
+                </div>
+
+                <div class="flex items-center">
+                    <p-radiobutton name="backend" value="backend" [(ngModel)]="container" inputId="container2" (click)="onClick('backend')"/>
+                    <label for="container2" class="ml-2">Backend</label>
+                </div>
+
+                <div class="flex items-center">
+                    <p-radiobutton name="database" value="database" [(ngModel)]="container" inputId="container3" (click)="onClick('postgres')" />
+                    <label for="container3" class="ml-2">Database</label>
+                </div>      
+            </div>
         </div>
 
         <!-- Content -->
-        <div class="flex h-full overflow-y-auto">
-            @if(data){
-            <p-table class="w-full" [value]="data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" selectionMode="single"
-                [metaKeySelection]="true" (onRowSelect)="onOpenDrawer($event)">
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th class="pl-8">使用者帳號</th>
-                        <th>名稱</th>
-                        <th>系統功能名稱</th>
-                        <th>執行動作</th>
-                        <th>狀態</th>
-                        <th>執行時間</th>                        
-                        <th>IP 位址</th>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-d>
-                    <tr [pSelectableRow]="d" class="hover:bg-hover">
-                        <td class="pl-8">{{ d.email }}</td>
-                        <td>{{ d.username }}</td>
-                        <td>{{ d.function }}</td>
-                        <td>{{ d.action }}</td>
-                        <td>{{ d.status }}</td>
-                        <td>{{ d.timestamp | date: 'yyyy/MM/dd HH:mm:ss' }}</td>
-                        <td>{{ d.ip_address}}</td>
-                    </tr>
-                </ng-template>
-            </p-table>
-            }
-            @else {
-            <div class="flex flex-auto flex-col items-center justify-center text-secondary mb-10">
-                <mat-icon class="icon-size-16" [svgIcon]="'heroicons_outline:exclamation-circle'"></mat-icon>
-                <div class="mt-4 text-xl font-semibold tracking-tight">
-                    {{t('no-data-found')}}
-                </div>
+        <div class="flex h-full overflow-y-auto px-6 pb-6 md:px-8">
+            
+            <div class="flex flex-auto flex-col">                
+                
+                <p-scrollpanel class="p-4 bg-card shadow rounded-md flex-grow">
+                    <pre class="">{{data?.logs}}</pre>
+                </p-scrollpanel>
+
             </div>
-            }
+
         </div>
     </div>
 </div>

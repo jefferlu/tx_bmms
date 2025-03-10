@@ -5,8 +5,5 @@ import { SystemActivityLogComponent } from "./system-activity-log.component";
 
 export default [{
     path: '',
-    component: SystemActivityLogComponent,
-    // resolve: {
-    //     data: () => inject(UserActivityLogService).getData()
-    // }
+    component: SystemActivityLogComponent,    
 }] as Routes;

@@ -28,6 +28,7 @@ urlpatterns = [
     path('login', views.TokenObtainView.as_view(), name='token_obtain_pair'),
     path('refresh-token', views.RefreshObtainView.as_view(), name='token_refresh'),
     path('reset-password', views.PasswordResetView.as_view(), name='reset_password'),
+    path("docker-logs/<str:container_name>/", views.DockerLogsView.as_view(), name="docker-logs"),
 
     path('', include(router.urls)),
 ]

@@ -25,6 +25,7 @@ django-celery-results = "*"
 channels-redis = "*"
 django-admin-interface = "*"
 cryptography = "*"
+docker = "*"
 
 [dev-packages]
 

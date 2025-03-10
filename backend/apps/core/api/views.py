@@ -1,3 +1,5 @@
+import docker
+
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.contrib.auth.models import Group, Permission
@@ -8,6 +10,7 @@ from rest_framework import viewsets, mixins, status, exceptions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
+from rest_framework.exceptions import NotFound
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -225,7 +228,7 @@ class GroupViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
         try:
             # 記錄成功的操作
             log_user_activity(self.request.user, '權限設定', f'修改 {group.name} 成功', 'SUCCESS', ip_address)
-            
+
             # 返回更新後的 Group 資料
             group_serializer = self.get_serializer(group)
             return Response(group_serializer.data)
@@ -239,7 +242,7 @@ class GroupViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
         ip_address = request.META.get('REMOTE_ADDR')
 
         try:
-            group = Group.objects.get(id=id)  # 查詢 User 物件            
+            group = Group.objects.get(id=id)  # 查詢 User 物件
 
             response = super().destroy(request, *args, **kwargs)
             log_user_activity(request.user, '帳戶管理', f'刪除 {group.name} 成功', 'SUCCESS', ip_address)
@@ -247,7 +250,8 @@ class GroupViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
         except Exception as e:
             log_user_activity(request.user, '帳戶管理', f'刪除 {group.name} 失敗 ({str(e)})', 'FAILURE', ip_address)
             raise
-        
+
+
 class PermissionViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = serializers.PermissionSerializer
@@ -365,7 +369,7 @@ class ApsCredentialsViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         return models.ApsCredentials.objects.filter(company=self.request.user.user_profile.company)
 
-    def update(self, request, *args, **kwargs):       
+    def update(self, request, *args, **kwargs):
         ip_address = request.META.get('REMOTE_ADDR')
         try:
             response = super().update(request, *args, **kwargs)
@@ -375,7 +379,23 @@ class ApsCredentialsViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
             log_user_activity(request.user, '帳戶管理', f'修改憑證失敗 ({str(e)})', 'FAILURE', ip_address)
             raise
 
+
 class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
     permission_classes = ()
     queryset = models.LogUserActivity.objects.all()
     serializer_class = serializers.LogUserActivitySerializer
+
+
+class DockerLogsView(APIView):
+    def get(self, request, container_name):
+        lines = request.query_params.get("lines", None)
+        client = docker.from_env()
+
+        try:
+            container = client.containers.get(container_name)
+            logs = container.logs(tail=int(lines)).decode("utf-8") if lines else container.logs().decode("utf-8")
+            return Response({"container": container_name, "logs": logs})
+        except docker.errors.NotFound:
+            raise NotFound(f"容器 '{container_name}' 不存在")
+        except Exception as e:
+            return Response({"error": f"無法讀取日誌: {str(e)}"}, status=500)
