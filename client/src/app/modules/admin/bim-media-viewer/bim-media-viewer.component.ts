@@ -22,7 +22,7 @@ export class BimMediaViewerComponent {
             cssAutoLoad: false,               // Disable CSS auto loading
             baseUrl: './elfinder/',
             url: `${endpoint}/elfinder/php/connector.minimal.php`,  // connector URL (REQUIRED)
-            lang: 'zh_CN',                // language (OPTIONAL)
+            lang: 'zh_TW',                // language (OPTIONAL)
             height: 'auto',
             width:'100%',         
         }, (fm: any) => {

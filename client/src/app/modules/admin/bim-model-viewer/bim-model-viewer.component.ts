@@ -46,8 +46,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         private _matDialog: MatDialog
     ) { }
 
-    ngOnInit(): void {
-        this._spinner.hide();
+    ngOnInit(): void {        
         this.data = [];
     }
 
@@ -133,6 +132,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this._spinner.hide();
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
     }

@@ -15,6 +15,7 @@ import { finalize, Subject, takeUntil } from 'rxjs';
 import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { MatDialog } from '@angular/material/dialog';
+import { CdkScrollable } from '@angular/cdk/scrolling';
 
 @Component({
     selector: 'app-process-functions',
@@ -22,6 +23,7 @@ import { MatDialog } from '@angular/material/dialog';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
+        CdkScrollable,
         MatButtonModule, MatIconModule,
         MatMenuModule, MatDividerModule,
         TreeModule, TableModule, SkeletonModule,
@@ -143,7 +145,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.showAggregatedDialog()
     }
 
-    showAggregatedDialog(): void {        
+    showAggregatedDialog(): void {
         this._matDialog.open(ApsViewerComponent, {
             width: '99vw',
             height: '95vh',

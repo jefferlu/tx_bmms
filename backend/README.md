@@ -45,10 +45,9 @@ Type "help", "copyright", "credits" or "license" for more information.
 
     System check identified no issues (0 silenced).
     June 21, 2024 - 23:33:58
-    Django version 5.0.6, using settings 'skyrim.settings'
+    Django version 5.0.6, using settings 'bmms.settings'
     Starting ASGI/Daphne version 4.1.2 development server at http://127.0.0.1:8000/
     Quit the server with CTRL-BREAK.
     ```
     Now that the server’s running, visit http://127.0.0.1:8000/ with your web browser. 
 
-### [Live Demo](https://skyrim.gts.giantcld.com/)

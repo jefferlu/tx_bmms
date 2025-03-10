@@ -95,3 +95,20 @@ class ApsCredentials(models.Model):
 
     def __str__(self):
         return f"Autodesk Credentials ({self.client_id})"
+
+
+class LogUserActivity(models.Model):
+    STATUS_CHOICES = [
+        ('SUCCESS', 'Success'),
+        ('FAIL', 'Fail'),
+    ]
+
+    user = models.ForeignKey(to='account.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='使用者帳號')
+    function = models.CharField(max_length=255, verbose_name='系統功能名稱')
+    action = models.CharField(max_length=255, verbose_name='執行動作')
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name='執行時間')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='SUCCESS', verbose_name='狀態')
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name='IP 位址')
+
+    class Meta:
+        db_table = "core_log_user_activity"

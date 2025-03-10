@@ -35,6 +35,7 @@ export class SearchPanelComponent implements OnInit {
     }
 
     onCollapse(criterion) {
+        console.log(criterion)
         criterion.collapse = !criterion.collapse;
     }
 }

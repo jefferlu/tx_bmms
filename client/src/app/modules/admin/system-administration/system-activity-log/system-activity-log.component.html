@@ -1,0 +1,64 @@
+<div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full">
+    <div class="flex flex-auto flex-col h-full bg-white dark:bg-gray-900" *transloco="let t">
+        <!-- Header -->
+        <div class="flex flex-row items-center justify-between px-6 py-6 md:px-8">
+            <!-- Title -->
+            <div class="text-3xl font-extrabold leading-none tracking-tight">
+                {{t('system-activity-log')}}
+            </div>
+
+            <!-- Search -->
+            <div class="flex items-center justify-between sm:mr-10">
+                <div class="flex flex-col">
+                    <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 gts-mat-dense">
+                        <input matInput [placeholder]="t('search')" [(ngModel)]="searchBinName" />
+
+                        <button mat-icon-button matSuffix (click)="onSearch()">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                        </button>
+                    </mat-form-field>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Content -->
+        <div class="flex h-full overflow-y-auto">
+            @if(data){
+            <p-table class="w-full" [value]="data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" selectionMode="single"
+                [metaKeySelection]="true" (onRowSelect)="onOpenDrawer($event)">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th class="pl-8">使用者帳號</th>
+                        <th>名稱</th>
+                        <th>系統功能名稱</th>
+                        <th>執行動作</th>
+                        <th>狀態</th>
+                        <th>執行時間</th>                        
+                        <th>IP 位址</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-d>
+                    <tr [pSelectableRow]="d" class="hover:bg-hover">
+                        <td class="pl-8">{{ d.email }}</td>
+                        <td>{{ d.username }}</td>
+                        <td>{{ d.function }}</td>
+                        <td>{{ d.action }}</td>
+                        <td>{{ d.status }}</td>
+                        <td>{{ d.timestamp | date: 'yyyy/MM/dd HH:mm:ss' }}</td>
+                        <td>{{ d.ip_address}}</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+            }
+            @else {
+            <div class="flex flex-auto flex-col items-center justify-center text-secondary mb-10">
+                <mat-icon class="icon-size-16" [svgIcon]="'heroicons_outline:exclamation-circle'"></mat-icon>
+                <div class="mt-4 text-xl font-semibold tracking-tight">
+                    {{t('no-data-found')}}
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+</div>

@@ -27,6 +27,9 @@ from apps.forge.api.tasks import bim_data_import
 from apps.forge.services import check_redis, get_aps_credentials, get_aps_bucket
 
 from ..aps_toolkit import Auth, Bucket, Derivative, PropReader
+
+from apps.core.services import log_user_activity
+
 from . import serializers
 from .. import models
 
@@ -392,7 +395,11 @@ class BimDataImportView(APIView):
         bim_data_import.delay(client_id, client_secret, bucket_key, file.name, 'progress_group')
         # bim_data_import(client_id, client_secret, bucket_key, file.name, 'progress_group')
 
-        # # 回應上傳成功的訊息
+        # 記錄操作
+        ip_address = request.META.get('REMOTE_ADDR')
+        log_user_activity(self.request.user, '模型匯入', f'匯入{file.name}', 'SUCCESS', ip_address)
+
+        # 回應上傳成功的訊息
         return Response({"message": f"File '{file.name}' is being processed."}, status=200)
 
 
@@ -415,7 +422,11 @@ class BimDataReloadView(APIView):
         bim_data_import.delay(client_id, client_secret, bucket_key, filename, 'progress_group', True)
         # bim_data_import(client_id, client_secret, bucket_key, filename, 'progress_group', True)
 
-        # # 回應上傳成功的訊息
+        # 記錄操作
+        ip_address = request.META.get('REMOTE_ADDR')
+        log_user_activity(self.request.user, '模型匯入', f'重新匯入{filename}', 'SUCCESS', ip_address)
+
+        # 回應上傳成功的訊息
         return Response({"message": f"File '{filename}' is being processed."}, status=200)
 
 
@@ -464,22 +475,14 @@ class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = serializers.BimModelSerializer
 
-    # def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
 
-    #     tender_dict = defaultdict(list)
+        # 記錄操作
+        ip_address = request.META.get('REMOTE_ADDR')
+        log_user_activity(self.request.user, '模型檢視', f'查詢', 'SUCCESS', ip_address)
 
-    #     for model in self.queryset:
-    #         tender_dict[model.tender.name].append(self.get_serializer(model).data)
-
-    #     response_data = [
-    #         {
-    #             "data": {"name": tender},
-    #             "children": [{"data": model_data} for model_data in models]
-    #         }
-    #         for tender, models in tender_dict.items()
-    #     ]
-
-    #     return Response(response_data)
+        return response
 
 
 class StandardResultsSetPagination(pagination.PageNumberPagination):
@@ -508,6 +511,10 @@ class BimPropertyViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet
         if categories:
             category_list = categories.split(',')
             filters &= Q(category__name__in=category_list)
+
+        # 記錄操作
+        ip_address = request.META.get('REMOTE_ADDR')
+        log_user_activity(self.request.user, '圖資檢索', f'查詢{categories};{name}', 'SUCCESS', ip_address)
 
         return models.BimProperty.objects.filter(filters).select_related(
             'category', 'category__bim_group', 'conversion', 'conversion__bim_model'

@@ -1,4 +1,3 @@
-import { NgIf } from '@angular/common';
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,7 +19,7 @@ import { Subject, takeUntil } from 'rxjs';
     templateUrl: './compact.component.html',
     encapsulation: ViewEncapsulation.None,
     imports: [
-        NgIf, RouterOutlet, TranslocoModule,
+        RouterOutlet, TranslocoModule,
         MatButtonModule, MatIconModule, TranslocoModule,
         GtsVerticalNavigationComponent, ToastModule,
         LanguagesComponent, UserComponent

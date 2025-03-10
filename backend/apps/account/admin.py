@@ -22,7 +22,7 @@ class CustomUserAdmin(UserAdmin):
     # 定義在編輯使用者時顯示的字段
     fieldsets = (
         # *UserAdmin.fieldsets,
-        (None, {'fields': ('username', 'password', 'is_staff', 'is_active', 'is_superuser', 'user_permissions',)}),
+        (None, {'fields': ('username', 'password', 'is_staff', 'is_active', 'is_superuser', 'user_permissions','groups',)}),
 
         # (_('Personal info'), {'fields': ('first_name', 'email',)}),
         # (_('Permissions'), {
@@ -35,7 +35,7 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'username', 'password1', 'password2',   'is_staff', 'is_active', 'is_superuser', 'user_permissions',)}
+            'fields': ('email', 'username', 'password1', 'password2',   'is_staff', 'is_active', 'is_superuser', 'user_permissions','groups',)}
          ),
     )
     

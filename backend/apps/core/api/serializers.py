@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import update_last_login
+from django.contrib.auth.models import Permission, Group
 
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
@@ -50,16 +51,36 @@ class PasswordResetSerializer(serializers.Serializer):
         return value
 
 
+class PermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Permission
+        fields = ['id', 'name', 'codename',]
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    permissions = PermissionSerializer(many=True, read_only=True)
+
+    class Meta:
+        fields = ['id', 'name', 'permissions',]
+        model = Group
+
+
 class UserSerializer(serializers.ModelSerializer):
+    groups_obj = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ['first_name', 'last_name', 'is_staff',]
         extra_kwargs = {
             'password': {'write_only': True, 'required': False},
             'email': {'required': False},
             'date_joined': {'read_only': True},
             'last_login': {'read_only': True}
         }
+
+    def get_groups_obj(self, obj):
+        return GroupSerializer(obj.groups, many=True).data
 
 
 class NavigationSerializer(serializers.ModelSerializer):
@@ -101,6 +122,12 @@ class ApsCredentialsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ApsCredentials
         fields = "__all__"
-        # extra_kwargs = {
-        #     "client_secret": {"write_only": True},  # 避免返回敏感資料
-        # }
+
+
+class LogUserActivitySerializer(serializers.ModelSerializer):
+    username = serializers.ReadOnlyField(source='user.username')
+    email = serializers.ReadOnlyField(source='user.email')
+
+    class Meta:
+        model = models.LogUserActivity
+        fields = "__all__"

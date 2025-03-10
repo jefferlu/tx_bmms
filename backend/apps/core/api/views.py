@@ -1,5 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.contrib.auth.models import Group, Permission
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets, mixins, status, exceptions
 from rest_framework.views import APIView
@@ -14,6 +17,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from .. import models
 from . import serializers
+from ..services import log_user_activity
 
 User = get_user_model()
 
@@ -25,6 +29,24 @@ User = get_user_model()
 )
 class TokenObtainView(TokenObtainPairView):
     serializer_class = serializers.TokenObtainSerializer
+
+    def post(self, request, *args, **kwargs):
+        # 獲取登入請求中的使用者名稱和 IP 位址
+        email = request.data.get('email')
+        ip_address = request.META.get('REMOTE_ADDR')
+
+        # 呼叫父類的 post 方法，這將處理令牌生成邏輯
+        response = super().post(request, *args, **kwargs)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = None
+
+        # 記錄操作
+        log_user_activity(user, '使用者登入', '登入系統', 'SUCCESS', ip_address)
+
+        return response
 
 
 class RefreshObtainView(TokenRefreshView):
@@ -83,6 +105,160 @@ class UserViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     serializer_class = serializers.UserSerializer
     queryset = User.objects.all().order_by('id')
 
+    # def list(self, request, *args, **kwargs):
+    #     response = super().list(request, *args, **kwargs)
+    #     # 記錄操作
+    #     ip_address = request.META.get('REMOTE_ADDR')
+    #     log_user_activity(self.request.user, '帳戶管理', f'查詢', 'SUCCESS', ip_address)
+    #     return response
+
+    def create(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        ip_address = request.META.get('REMOTE_ADDR')
+        try:
+            response = super().create(request, *args, **kwargs)
+            # 記錄成功的操作
+            log_user_activity(self.request.user, '帳戶管理', f'新增 {email} 成功', 'SUCCESS', ip_address)
+            return response
+        except Exception as e:
+            # 記錄失敗的操作
+            log_user_activity(request.user, '帳戶管理', f'新增 {email} 失敗 ({str(e)})', 'FAILURE', ip_address)
+            raise  # 重新拋出錯誤，讓 DRF 處理返回
+
+    def update(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        ip_address = request.META.get('REMOTE_ADDR')
+        try:
+            response = super().update(request, *args, **kwargs)
+            log_user_activity(self.request.user, '帳戶管理', f'修改 {email} 成功', 'SUCCESS', ip_address)
+            return response
+        except Exception as e:
+            log_user_activity(request.user, '帳戶管理', f'修改 {email} 失敗 ({str(e)})', 'FAILURE', ip_address)
+            raise
+
+    def destroy(self, request, *args, **kwargs):
+        user_id = kwargs.get('pk')  # 取得 URL 參數中的 id
+        ip_address = request.META.get('REMOTE_ADDR')
+
+        try:
+            user_instance = User.objects.get(id=user_id)  # 查詢 User 物件
+            email = user_instance.email  # 取得 email
+
+            response = super().destroy(request, *args, **kwargs)
+            log_user_activity(request.user, '帳戶管理', f'刪除 {email} 成功', 'SUCCESS', ip_address)
+            return response
+        except Exception as e:
+            log_user_activity(request.user, '帳戶管理', f'刪除 {user_id} 失敗 ({str(e)})', 'FAILURE', ip_address)
+            raise
+
+
+@extend_schema_view(
+    list=extend_schema(operation_id="list_groups", summary="List groups",
+                       description="Retrieve a list of all groups", tags=["Groups"]),
+    create=extend_schema(operation_id="create_groups", summary="Create groups",
+                         description="Create a new groups", tags=["Groups"]),
+    update=extend_schema(operation_id="update_groups", summary="Update groups",
+                         description="Update an existing groups", tags=["Groups"]),
+    partial_update=extend_schema(operation_id="partial_update_groups", summary="Partial update groups",
+                                 description="Partially update an existing groups", tags=["Groups"]),
+    retrieve=extend_schema(operation_id="retrieve_groups", summary="Retrieve groups",
+                           description="Retrieve details of a groups", tags=["Groups"]),
+    destroy=extend_schema(operation_id="delete_groups", summary="Delete groups",
+                          description="Delete an existing groups", tags=["Groups"])
+)
+class GroupViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = serializers.GroupSerializer
+    queryset = Group.objects.all().order_by('id')
+
+    def get_permissions(self):
+        return super().get_permissions()
+
+    def get_queryset(self):
+        return Group.objects.prefetch_related('permissions').order_by('id')
+
+    def create(self, request, *args, **kwargs):
+        ip_address = request.META.get('REMOTE_ADDR')
+
+        # 解析請求中的權限資料
+        permissions_data = request.data.get('permissions', [])
+        permission_ids = [permission["id"] for permission in permissions_data]
+
+        # 創建 Group 實例（先不包含 permissions）
+        group_serializer = self.get_serializer(data={"name": request.data.get("name")})
+
+        if group_serializer.is_valid():
+            group = group_serializer.save()  # 先儲存 Group
+            # 設定權限關聯
+            group.permissions.set(permission_ids)  # 使用 ID 設定 ManyToMany 關聯
+            group.save()  # 確保變更存入資料庫
+
+            try:
+                # 記錄成功的操作
+                log_user_activity(self.request.user, '權限設定', f'新增 {group.name} 成功', 'SUCCESS', ip_address)
+                return Response(serializers.GroupSerializer(group).data, status=201)
+            except Exception as e:
+                # 記錄失敗的操作
+                log_user_activity(request.user, '帳戶管理', f'新增 {group.name} 失敗 ({str(e)})', 'FAILURE', ip_address)
+                raise  # 重新拋出錯誤，讓 DRF 處理返回
+
+        return Response(group_serializer.errors, status=400)
+
+    def update(self, request, *args, **kwargs):
+        ip_address = request.META.get('REMOTE_ADDR')
+
+        # 解析請求中的權限資料
+        permissions_data = request.data.get('permissions', [])
+        permission_ids = []
+
+        # 根據傳入的權限資料，從資料庫查找對應的 Permission 實例
+        for permission in permissions_data:
+            permission_instance = get_object_or_404(Permission, id=permission['id'])
+            permission_ids.append(permission_instance)
+
+        # 更新 Group 實例
+        group = self.get_object()  # 獲取要更新的 Group 實例
+        group.name = request.data.get('name', group.name)
+        group.permissions.set(permission_ids)  # 更新權限關聯
+        group.save()
+
+        try:
+            # 記錄成功的操作
+            log_user_activity(self.request.user, '權限設定', f'修改 {group.name} 成功', 'SUCCESS', ip_address)
+            
+            # 返回更新後的 Group 資料
+            group_serializer = self.get_serializer(group)
+            return Response(group_serializer.data)
+        except Exception as e:
+            # 記錄失敗的操作
+            log_user_activity(request.user, '帳戶管理', f'修改 {group.name} 失敗 ({str(e)})', 'FAILURE', ip_address)
+            raise  # 重新拋出錯誤，讓 DRF 處理返回
+
+    def destroy(self, request, *args, **kwargs):
+        id = kwargs.get('pk')  # 取得 URL 參數中的 id
+        ip_address = request.META.get('REMOTE_ADDR')
+
+        try:
+            group = Group.objects.get(id=id)  # 查詢 User 物件            
+
+            response = super().destroy(request, *args, **kwargs)
+            log_user_activity(request.user, '帳戶管理', f'刪除 {group.name} 成功', 'SUCCESS', ip_address)
+            return response
+        except Exception as e:
+            log_user_activity(request.user, '帳戶管理', f'刪除 {group.name} 失敗 ({str(e)})', 'FAILURE', ip_address)
+            raise
+        
+class PermissionViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = serializers.PermissionSerializer
+    queryset = Permission.objects.all().order_by('id')
+
+    def get_permissions(self):
+        return super().get_permissions()
+
+    def get_queryset(self):
+        return Permission.objects.filter(Q(content_type__app_label='core') & Q(content_type__model='navigation'))
+
 
 class NavigationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, )
@@ -119,11 +295,11 @@ class NavigationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
             """
             遞歸過濾導航結構，對type為collapsable的節點不檢查權限，僅需顯示其有權限的子節點。
             """
-            if navigation.type in ['collapsable', 'group']:
+            if navigation.type in ['collapsable', 'group', 'aside']:
                 # 遞歸過濾子節點，保留有權限的子節點
                 children_with_permissions = [
                     filter_navigation(child) for child in navigation.get_children()
-                    if child in (allowed_navigations or child.type in ['collapsable', 'group'])
+                    if child in (allowed_navigations or child.type in ['collapsable', 'group', 'aside'])
                 ]
                 children_with_permissions = [child for child in children_with_permissions if child is not None]
 
@@ -162,7 +338,7 @@ class NavigationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
         return [nav for nav in filtered_navigations if nav is not None]
 
 
-class LocaleViewSet(viewsets.ModelViewSet):
+class LocaleViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     permission_classes = ()
     queryset = models.Locale.objects.filter(is_active=True,).order_by('id')
     serializer_class = serializers.LocaleSerializer
@@ -181,10 +357,25 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
         return Response(translations)
 
 
-class ApsCredentialsViewSet(viewsets.ModelViewSet):
+class ApsCredentialsViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     permission_classes = ()
     queryset = models.ApsCredentials.objects.all()
     serializer_class = serializers.ApsCredentialsSerializer
 
     def get_queryset(self):
         return models.ApsCredentials.objects.filter(company=self.request.user.user_profile.company)
+
+    def update(self, request, *args, **kwargs):       
+        ip_address = request.META.get('REMOTE_ADDR')
+        try:
+            response = super().update(request, *args, **kwargs)
+            log_user_activity(self.request.user, '帳戶管理', f'修改憑證成功', 'SUCCESS', ip_address)
+            return response
+        except Exception as e:
+            log_user_activity(request.user, '帳戶管理', f'修改憑證失敗 ({str(e)})', 'FAILURE', ip_address)
+            raise
+
+class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
+    permission_classes = ()
+    queryset = models.LogUserActivity.objects.all()
+    serializer_class = serializers.LogUserActivitySerializer

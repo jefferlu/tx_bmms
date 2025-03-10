@@ -73,21 +73,47 @@
 
 /* MultiSelect */
 .p-multiselect {
-  @apply text-base text-default bg-transparent;
+  @apply text-base text-default bg-transparent #{'!important'};
   @apply border-gray-300 dark:border-gray-500;
 
+  .p-multiselect-overlay {
+    @apply text-base text-default bg-default #{'!important'};
+  }
+
+  .p-multiselect-option {
+    @apply text-inherit;
+  }
+
+  .p-multiselect-option:not(.p-multiselect-option-selected):not(
+      .p-disabled
+    ).p-focus {
+    @apply text-inherit bg-gray-800;
+  }
+
+  .p-multiselect-label {
+    @apply text-inherit;
+  }
+
   .p-multiselect-panel {
-    @apply text-base text-default bg-default;
+    @apply text-base text-default bg-default #{'!important'};
     @apply border-gray-300 dark:border-gray-500;
 
     .p-multiselect-header {
-      @apply text-base text-default bg-default;
+      @apply text-base text-default bg-default #{'!important'};
     }
   }
 
   .p-multiselect-token {
     @apply text-default dark:bg-gray-800;
   }
+}
+
+/* Chip */
+.p-chip {
+  @apply text-default bg-gray-800 #{'!important'};
+}
+.p-chip-remove-icon {
+  @apply text-default #{'!important'};
 }
 
 /* Table */
@@ -98,13 +124,38 @@
     @apply transition-none;
   }
 
-  .p-datatable-tbody > tr {
-    @apply text-base text-default bg-transparent;
+  .p-datatable-tbody {
+    > tr {
+      @apply text-base text-default bg-transparent;
 
-    td {
-      @apply border-b border-gray-200;
+      td {
+        @apply border-b border-gray-200;
+      }
+    }
+
+    > tr.p-datatable-row-selected {
+      @apply text-inherit bg-gray-800;
+
+      > td {
+        @apply border-inherit bg-inherit;
+      }
+    }
+
+    > tr:has(+ .p-datatable-row-selected) > td {
+      @apply border-inherit #{'!important'};
     }
   }
+}
+
+.p-toggleswitch {
+    width: 50px;
+    height: 25px;
+}
+
+.p-datatable-hoverable
+  .p-datatable-tbody
+  > tr:not(.p-datatable-row-selected):hover {
+  @apply text-inherit #{'!important'};
 }
 
 .p-datatable-scrollable
@@ -145,4 +196,4 @@
 
 .p-datatable-paginator-bottom {
   @apply border-b-0 #{'!important'};
-}   
+}

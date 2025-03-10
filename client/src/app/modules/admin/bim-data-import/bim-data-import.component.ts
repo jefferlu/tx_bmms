@@ -275,5 +275,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         this._unsubscribeAll.complete();
         this._subscription.unsubscribe();
         this._websocketService.close();
+        this._spinner.hide();
     }
 }

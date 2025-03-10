@@ -4,12 +4,12 @@ from . import models
 
 @admin.register(models.BimGroup)
 class BimGroupAdmin(admin.ModelAdmin):
-    list_display = ('name', 'cobie', 'description', 'order', )
+    list_display = ('name', 'cobie', 'is_active', 'description', 'order', )
 
 
 @admin.register(models.BimCategory)
 class BimCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'bim_group', 'is_active', 'description', )
+    list_display = ('name', 'bim_group', 'is_active', 'description', 'id', )
 
 
 @admin.register(models.BimModel)

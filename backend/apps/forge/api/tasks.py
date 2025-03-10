@@ -32,31 +32,31 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
             },
         )
 
-    # try:
-    # Get aps token
-    auth = Auth(client_id, client_secret)
-    token = auth.auth2leg()
-    bucket = Bucket(token)
+    try:
+        # Get aps token
+        auth = Auth(client_id, client_secret)
+        token = auth.auth2leg()
+        bucket = Bucket(token)
 
-    # Step 1: 上傳檔案到 Autodesk OSS
-    if not is_reload:
-        logger.info('Uploading file to Autodesk OSS...')
-        print('Uploading file to Autodesk OSS...')
-        send_progress('upload-object', 'Uploading file to Autodesk OSS...')
+        # Step 1: 上傳檔案到 Autodesk OSS
+        if not is_reload:
+            logger.info('Uploading file to Autodesk OSS...')
+            print('Uploading file to Autodesk OSS...')
+            send_progress('upload-object', 'Uploading file to Autodesk OSS...')
 
-        object_data = bucket.upload_object(bucket_key, f'media-root/uploads/{file_name}', file_name)
-        urn = get_aps_urn(object_data['objectId'])
-    else:
-        objects = json.loads(bucket.get_objects(bucket_key, 100).to_json(orient='records'))
-        object_data = next((item for item in objects if item['objectKey'] == file_name), None)
-        urn = get_aps_urn(object_data['objectId'])
+            object_data = bucket.upload_object(bucket_key, f'media-root/uploads/{file_name}', file_name)
+            urn = get_aps_urn(object_data['objectId'])
+        else:
+            objects = json.loads(bucket.get_objects(bucket_key, 100).to_json(orient='records'))
+            object_data = next((item for item in objects if item['objectKey'] == file_name), None)
+            urn = get_aps_urn(object_data['objectId'])
 
-    # file_name = urllib.parse.unquote(file_name)  # 反轉前端 encodeURIComponent()
-    process_translation(urn, token, file_name, object_data, send_progress)
+        # file_name = urllib.parse.unquote(file_name)  # 反轉前端 encodeURIComponent()
+        process_translation(urn, token, file_name, object_data, send_progress)
 
-    # except Exception as e:
-    #     logger.error(str(e))
-    #     send_progress('error', str(e))
+    except Exception as e:
+        logger.error(str(e))
+        send_progress('error', str(e))
 
 
 def process_translation(urn, token, file_name, object_data, send_progress):
@@ -116,7 +116,7 @@ def process_translation(urn, token, file_name, object_data, send_progress):
         logger.info('No manifest items found for download.')
         print('No manifest items found for download.')
         send_progress('download-svf', 'No manifest items found for download.')
-
+    
     """ Step 5: 下載 SQLite """
     logger.info('Downloading SQLite to server ...')
     print('Downloading SQLite to server ...')
@@ -124,26 +124,41 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     db = DbReader(urn, token, object_data['objectKey'])
 
     """ Step 6: 讀取 SQLite 並寫入相關資料表 """
-    query = """
-        SELECT distinct _objects_attr.category
-        FROM _objects_id
-        JOIN _objects_eav ON _objects_id.id = _objects_eav.entity_id
-        JOIN _objects_attr ON _objects_eav.attribute_id = _objects_attr.id
-        JOIN _objects_val ON _objects_eav.value_id = _objects_val.id
-        WHERE _objects_attr.display_name LIKE '%Cobie%';
+    # 取得所有 BimGroup 中的 cobie 值
+    cobie_values = models.BimGroup.objects.values_list('cobie', flat=True)
+
+    # 生成 SQL 查詢條件並合併成一個 OR 條件
+    like_conditions = [f"attrs.display_name LIKE '{cobie}%'" for cobie in cobie_values]
+    where_clause = " OR ".join(like_conditions)
+    print(where_clause)
+    query = f"""
+        SELECT DISTINCT attrs.category, attrs.display_name
+        FROM _objects_id ids
+        JOIN _objects_eav eav ON ids.id = eav.entity_id
+        JOIN _objects_attr attrs ON eav.attribute_id = attrs.id
+        JOIN _objects_val vals ON eav.value_id = vals.id
+        WHERE ({where_clause});
     """
     df = db.execute_query(query)
-    categories = df['category'].tolist()
+    # categories = df['category'].tolist()
 
-    # 寫入Category
-    existing_categories = models.BimCategory.objects.filter(name__in=categories).values_list('name', flat=True)
-    existing_categories_set = set(existing_categories)  # 複雜度O(1)
+    # 取得現有的 BimCategory 名稱
+    existing_categories = set(models.BimCategory.objects.values_list('name', flat=True))
+    for row in df.itertuples():
+        category_name = row.category
+        cobie_value = row.display_name  # cobie 是 display_name
 
-    # 批量插入
-    new_categories = [category for category in categories if category not in existing_categories_set]
-    new_bim_categories = [models.BimCategory(name=category) for category in new_categories]
-    with transaction.atomic():
-        models.BimCategory.objects.bulk_create(new_bim_categories)
+        if category_name in existing_categories:
+            continue  # 跳過已存在的 category
+
+        # 透過 cobie 值尋找對應的 BimGroup
+        bim_group = models.BimGroup.objects.filter(cobie=cobie_value).first()
+
+        if bim_group:
+            models.BimCategory.objects.create(
+                name=category_name,
+                bim_group=bim_group
+            )
 
     # 寫入 BimModel
     bim_model, created = models.BimModel.objects.get_or_create(
@@ -163,18 +178,16 @@ def process_translation(urn, token, file_name, object_data, send_progress):
         svf_file=f"media-root/svf/{file_name}",  # 假設這是下載後的 SVF 文件路徑
     )
 
-    # 寫入 BimProperty    
-    query = """
+    # 寫入 BimProperty
+    query = f"""
         SELECT ids.id AS dbid, attrs.category AS category, COALESCE(NULLIF(attrs.display_name, ''),attrs.name) AS name, vals.value AS value
         FROM _objects_eav eav
         LEFT JOIN _objects_id ids ON ids.id = eav.entity_id
         LEFT JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
         LEFT JOIN _objects_val vals on vals.id = eav.value_id   
-        WHERE attrs.display_name like 'COBie%'
-        ORDER BY dbid
+        WHERE ({where_clause});       
     """
-    property_df  = db.execute_query(query)
-    categories = df['category'].tolist()
+    property_df = db.execute_query(query)
 
     bim_category_mapping = {category.name: category for category in models.BimCategory.objects.all()}
     bim_properties = []

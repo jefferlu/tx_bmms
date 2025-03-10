@@ -5,6 +5,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 class BimGroup(models.Model):
     name = models.CharField(max_length=255, unique=True)
     cobie = models.CharField(max_length=255, unique=True)
+    is_active = models.BooleanField(default=True)
     description = models.TextField(null=True, blank=True)
     order = models.IntegerField(default=1)
 
@@ -19,7 +20,7 @@ class BimGroup(models.Model):
 class BimCategory(models.Model):
     bim_group = models.ForeignKey(BimGroup, on_delete=models.CASCADE,
                                   related_name='bim_category', null=True, blank=True)
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     description = models.TextField(null=True, blank=True)
 
@@ -58,9 +59,9 @@ class BimConversion(models.Model):
         ordering = ["id"]
 
 
-class BimProperty(models.Model):    
+class BimProperty(models.Model):
     category = models.ForeignKey(BimCategory, on_delete=models.CASCADE, related_name="bim_property")
-    conversion = models.ForeignKey(BimConversion, on_delete=models.CASCADE, related_name="bim_property")    
+    conversion = models.ForeignKey(BimConversion, on_delete=models.CASCADE, related_name="bim_property")
     dbid = models.IntegerField()
     key = models.CharField(max_length=255)
     value = models.TextField()
