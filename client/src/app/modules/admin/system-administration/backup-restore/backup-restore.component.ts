@@ -19,6 +19,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { GtsAlertComponent } from '@gts/components/alert';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
     selector: 'backup-restore',
@@ -26,19 +27,8 @@ import { GtsAlertComponent } from '@gts/components/alert';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        FormsModule,
-        ReactiveFormsModule,
-        GtsAlertComponent,
-        MatRadioModule,
-        NgClass,
-        NgSwitch,
-        NgSwitchCase,
-        MatIconModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatSelectModule,
-        MatOptionModule,
-        MatButtonModule,
+        TranslocoModule, GtsAlertComponent, NgClass,
+        MatButtonModule, MatIconModule, MatRadioModule
     ]
 })
 export class BackupRestoreComponent implements OnInit {
@@ -48,7 +38,7 @@ export class BackupRestoreComponent implements OnInit {
     /**
      * Constructor
      */
-    constructor(private _formBuilder: UntypedFormBuilder) {}
+    constructor(private _formBuilder: UntypedFormBuilder) { }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks

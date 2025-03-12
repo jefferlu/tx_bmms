@@ -1,77 +1,76 @@
-<div class="w-full max-w-3xl">
-    <!-- Form -->
-    <form [formGroup]="backupRestoreForm">
-        <!-- Section -->
-        <div class="w-full">
-            <div class="text-xl">執行資料庫操作</div>
-            <div class="text-secondary">
-                系統管理員資料庫備份及還原作業
+<div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full">
+
+    <div class="flex flex-auto flex-col h-full bg-white dark:bg-gray-900" *transloco="let t">
+        <!-- Header -->
+        <div class="flex flex-row items-center px-6 py-6 md:px-8">
+            <div class="ml-4 flex min-w-0 flex-col">
+                <!-- Title -->
+                <div class="text-3xl font-extrabold leading-none tracking-tight">
+                    {{t('backup-restore')}}
+                </div>
+                <div class="text-secondary truncate leading-8">
+                    系統管理員資料庫備份及還原作業
+                </div>
             </div>
         </div>
-        <div class="mt-8 grid w-full gap-6 sm:grid-cols-2">
-            <!-- Plan -->
-            <div class="sm:col-span-3">
-                <gts-alert [appearance]="'outline'" [type]="'info'">
-                    請注意資料庫還原操作風險，並通知相關操作人員即將進行的資料庫還原作業
-                </gts-alert>
-            </div>
-            <mat-radio-group
-                class="pointer-events-none invisible absolute h-0 w-0"
-                [formControlName]="'plan'"
-                #planRadioGroup="matRadioGroup"
-            >
-                @for (plan of plans; track trackByFn($index, plan)) {
-                    <mat-radio-button [value]="plan.value"></mat-radio-button>
-                }
-            </mat-radio-group>
-            @for (plan of plans; track trackByFn($index, plan)) {
-                <div
-                    class="bg-card relative flex cursor-pointer flex-col items-start justify-start rounded-md p-6 shadow"
-                    [ngClass]="{
-                        'ring ring-inset ring-primary':
-                            planRadioGroup.value === plan.value,
-                    }"
-                    (click)="planRadioGroup.value = plan.value"
-                >
-                    @if (planRadioGroup.value === plan.value) {
-                        <!-- <mat-icon
-                            class="absolute right-0 top-0 mr-3 mt-3 text-primary icon-size-7"
-                            [svgIcon]="'heroicons_solid:circle-stack'"
-                        ></mat-icon> -->
-                        <div [ngSwitch]="plan.value">
-                            <mat-icon *ngSwitchCase="'backup'" class="absolute right-0 top-0 mr-3 mt-3 text-primary icon-size-7" [svgIcon]="'heroicons_solid:circle-stack'"></mat-icon>
-                            <mat-icon *ngSwitchCase="'restore'" class="absolute right-0 top-0 mr-3 mt-3 text-primary icon-size-7" [svgIcon]="'heroicons_solid:arrow-path'"></mat-icon>
-                        </div>
-                    }
-                    <div class="font-semibold">{{ plan.label }}</div>
-                    <div class="text-secondary mt-1 whitespace-normal">
-                        {{ plan.details }}
+
+        <!-- Main -->
+        <div class="flex flex-auto p-6 sm:p-10">
+            <div class="mx-auto flex w-full max-w-xs flex-auto flex-col sm:max-w-2xl">
+
+                <div class="mt-8 grid grid-cols-1 gap-8 sm:mt-10 sm:grid-cols-2 lg:grid-cols-2">
+                    <div class="sm:col-span-2">
+                        <gts-alert [appearance]="'outline'" [type]="'info'">
+                            請注意資料庫還原操作風險，並通知相關操作人員即將進行的資料庫還原作業
+                        </gts-alert>
                     </div>
-                    <div class="flex-auto"></div>
-                    <div class="mt-8 text-lg">
-                        <span> {{
-                            plan.price
-                        }}</span> 
-                        <span class="text-secondary"></span>
+                    <mat-radio-group class="pointer-events-none invisible absolute h-0 w-0" [formControlName]="'plan'" #planRadioGroup="matRadioGroup">
+                        <mat-radio-button [value]="'backup'"></mat-radio-button>
+                        <mat-radio-button [value]="'restore'"></mat-radio-button>
+                    </mat-radio-group>
+                    <!-- <div class="bg-card flex h-50 flex-col overflow-hidden rounded-2xl shadow"> -->
+                    <div class="bg-card relative flex cursor-pointer flex-col items-center justify-center rounded-2xl min-h-50 p-6"
+                        [ngClass]="{'ring ring-inset ring-primary-400':planRadioGroup.value === 'backup',}" (click)="planRadioGroup.value = 'backup'">
+                        <div class="flex flex-col p-6 text-center">
+                            @if (planRadioGroup.value === 'backup') {
+                            <mat-icon class="absolute right-0 top-0 mr-3 mt-3 text-primary-400 icon-size-7" [svgIcon]="'heroicons_solid:check-circle'"></mat-icon>
+                            }
+                            <div class="text-lg font-medium">
+                                立即備份資料庫
+                            </div>
+                            <div class="text-secondary mt-0.5 line-clamp-2">
+                                產生資料庫備份檔
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-card relative flex cursor-pointer flex-col items-center justify-center rounded-2xl p-6"
+                        [ngClass]="{'ring ring-inset ring-primary-400':planRadioGroup.value === 'restore',}" (click)="planRadioGroup.value = 'restore'">
+                        <div class="flex flex-col p-6 text-center">
+                            @if (planRadioGroup.value === 'restore') {
+                            <mat-icon class="absolute right-0 top-0 mr-3 mt-3 text-primary-400 icon-size-7" [svgIcon]="'heroicons_solid:check-circle'"></mat-icon>
+                            }
+                            <div class="text-lg font-medium">
+                                還原資料庫
+                            </div>
+                            <div class="text-secondary mt-1 line-clamp-2">
+                                還原前次資料庫備份
+                            </div>
+                        </div>
                     </div>
                 </div>
-            }
-        </div>
 
-        <!-- Divider -->
-        <div class="mb-10 mt-12 border-t"></div>
+                <!-- Divider -->
+                <div class="mb-10 mt-12 border-t"></div>
 
-        <!-- Actions -->
-        <div class="flex items-center justify-end">
-            <!-- <button mat-stroked-button type="button">取消作業</button> -->
-            <button
-                class="ml-4"
-                mat-flat-button
-                type="button"
-                [color]="'primary'"
-            >
-                開始執行
-            </button>
+                <!-- Actions -->
+                <div class="flex items-center justify-end">
+                    <!-- <button mat-stroked-button type="button">取消作業</button> -->
+                    <button mat-flat-button class="bg-green-700 text-default" (click)="onSearch()" >
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-path-rounded-square'"></mat-icon>
+                        <span class="ml-2">開始執行</span>
+                    </button>
+                </div>
+            </div>
         </div>
-    </form>
+    </div>
 </div>

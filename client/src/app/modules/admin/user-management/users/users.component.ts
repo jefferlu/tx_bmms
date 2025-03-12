@@ -112,6 +112,8 @@ export class UsersComponent implements OnInit, OnDestroy {
         if (this.page.record.id) {
             this.form.patchValue(this.page.record);
 
+            this.form.patchValue({ password: '' })
+            this.form.patchValue({ password2: '' })
             this.form.get('password').setValidators([]);
             this.form.get('password2').setValidators([]);
         }

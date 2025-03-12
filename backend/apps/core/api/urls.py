@@ -29,6 +29,9 @@ urlpatterns = [
     path('refresh-token', views.RefreshObtainView.as_view(), name='token_refresh'),
     path('reset-password', views.PasswordResetView.as_view(), name='reset_password'),
     path("docker-logs/<str:container_name>/", views.DockerLogsView.as_view(), name="docker-logs"),
+    path("db-backup", views.DbBackupView.as_view(), name="db-backup"),
+    path("db-restore", views.DbRestoreView.as_view(), name="db-restore"),
+    path("latest-backup", views.LatestBackupView.as_view(), name="latest-backup"),
 
     path('', include(router.urls)),
 ]

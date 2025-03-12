@@ -1,10 +1,14 @@
+import os
+import subprocess
 import docker
+from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 
 from rest_framework import viewsets, mixins, status, exceptions
 from rest_framework.views import APIView
@@ -399,3 +403,131 @@ class DockerLogsView(APIView):
             raise NotFound(f"容器 '{container_name}' 不存在")
         except Exception as e:
             return Response({"error": f"無法讀取日誌: {str(e)}"}, status=500)
+
+
+class DbBackupView(APIView):
+    permission_classes = (IsAdminUser, )
+
+    def get(self, request):
+        # 使用 volume 映射的宿主機備份目錄
+        backup_dir = "/backups"
+        os.makedirs(backup_dir, exist_ok=True)  # 確保目錄存在
+        timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        backup_file = f"{backup_dir}/{timestamp}.sql"  # 使用已定義的變數
+
+        db_name = settings.DATABASES["default"]["NAME"]
+        db_user = settings.DATABASES["default"]["USER"]
+        db_password = settings.DATABASES["default"].get("PASSWORD", "")
+
+        # 初始化 Docker 客戶端
+        client = docker.from_env()
+
+        try:
+            # 取得指定名稱的容器
+            container = client.containers.get("postgres")
+
+            command = f"pg_dump -U {db_user} -F c -f {backup_file} -d {db_name}"
+
+            # 在容器內執行 pg_dump 命令來進行資料庫備份，並使用 backup_file
+            exec_result = container.exec_run(
+                command,
+                stdin=True,  # 啟用標準輸入
+                tty=True,    # 啟用 tty
+                environment={"PGPASSWORD": db_password}   # 使用環境變數傳遞密碼
+            )
+
+            return Response({"message": "Backup completed", "file": backup_file})
+        except docker.errors.NotFound:
+            return Response({"error": "容器不存在"}, status=404)
+        except Exception as e:
+            return Response({"error": f"無法執行備份: {str(e)}"}, status=500)
+
+
+class DbRestoreView(APIView):
+    permission_classes = (IsAdminUser, )
+
+    def get(self, request):
+        # 定義備份目錄
+        backup_dir = os.path.join(settings.MEDIA_ROOT, "backups")
+
+        # 確保備份目錄存在
+        if not os.path.exists(backup_dir):
+            return Response({"error": f"備份目錄 {backup_dir} 不存在"}, status=404)
+
+        # 取得目錄中的所有檔案
+        try:
+            backups = [f for f in os.listdir(backup_dir) if os.path.isfile(os.path.join(backup_dir, f))]
+            if not backups:
+                return Response({"error": "備份目錄沒有任何檔案"}, status=404)
+
+            # 根據檔案名稱排序，取出最新的備份檔案
+            backups.sort(reverse=True)  # 降序排列，最新的檔案排在最前面
+            latest_backup = backups[0]
+
+            backup_file = os.path.join(backup_dir, latest_backup)
+
+            db_name = settings.DATABASES["default"]["NAME"]
+            db_user = settings.DATABASES["default"]["USER"]
+            db_password = settings.DATABASES["default"].get("PASSWORD", "")
+
+            # 初始化 Docker 客戶端
+            client = docker.from_env()
+
+            # 取得指定名稱的容器
+            container = client.containers.get("postgres")
+
+            # 刪除並重新創建資料庫
+            drop_db_command = f"psql -U {db_user} -c 'DROP DATABASE IF EXISTS {db_name}'"
+            create_db_command = f"psql -U {db_user} -c 'CREATE DATABASE {db_name}'"
+
+            # 執行刪除和創建資料庫的命令
+            # container.exec_run(drop_db_command, environment={"PGPASSWORD": db_password})
+            # container.exec_run(create_db_command, environment={"PGPASSWORD": db_password})
+
+            # 使用 pg_restore 指令還原資料庫
+            command = f"pg_restore -U {db_user} -d {db_name} --clean --if-exists /backups/{latest_backup}"
+
+            print(container, command)
+
+            # 在容器內執行 pg_restore 命令來還原資料庫
+            exec_result = container.exec_run(
+                command,
+                stdin=True,  # 啟用標準輸入
+                tty=True,    # 啟用 tty
+                environment={"PGPASSWORD": db_password}   # 使用環境變數傳遞密碼
+            )
+
+            print(exec_result)
+            return Response({"message": "Database restore completed", "backup_file": backup_file})
+
+        except docker.errors.NotFound:
+            return Response({"error": "容器不存在"}, status=404)
+        except Exception as e:
+            return Response({"error": f"無法執行還原: {str(e)}"}, status=500)
+
+
+class LatestBackupView(APIView):
+    permission_classes = (IsAdminUser, )
+
+    def get(self, request):
+        # 使用 volume 映射的宿主機備份目錄
+        backup_dir = os.path.join(settings.MEDIA_ROOT, "backups")
+
+        # 確保備份目錄存在
+        if not os.path.exists(backup_dir):
+            return Response({"error": f"備份目錄 {backup_dir} 不存在"}, status=404)
+
+        # 取得目錄中的所有檔案
+        try:
+            backups = [f for f in os.listdir(backup_dir) if os.path.isfile(os.path.join(backup_dir, f))]
+            if not backups:
+                return Response({"error": "備份目錄沒有任何檔案"}, status=404)
+
+            # 根據檔案名稱排序，取出最新的備份檔案
+            backups.sort(reverse=True)  # 降序排列，最新的檔案排在最前面
+            latest_backup = backups[0]
+
+            return Response({"latest_backup": latest_backup})
+
+        except Exception as e:
+            return Response({"error": f"無法獲取備份檔案: {str(e)}"}, status=500)

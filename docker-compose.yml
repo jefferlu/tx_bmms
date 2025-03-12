@@ -30,7 +30,7 @@ services:
             - HOST=postgres
             - PORT=5432
         volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
+            - /var/run/docker.sock:/var/run/docker.sock # docker.from_env() 
             - static_data:/app/static-root
             - media_data:/app/media-root
         depends_on:
@@ -60,6 +60,7 @@ services:
         volumes:
             - ./db:/docker-entrypoint-initdb.d
             - postgresql_data:/bitnami/postgresql
+            - ./backend/media-root/backups:/backups # 備份目錄
         ports:
             - 5433:5432
 

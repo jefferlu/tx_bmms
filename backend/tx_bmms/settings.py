@@ -41,8 +41,8 @@ LOGOUT_REDIRECT_URL = '/admin/login/'
 POSTGRES = {
     'HOST': os.getenv('HOST', 'giantcld.com'),
     'PORT': os.getenv('PORT', 5432),
-    'USER': os.getenv('POSTGRESQL_USERNAME', 'giantcld'),
-    'PASSWORD': os.getenv('POSTGRESQL_PASSWORD', '90637925'),
+    'USER': os.getenv('POSTGRESQL_USERNAME', 'bmms'),
+    'PASSWORD': os.getenv('POSTGRESQL_PASSWORD', 'qbZucM8vvGwpfTd'),
     'NAME': os.getenv('POSTGRESQL_DATABASE', 'bmms'),
 }
 # 設定 Redis 主機和端口

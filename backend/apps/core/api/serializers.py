@@ -82,6 +82,33 @@ class UserSerializer(serializers.ModelSerializer):
     def get_groups_obj(self, obj):
         return GroupSerializer(obj.groups, many=True).data
 
+    def create(self, validated_data):
+        user = User(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            is_superuser=validated_data['is_superuser']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+
+        # 新增group權限
+        user.groups.set(validated_data.get('groups', []))
+        return user
+
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get('username', instance.username)
+        instance.email = validated_data.get('email', instance.email)
+        instance.is_superuser = validated_data.get('is_superuser', instance.is_superuser)
+        instance.groups.set(validated_data.get('groups', instance.groups))
+
+        # 檢查是否提供了新密碼，如果是，則更新密碼
+        password = validated_data.get('password')
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
+
 
 class NavigationSerializer(serializers.ModelSerializer):
 
