@@ -33,6 +33,7 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock # docker.from_env() 
             - static_data:/app/static-root
             - media_data:/app/media-root
+            - ./backend/media-root/backups:/app/media-root/backups
         depends_on:
             - postgres
         ports:
