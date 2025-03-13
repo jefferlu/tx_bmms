@@ -54,13 +54,14 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         # file_name = urllib.parse.unquote(file_name)  # 反轉前端 encodeURIComponent()
         process_translation(urn, token, file_name, object_data, send_progress)
 
+        return {"status": "BIM data imoport completed.", "file": f"{file_name}"}
     except Exception as e:
         logger.error(str(e))
         send_progress('error', str(e))
+        return {"status": f"BIM data imoport failed. {str(e)}", "file": f"{file_name}"}
 
 
 def process_translation(urn, token, file_name, object_data, send_progress):
-
     """ Step 2: 開始轉檔 """
     logger.info('Triggering translation job...')
     print('Triggering translation job...')
@@ -94,7 +95,7 @@ def process_translation(urn, token, file_name, object_data, send_progress):
             print('Translation failed.')
             send_progress('translate-job', 'Translation failed.')
             return
-        time.sleep(5)
+        time.sleep(1)
 
     """ Step 4: 下載 SVF """
     logger.info('Downloading SVF to server ...')
@@ -116,7 +117,7 @@ def process_translation(urn, token, file_name, object_data, send_progress):
         logger.info('No manifest items found for download.')
         print('No manifest items found for download.')
         send_progress('download-svf', 'No manifest items found for download.')
-    
+
     """ Step 5: 下載 SQLite """
     logger.info('Downloading SQLite to server ...')
     print('Downloading SQLite to server ...')
@@ -218,3 +219,4 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     logger.info('BIM data imoport complete.')
     print('BIM data imoport complete.')
     send_progress('complete', 'BIM data imoport completed.')
+    return 

@@ -9,6 +9,8 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { Subject, takeUntil } from 'rxjs';
 import { SystemActivityLogService } from './system-activity-log.service';
 
+const LINES = 500;
+
 @Component({
     selector: 'app-system-activity-log',
     templateUrl: './system-activity-log.component.html',
@@ -34,23 +36,23 @@ export class SystemActivityLogComponent {
 
     ngOnInit(): void {
         // Get groups data
-        this._systemActivityLogService.getData('client', { lines: 200 })
+        this._systemActivityLogService.getData('client', { lines: LINES })
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((data: any) => {
-                this.data = data;                
+                this.data = data;
                 this._changeDetectorRef.markForCheck();
             });
     }
 
     onClick(container): void {
-         // Get groups data
-         this._systemActivityLogService.getData(container, { lines: 200 })
-         .pipe(takeUntil(this._unsubscribeAll))
-         .subscribe((data: any) => {
-             this.data = data;                
-             this._changeDetectorRef.markForCheck();
-         });
-    }    
+        // Get groups data
+        this._systemActivityLogService.getData(container, { lines: LINES })
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((data: any) => {
+                this.data = data;
+                this._changeDetectorRef.markForCheck();
+            });
+    }
 
     ngOnDestroy(): void {
         this._unsubscribeAll.next(null);

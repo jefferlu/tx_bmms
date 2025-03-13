@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include,re_path
 
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt import views as jwt_views
@@ -28,10 +28,9 @@ urlpatterns = [
     path('login', views.TokenObtainView.as_view(), name='token_obtain_pair'),
     path('refresh-token', views.RefreshObtainView.as_view(), name='token_refresh'),
     path('reset-password', views.PasswordResetView.as_view(), name='reset_password'),
-    path("docker-logs/<str:container_name>/", views.DockerLogsView.as_view(), name="docker-logs"),
-    path("db-backup", views.DbBackupView.as_view(), name="db-backup"),
-    path("db-restore", views.DbRestoreView.as_view(), name="db-restore"),
-    path("latest-backup", views.LatestBackupView.as_view(), name="latest-backup"),
-
+    re_path(r"^docker-logs/(?P<container_name>\w+)/?$", views.DockerLogsView.as_view(), name="docker-logs"),
+    re_path(r"^db-backup/?$", views.DbBackupView.as_view(), name="db-backup"),
+    re_path(r"^db-restore/?$", views.DbRestoreView.as_view(), name="db-restore"),
+    re_path(r"^latest-backup/?$", views.LatestBackupView.as_view(), name="latest-backup"),
     path('', include(router.urls)),
 ]

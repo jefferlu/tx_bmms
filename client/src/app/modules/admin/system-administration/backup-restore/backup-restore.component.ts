@@ -1,7 +1,9 @@
 import { CurrencyPipe, NgClass, NgSwitchCase, NgSwitch } from '@angular/common';
 import {
     ChangeDetectionStrategy,
+    ChangeDetectorRef,
     Component,
+    OnDestroy,
     OnInit,
     ViewEncapsulation,
 } from '@angular/core';
@@ -13,13 +15,16 @@ import {
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatOptionModule } from '@angular/material/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { GtsAlertComponent } from '@gts/components/alert';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { BackupRestoreService } from './backup-restore.service';
+import { map, Subject, switchMap, takeUntil } from 'rxjs';
+import { GtsConfirmationService } from '@gts/services/confirmation';
+import { ToastService } from 'app/layout/common/toast/toast.service';
 
 @Component({
     selector: 'backup-restore',
@@ -27,66 +32,84 @@ import { TranslocoModule } from '@jsverse/transloco';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        TranslocoModule, GtsAlertComponent, NgClass,
-        MatButtonModule, MatIconModule, MatRadioModule
+        TranslocoModule, NgClass, FormsModule,
+        MatButtonModule, MatIconModule, MatRadioModule,
+        GtsAlertComponent
     ]
 })
-export class BackupRestoreComponent implements OnInit {
-    backupRestoreForm: UntypedFormGroup;
-    plans: any[];
+export class BackupRestoreComponent implements OnInit, OnDestroy {
 
-    /**
-     * Constructor
-     */
-    constructor(private _formBuilder: UntypedFormBuilder) { }
+    private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
+    data: any;
+    plan: string = 'backup';
 
-    /**
-     * On init
-     */
+    constructor(
+        private _changeDetectorRef: ChangeDetectorRef,
+        private _translocoService: TranslocoService,
+        private _toastService: ToastService,
+        private _gtsConfirmationService: GtsConfirmationService,
+        private _backupRestoreService: BackupRestoreService
+    ) { }
+
     ngOnInit(): void {
-        // Create the form
-        this.backupRestoreForm = this._formBuilder.group({
-            plan: ['team'],
-            cardHolder: ['Brian Hughes'],
-            cardNumber: [''],
-            cardExpiration: [''],
-            cardCVC: [''],
-            country: ['usa'],
-            zip: [''],
-        });
-
-        // Setup the plans
-        this.plans = [
-            {
-                value: 'backup',
-                label: '立即備份資料庫',
-                details: '產生資料庫備份檔',
-                price: '',
-            },
-            {
-                value: 'restore',
-                label: '還原資料庫',
-                details: '還原前次資料庫備份',
-                price: '2024-08-15-00-12-01.bak',
-            },
-        ];
+        // Get latest backup filename
+        this._backupRestoreService.getData('core/latest-backup')
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((data: any) => {
+                this.data = data;
+                console.log(data)
+                this._changeDetectorRef.markForCheck();
+            });
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
+    onClick(): void {
 
-    /**
-     * Track by function for ngFor loops
-     *
-     * @param index
-     * @param item
-     */
-    trackByFn(index: number, item: any): any {
-        return item.id || index;
+        const title = this._translocoService.translate('confirm-action');
+        const message = this._translocoService.translate('confirm-execution');
+        const executeLabel = this._translocoService.translate('start-execution');
+        const cancelLabel = this._translocoService.translate('cancel');
+
+        let dialogRef = this._gtsConfirmationService.open({
+            title: title,
+            message: message,
+            icon: { color: 'warn' },
+            actions: { confirm: { label: executeLabel, color: 'warn' }, cancel: { label: cancelLabel } }
+
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result === 'confirmed') {
+                this.execute();
+                this._changeDetectorRef.markForCheck();
+            }
+        });
+    }
+
+    execute(): void {
+        if (this.plan === 'backup') {
+            // execute backup
+            this._backupRestoreService.getData('core/db-backup')
+                .pipe(takeUntil(this._unsubscribeAll))
+                .subscribe((data: any) => {
+                    this._toastService.open({ message: this._translocoService.translate('run-in-task') });
+                });
+        }
+        else {
+            // execute restore
+            this._backupRestoreService.getData('core/db-restore')
+                .pipe(takeUntil(this._unsubscribeAll))
+                .subscribe((data: any) => {
+                    console.log(data)
+                    this._toastService.open({ message: this._translocoService.translate('run-in-task') });
+                });
+        }
+
+
+    }
+
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
     }
 }

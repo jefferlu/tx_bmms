@@ -29,13 +29,13 @@
                 [metaKeySelection]="true" (onRowSelect)="onOpenDrawer($event)">
                 <ng-template pTemplate="header">
                     <tr>
-                        <th class="pl-8">使用者帳號</th>
-                        <th>名稱</th>
-                        <th>系統功能名稱</th>
-                        <th>執行動作</th>
-                        <th>狀態</th>
-                        <th>執行時間</th>                        
-                        <th>IP 位址</th>
+                        <th class="pl-8">{{t('account')}}</th>
+                        <th>{{t('name')}}</th>
+                        <th>{{t('function-name')}}</th>
+                        <th>{{t('action')}}</th>
+                        <th>{{t('status')}}</th>
+                        <th>{{t('timestamp')}}</th>
+                        <th>{{t('ip-address')}}</th>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-d>
