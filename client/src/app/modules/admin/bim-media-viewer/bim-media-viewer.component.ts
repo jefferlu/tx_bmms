@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { environment } from 'environments/environment';
 
 declare var $: any;
@@ -16,15 +17,22 @@ export class BimMediaViewerComponent {
 
     @ViewChild('elfinder') elfinderDiv!: ElementRef;
 
+    lang: any;
+
+    constructor(
+        private _translocoService: TranslocoService,
+    ) { }
     ngAfterViewInit(): void {
+
+        this.lang = this.getViewerLanguage(this._translocoService.getActiveLang());
 
         $(this.elfinderDiv.nativeElement).elfinder({
             cssAutoLoad: false,               // Disable CSS auto loading
             baseUrl: './elfinder/',
             url: `${endpoint}/elfinder/php/connector.minimal.php`,  // connector URL (REQUIRED)
-            lang: 'zh_TW',                // language (OPTIONAL)
+            lang: this.lang,                // language (OPTIONAL)
             height: 'auto',
-            width:'100%',         
+            width: '100%',
         }, (fm: any) => {
             // `init` event callback function
             fm.bind('init', function () { });
@@ -41,6 +49,16 @@ export class BimMediaViewerComponent {
                 document.title = title;
             });
         });
-        
+
+    }
+
+    private getViewerLanguage(lang: string): string {
+        switch (lang) {
+            case 'zh':
+                return 'zh-TW';
+            case 'en':
+            default:  // 默認為英文
+                return 'en';
+        }
     }
 }
