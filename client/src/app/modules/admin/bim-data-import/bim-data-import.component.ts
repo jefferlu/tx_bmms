@@ -190,14 +190,11 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
 
     private _bimDataReload(file: any) {
 
-        file.status = 'process';
-        file.message = 'Reloading...';            
-        
         this._bimDataImportService.bimDataReload(file.name)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
                 next: (res) => {
-                    file.status = 'process';                      
+                    file.status = 'process';                    
                 },
                 error: (err) => {
                     file.status = 'error';

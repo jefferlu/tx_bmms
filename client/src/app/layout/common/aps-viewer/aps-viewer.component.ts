@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { AppService } from 'app/app.service';
 import { environment } from 'environments/environment';
 import { ToastService } from '../toast/toast.service';
+import { TranslocoService } from '@jsverse/transloco';
 
 declare const Autodesk: any;
 declare const SearchPanel: any;
@@ -26,12 +27,14 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     viewer: any;
     searchPanel: any;
     downloadPanel: any;
+    lang: any;
 
     private isViewerInitialized = false;
 
     constructor(
         @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
         private _toastService: ToastService,
+        private _translocoService: TranslocoService,
         private _appService: AppService
     ) { }
 
@@ -43,6 +46,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
         this.dbids = data.some(item => item.dbid !== undefined)
             ? [...new Set(data.map(item => item.dbid).filter(dbid => dbid !== undefined))]
             : null;
+
+        this.lang = this.getViewerLanguage(this._translocoService.getActiveLang());
+
+        console.log(this.lang)
 
         console.log(this.dbids)
         // data = { "svf": "assets/downloads/T3-TP01-TX1-B2-XXX-M3-DP-00100-7002.nwc/0/0.svf" };
@@ -74,7 +81,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
             env: 'Local',
             useConsolidation: true,
             document: `${svf}`,
-            language: 'en',
+            language: this.lang,
             isAEC: true
 
         };
@@ -108,7 +115,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
             const options = {
                 env: 'AutodeskProduction', // Autodesk 伺服器
                 api: 'derivativeV2',
-                language: 'en',
+                language: this.lang,
                 getAccessToken: (callback) => {
                     const token = aps.access_token;
                     const expiresIn = 3600;
@@ -180,6 +187,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // 處理 AggregatedView（多模型 oss）
     loadAggregatedView(data: any[]): void {
+        console.log('loadAggregatedView')
         const container = this.viewerContainer.nativeElement;
         this.viewer = new Autodesk.Viewing.AggregatedView();
 
@@ -187,7 +195,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const options = {
             env: 'Local',
-            language: 'en',
+            language: this.lang,
         };
 
         Autodesk.Viewing.Initializer(options, () => {
@@ -230,7 +238,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
             const options = {
                 env: 'AutodeskProduction', // 使用 Autodesk 伺服器
                 api: 'derivativeV2',
-                language: 'en',
+                language: this.lang,
                 getAccessToken: (callback) => {
                     const token = aps.access_token;
                     const expiresIn = 3600; // Token 有效時間
@@ -377,6 +385,16 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // 加入 Viewer Toolbar
         this.viewer.viewer.toolbar.addControl(subToolbar);
+    }
+
+    private getViewerLanguage(lang: string): string {
+        switch (lang) {
+            case 'zh':
+                return 'zh-HANT';
+            case 'en':
+            default:  // 默認為英文
+                return 'en';
+        }
     }
 
     ngOnDestroy(): void {

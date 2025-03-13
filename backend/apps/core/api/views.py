@@ -442,7 +442,7 @@ class LatestBackupView(APIView):
 
         # 確保備份目錄存在
         if not os.path.exists(backup_dir):
-            return Response({"error": f"備份目錄 {backup_dir} 不存在"}, status=404)
+            return Response({"latest_backup": f"無任何備份檔案"})
 
         # 取得目錄中的所有檔案
         try:
