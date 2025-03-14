@@ -1,30 +1,16 @@
-import { CurrencyPipe, NgClass, NgSwitchCase, NgSwitch } from '@angular/common';
-import {
-    ChangeDetectionStrategy,
-    ChangeDetectorRef,
-    Component,
-    OnDestroy,
-    OnInit,
-    ViewEncapsulation,
-} from '@angular/core';
-import {
-    FormsModule,
-    ReactiveFormsModule,
-    UntypedFormBuilder,
-    UntypedFormGroup,
-} from '@angular/forms';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatOptionModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
+import { MatRadioModule } from '@angular/material/radio';;
 import { GtsAlertComponent } from '@gts/components/alert';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { BackupRestoreService } from './backup-restore.service';
-import { map, Subject, switchMap, takeUntil } from 'rxjs';
+import { map, Subject, Subscription, takeUntil } from 'rxjs';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { ToastService } from 'app/layout/common/toast/toast.service';
+import { WebsocketService } from 'app/core/services/websocket/websocket.service';
 
 @Component({
     selector: 'backup-restore',
@@ -40,27 +26,49 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
 export class BackupRestoreComponent implements OnInit, OnDestroy {
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
+    private _subscription: Subscription = new Subscription();
 
     data: any;
     plan: string = 'backup';
+    message: string;
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _translocoService: TranslocoService,
         private _toastService: ToastService,
         private _gtsConfirmationService: GtsConfirmationService,
+        private _websocketService: WebsocketService,
         private _backupRestoreService: BackupRestoreService
     ) { }
 
     ngOnInit(): void {
+
+        // Subscribe webSocket message
+        this._websocketService.method = 'progress';
+        this._subscription.add(
+            this._websocketService.onMessage().subscribe({
+                next: (res) => {
+
+                    res.name = decodeURIComponent(res.name);
+
+
+                    this._changeDetectorRef.markForCheck();
+                },
+                error: (err) => console.error('WebSocket error:', err),
+                complete: () => console.log('WebSocket connection closed.'),
+            })
+        );
+
+
         // Get latest backup filename
         this._backupRestoreService.getData('core/latest-backup')
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((data: any) => {
                 this.data = data;
-                console.log(data)
+
                 this._changeDetectorRef.markForCheck();
             });
+
     }
 
     onClick(): void {

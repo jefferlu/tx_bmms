@@ -19,11 +19,7 @@
             <div class="mx-auto flex w-full max-w-xs flex-auto flex-col sm:max-w-2xl">
 
                 <div class="mt-8 grid grid-cols-1 gap-8 sm:mt-10 sm:grid-cols-2 lg:grid-cols-2">
-                    <div class="sm:col-span-2">
-                        <gts-alert [appearance]="'outline'" [type]="'info'">
-                            {{t('backup-restore-warn')}}
-                        </gts-alert>
-                    </div>
+                    
                     <mat-radio-group class="pointer-events-none invisible absolute h-0 w-0" [(ngModel)]="plan" #planRadioGroup="matRadioGroup">
                         <mat-radio-button [value]="'backup'"></mat-radio-button>
                         <mat-radio-button [value]="'restore'"></mat-radio-button>
@@ -59,6 +55,12 @@
                                 {{data?.latest_backup}}
                             </div>
                         </div>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <gts-alert [appearance]="'outline'" [type]="'primary'">
+                            {{t('backup-restore-warn')}}
+                        </gts-alert>
                     </div>
                 </div>
 

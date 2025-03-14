@@ -4,7 +4,6 @@ import { finalize, Subject, Subscription, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { BimDataImportService } from './bim-data-import.service';
-import { ApsCredentialsService } from 'app/core/services/aps-credentials/aps-credentials.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TableModule } from 'primeng/table';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -38,7 +37,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         private _spinner: NgxSpinnerService,
         private _translocoService: TranslocoService,
         private _gtsConfirmationService: GtsConfirmationService,
-        private _apsCredentials: ApsCredentialsService,
         private _websocketService: WebsocketService,
         private _bimDataImportService: BimDataImportService,
     ) { }
@@ -47,6 +45,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         this._spinner.hide();
 
         // Subscribe webSocket message
+        this._websocketService.method = 'progress';
         this._subscription.add(
             this._websocketService.onMessage().subscribe({
                 next: (res) => {
@@ -194,7 +193,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
                 next: (res) => {
-                    file.status = 'process';                    
+                    file.status = 'process';
                 },
                 error: (err) => {
                     file.status = 'error';

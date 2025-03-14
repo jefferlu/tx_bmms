@@ -6,7 +6,6 @@ import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
 
 import { UserService } from 'app/core/user/user.service';
 import { CookieOptions, CookieService } from 'ngx-cookie-service';
-import { ApsCredentialsService } from '../services/aps-credentials/aps-credentials.service';
 import { Router } from '@angular/router';
 import { AppService } from '../../app.service';
 
