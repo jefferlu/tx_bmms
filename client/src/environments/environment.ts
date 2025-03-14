@@ -5,6 +5,7 @@
 export const environment = {
     production: false,
     api: 'http://localhost:8000/api',
+    websocket: 'ws://localhost:8000',
     elfinder: 'https://bmms.giantcld.com',
     local_storage: {
         user: 'tx_bmms_user',

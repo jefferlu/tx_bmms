@@ -15,11 +15,17 @@
         </div>
 
         <!-- Main -->
-        <div class="flex flex-auto p-6 sm:p-10">
+        <div class="flex flex-auto p-6">
             <div class="mx-auto flex w-full max-w-xs flex-auto flex-col sm:max-w-2xl">
 
                 <div class="mt-8 grid grid-cols-1 gap-8 sm:mt-10 sm:grid-cols-2 lg:grid-cols-2">
-                    
+
+                    <div class="sm:col-span-2">
+                        <gts-alert [appearance]="'outline'" [type]="'info'">
+                            {{t('backup-restore-warn')}}
+                        </gts-alert>
+                    </div>
+
                     <mat-radio-group class="pointer-events-none invisible absolute h-0 w-0" [(ngModel)]="plan" #planRadioGroup="matRadioGroup">
                         <mat-radio-button [value]="'backup'"></mat-radio-button>
                         <mat-radio-button [value]="'restore'"></mat-radio-button>
@@ -37,7 +43,7 @@
                             </div>
                             <div class="text-secondary mt-0.5 line-clamp-2">
                                 {{t('backup-database-desc')}}
-                            </div>                            
+                            </div>
                         </div>
                     </div>
                     <div class="bg-card relative flex cursor-pointer flex-col items-center justify-center rounded-2xl p-6"
@@ -50,32 +56,32 @@
                             <div class="text-lg font-medium">
                                 {{t('restore-database')}}
                             </div>
-                            
+
                             <div class="text-secondary mt-1 line-clamp-2">
                                 {{data?.latest_backup}}
                             </div>
                         </div>
                     </div>
 
-                    <div class="sm:col-span-2">
-                        <gts-alert [appearance]="'outline'" [type]="'primary'">
-                            {{t('backup-restore-warn')}}
-                        </gts-alert>
-                    </div>
                 </div>
 
                 <!-- Divider -->
                 <div class="mb-10 mt-12 border-t"></div>
 
                 <!-- Actions -->
-                <div class="flex items-center justify-end">
+                <div class="flex items-center justify-end pb-4">
                     <!-- <button mat-stroked-button type="button">取消作業</button> -->
                     <button mat-flat-button (click)="onClick()" [disabled]="!planRadioGroup.value">
                         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-path-rounded-square'"></mat-icon>
                         <span class="ml-2">{{t('start-execution')}}</span>
                     </button>
-                </div>
+                </div>     
+                
+                <p-scrollpanel class="p-4 bg-card shadow rounded-md flex-grow">
+                    <pre class="">{{message}}</pre>
+                </p-scrollpanel>
             </div>
         </div>
+        
     </div>
 </div>

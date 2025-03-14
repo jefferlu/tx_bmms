@@ -14,61 +14,103 @@ from celery.utils.log import get_task_logger
 
 logger = get_task_logger(__name__)
 
+GROUP_NAME = "database_group"
 
-@shared_task
-def backup_database():
-    # 使用 volume 映射的宿主機備份目錄
+
+def send_progress(status, message, task=None):
+    """發送進度訊息到 WebSocket，並可選更新 Celery 任務狀態"""
+    try:
+        channel_layer = get_channel_layer()
+        payload = {
+            'type': 'database.message',
+            'status': status,
+            'message': message,
+        }
+        async_to_sync(channel_layer.group_send)('database_group', payload)        
+
+        # 如果提供了 task 物件，更新 Celery 任務狀態
+        if task:
+            task.update_state(state='PROGRESS', meta=payload)
+    except Exception as e:
+        logger.error(f"Failed to send progress: {str(e)}")
+
+
+@shared_task(bind=True)
+def backup_database(self):
+    """備份資料庫並透過 WebSocket 傳送即時進度訊息"""
     backup_dir = "/backups"
     timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    backup_file = f"{backup_dir}/{timestamp}.bak"  # 使用已定義的變數
+    backup_file = f"{backup_dir}/{timestamp}.bak"
 
     db_name = settings.DATABASES["default"]["NAME"]
     db_user = settings.DATABASES["default"]["USER"]
     db_password = settings.DATABASES["default"].get("PASSWORD", "")
 
     # 初始化 Docker 客戶端
-    client = docker.from_env()
-
+    send_progress("starting", "正在初始化備份任務...", task=self)
     try:
-        # 取得指定名稱的容器
+        client = docker.from_env()
         container = client.containers.get("postgres")
-
-        command = f"pg_dump -U {db_user} -F c -f {backup_file} -d {db_name}"
-
-        # 在容器內執行 pg_dump 命令來進行資料庫備份，並使用 backup_file
-        exec_result = container.exec_run(
-            command,
-            stdin=True,  # 啟用標準輸入
-            tty=True,    # 啟用 tty
-            environment={"PGPASSWORD": db_password}  # 使用環境變數傳遞密碼
-        )
-        return {"status": "Backup completed", "file": f"{timestamp}.bak"}
     except docker.errors.NotFound:
-        # 當容器不存在時，拋出錯誤
+        send_progress("error", "容器不存在", task=self)
         raise Exception("容器不存在")
     except Exception as e:
-        # 其他錯誤直接拋出
-        raise Exception(f"無法執行備份: {str(e)}")
+        send_progress("error", f"初始化失敗: {str(e)}", task=self)
+        raise Exception(f"無法初始化 Docker 客戶端: {str(e)}")
+
+    # 開始備份
+    command = f"pg_dump -U {db_user} -F c -f {backup_file} -d {db_name} --verbose"
+    send_progress("running", "開始執行資料庫備份...", task=self)
+
+    try:
+        # 使用 exec_create 和 exec_start 獲取流式輸出
+        exec_id = client.api.exec_create(
+            container.id,
+            command,
+            stdin=True,
+            tty=True,
+            environment={"PGPASSWORD": db_password}
+        )
+        output = client.api.exec_start(exec_id, stream=True)
+
+        # 逐行讀取輸出並發送進度
+        for line in output:
+            decoded_line = line.decode('utf-8').strip()
+            if decoded_line:  # 確保不發送空行
+                send_progress("running", f"備份進度: {decoded_line}", task=self)
+                logger.info(f"備份進度: {decoded_line}")
+
+        # 檢查執行結果
+        exec_result = client.api.exec_inspect(exec_id)
+        if exec_result['ExitCode'] != 0:
+            send_progress("error", "備份失敗，檢查日誌以獲取詳細資訊", task=self)
+            raise Exception("pg_dump 執行失敗")
+
+        send_progress("completed", f"備份完成，檔案: {timestamp}.bak", task=self)
+        return {"status": "Backup completed", "file": f"{timestamp}.bak"}
+    except Exception as e:
+        send_progress("error", f"無法執行備份: {str(e)}", task=self)
+        raise
 
 
-@shared_task()
-def restore_database():
-    # 定義備份目錄
+@shared_task(bind=True)
+def restore_database(self):
+    """還原資料庫並透過 WebSocket 傳送即時進度訊息"""
     backup_dir = os.path.join(settings.MEDIA_ROOT, "backups")
 
-    # 確保備份目錄存在
+    # 檢查備份目錄
+    send_progress("starting", "正在檢查備份目錄...", task=self)
     if not os.path.exists(backup_dir):
+        send_progress("error", f"備份目錄 {backup_dir} 不存在", task=self)
         raise Exception(f"備份目錄 {backup_dir} 不存在")
 
-    # 取得目錄中的所有檔案
     backups = [f for f in os.listdir(backup_dir) if os.path.isfile(os.path.join(backup_dir, f))]
     if not backups:
+        send_progress("error", "備份目錄沒有任何檔案", task=self)
         raise Exception("備份目錄沒有任何檔案")
 
-    # 根據檔案名稱排序，取出最新的備份檔案
-    backups.sort(reverse=True)  # 降序排列，最新的檔案排在最前面
+    backups.sort(reverse=True)
     latest_backup = backups[0]
-
     backup_file = os.path.join(backup_dir, latest_backup)
 
     db_name = settings.DATABASES["default"]["NAME"]
@@ -76,25 +118,47 @@ def restore_database():
     db_password = settings.DATABASES["default"].get("PASSWORD", "")
 
     # 初始化 Docker 客戶端
-    client = docker.from_env()
-
+    send_progress("running", "正在初始化還原任務...", task=self)
     try:
-        # 取得指定名稱的容器
+        client = docker.from_env()
         container = client.containers.get("postgres")
-
-        # 使用 pg_restore 指令還原資料庫
-        command = f"pg_restore -U {db_user} -d {db_name} --clean --if-exists /backups/{latest_backup}"
-
-        # 在容器內執行 pg_restore 命令來還原資料庫
-        exec_result = container.exec_run(
-            command,
-            stdin=True,  # 啟用標準輸入
-            tty=True,    # 啟用 tty
-            environment={"PGPASSWORD": db_password}   # 使用環境變數傳遞密碼
-        )
-
-        return {"status": "Restore completed", "backup_file": backup_file}
     except docker.errors.NotFound:
+        send_progress("error", "容器不存在", task=self)
         raise Exception("容器不存在")
     except Exception as e:
-        raise Exception(f"無法執行還原: {str(e)}")
+        send_progress("error", f"初始化失敗: {str(e)}", task=self)
+        raise Exception(f"無法初始化 Docker 客戶端: {str(e)}")
+
+    # 開始還原
+    command = f"pg_restore -U {db_user} -d {db_name} --clean --if-exists --verbose /backups/{latest_backup}"
+    send_progress("running", f"開始還原資料庫，使用檔案: {latest_backup}", task=self)
+
+    try:
+        # 使用 exec_create 和 exec_start 獲取流式輸出
+        exec_id = client.api.exec_create(
+            container.id,
+            command,
+            stdin=True,
+            tty=True,
+            environment={"PGPASSWORD": db_password}
+        )
+        output = client.api.exec_start(exec_id, stream=True)
+
+        # 逐行讀取輸出並發送進度
+        for line in output:
+            decoded_line = line.decode('utf-8').strip()
+            if decoded_line:  # 確保不發送空行
+                send_progress("running", f"還原進度: {decoded_line}", task=self)
+                logger.info(f"還原進度: {decoded_line}")
+
+        # 檢查執行結果
+        exec_result = client.api.exec_inspect(exec_id)
+        if exec_result['ExitCode'] != 0:
+            send_progress("error", "還原失敗，檢查日誌以獲取詳細資訊", task=self)
+            raise Exception("pg_restore 執行失敗")
+
+        send_progress("completed", f"還原完成，使用的備份檔案: {latest_backup}", task=self)
+        return {"status": "Restore completed", "backup_file": latest_backup}
+    except Exception as e:
+        send_progress("error", f"無法執行還原: {str(e)}", task=self)
+        raise

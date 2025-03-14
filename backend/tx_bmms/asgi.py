@@ -7,7 +7,11 @@ For more information on this file, see
 https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 """
 
+
 import os
+
+import apps.core.api.routing
+import apps.forge.api.routing
 
 from django.core.asgi import get_asgi_application
 from channels.auth import AuthMiddlewareStack
@@ -19,11 +23,13 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tx_bmms.settings')
 # is populated before importing code that may import ORM models.
 django_asgi_app = get_asgi_application()
 
-from apps.forge.api.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
-    "http": django_asgi_app,  #  default HTTP routing (Django)
+    "http": django_asgi_app,  # default HTTP routing (Django)
     "websocket": AllowedHostsOriginValidator(
-        AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
+        AuthMiddlewareStack(URLRouter(
+            apps.core.api.routing.websocket_urlpatterns +
+            apps.forge.api.routing.websocket_urlpatterns
+        ))
     ),
 })

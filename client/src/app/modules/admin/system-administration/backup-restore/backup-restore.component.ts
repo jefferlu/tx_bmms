@@ -11,6 +11,7 @@ import { map, Subject, Subscription, takeUntil } from 'rxjs';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { WebsocketService } from 'app/core/services/websocket/websocket.service';
+import { ScrollPanelModule } from 'primeng/scrollpanel';
 
 @Component({
     selector: 'backup-restore',
@@ -20,7 +21,7 @@ import { WebsocketService } from 'app/core/services/websocket/websocket.service'
     imports: [
         TranslocoModule, NgClass, FormsModule,
         MatButtonModule, MatIconModule, MatRadioModule,
-        GtsAlertComponent
+        GtsAlertComponent, ScrollPanelModule
     ]
 })
 export class BackupRestoreComponent implements OnInit, OnDestroy {
@@ -30,7 +31,7 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
 
     data: any;
     plan: string = 'backup';
-    message: string;
+    message: string = '';
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -44,14 +45,14 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
 
         // Subscribe webSocket message
-        this._websocketService.method = 'progress';
+        this._websocketService.connect('database');
         this._subscription.add(
-            this._websocketService.onMessage().subscribe({
+            this._websocketService.onMessage('database').subscribe({
                 next: (res) => {
 
-                    res.name = decodeURIComponent(res.name);
-
-
+                    // res.name = decodeURIComponent(res.name);
+                    // this.message += res.message + '\n';
+                    this.message = res.message;
                     this._changeDetectorRef.markForCheck();
                 },
                 error: (err) => console.error('WebSocket error:', err),
@@ -65,7 +66,6 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((data: any) => {
                 this.data = data;
-
                 this._changeDetectorRef.markForCheck();
             });
 
@@ -99,18 +99,13 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
             // execute backup
             this._backupRestoreService.getData('core/db-backup')
                 .pipe(takeUntil(this._unsubscribeAll))
-                .subscribe((data: any) => {
-                    this._toastService.open({ message: this._translocoService.translate('run-in-task') });
-                });
+                .subscribe((data: any) => { });
         }
         else {
             // execute restore
             this._backupRestoreService.getData('core/db-restore')
                 .pipe(takeUntil(this._unsubscribeAll))
-                .subscribe((data: any) => {
-                    console.log(data)
-                    this._toastService.open({ message: this._translocoService.translate('run-in-task') });
-                });
+                .subscribe((data: any) => { });
         }
 
 
@@ -119,5 +114,7 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
+        this._subscription.unsubscribe();
+        this._websocketService.close('database');
     }
 }

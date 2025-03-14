@@ -45,9 +45,9 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         this._spinner.hide();
 
         // Subscribe webSocket message
-        this._websocketService.method = 'progress';
+        this._websocketService.connect('progress');
         this._subscription.add(
-            this._websocketService.onMessage().subscribe({
+            this._websocketService.onMessage('progress').subscribe({
                 next: (res) => {
 
                     res.name = decodeURIComponent(res.name);
@@ -273,7 +273,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
         this._subscription.unsubscribe();
-        this._websocketService.close();
+        this._websocketService.close('progress');
         this._spinner.hide();
     }
 }
