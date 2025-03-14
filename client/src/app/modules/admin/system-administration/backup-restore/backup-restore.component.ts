@@ -53,6 +53,7 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
                     // res.name = decodeURIComponent(res.name);
                     // this.message += res.message + '\n';
                     this.message = res.message;
+                    if (res.file) this.data.latest_backup = res.file;
                     this._changeDetectorRef.markForCheck();
                 },
                 error: (err) => console.error('WebSocket error:', err),

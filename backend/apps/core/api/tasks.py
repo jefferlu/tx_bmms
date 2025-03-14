@@ -17,7 +17,7 @@ logger = get_task_logger(__name__)
 GROUP_NAME = "database_group"
 
 
-def send_progress(status, message, task=None):
+def send_progress(status, message, task=None, file=None):
     """發送進度訊息到 WebSocket，並可選更新 Celery 任務狀態"""
     try:
         channel_layer = get_channel_layer()
@@ -25,8 +25,9 @@ def send_progress(status, message, task=None):
             'type': 'database.message',
             'status': status,
             'message': message,
+            'file': file
         }
-        async_to_sync(channel_layer.group_send)('database_group', payload)        
+        async_to_sync(channel_layer.group_send)('database_group', payload)
 
         # 如果提供了 task 物件，更新 Celery 任務狀態
         if task:
@@ -86,8 +87,8 @@ def backup_database(self):
             send_progress("error", "備份失敗，檢查日誌以獲取詳細資訊", task=self)
             raise Exception("pg_dump 執行失敗")
 
-        send_progress("completed", f"備份完成，檔案: {timestamp}.bak", task=self)
-        return {"status": "Backup completed", "file": f"{timestamp}.bak"}
+        send_progress("completed", f"備份完成，檔案: {timestamp}.bak", task=self, file=f"{timestamp}.bak")
+        return {"completed": f"備份完成，檔案: {timestamp}.bak"}
     except Exception as e:
         send_progress("error", f"無法執行備份: {str(e)}", task=self)
         raise
