@@ -32,8 +32,12 @@
                 </div>
 
                 <div class="flex items-center">
-                    <p-radiobutton name="database" value="database" [(ngModel)]="container" inputId="container3" (click)="onClick('postgres')" />
+                    <p-radiobutton name="database" value="Postgres" [(ngModel)]="container" inputId="container3" (click)="onClick('postgres')" />
                     <label for="container3" class="ml-2">Database</label>
+                </div>     
+                <div class="flex items-center">
+                    <p-radiobutton name="database" value="database" [(ngModel)]="container" inputId="container3" (click)="onClick('redis')" />
+                    <label for="container3" class="ml-2">Redis</label>
                 </div>      
             </div>
         </div>
