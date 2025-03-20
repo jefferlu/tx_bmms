@@ -61,7 +61,7 @@ CSRF_TRUSTED_ORIGINS = [] if DEBUG else os.getenv('CSRF_TRUSTED_ORIGINS', '').sp
 # Celery
 CELERY_BROKER_URL = f'redis://{REDIS["HOST"]}:{REDIS["PORT"]}/{REDIS["DB"]}'
 CELERY_RESULT_BACKEND = f'redis://{REDIS["HOST"]}:{REDIS["PORT"]}/{REDIS["DB"]}'
-CELERY_RESULT_BACKEND = 'django-db'
+# CELERY_RESULT_BACKEND = 'django-db'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
@@ -132,7 +132,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
     'mptt',
-    'django_celery_results',
+    # 'django_celery_results',
 
     # commands
     # 'daemon',
