@@ -4,7 +4,16 @@ from . import models
 
 @admin.register(models.BimGroup)
 class BimGroupAdmin(admin.ModelAdmin):
-    list_display = ('name', 'cobie', 'is_active', 'description', 'order', )
+    list_display = ('name', 'cobie', 'typess', 'is_active', 'description', 'order', )
+    filter_horizontal = ('types',)
+
+    def typess(self, obj):
+        return ", ".join([c.name for c in obj.types.all()])
+
+
+@admin.register(models.BimGroupType)
+class BimGroupTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', )
 
 
 @admin.register(models.BimCategory)

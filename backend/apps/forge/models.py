@@ -2,10 +2,22 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 
 
+class BimGroupType(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "forge_bim_group_type"
+
+    def __str__(self):
+        return self.name
+
+
 class BimGroup(models.Model):
     name = models.CharField(max_length=255, unique=True)
     cobie = models.CharField(max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
+    types = models.ManyToManyField(BimGroupType, blank=True, related_name='bim_groups')
     description = models.TextField(null=True, blank=True)
     order = models.IntegerField(default=1)
 
