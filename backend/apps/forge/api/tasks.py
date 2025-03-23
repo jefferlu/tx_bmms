@@ -230,3 +230,107 @@ def process_translation(urn, token, file_name, object_data, send_progress):
         send_progress('process-bimobject', f'BimObject processing completed: {len(bim_objects)} records inserted.')
 
     send_progress('complete', 'BIM data import completed.')
+
+
+'''
+SQLite相關語法
+
+1.
+-- SELECT _objects_id.id, _objects_id.external_id,_objects_attr.name,_objects_attr.category,_objects_attr.display_name, _objects_val.value
+
+-- select distinct value
+-- select distinct display_name
+
+SELECT DISTINCT display_name, value
+FROM _objects_id
+JOIN _objects_eav ON _objects_id.id = _objects_eav.entity_id
+JOIN _objects_attr ON _objects_eav.attribute_id = _objects_attr.id
+JOIN _objects_val ON _objects_eav.value_id = _objects_val.id
+WHERE display_name IN ('COBie.Floor.Name', 'COBie.Space.Name', 'COBie.Space.RoomTag', 'COBie.Type.Category', 'COBie.Type.Manufacturer', 'Cobie.Type.ModelNumber', 'COBie.Type.WarrantyGuarantorLabor')
+--where display_name like '%Type%' -- and value='房間'
+-- WHERE display_name like '%COBie%' 
+-- where  _objects_id.id=13803
+
+2.
+SELECT 
+	ids.id AS entity_id,
+    ids.external_id AS entity_external_id,
+    ids.viewable_id AS entity_viewable_id,
+    eav.id AS eav_id,
+    eav.entity_id AS eav_entity_id,
+    eav.attribute_id AS eav_attribute_id,
+    eav.value_id AS eav_value_id,    
+    attrs.id AS attr_id,
+    attrs.name AS attr_name,
+    attrs.category AS attr_category,
+    attrs.data_type AS attr_data_type,
+    attrs.data_type_context AS attr_data_type_context,
+    attrs.description AS attr_description,
+    attrs.display_name AS attr_display_name,
+    attrs.flags AS attr_flags,
+    attrs.display_precision AS attr_display_precision,
+    attrs.forge_parameter AS attr_forge_parameter,
+    vals.id AS val_id,
+    vals.value AS val_value
+FROM _objects_eav eav
+LEFT JOIN _objects_id ids ON ids.id = eav.entity_id
+LEFT JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
+LEFT JOIN _objects_val vals ON vals.id = eav.value_id
+-- where  val_value='A06_B1F'
+WHERE attrs.display_name IN ('COBie.Floor.Name','COBie.Space.Name','COBie.Space.RoomTag','COBie.Type.Name','COBie.Type.Category','COBie.Type.Manufacturer','Cobie.Type.ModelNumber','COBie.Type.WarrantyGuarantorLabor')
+and value='(02)26553456'
+-- and val_value='A06_B1F'
+-- where entity_id=13808
+
+3.
+-- SELECT _objects_id.id, _objects_id.external_id,_objects_attr.name,_objects_attr.category,_objects_attr.display_name, _objects_val.value
+
+-- select distinct value
+-- select distinct display_name
+
+SELECT DISTINCT display_name, value
+FROM _objects_id
+JOIN _objects_eav ON _objects_id.id = _objects_eav.entity_id
+JOIN _objects_attr ON _objects_eav.attribute_id = _objects_attr.id
+JOIN _objects_val ON _objects_eav.value_id = _objects_val.id
+WHERE display_name IN ('COBie.Floor.Name', 'COBie.Space.Name', 'COBie.Space.RoomTag', 'COBie.Type.Category', 'COBie.Type.Manufacturer', 'Cobie.Type.ModelNumber', 'COBie.Type.WarrantyGuarantorLabor')
+and value='(02)26553456'
+--where display_name like '%Type%' -- and value='房間'
+-- WHERE display_name like '%COBie%' 
+-- where  _objects_id.id=13803
+
+4.
+SELECT DISTINCT 
+                eav.entity_id AS dbid, 
+                name_vals.value AS value,
+                parent_vals.value AS parent,
+                GROUP_CONCAT(child_vals.value) AS child,
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM _objects_eav eav2
+                    JOIN _objects_attr attrs2 ON attrs2.id = eav2.attribute_id
+                    WHERE eav2.entity_id = eav.entity_id AND attrs2.category = '__child__'
+                ) THEN 0 ELSE 1 END AS is_leaf,
+                parent_name_vals.value AS parent_name
+            FROM _objects_eav eav
+            JOIN _objects_attr name_attrs ON name_attrs.id = eav.attribute_id AND name_attrs.category = '__name__'
+            JOIN _objects_val name_vals ON name_vals.id = eav.value_id
+            LEFT JOIN _objects_eav parent_eav ON parent_eav.entity_id = eav.entity_id
+                AND parent_eav.attribute_id = (SELECT id FROM _objects_attr WHERE category = '__parent__')
+            LEFT JOIN _objects_val parent_vals ON parent_vals.id = parent_eav.value_id
+            LEFT JOIN _objects_eav child_eav ON child_eav.entity_id = eav.entity_id
+                AND child_eav.attribute_id = (SELECT id FROM _objects_attr WHERE category = '__child__')
+            LEFT JOIN _objects_val child_vals ON child_vals.id = child_eav.value_id
+            LEFT JOIN _objects_eav parent_name_eav ON parent_name_eav.entity_id = parent_vals.value
+                AND parent_name_eav.attribute_id = (SELECT id FROM _objects_attr WHERE category = '__name__')
+            LEFT JOIN _objects_val parent_name_vals ON parent_name_vals.id = parent_name_eav.value_id
+            WHERE eav.entity_id IN (
+                SELECT eav.entity_id
+                FROM _objects_eav eav
+                JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
+                JOIN _objects_val vals ON vals.id = eav.value_id
+                WHERE attrs.display_name IN ('COBie.Floor.Name','COBie.Space.Name','COBie.Space.RoomTag','COBie.Type.Name','COBie.Type.Category','COBie.Type.Manufacturer','Cobie.Type.ModelNumber','COBie.Type.WarrantyGuarantorLabor')
+				and vals.value='(02)26553456'
+            )
+			
+            GROUP BY eav.entity_id, name_vals.value, parent_vals.value, parent_name_vals.value
+'''
