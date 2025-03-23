@@ -44,12 +44,12 @@
                             <td class="pl-8">{{index+1}}</td>
                             <td>{{file.name}}</td>
                             <td>{{file.size}}</td>
-                            <td class="text-center">
+                            <td class="text-center sm:min-w-52">
                                 <!-- {{file.status}} -->
                                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide" [ngClass]="{
-                                        'dark:bg-indigo-600 dark:text-indigo-50-50':  ['upload-object', 'translate-job', 'download-svf'].includes(file.status),
-                                        'dark:bg-red-600 dark:text-red-50':file.status === 'error',
-                                        'dark:bg-green-600 dark:text-green-50':file.status === 'complete'}">
+                                    'dark:bg-indigo-600 dark:text-indigo-50-50': file.status !== 'error' && file.status !== 'complete',
+                                    'dark:bg-red-600 dark:text-red-50': file.status === 'error',
+                                    'dark:bg-green-600 dark:text-green-50': file.status === 'complete'}">
                                     <span class="whitespace-nowrap leading-relaxed">{{ file.status }}</span>
                                 </span>
                             </td>

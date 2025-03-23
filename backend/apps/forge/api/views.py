@@ -432,7 +432,7 @@ class BimDataReloadView(APIView):
 
 class BimGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.BimGroup.objects.all().prefetch_related(
-        Prefetch('bim_category', queryset=models.BimCategory.objects.filter(is_active=True))
+        Prefetch('bim_categories', queryset=models.BimCategory.objects.filter(is_active=True).order_by('value'))
     )
     serializer_class = serializers.BimGroupSerializer
 
@@ -444,7 +444,7 @@ class BimGroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
-    """ 只查詢 BIMModel 及最新的 BimCategory """
+    """ 只查詢 BIMModel 及最新的 BimConversion """
     queryset = models.BimModel.objects.annotate(
         latest_version=Subquery(
             models.BimConversion.objects.filter(
@@ -477,79 +477,51 @@ class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
-
-        # 記錄操作
         ip_address = request.META.get('REMOTE_ADDR')
-        log_user_activity(self.request.user, '模型檢視', f'查詢', 'SUCCESS', ip_address)
-
+        log_user_activity(self.request.user, '模型檢視', '查詢', 'SUCCESS', ip_address)
         return response
 
 
 class StandardResultsSetPagination(pagination.PageNumberPagination):
-    page_size = 10  # 預設每頁顯示 10 筆
-    page_size_query_param = 'size'  # 前端可以透過 `size` 參數指定每頁大小
-    max_page_size = 100  # 限制最大頁數，避免前端要求太多數據
+    page_size = 10
+    page_size_query_param = 'size'
+    max_page_size = 100
 
 
-class BimPropertyViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    serializer_class = serializers.BimPropertySerializer
-    pagination_class = StandardResultsSetPagination  # 啟用分頁
+class BimObjectViewSet(viewsets.ReadOnlyModelViewSet):  # 移除 AutoPrefetchViewSetMixin，因未提供定義
+    serializer_class = serializers.BimObjectSerializer
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         request = self.request
-        name = request.query_params.get('name', None)
+        value = request.query_params.get('value', None)
         categories = request.query_params.get('category', None)
 
-        # 至少要提供一個查詢參數
-        if not name and not categories:
-            raise ValidationError("請提供至少一個查詢參數 'name' 或 'category'。")
+        if not value and not categories:
+            raise ValidationError("請提供至少一個查詢參數 'value' 或 'category'。")
 
         filters = Q()
-        if name:
-            filters &= Q(key__icontains=name)  # 模糊搜尋
+        if value:
+            filters &= Q(value__icontains=value)  # 模糊搜尋
 
         if categories:
             category_list = categories.split(',')
-            filters &= Q(category__name__in=category_list)
+            filters &= Q(category__value__in=category_list)
 
-        # 記錄操作
-        ip_address = request.META.get('REMOTE_ADDR')
-        log_user_activity(self.request.user, '圖資檢索', f'查詢{categories};{name}', 'SUCCESS', ip_address)
-
-        return models.BimProperty.objects.filter(filters).select_related(
-            'category', 'category__bim_group', 'conversion', 'conversion__bim_model'
+        # 子查詢：獲取每個 BimModel 的最新 version 的 conversion_id
+        latest_conversion = Subquery(
+            models.BimConversion.objects.filter(
+                bim_model=OuterRef('conversion__bim_model')
+            ).order_by('-version').values('id')[:1]
         )
 
-    # def list(self, request, *args, **kwargs):
-    #     # 取得查詢參數
-    #     name = request.query_params.get('name', None)
-    #     categories = request.query_params.get('category', None)
+        ip_address = request.META.get('REMOTE_ADDR')
+        log_user_activity(self.request.user, '圖資檢索', f'查詢{categories};{value}', 'SUCCESS', ip_address)
 
-    #     # 檢查是否有提供至少一個查詢參數
-    #     if not name and not categories:
-    #         raise ValidationError("請提供至少一個查詢參數 'name' 或 'category'。")
-
-    #     # 準備查詢條件
-    #     filters = Q()
-
-    #     if name:
-    #         filters &= Q(key__icontains=name)  # 用 `icontains` 進行不區分大小寫的模糊查詢
-
-    #     if categories:
-    #         # 支援多個 category 查詢，按逗號分隔
-    #         category_list = categories.split(',')
-    #         # 使用多個類別名稱查詢
-    #         filters &= Q(category__name__in=category_list)
-
-    #     # 根據條件過濾資料
-    #     bim_properties = models.BimProperty.objects.filter(filters).select_related(
-    #         'category',  'category__bim_group', 'conversion', 'conversion__bim_model',)
-
-    #     # 如果沒有開啟分頁，直接返回所有資料和總筆數
-    #     if not request.query_params.get('page', None):  # 如果沒有頁面參數，顯示所有資料
-    #         total_count = bim_properties.count()
-    #         data = serializers.BimPropertySerializer(bim_properties, many=True).data
-    #         return Response({'total_count': total_count, 'results': data})
-
-    #     # 預設的分頁方式
-    #     return super().list(request, *args, **kwargs)
+        # 過濾只包含最新 version 的 BimObject
+        return models.BimObject.objects.filter(
+            filters,
+            conversion__id__in=latest_conversion
+        ).select_related(
+            'category', 'category__bim_group', 'conversion', 'conversion__bim_model'
+        )

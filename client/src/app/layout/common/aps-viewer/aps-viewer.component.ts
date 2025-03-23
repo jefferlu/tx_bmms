@@ -240,6 +240,15 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                                     loadedCount++;
                                     if (loadedCount === data.length) {
                                         this.isViewerInitialized = true;
+
+                                        // 載入擴展
+                                        this.viewer.viewer.loadExtension('ShowDbIdExtension')
+                                            .then(() => {
+                                                console.log('ShowDbIdExtension 已成功載入到 Viewer');
+                                            })
+                                            .catch((err) => {
+                                                console.error('載入 ShowDbIdExtension 失敗:', err);
+                                            });
                                     }
                                 }
                             }, (errorCode, errorMsg) => {
@@ -261,11 +270,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                             }
                         });
                     }).catch((err) => {
-                        console.error('AggregatedView 初始化失败:', err);
+                        console.error('AggregatedView 初始化失敗:', err);
                     });
                 });
             } catch (e) {
-                console.error('Viewer 初始化错误:', e);
+                console.error('Viewer 初始化錯誤:', e);
             }
         });
     }
@@ -396,3 +405,44 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 }
+
+class ShowDbIdExtension extends Autodesk.Viewing.Extension {
+    constructor(viewer, options) {
+        super(viewer, options);
+    }
+
+    load() {
+        console.log('ShowDbIdExtension 已載入');
+
+        // 監聽選擇事件（包括樹狀結構和模型點擊）
+        this.viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
+            const selectedDbIds = this.viewer.getSelection();
+            if (selectedDbIds.length > 0) {
+                const dbId = selectedDbIds[0]; // 獲取第一個選中的 dbid
+                console.log('選中的 dbId:', dbId); // 在控制台顯示
+                
+
+                // 可選：顯示屬性資訊
+                this.viewer.getProperties(dbId, (result) => {
+                    console.log('屬性資訊:', result);
+                    // 如果需要，也可以在這裡顯示名稱或其他屬性
+                    if (result.name) {
+                        console.log('節點名稱:', result.name);
+                    }
+                });
+            } else {
+                console.log('沒有選中任何物件');
+            }
+        });
+
+        return true;
+    }
+
+    unload() {
+        console.log('ShowDbIdExtension 已卸載');
+        return true;
+    }
+}
+
+// 註冊擴展
+Autodesk.Viewing.theExtensionManager.registerExtension('ShowDbIdExtension', ShowDbIdExtension);

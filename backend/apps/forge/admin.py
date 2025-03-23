@@ -4,33 +4,33 @@ from . import models
 
 @admin.register(models.BimGroup)
 class BimGroupAdmin(admin.ModelAdmin):
-    list_display = ('name', 'cobie', 'typess', 'is_active', 'description', 'order', )
+    list_display = ('name', 'typess', 'is_active', 'description', 'order', )
     filter_horizontal = ('types',)
 
     def typess(self, obj):
-        return ", ".join([c.name for c in obj.types.all()])
+        return ", ".join([c.display_name for c in obj.types.all()])
 
 
 @admin.register(models.BimGroupType)
 class BimGroupTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', )
+    list_display = ('display_name', 'value', 'description', )
 
 
 @admin.register(models.BimCategory)
 class BimCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'bim_group', 'is_active', 'description', 'id', )
+    list_display = ('value', 'bim_group', 'is_active', 'display_name', 'id', )
 
 
 @admin.register(models.BimModel)
 class BimModelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'created_at')
+    list_display = ('name', 'created_at', )
 
 
 @admin.register(models.BimConversion)
 class BimConversionAdmin(admin.ModelAdmin):
-    list_display = ('bim_model', 'urn', 'version', 'original_file', 'svf_file', 'created_at',)
+    list_display = ('bim_model', 'urn', 'version', 'original_file', 'svf_file', 'created_at', )
 
 
-@admin.register(models.BimProperty)
-class BimPropertyAdmin(admin.ModelAdmin):
-    list_display = ('category', 'conversion', 'dbid', 'key', 'value',)
+@admin.register(models.BimObject)
+class BimObjectAdmin(admin.ModelAdmin):
+    list_display = ('category', 'conversion', 'dbid', 'value', 'is_leaf', 'parent', 'child', 'parent_name', )

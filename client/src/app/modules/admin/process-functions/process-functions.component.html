@@ -67,14 +67,15 @@
                 </ngx-spinner>
 
                 <p-table class="w-full" [value]="data?.results" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [rows]="100"
-                    [virtualScrollItemSize]="46" [lazy]="true" (onLazyLoad)="loadBimProperties($event)" [(selection)]="selectedItems">
+                    [virtualScrollItemSize]="46" [lazy]="true" (onLazyLoad)="loadBimObjects($event)" [(selection)]="selectedItems">
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
                             <th class="w-20 pl-8"><p-tableHeaderCheckbox /></th>
                             <th>標別/檔案名稱</th>
+                            <th>版本</th>
                             <th>群組</th>
                             <th>分類</th>
-                            <th>屬性</th>
+                            <th>上層</th>
                             <th>值</th>
                             <th>DBID</th>
                         </tr>
@@ -84,10 +85,11 @@
                             <td class="pl-8">
                                 <p-tableCheckbox [value]="item" />
                             </td>
-                            <td>{{ item.name }}</td>
-                            <td>{{ item.group }}</td>
+                            <td>{{ item.model_name }}</td>
+                            <td>{{ item.version }}</td>
+                            <td>{{ item.group_name }}</td>
                             <td>{{ item.category }}</td>
-                            <td>{{ item.key }}</td>
+                            <td>{{ item.parent_name }}</td>
                             <td>{{ item.value }}</td>
                             <td>{{ item.dbid }}</td>
                         </tr>

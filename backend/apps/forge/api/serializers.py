@@ -35,7 +35,7 @@ class BimModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BimModel
         fields = ['id', 'tender', 'name', 'created_at', 'urn', 'version',
-                  'original_file', 'svf_file', 'conversion_created_at',]
+                  'original_file', 'svf_file', 'conversion_created_at']
 
     def get_tender(self, obj):
         return get_tender_name(obj.name)
@@ -44,29 +44,30 @@ class BimModelSerializer(serializers.ModelSerializer):
 class BimCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BimCategory
-        fields = ['id', 'name', 'description']
+        fields = ['id', 'value', 'display_name']
 
 
 class BimGroupSerializer(serializers.ModelSerializer):
-    bim_category = BimCategorySerializer(many=True, read_only=True)  # 嵌套 BimCategory 資料
+    bim_categories = BimCategorySerializer(many=True, read_only=True)
 
     class Meta:
         model = models.BimGroup
-        fields = ['id', 'name', 'description', 'order', 'bim_category']
+        fields = ['id', 'name', 'description', 'order', 'bim_categories']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        if not representation.get('bim_category'):
+        if not representation.get('bim_categories'):
             return None
         return representation
 
 
-class BimPropertySerializer(serializers.ModelSerializer):
-    name = serializers.ReadOnlyField(source='conversion.bim_model.name')
-    group = serializers.ReadOnlyField(source='category.bim_group.name')
-    category = serializers.ReadOnlyField(source='category.name')
+class BimObjectSerializer(serializers.ModelSerializer):
+    model_name = serializers.ReadOnlyField(source='conversion.bim_model.name')
+    version = serializers.ReadOnlyField(source='conversion.version')
+    group_name = serializers.ReadOnlyField(source='category.bim_group.name')
+    category = serializers.ReadOnlyField(source='category.value')
     urn = serializers.ReadOnlyField(source='conversion.urn')
 
     class Meta:
-        model = models.BimProperty
-        fields = ['id', 'name',  'group', 'category',  'urn', 'key', 'value', 'dbid', ]
+        model = models.BimObject
+        fields = ['id', 'model_name', 'version', 'group_name', 'category', 'urn', 'dbid', 'value', 'parent', 'child', 'parent_name']

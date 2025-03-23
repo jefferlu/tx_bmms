@@ -32,7 +32,7 @@ export class ProcessFunctionsService {
     }
 
     getData(request: any) {
-        return this._appService.get('forge/bim-property', request).pipe(
+        return this._appService.get('forge/bim-object', request).pipe(
             tap((res: any) => {
                 this._data.next(res);
             })

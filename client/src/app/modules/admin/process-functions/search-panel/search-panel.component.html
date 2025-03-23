@@ -4,9 +4,9 @@
     <div class='flex flex-wrap gap-2'>
         @for(criterion of criteria;track criterion){
 
-        @for(item of criterion.bim_category;track item){
+        @for(item of criterion.bim_categories;track item){
         @if(item.selected){
-        <span class='flex items-center py-1 px-2 rounded cursor-pointer text-center border bg-gray-600 border-gray-400' (click)="onSelected(item)">{{item.name}}
+        <span class='flex items-center py-1 px-2 rounded cursor-pointer text-center border bg-gray-600 border-gray-400' (click)="onSelected(item)">{{item.value}}
             <mat-icon class="icon-size-5 ml-1" [svgIcon]="'heroicons_mini:x-mark'"></mat-icon>
         </span>
         }}}
@@ -32,11 +32,11 @@
 
     <div class="flex flex-wrap gap-2 transition-all duration-300"
         [ngClass]="{'max-h-10 overflow-hidden': !criterion.collapse, 'max-h-[1000px] overflow-visible': criterion.collapse}">
-        @for (item of criterion.bim_category; track item) {
+        @for (item of criterion.bim_categories; track item) {
             <span class="py-1 px-2 rounded cursor-pointer text-center border hover:border-gray-400"
                 [ngClass]="{'border-gray-50': item.selected, 'border-transparent': !item.selected}"
                 (click)="onSelected(item)">
-                {{ item.name }}
+                {{ item.value }}
             </span>
         }
     </div>

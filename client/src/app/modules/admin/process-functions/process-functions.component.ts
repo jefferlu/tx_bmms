@@ -85,15 +85,14 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     onSearch() {
-        console.log('search')
-        this.loadBimProperties({ first: 0, last: 10 }); // 預設加載第一頁
+        this.selectedItems = null;
+        this.loadBimObjects({ first: 0, last: 10 }); // 預設加載第一頁
     }
 
-    loadBimProperties(event: TableLazyLoadEvent) {
-        console.log(event)
+    loadBimObjects(event: TableLazyLoadEvent) {
         let request: any = {}
 
-        if (this.keyword) request.name = this.keyword;
+        if (this.keyword) request.value = this.keyword;
         if (Array.isArray(this.categories)) request.category = this.categories.join(',');
 
         this.loading = true;
@@ -102,8 +101,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
         // request.page = page;
         // request.size = size;
-
-        console.log(request)
 
         if (JSON.stringify(request) === '{}') {
             this.data = { count: 0, results: [] }
@@ -125,6 +122,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 next: (res) => {
                     if (res) {
                         this.data = res;
+                        console.log(res)
                         this.loading = false;
                         this._changeDetectorRef.markForCheck();
                     }

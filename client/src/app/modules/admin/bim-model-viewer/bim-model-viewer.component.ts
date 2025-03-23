@@ -69,7 +69,6 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
                 next: (res) => {
                     if (res) {
                         this.data = res;
-                        console.log(res)
                         this._changeDetectorRef.markForCheck();
                     }
                 },

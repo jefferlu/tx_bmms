@@ -1,21 +1,21 @@
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 
+from django.db import models
 
 class BimGroupType(models.Model):
-    name = models.CharField(max_length=255)
+    display_name = models.CharField(max_length=255)  # 對應 SQLite 的 attrs.display_name
+    value = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = "forge_bim_group_type"
 
     def __str__(self):
-        return self.name
-
+        return self.display_name
 
 class BimGroup(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    cobie = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True)  # 對應 SQLite 的 attrs.name
     is_active = models.BooleanField(default=True)
     types = models.ManyToManyField(BimGroupType, blank=True, related_name='bim_groups')
     description = models.TextField(null=True, blank=True)
@@ -28,13 +28,11 @@ class BimGroup(models.Model):
     def __str__(self):
         return self.name
 
-
 class BimCategory(models.Model):
-    bim_group = models.ForeignKey(BimGroup, on_delete=models.CASCADE,
-                                  related_name='bim_category', null=True, blank=True)
-    name = models.CharField(max_length=255)
+    bim_group = models.ForeignKey(BimGroup, on_delete=models.CASCADE, related_name='bim_categories', null=True, blank=True)
+    value = models.CharField(max_length=255)  # 對應 SQLite 的 vals.value
     is_active = models.BooleanField(default=True)
-    description = models.TextField(null=True, blank=True)
+    display_name = models.TextField(null=True, blank=True)  # 對應 SQLite 的 attrs.display_name
 
     class Meta:
         db_table = "forge_bim_category"
@@ -42,11 +40,10 @@ class BimCategory(models.Model):
         ordering = ["id"]
 
     def __str__(self):
-        return self.name
-
+        return self.value
 
 class BimModel(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)  # 對應檔案名稱
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -56,11 +53,10 @@ class BimModel(models.Model):
     def __str__(self):
         return self.name
 
-
 class BimConversion(models.Model):
     bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name="bim_conversions")
     urn = models.CharField(max_length=255)
-    version = models.IntegerField()  # 轉換版本號，需自行設定
+    version = models.IntegerField()
     original_file = models.CharField(max_length=500)
     svf_file = models.CharField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -70,13 +66,21 @@ class BimConversion(models.Model):
         db_table = "forge_bim_conversion"
         ordering = ["id"]
 
+    def __str__(self):
+        return f"{self.bim_model.name} - v{self.version}"
 
-class BimProperty(models.Model):
-    category = models.ForeignKey(BimCategory, on_delete=models.CASCADE, related_name="bim_property")
-    conversion = models.ForeignKey(BimConversion, on_delete=models.CASCADE, related_name="bim_property")
+class BimObject(models.Model):
+    category = models.ForeignKey('BimCategory', on_delete=models.CASCADE, related_name="bim_objects")
+    conversion = models.ForeignKey('BimConversion', on_delete=models.CASCADE, related_name="bim_objects")
     dbid = models.IntegerField()
-    key = models.CharField(max_length=255)
-    value = models.TextField()
+    value = models.CharField(max_length=255)  # 對應 SQLite 的 vals.value (即 name)
+    is_leaf = models.BooleanField(default=True)
+    parent = models.IntegerField(null=True, blank=True)  # 對應 SQLite 的 __parent__
+    child = models.JSONField(default=list, blank=True)  # 對應 SQLite 的 __child__
+    parent_name = models.CharField(max_length=255, null=True, blank=True)  # 新增：父節點的 __name__
 
     class Meta:
-        db_table = "forge_bim_property"
+        db_table = "forge_bim_object"
+
+    def __str__(self):
+        return f"{self.value} (dbid: {self.dbid})"

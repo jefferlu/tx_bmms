@@ -27,15 +27,14 @@ export class SearchPanelComponent implements OnInit {
         item.selected = !item.selected;
 
         const selectedItems = this.criteria
-            .flatMap(item => item.bim_category) // 展開每個 criteria 中的 bim_category 陣列
+            .flatMap(item => item.bim_categories) // 展開每個 criteria 中的 bim_categories 陣列
             .filter(bc => bc.selected)          // 篩選出 selected 屬性為 true 的元素
-            .map(bc => bc.name);
+            .map(bc => bc.value);
         
         this.categoryChange.emit(selectedItems);
     }
 
     onCollapse(criterion) {
-        console.log(criterion)
         criterion.collapse = !criterion.collapse;
     }
 }
