@@ -45,8 +45,8 @@ export class SignInComponent {
     ngOnInit(): void {
         // Create the form
         this.signInForm = this._formBuilder.group({
-            email: ['admin@example.com', [Validators.required, Validators.email]],
-            password: ['Temp.123456789', Validators.required],
+            email: ['', [Validators.required, Validators.email]],
+            password: ['', Validators.required],
             rememberMe: [''],
         });
     }

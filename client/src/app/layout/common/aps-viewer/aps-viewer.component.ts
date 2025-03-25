@@ -28,6 +28,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     searchPanel: any;
     downloadPanel: any;
     lang: any;
+    loadedModels: any;
 
     private isViewerInitialized = false;
 
@@ -135,7 +136,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
-    addGuiButton(): void {
+    private addGuiButton(): void {
         if (!this.viewer.toolbar) {
             console.error('Viewer toolbar 尚未準備好');
             return;
@@ -263,12 +264,43 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                             this.addAggregatedButton();
                         });
 
+                        // 在 GEOMETRY_LOADED_EVENT 中打開樹面板
                         this.viewer.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
-                            if (this.dbids) {
+                            this.loadedModels = this.viewer.viewer.getAllModels();
+                            console.log('Loaded models:', this.loadedModels);
+
+                            if (this.dbids && this.dbids.length > 0) {
                                 this.viewer.viewer.isolate(this.dbids);
-                                this.viewer.viewer.fitToView(this.dbids);
+                                this.viewer.viewer.fitToView(this.dbids)
+
+                                // 用第一個 dbid 來 fitToView
+                                // this.viewer.viewer.fitToView([this.dbids[0]]);
+
+                                // 打開模型結構樹面板
+                                const modelStructure = this.viewer.viewer.modelstructure;
+                                if (modelStructure) {
+                                    modelStructure.setVisible(true); // 顯示樹面板
+                                    console.log('Model structure panel opened:', modelStructure);
+
+                                    if (this.loadedModels && this.loadedModels.length > 0) {
+                                        const model = this.loadedModels[0];
+                                        const tree = model.getInstanceTree();
+                                        if (tree) {
+                                            this.dbids.forEach((dbid) => {
+                                                const nodePath = this.getNodePath(tree, dbid);
+                                                if (nodePath) {
+                                                    this.expandNodePathInTree(tree, nodePath, modelStructure);
+                                                }
+                                            });
+                                        }
+                                    }
+                                } else {
+                                    console.error('modelstructure 未初始化');
+                                }
                             }
                         });
+
+
                     }).catch((err) => {
                         console.error('AggregatedView 初始化失敗:', err);
                     });
@@ -279,7 +311,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
-    addAggregatedButton(): void {
+    private addAggregatedButton(): void {
         if (!this.viewer.viewer.toolbar) {
             console.error('Viewer toolbar 尚未準備好');
             return;
@@ -368,6 +400,43 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    // 輔助函數：獲取從根節點到目標 dbid 的路徑
+    getNodePath(tree, dbid) {
+        const path = [];
+        let currentDbId = dbid;
+
+        if (typeof tree.getNodeParentId !== 'function') {
+            console.error('Tree 缺少 getNodeParentId 方法:', tree);
+            return null;
+        }
+
+        while (currentDbId !== null) {
+            path.unshift(currentDbId);
+            const parentId = tree.getNodeParentId(currentDbId);
+            if (parentId === null || parentId === tree.getRootId()) {
+                break;
+            }
+            currentDbId = parentId;
+        }
+        return path;
+    }
+
+    // 輔助函數：在樹中展開節點路徑
+    expandNodePathInTree(tree, nodePath, modelStructure) {
+        if (modelStructure) {
+            nodePath.forEach((dbId) => {
+                if (typeof modelStructure.setNodeExpanded === 'function') {
+                    modelStructure.setNodeExpanded(dbId, true); // 展開節點
+                } else {
+                    console.warn('setNodeExpanded 不可用，嘗試選擇節點');
+                    this.viewer.viewer.select([dbId]); // 選擇節點作為備案
+                }
+            });
+        } else {
+            console.error('無法獲取 modelStructure');
+        }
+    }
+
     ngOnDestroy(): void {
         console.log('aps destroy');
         if (this.viewer) {
@@ -420,7 +489,7 @@ class ShowDbIdExtension extends Autodesk.Viewing.Extension {
             if (selectedDbIds.length > 0) {
                 const dbId = selectedDbIds[0]; // 獲取第一個選中的 dbid
                 console.log('選中的 dbId:', dbId); // 在控制台顯示
-                
+
 
                 // 可選：顯示屬性資訊
                 this.viewer.getProperties(dbId, (result) => {
