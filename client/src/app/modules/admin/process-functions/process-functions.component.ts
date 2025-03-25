@@ -87,7 +87,12 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     loadBimObjects(event: TableLazyLoadEvent) {
-        console.log('loadBimObjects triggered, first:', event.first, 'rows:', event.rows);
+        // 防護檢查：確保 event.first 和 event.rows 有效
+        if (!event.first || !event.rows) {
+            // console.warn('Invalid lazy load event, skipping request');
+            return;
+        }
+
         let request: any = {};
         if (this.keyword) request.value = this.keyword;
         if (Array.isArray(this.categories) && this.categories.length > 0) {
@@ -97,8 +102,9 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         const rows = event.rows ?? 100;
         const page = Math.floor((event.first ?? 0) / rows) + 1;
         request.page = page;
-        request.size = 100;
+        request.size = rows;
 
+        // 如果無搜索條件，清空資料並返回
         if (!request.value && !request.category) {
             this.data = { count: 0, results: [] };
             event.forceUpdate();
@@ -114,9 +120,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (res) => {
                     if (res) {
-                        this.data.count = res.count ?? 0; // 更新總筆數
+                        this.data.count = res.count ?? 0;
                         Array.prototype.splice.apply(this.data.results, [event.first, rows, ...res.results]);
-                        console.log('Lazy data loaded, count:', this.data.count, 'results length:', this.data.results.length);
                         event.forceUpdate();
                         this._changeDetectorRef.markForCheck();
                     }
@@ -178,20 +183,20 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             )
             .subscribe({
                 next: (res) => {
-                    console.log(res)
+                    // console.log('Initial data response:', res);
 
-                    if (res && res.count > 0) {
+                    if (res && res.count > 0 && res.results && res.results.length > 0) {
                         this.data.count = res.count ?? 0;
                         this.data.results = Array.from({ length: res.count ?? 0 });
                         Array.prototype.splice.apply(this.data.results, [0, res.results.length, ...res.results]);
-                        console.log('Initial data loaded, count:', this.data.count, 'results length:', this.data.results.length);
-                        this.resetTableScroll();
-                        this._changeDetectorRef.markForCheck();
-                    }
-                    else {
+                        // console.log('Initial data loaded, count:', this.data.count, 'results length:', this.data.results.length);
+                    } else {
+                        // 空資料處理
                         this.data = { count: 0, results: [] };
-                        this._changeDetectorRef.markForCheck();
+                        // console.log('No data returned, resetting table');
                     }
+                    this.resetTableScroll();
+                    this._changeDetectorRef.markForCheck();
                 },
                 error: (err) => {
                     console.error('Error:', err);
@@ -205,6 +210,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     private resetTableScroll() {
         if (this.dataTable) {
             this.dataTable.scrollToVirtualIndex(0); // 滾動到第 0 行
+            this.dataTable.first = 0; // 重置 first，避免觸發無效的 loadBimObjects
+            // console.log('Table scroll reset to index 0');
         }
     }
 }

@@ -421,7 +421,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // 輔助函數：獲取從根節點到目標 dbid 的路徑
-    getNodePath(tree, dbid) {
+    private getNodePath(tree, dbid) {
         const path = [];
         let currentDbId = dbid;
 
@@ -442,7 +442,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // 輔助函數：在樹中展開節點路徑
-    expandNodePathInTree(tree, nodePath, modelStructure, model) {
+    private expandNodePathInTree(tree, nodePath, modelStructure, model) {
         if (modelStructure) {
             // 只使用 viewer.select 展開樹
             nodePath.forEach((dbId) => {
