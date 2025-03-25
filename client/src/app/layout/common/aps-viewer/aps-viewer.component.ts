@@ -20,15 +20,17 @@ const env = environment;
 })
 export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
-    @Input() option: any;
-    @Input() dbids: any;
     @ViewChild('viewer') viewerContainer: ElementRef;
 
     viewer: any;
     searchPanel: any;
     downloadPanel: any;
-    lang: any;
+
+    dbids: any;
     loadedModels: any;
+
+    lang: any;
+
 
     private isViewerInitialized = false;
 
@@ -43,14 +45,23 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit(): void {
         let data = this.data;
-        this.dbids = data.some(item => item.dbid !== undefined)
-            ? [...new Set(data.map(item => item.dbid).filter(dbid => dbid !== undefined))]
+
+        // 將 data 轉換為 { "urn": "xxxxxxx", "dbid": [123, 456] } 格式
+        this.dbids = data.some(item => item.urn && item.dbid !== undefined)
+            ? Object.values(
+                data.reduce((acc, item) => {
+                    if (item.urn && item.dbid !== undefined) {
+                        if (!acc[item.urn]) {
+                            acc[item.urn] = { urn: item.urn, dbid: [] };
+                        }
+                        acc[item.urn].dbid.push(item.dbid);
+                    }
+                    return acc;
+                }, {})
+            )
             : null;
 
         this.lang = this.getViewerLanguage(this._translocoService.getActiveLang());
-
-        console.log(this.lang);
-        console.log(this.dbids);
 
         if (Array.isArray(data)) {
             this.loadAggregatedView_oss(data);
@@ -83,7 +94,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                 });
 
                 this.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
-                    console.log('Toolbar 已創建，加入按鈕');
+                    // console.log('Toolbar 已創建，加入按鈕');
                     this.addGuiButton();
                 });
             });
@@ -113,7 +124,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.viewer.start();
 
                     this.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
-                        console.log('Toolbar 已創建，加入按鈕');
+                        // console.log('Toolbar 已創建，加入按鈕');
                     });
 
                     const documentId = `urn:${data.urn}`;
@@ -245,7 +256,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                                         // 載入擴展
                                         this.viewer.viewer.loadExtension('ShowDbIdExtension')
                                             .then(() => {
-                                                console.log('ShowDbIdExtension 已成功載入到 Viewer');
+                                                // console.log('ShowDbIdExtension 已成功載入到 Viewer');
                                             })
                                             .catch((err) => {
                                                 console.error('載入 ShowDbIdExtension 失敗:', err);
@@ -264,36 +275,45 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                             this.addAggregatedButton();
                         });
 
-                        // 在 GEOMETRY_LOADED_EVENT 中打開樹面板
                         this.viewer.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
                             this.loadedModels = this.viewer.viewer.getAllModels();
-                            console.log('Loaded models:', this.loadedModels);
+                            // console.log('Loaded models:', this.loadedModels);
 
                             if (this.dbids && this.dbids.length > 0) {
-                                this.viewer.viewer.isolate(this.dbids);
-                                this.viewer.viewer.fitToView(this.dbids)
-
-                                // 用第一個 dbid 來 fitToView
-                                // this.viewer.viewer.fitToView([this.dbids[0]]);
-
-                                // 打開模型結構樹面板
                                 const modelStructure = this.viewer.viewer.modelstructure;
                                 if (modelStructure) {
                                     modelStructure.setVisible(true); // 顯示樹面板
-                                    console.log('Model structure panel opened:', modelStructure);
+                                    // console.log('Model structure panel opened:', modelStructure);
 
-                                    if (this.loadedModels && this.loadedModels.length > 0) {
-                                        const model = this.loadedModels[0];
-                                        const tree = model.getInstanceTree();
-                                        if (tree) {
-                                            this.dbids.forEach((dbid) => {
-                                                const nodePath = this.getNodePath(tree, dbid);
-                                                if (nodePath) {
-                                                    this.expandNodePathInTree(tree, nodePath, modelStructure);
-                                                }
-                                            });
+                                    this.dbids.forEach((entry) => {
+                                        const urn = entry.urn;
+                                        const dbIds = entry.dbid;
+
+                                        // 根據 URN 找到對應的模型
+                                        const targetModel = this.loadedModels.find((model) => {
+                                            return model.getData().urn === urn;
+                                        });
+
+                                        if (targetModel) {
+                                            this.viewer.viewer.isolate(dbIds, targetModel);
+                                            this.viewer.viewer.fitToView([dbIds[0]], targetModel);
+                                            // console.log(`Isolated and fit to view for model ${urn}:`, dbIds);
+
+                                            const tree = targetModel.getInstanceTree();
+                                            if (tree) {
+                                                dbIds.forEach((dbid) => {
+                                                    const nodePath = this.getNodePath(tree, dbid);
+                                                    if (nodePath) {
+                                                        this.expandNodePathInTree(tree, nodePath, modelStructure, targetModel);
+                                                    }
+                                                });
+                                            } else {
+                                                console.error(`無法從模型 ${urn} 中獲取 InstanceTree`);
+                                            }
+                                        } else {
+                                            console.error(`未找到 URN 為 ${urn} 的模型`);
                                         }
-                                    }
+                                    });
                                 } else {
                                     console.error('modelstructure 未初始化');
                                 }
@@ -422,42 +442,38 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // 輔助函數：在樹中展開節點路徑
-    expandNodePathInTree(tree, nodePath, modelStructure) {
+    expandNodePathInTree(tree, nodePath, modelStructure, model) {
         if (modelStructure) {
+            // 只使用 viewer.select 展開樹
             nodePath.forEach((dbId) => {
-                if (typeof modelStructure.setNodeExpanded === 'function') {
-                    modelStructure.setNodeExpanded(dbId, true); // 展開節點
-                } else {
-                    console.warn('setNodeExpanded 不可用，嘗試選擇節點');
-                    this.viewer.viewer.select([dbId]); // 選擇節點作為備案
-                }
+                this.viewer.viewer.select([dbId], model);
+                // console.log(`Selected node ${dbId} in model ${model.getData().urn}`);
             });
         } else {
             console.error('無法獲取 modelStructure');
         }
     }
 
-    ngOnDestroy(): void {
-        console.log('aps destroy');
+    ngOnDestroy(): void {        
         if (this.viewer) {
             try {
                 if (this.isViewerInitialized) {
                     // 已初始化完成的情况
                     if (this.viewer.viewer) {
-                        console.log('destroy this.viewer.viewer');
+                        // console.log('destroy this.viewer.viewer');
                         this.viewer.viewer.finish();
                     } else {
-                        console.log('destroy this.viewer');
+                        // console.log('destroy this.viewer');
                         this.viewer.finish();
                     }
                 } else {
                     // 未完成初始化，尝试卸载并清理
                     if (this.viewer.viewer) {
-                        console.log('unload and destroy this.viewer.viewer');
+                        // console.log('unload and destroy this.viewer.viewer');
                         this.viewer.viewer.unload();
                         this.viewer.viewer.finish();
                     } else {
-                        console.log('unload and destroy this.viewer');
+                        // console.log('unload and destroy this.viewer');
                         this.viewer.unload();
                         this.viewer.finish();
                     }
@@ -481,7 +497,7 @@ class ShowDbIdExtension extends Autodesk.Viewing.Extension {
     }
 
     load() {
-        console.log('ShowDbIdExtension 已載入');
+        // console.log('ShowDbIdExtension 已載入');
 
         // 監聽選擇事件（包括樹狀結構和模型點擊）
         this.viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {

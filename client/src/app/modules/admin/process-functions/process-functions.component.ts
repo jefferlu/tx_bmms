@@ -178,12 +178,18 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             )
             .subscribe({
                 next: (res) => {
-                    if (res) {
+                    console.log(res)
+
+                    if (res && res.count > 0) {
                         this.data.count = res.count ?? 0;
                         this.data.results = Array.from({ length: res.count ?? 0 });
                         Array.prototype.splice.apply(this.data.results, [0, res.results.length, ...res.results]);
                         console.log('Initial data loaded, count:', this.data.count, 'results length:', this.data.results.length);
                         this.resetTableScroll();
+                        this._changeDetectorRef.markForCheck();
+                    }
+                    else {
+                        this.data = { count: 0, results: [] };
                         this._changeDetectorRef.markForCheck();
                     }
                 },
