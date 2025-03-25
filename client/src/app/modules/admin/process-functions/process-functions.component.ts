@@ -2,17 +2,15 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDe
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { SkeletonModule } from 'primeng/skeleton';
 
-import { TreeModule } from 'primeng/tree';
 import { ApsViewerComponent } from "../../../layout/common/aps-viewer/aps-viewer.component";
 import { SearchPanelComponent } from './search-panel/search-panel.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { ProcessFunctionsService } from './process-functions.service';
 import { finalize, Subject, takeUntil } from 'rxjs';
-import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CdkScrollable } from '@angular/cdk/scrolling';
@@ -23,21 +21,21 @@ import { CdkScrollable } from '@angular/cdk/scrolling';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        CdkScrollable,
         MatButtonModule, MatIconModule,
         MatMenuModule, MatDividerModule,
-        TreeModule, TableModule, SkeletonModule,
-        TranslocoModule, NgxSpinnerModule,
+        TableModule, SkeletonModule,
+        TranslocoModule, CdkScrollable,
         SearchPanelComponent,
     ]
 })
 export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
+    @ViewChild('dataTable') dataTable: Table;
 
     data: any = { count: 0, results: [] };
     page = {}
-    loading: boolean = true;
+
     criteria: any[];
     keyword: string;
     categories: any;
@@ -46,7 +44,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _translocoService: TranslocoService,
-        private _spinner: NgxSpinnerService,
         private _matDialog: MatDialog,
         private _toastService: ToastService,
         private _processFunctionsService: ProcessFunctionsService
@@ -86,47 +83,49 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     onSearch() {
         this.selectedItems = null;
-        this.loadBimObjects({ first: 0, last: 10 }); // 預設加載第一頁
+        this.loadInitialData();
     }
 
     loadBimObjects(event: TableLazyLoadEvent) {
-        let request: any = {}
-
+        console.log('loadBimObjects triggered, first:', event.first, 'rows:', event.rows);
+        let request: any = {};
         if (this.keyword) request.value = this.keyword;
-        if (Array.isArray(this.categories)) request.category = this.categories.join(',');
+        if (Array.isArray(this.categories) && this.categories.length > 0) {
+            request.category = this.categories.join(',');
+        }
 
-        this.loading = true;
-        const page = (event.first ?? 0) / (event.last ?? 10) + 1; // 轉換成 Django 的 `page` 格式
-        const size = event.last ?? 10;
+        const rows = event.rows ?? 100;
+        const page = Math.floor((event.first ?? 0) / rows) + 1;
+        request.page = page;
+        request.size = 100;
 
-        // request.page = page;
-        // request.size = size;
-
-        if (JSON.stringify(request) === '{}') {
-            this.data = { count: 0, results: [] }
-
-            // this._toastService.open({ message: `${this._translocoService.translate('no-criteria')}.` });
+        if (!request.value && !request.category) {
+            this.data = { count: 0, results: [] };
+            event.forceUpdate();
             this._changeDetectorRef.markForCheck();
             return;
         }
 
-        // this._spinner.show();
         this._processFunctionsService.getData(request)
             .pipe(
                 takeUntil(this._unsubscribeAll),
-                finalize(() => {
-                    // this._spinner.hide();
-                })
+                finalize(() => { })
             )
             .subscribe({
                 next: (res) => {
                     if (res) {
-                        this.data = res;
-                        console.log(res)
-                        this.loading = false;
+                        this.data.count = res.count ?? 0; // 更新總筆數
+                        Array.prototype.splice.apply(this.data.results, [event.first, rows, ...res.results]);
+                        console.log('Lazy data loaded, count:', this.data.count, 'results length:', this.data.results.length);
+                        event.forceUpdate();
                         this._changeDetectorRef.markForCheck();
                     }
                 },
+                error: (err) => {
+                    console.error('Error:', err);
+                    event.forceUpdate();
+                    this._changeDetectorRef.markForCheck();
+                }
             });
     }
 
@@ -151,6 +150,55 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         })
     }
 
-    ngOnDestroy(): void { }
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
+    }
 
+    private loadInitialData() {
+        let request: any = {};
+        if (this.keyword) request.value = this.keyword;
+        if (Array.isArray(this.categories) && this.categories.length > 0) {
+            request.category = this.categories.join(',');
+        }
+        request.page = 1;
+        request.size = 100;
+
+        if (!request.value && !request.category) {
+            this.data = { count: 0, results: [] };
+            this.resetTableScroll();
+            this._changeDetectorRef.markForCheck();
+            return;
+        }
+
+        this._processFunctionsService.getData(request)
+            .pipe(
+                takeUntil(this._unsubscribeAll),
+                finalize(() => { })
+            )
+            .subscribe({
+                next: (res) => {
+                    if (res) {
+                        this.data.count = res.count ?? 0;
+                        this.data.results = Array.from({ length: res.count ?? 0 });
+                        Array.prototype.splice.apply(this.data.results, [0, res.results.length, ...res.results]);
+                        console.log('Initial data loaded, count:', this.data.count, 'results length:', this.data.results.length);
+                        this.resetTableScroll();
+                        this._changeDetectorRef.markForCheck();
+                    }
+                },
+                error: (err) => {
+                    console.error('Error:', err);
+                    this.data = { count: 0, results: [] };
+                    this.resetTableScroll();
+                    this._changeDetectorRef.markForCheck();
+                }
+            });
+    }
+
+    private resetTableScroll() {
+        if (this.dataTable) {
+            this.dataTable.scrollToVirtualIndex(0); // 滾動到第 0 行
+        }
+    }
 }

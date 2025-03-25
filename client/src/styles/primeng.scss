@@ -197,3 +197,9 @@
 .p-datatable-paginator-bottom {
   @apply border-b-0 #{'!important'};
 }
+
+
+/* Skeleton */
+.p-skeleton {
+    @apply bg-slate-600 #{'!important'};
+}

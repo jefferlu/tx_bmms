@@ -20,7 +20,7 @@
         </div>
 
         <!-- Result table -->
-        <div class="flex flex-col flex-auto bg-card shadow rounded-md overflow-y-auto min-h-full">
+        <div class="flex flex-col flex-auto bg-card shadow rounded-md overflow-y-auto ">
 
             <div class="flex flex-row items-center justify-start p-4">
                 @if(data){
@@ -61,30 +61,30 @@
             </div>
 
             <!-- Result table -->
-            <div class="flex h-full overflow-y-auto">
-                <ngx-spinner bdColor="rgba(100, 0, 0, 0)" [color]="'var(--spinner-color)'" size="default" type="ball-clip-rotate" [fullScreen]="false">
-                    <p class="-mt-10">{{t('loading')}}</p>
-                </ngx-spinner>
+            <div class="flex h-full">
 
-                <p-table class="w-full" [value]="data?.results" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [rows]="100"
-                    [virtualScrollItemSize]="46" [lazy]="true" (onLazyLoad)="loadBimObjects($event)" [(selection)]="selectedItems">
+                <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="data?.count" [scrollable]="true" scrollHeight="600px"
+                    [styleClass]="'p-datatable-lg'" [rows]="100" [virtualScroll]="true" [virtualScrollItemSize]="46" [lazy]="true"
+                    (onLazyLoad)="loadBimObjects($event)" [(selection)]="selectedItems">
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
                             <th class="w-20 pl-8"><p-tableHeaderCheckbox /></th>
-                            <th>標別/檔案名稱</th>
-                            <th>版本</th>
-                            <th>群組</th>
-                            <th>分類</th>
-                            <th>上層</th>
-                            <th>值</th>
+                            <th>NO.</th>
+                            <th>{{t('file-label')}}</th>
+                            <th>{{t('version')}}</th>
+                            <th>{{t('bim-group')}}</th>
+                            <th>{{t('bim-category')}}</th>
+                            <th>{{t('bim-parent-name')}}</th>
+                            <th>{{t('bim-name')}}</th>
                             <th>DBID</th>
                         </tr>
                     </ng-template>
-                    <ng-template pTemplate="body" let-item>
+                    <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
                         <tr class="hover:bg-hover">
                             <td class="pl-8">
                                 <p-tableCheckbox [value]="item" />
                             </td>
+                            <td>{{ rowIndex+1 }}</td>
                             <td>{{ item.model_name }}</td>
                             <td>{{ item.version }}</td>
                             <td>{{ item.group_name }}</td>
@@ -95,13 +95,18 @@
                         </tr>
                     </ng-template>
 
-                    <!-- <ng-template #loadingbody let-columns="columns">
-                        <tr style="height:46px">
-                            <td *ngFor="let col of columns; let even = even">
-                                <p-skeleton [ngStyle]="{'width': even ? (col.field === 'year' ? '30%' : '40%') : '60%'}" />
-                            </td>
+                    <ng-template pTemplate="loadingbody">
+                        <tr style="height: 46px">
+                            <td class="pl-8"><p-skeleton width="20px" /></td>
+                            <td><p-skeleton /></td>
+                            <td><p-skeleton /></td>
+                            <td><p-skeleton /></td>
+                            <td><p-skeleton /></td>
+                            <td><p-skeleton /></td>
+                            <td><p-skeleton /></td>
+                            <td><p-skeleton /></td>
                         </tr>
-                    </ng-template> -->
+                    </ng-template>
 
                 </p-table>
             </div>
