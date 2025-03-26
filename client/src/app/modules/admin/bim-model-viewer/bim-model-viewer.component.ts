@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { finalize, Subject, takeUntil } from 'rxjs';
@@ -30,53 +31,28 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {
 
-    selectedItems!: any;
-    searchBinName: string;
-
     data: any;
-
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
+    selectedItems!: any;
 
     constructor(
+        private _route: ActivatedRoute,
         private _changeDetectorRef: ChangeDetectorRef,
         private _translocoService: TranslocoService,
-        private _spinner: NgxSpinnerService,
         private _toastService: ToastService,
-        private _bimModelViewerService: BimModelViewerService,
         private _matDialog: MatDialog
     ) { }
 
-    ngOnInit(): void {        
-        this.data = [];
-    }
-
-    onSearch(): void {
-        this.search();
-    }
-
-    search(): void {
-        let name = this.searchBinName || '';
-
-        this._spinner.show();
-        this._bimModelViewerService.getBmmsList({ 'name': name })
-            .pipe(
-                takeUntil(this._unsubscribeAll),
-                finalize(() => {
-                    this._spinner.hide();
-                })
-            )
-            .subscribe({
-                next: (res) => {
-                    if (res) {
-                        this.data = res;
-                        this._changeDetectorRef.markForCheck();
-                    }
-                },
-                error: e => {
-                    console.log(e)
-                    // this._alert.open({ type: 'warn', message: JSON.stringify(e.message) });
-                }
-            });
+    ngOnInit(): void {
+        this._route.data.subscribe({
+            next: (res) => {
+                this.data = res.data;
+                this._changeDetectorRef.markForCheck();
+                console.log('Data loaded:', this.data);
+            },
+            error: (e) => {
+                console.error('Error loading data:', e);
+            }
+        });
     }
 
     onClickAggregated(): void {
@@ -101,7 +77,8 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     }
 
 
-    showAggregatedDialog(): void {  ``      
+    showAggregatedDialog(): void {
+        ``
         this._matDialog.open(ApsViewerComponent, {
             width: '99vw',
             height: '95vh',
@@ -130,9 +107,5 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         return tenders.every(tender => tender === tenders[0]);
     }
 
-    ngOnDestroy(): void {
-        this._spinner.hide();
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
+    ngOnDestroy(): void { }
 }

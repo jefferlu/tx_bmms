@@ -7,44 +7,15 @@ import { BehaviorSubject, map, Observable, take, tap } from 'rxjs';
 })
 export class BimModelViewerService {
 
-    private _list: BehaviorSubject<any[] | null> = new BehaviorSubject(null);
-    private _detail: BehaviorSubject<any | null> = new BehaviorSubject(null);
+    // private _data: BehaviorSubject<any[] | null> = new BehaviorSubject(null);
 
     constructor(private _appService: AppService) { }
 
-    get bmmsList$(): Observable<any[]> {
-        return this._list.asObservable();
+    // get data$(): Observable<any[]> {
+    //     return this._data.asObservable();
+    // }
+
+    getData(slug?: any): Observable<any> {
+        return this._appService.get('forge/bim-model', slug);
     }
-
-    get bmmsDetail$(): Observable<any> {
-        return this._detail.asObservable();
-    }
-
-    getBmmsList(slug?: any): Observable<any> {
-        return this._appService.get('forge/bim-model', slug).pipe(
-            tap((response: any) => {
-                this._list.next(response);
-            })
-        );
-    }
-
-    getBmmsDetail(id: string): Observable<any> {
-        console.log('getBmmsDetail')
-        return this._appService.get(`bmms/list/${id}`).pipe(
-            tap((response: any) => {
-
-            })
-        );
-    }
-
-    getBmmsDetailById(id: string): Observable<any> {
-        return this._list.pipe(
-            take(1),
-            map((list) => {
-                const detail = list.find(item => item.id === +id) || null;
-                this._detail.next(detail);
-            })
-        );
-    }
-
 }
