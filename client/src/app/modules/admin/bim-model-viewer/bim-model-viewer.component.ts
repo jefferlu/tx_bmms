@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { finalize, Subject, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -13,8 +12,6 @@ import { BimModelViewerService } from './bim-model-viewer.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component';
-
-import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 
 
@@ -26,7 +23,7 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule,
-        MatIconModule, MatButtonModule, MatInputModule, NgxSpinnerModule
+        MatIconModule, MatButtonModule, MatInputModule
     ]
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {

@@ -31,68 +31,68 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
             },
         )
 
-    try:
-        auth = Auth(client_id, client_secret)
-        token = auth.auth2leg()
-        bucket = Bucket(token)
+    # try:
+    auth = Auth(client_id, client_secret)
+    token = auth.auth2leg()
+    bucket = Bucket(token)
 
-        if not is_reload:
-            send_progress('upload-object', 'Uploading file to Autodesk OSS...')
-            object_data = bucket.upload_object(bucket_key, f'media-root/uploads/{file_name}', file_name)
-            urn = get_aps_urn(object_data['objectId'])
-        else:
-            send_progress('reload-object', 'Reloading existing object from bucket...')
-            objects = json.loads(bucket.get_objects(bucket_key, 100).to_json(orient='records'))
-            object_data = next((item for item in objects if item['objectKey'] == file_name), None)
-            if not object_data:
-                raise Exception("Object not found in bucket.")
-            urn = get_aps_urn(object_data['objectId'])
+    if not is_reload:
+        send_progress('upload-object', 'Uploading file to Autodesk OSS...')
+        object_data = bucket.upload_object(bucket_key, f'media-root/uploads/{file_name}', file_name)
+        urn = get_aps_urn(object_data['objectId'])
+    else:
+        send_progress('reload-object', 'Reloading existing object from bucket...')
+        objects = json.loads(bucket.get_objects(bucket_key, 100).to_json(orient='records'))
+        object_data = next((item for item in objects if item['objectKey'] == file_name), None)
+        if not object_data:
+            raise Exception("Object not found in bucket.")
+        urn = get_aps_urn(object_data['objectId'])
 
-        process_translation(urn, token, file_name, object_data, send_progress)
-        return {"status": "BIM data import completed.", "file": file_name}
-    except Exception as e:
-        logger.error(str(e))
-        send_progress('error', str(e))
-        return {"status": f"BIM data import failed: {str(e)}", "file": file_name}
+    process_translation(urn, token, file_name, object_data, send_progress)
+    return {"status": "BIM data import completed.", "file": file_name}
+    # except Exception as e:
+    #     logger.error(str(e))
+    #     send_progress('error', str(e))
+    #     return {"status": f"BIM data import failed: {str(e)}", "file": file_name}
 
 
 def process_translation(urn, token, file_name, object_data, send_progress):
-    # Step 2: Trigger Translation
-    send_progress('translate-job', 'Triggering translation job...')
-    derivative = Derivative(urn, token)
-    translate_job_ret = json.loads(derivative.translate_job())
-    if 'errorCode' in translate_job_ret:
-        raise Exception(translate_job_ret['developerMessage'])
+    # # Step 2: Trigger Translation
+    # send_progress('translate-job', 'Triggering translation job...')
+    # derivative = Derivative(urn, token)
+    # translate_job_ret = json.loads(derivative.translate_job())
+    # if 'errorCode' in translate_job_ret:
+    #     raise Exception(translate_job_ret['developerMessage'])
 
-    # Step 3: Monitor Translation Status
-    send_progress('translate-job', 'Monitoring translation status...')
-    while True:
-        status = derivative.check_job_status()
-        progress = status.get("progress", "unknown")
-        send_progress('translate-job', f'Translation progress: {progress}')
-        if progress == "complete":
-            send_progress('translate-job', 'Translation complete.')
-            break
-        elif progress == "failed":
-            raise Exception("Translation failed.")
-        time.sleep(1)
+    # # Step 3: Monitor Translation Status
+    # send_progress('translate-job', 'Monitoring translation status...')
+    # while True:
+    #     status = derivative.check_job_status()
+    #     progress = status.get("progress", "unknown")
+    #     send_progress('translate-job', f'Translation progress: {progress}')
+    #     if progress == "complete":
+    #         send_progress('translate-job', 'Translation complete.')
+    #         break
+    #     elif progress == "failed":
+    #         raise Exception("Translation failed.")
+    #     time.sleep(1)
 
-    # Step 4: Download SVF
-    send_progress('download-svf', 'Downloading SVF to server...')
-    svf_reader = SVFReader(urn, token, "US")
-    download_dir = f"media-root/svf/{file_name}"
-    os.makedirs(download_dir, exist_ok=True)
-    manifests = svf_reader.read_svf_manifest_items()
-    if manifests:
-        svf_reader.download(download_dir, manifests[0], send_progress)
-        send_progress('download-svf', 'SVF download completed.')
-    else:
-        raise Exception("No manifest items found for download.")
+    # # Step 4: Download SVF
+    # send_progress('download-svf', 'Downloading SVF to server...')
+    # svf_reader = SVFReader(urn, token, "US")
+    # download_dir = f"media-root/svf/{file_name}"
+    # os.makedirs(download_dir, exist_ok=True)
+    # manifests = svf_reader.read_svf_manifest_items()
+    # if manifests:
+    #     svf_reader.download(download_dir, manifests[0], send_progress)
+    #     send_progress('download-svf', 'SVF download completed.')
+    # else:
+    #     raise Exception("No manifest items found for download.")
 
     # Step 5: Download SQLite
     send_progress('download-sqlite', 'Downloading SQLite to server...')
     db = DbReader(urn, token, object_data['objectKey'])
-    sqlite_path = f"{download_dir}/{file_name}.sqlite"
+    # sqlite_path = f"{download_dir}/{file_name}.sqlite"
 
     # Step 6: Process SQLite Data
     group_types = models.BimGroup.objects.filter(is_active=True).prefetch_related(

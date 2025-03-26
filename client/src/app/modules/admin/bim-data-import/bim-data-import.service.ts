@@ -1,7 +1,5 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { AppService } from 'app/app.service';
-import { environment } from 'environments/environment';
 import { BehaviorSubject, Observable, shareReplay, tap } from 'rxjs';
 
 @Injectable({
@@ -9,20 +7,11 @@ import { BehaviorSubject, Observable, shareReplay, tap } from 'rxjs';
 })
 export class BimDataImportService {
 
-    private _objects: BehaviorSubject<any> = new BehaviorSubject(null);
 
     constructor(private _appService: AppService) { }
 
-    get objects$(): Observable<any> {
-        return this._objects.asObservable();
-    }
-
-    getObjects(): Observable<any> {
-        return this._appService.get('forge/objects').pipe(
-            tap((res: any) => {
-                this._objects.next(res);
-            })
-        );
+    getData(): Observable<any> {
+        return this._appService.get('forge/objects');
     }
 
     bimDataImport(file: File): Observable<any> {

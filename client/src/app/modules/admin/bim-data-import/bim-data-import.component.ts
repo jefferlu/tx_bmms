@@ -11,7 +11,7 @@ import { WebsocketService } from 'app/core/services/websocket/websocket.service'
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { NgClass } from '@angular/common';
 import { GtsConfirmationService } from '@gts/services/confirmation';
-import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
+
 
 @Component({
     selector: 'app-bim-data-import',
@@ -20,7 +20,7 @@ import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-        TranslocoModule, TableModule, NgClass, NgxSpinnerModule
+        TranslocoModule, TableModule, NgClass
     ]
 })
 export class BimDataImportComponent implements OnInit, OnDestroy {
@@ -30,11 +30,11 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     files: any[] = [];
+    isLoading: boolean = false;
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _toastService: ToastService,
-        private _spinner: NgxSpinnerService,
         private _translocoService: TranslocoService,
         private _gtsConfirmationService: GtsConfirmationService,
         private _websocketService: WebsocketService,
@@ -42,8 +42,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
-        this._spinner.hide();
-
         // Subscribe webSocket message
         this._websocketService.connect('progress');
         this._subscription.add(
@@ -72,18 +70,22 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         );
 
         // Get objects
-        this._spinner.show()
-        this._bimDataImportService.getObjects()
+        this.isLoading = true;
+        this._bimDataImportService.getData()
             .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((data: any) => {
-                data = this._calculateFileSize(data);
-                this.files = data;
-                this._spinner.hide();
-                this._changeDetectorRef.markForCheck();
-            });
-
-        // this.files = this._bimDataImportService.files;
-        // this._changeDetectorRef.markForCheck();
+            .subscribe({
+                next: (res) => {
+                    console.log(res)
+                    let data = this._calculateFileSize(res);
+                    this.files = data;
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                },
+                error: (e) => {
+                    this.isLoading = false;
+                    console.error('Error loading data:', e);                    
+                }
+            })
     }
 
     triggerFileInput(): void {
@@ -233,10 +235,8 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     }
 
     private _delete(file: any) {
-        this._spinner.show()
         this._bimDataImportService.delete(file.name).pipe(
             finalize(() => {
-                this._spinner.hide()
                 this._changeDetectorRef.markForCheck();
             })
         ).subscribe({
@@ -274,6 +274,5 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         this._unsubscribeAll.complete();
         this._subscription.unsubscribe();
         this._websocketService.close('progress');
-        this._spinner.hide();
     }
 }
