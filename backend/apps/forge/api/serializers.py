@@ -70,4 +70,4 @@ class BimObjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.BimObject
-        fields = ['id', 'model_name', 'version', 'group_name', 'category', 'urn', 'dbid', 'value', 'parent', 'child', 'parent_name']
+        fields = ['id', 'model_name', 'version', 'group_name', 'category', 'urn', 'dbid', 'value']

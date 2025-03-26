@@ -74,10 +74,6 @@ class BimObject(models.Model):
     conversion = models.ForeignKey('BimConversion', on_delete=models.CASCADE, related_name="bim_objects")
     dbid = models.IntegerField()
     value = models.CharField(max_length=255)  # 對應 SQLite 的 vals.value (即 name)
-    is_leaf = models.BooleanField(default=True)
-    parent = models.IntegerField(null=True, blank=True)  # 對應 SQLite 的 __parent__
-    child = models.JSONField(default=list, blank=True)  # 對應 SQLite 的 __child__
-    parent_name = models.CharField(max_length=255, null=True, blank=True)  # 新增：父節點的 __name__
 
     class Meta:
         db_table = "forge_bim_object"

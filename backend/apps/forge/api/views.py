@@ -431,7 +431,7 @@ class BimDataReloadView(APIView):
 
 
 class BimGroupViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = models.BimGroup.objects.all().prefetch_related(
+    queryset = models.BimGroup.objects.filter(is_active=True).prefetch_related(
         Prefetch('bim_categories', queryset=models.BimCategory.objects.filter(is_active=True).order_by('value'))
     )
     serializer_class = serializers.BimGroupSerializer

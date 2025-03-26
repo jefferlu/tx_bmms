@@ -33,4 +33,4 @@ class BimConversionAdmin(admin.ModelAdmin):
 
 @admin.register(models.BimObject)
 class BimObjectAdmin(admin.ModelAdmin):
-    list_display = ('category', 'conversion', 'dbid', 'value', 'is_leaf', 'parent', 'child', 'parent_name', )
+    list_display = ('category', 'conversion', 'dbid', 'value',)
