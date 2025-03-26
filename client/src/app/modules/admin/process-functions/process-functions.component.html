@@ -68,13 +68,12 @@
                     (onLazyLoad)="loadBimObjects($event)" [(selection)]="selectedItems">
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
-                            <th class="w-20 pl-8"><p-tableHeaderCheckbox /></th>
+                            <th class="w-20 pl-8"></th>
                             <th>NO.</th>
                             <th>{{t('file-label')}}</th>
                             <th>{{t('version')}}</th>
                             <th>{{t('bim-group')}}</th>
                             <th>{{t('bim-category')}}</th>
-                            <th>{{t('bim-parent-name')}}</th>
                             <th>{{t('bim-name')}}</th>
                             <th>DBID</th>
                         </tr>
@@ -89,7 +88,6 @@
                             <td>{{ item.version }}</td>
                             <td>{{ item.group_name }}</td>
                             <td>{{ item.category }}</td>
-                            <td>{{ item.parent_name }}</td>
                             <td>{{ item.value }}</td>
                             <td>{{ item.dbid }}</td>
                         </tr>

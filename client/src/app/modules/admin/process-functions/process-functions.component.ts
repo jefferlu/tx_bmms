@@ -148,6 +148,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     showAggregatedDialog(): void {
+        console.log(this.selectedItems)
         this._matDialog.open(ApsViewerComponent, {
             width: '99vw',
             height: '95vh',
