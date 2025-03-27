@@ -1,19 +1,18 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { SkeletonModule } from 'primeng/skeleton';
-
 import { ApsViewerComponent } from "../../../layout/common/aps-viewer/aps-viewer.component";
-import { SearchPanelComponent } from './search-panel/search-panel.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { ProcessFunctionsService } from './process-functions.service';
-import { finalize, Subject, takeUntil } from 'rxjs';
+import { debounceTime, finalize, Subject, takeUntil } from 'rxjs';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CdkScrollable } from '@angular/cdk/scrolling';
+import { NgClass } from '@angular/common';
 
 @Component({
     selector: 'app-process-functions',
@@ -21,25 +20,27 @@ import { CdkScrollable } from '@angular/cdk/scrolling';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
+        NgClass,
         MatButtonModule, MatIconModule,
         MatMenuModule, MatDividerModule,
         TableModule, SkeletonModule,
-        TranslocoModule, CdkScrollable,
-        SearchPanelComponent,
+        TranslocoModule, CdkScrollable
     ]
 })
 export class ProcessFunctionsComponent implements OnInit, OnDestroy {
-
     private _unsubscribeAll: Subject<any> = new Subject<any>();
+    private lazyLoadSubject = new Subject<TableLazyLoadEvent>();
+    private loadedPages: Set<number> = new Set(); // 記錄已載入的分頁
+
     @ViewChild('dataTable') dataTable: Table;
 
     data: any = { count: 0, results: [] };
-    page = {}
-
+    isLoading: boolean = false;
     criteria: any[];
     keyword: string;
     categories: any;
-    selectedItems!: any;
+    selectedItems: any[] = [];
+    rowsPerPage: number = 100; // 固定每頁大小
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -50,115 +51,42 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
-
-        // Get criteria
         this._processFunctionsService.criteria$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((criteria: any) => {
                 this.criteria = criteria;
             });
 
-        // this.page.svf = {
-        //     "id": 6,
-        //     "name": "SL_OM_IN(整合)_A棟.nwd", 
-        //     "filePath": "./uploads/SL_OM_IN(%E6%95%B4%E5%90%88)_A%E6%A3%9F.nwd", 
-        //     // "svfPath": "downloads/dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvU0xfT01fSU4oJUU2JTk1JUI0JUU1JTkwJTg4KV9BJUU2JUEzJTlGLm53ZA/4755652b-a8e4-4d79-b049-b9ee252c3efe"
-        //     "svfPath":"assets/downloads/api/M3-SE/Resource/3D/66962af7-0ae4-4b15-ae0b-0dbba901a673-000c9ef2"
-        //     // "svfPath":"assets/downloads/vscode/M3-SE/dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvVDMtVFAwMS1UWDEtWFgtWFhYLU0zLVNFLTAwNzAwLTcwMDIucnZ0/407b931a-5787-573b-581d-5b899a978233"
-        // }
-
-        this.page = { "urn": "urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3NfMjUwMjEwMjIxMDQ1L1QzLVRQMDEtVFgxLVhYLVhYWC1NMy1FRS0wMDAwMS03MDAyLm53Yw" }
-
-
+        this.lazyLoadSubject.pipe(
+            debounceTime(500),
+            takeUntil(this._unsubscribeAll)
+        ).subscribe(event => {
+            this.loadBimObjects(event);
+        });
     }
 
-
-    onCategoryChange(categories: any[]) {
-        this.categories = categories;
+    onKeywordChange(event: Event) {
+        const element = event.target as HTMLInputElement;
+        this.keyword = element.value;
     }
 
-    onKeywordChange(keyword: string) {
-        this.keyword = keyword;
+    onSelected(item) {
+        item.selected = !item.selected;
+        const selectedItems = this.criteria
+            .flatMap(item => item.bim_categories)
+            .filter(bc => bc.selected)
+            .map(bc => bc.value);
+        this.categories = selectedItems;
+    }
+
+    onCollapse(criterion) {
+        criterion.collapse = !criterion.collapse;
     }
 
     onSearch() {
-        this.selectedItems = null;
+        this.selectedItems = [];
+        this.loadedPages.clear();
         this.loadInitialData();
-    }
-
-    loadBimObjects(event: TableLazyLoadEvent) {
-        // 防護檢查：確保 event.first 和 event.rows 有效
-        if (!event.first || !event.rows) {
-            // console.warn('Invalid lazy load event, skipping request');
-            return;
-        }
-
-        let request: any = {};
-        if (this.keyword) request.value = this.keyword;
-        if (Array.isArray(this.categories) && this.categories.length > 0) {
-            request.category = this.categories.join(',');
-        }
-
-        const rows = event.rows ?? 100;
-        const page = Math.floor((event.first ?? 0) / rows) + 1;
-        request.page = page;
-        request.size = rows;
-
-        // 如果無搜索條件，清空資料並返回
-        if (!request.value && !request.category) {
-            this.data = { count: 0, results: [] };
-            event.forceUpdate();
-            this._changeDetectorRef.markForCheck();
-            return;
-        }
-
-        this._processFunctionsService.getData(request)
-            .pipe(
-                takeUntil(this._unsubscribeAll),
-                finalize(() => { })
-            )
-            .subscribe({
-                next: (res) => {
-                    if (res) {
-                        this.data.count = res.count ?? 0;
-                        Array.prototype.splice.apply(this.data.results, [event.first, rows, ...res.results]);
-                        event.forceUpdate();
-                        this._changeDetectorRef.markForCheck();
-                    }
-                },
-                error: (err) => {
-                    console.error('Error:', err);
-                    event.forceUpdate();
-                    this._changeDetectorRef.markForCheck();
-                }
-            });
-    }
-
-    onClickAggregated(): void {
-        if (!this.selectedItems) {
-            this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-model')}.` });
-            return;
-        }
-        // if (!this.checkTenderConsistency(this.selectedItems)) {
-        //     this._toastService.open({ message: `${this._translocoService.translate('unsupported-aggregated-view')}.` });
-        //     return;
-        // }
-
-        this.showAggregatedDialog()
-    }
-
-    showAggregatedDialog(): void {
-        console.log(this.selectedItems)
-        this._matDialog.open(ApsViewerComponent, {
-            width: '99vw',
-            height: '95vh',
-            data: this.selectedItems
-        })
-    }
-
-    ngOnDestroy(): void {
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
     }
 
     private loadInitialData() {
@@ -168,7 +96,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             request.category = this.categories.join(',');
         }
         request.page = 1;
-        request.size = 100;
+        request.size = this.rowsPerPage;
 
         if (!request.value && !request.category) {
             this.data = { count: 0, results: [] };
@@ -177,42 +105,163 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             return;
         }
 
+        this.isLoading = true;
         this._processFunctionsService.getData(request)
             .pipe(
                 takeUntil(this._unsubscribeAll),
-                finalize(() => { })
+                finalize(() => {
+                    this.isLoading = false;
+                    this.resetTableScroll();
+                    this._changeDetectorRef.markForCheck();
+                })
             )
             .subscribe({
                 next: (res) => {
-                    // console.log('Initial data response:', res);
-
                     if (res && res.count > 0 && res.results && res.results.length > 0) {
                         this.data.count = res.count ?? 0;
-                        this.data.results = Array.from({ length: res.count ?? 0 });
-                        Array.prototype.splice.apply(this.data.results, [0, res.results.length, ...res.results]);
-                        // console.log('Initial data loaded, count:', this.data.count, 'results length:', this.data.results.length);
+                        this.data.results = Array(this.data.count);
+                        this.data.results.splice(0, res.results.length, ...res.results);
+                        this.loadedPages.add(1);
                     } else {
-                        // 空資料處理
                         this.data = { count: 0, results: [] };
-                        // console.log('No data returned, resetting table');
                     }
-                    this.resetTableScroll();
-                    this._changeDetectorRef.markForCheck();
                 },
                 error: (err) => {
                     console.error('Error:', err);
                     this.data = { count: 0, results: [] };
                     this.resetTableScroll();
-                    this._changeDetectorRef.markForCheck();
                 }
             });
     }
 
+    loadBimObjects(event: TableLazyLoadEvent) {
+        if (!event.first || !event.rows || this.isLoading) {
+            this._changeDetectorRef.detectChanges(); // 強制更新，避免卡住
+            return;
+        }
+
+        const rowsPerPage = event.rows;
+        const rowHeight = 46;
+        const scrollHeight = 600;
+        const visibleRows = Math.ceil(scrollHeight / rowHeight);
+        const pagesToLoad = Math.ceil(visibleRows / rowsPerPage) + 1;
+
+        const currentFirst = event.first;
+        const currentPage = Math.floor(currentFirst / rowsPerPage) + 1;
+
+        // 檢查是否需要載入資料
+        const endIndex = currentFirst + (rowsPerPage * pagesToLoad);
+        const needsLoading = Array.from(
+            { length: pagesToLoad },
+            (_, i) => currentPage + i
+        ).some(page => !this.loadedPages.has(page));
+
+        if (!needsLoading) {
+            console.log(`Pages ${currentPage} to ${currentPage + pagesToLoad - 1} already loaded, skipping`);
+            this.isLoading = false; // 明確設為 false
+            this._changeDetectorRef.detectChanges(); // 強制更新，避免卡住
+            return;
+        }
+
+        let request: any = {};
+        if (this.keyword) request.value = this.keyword;
+        if (Array.isArray(this.categories) && this.categories.length > 0) {
+            request.category = this.categories.join(',');
+        }
+        request.page = currentPage;
+        request.size = rowsPerPage * pagesToLoad;
+
+        if (!request.value && !request.category) {
+            this.data = { count: 0, results: [] };
+            this.isLoading = false;
+            event.forceUpdate();
+            // this._changeDetectorRef.detectChanges();
+            return;
+        }
+
+        this.isLoading = true;
+        this._processFunctionsService.getData(request)
+            .pipe(
+                takeUntil(this._unsubscribeAll),
+                finalize(() => {
+                    this.isLoading = false;
+                    this.restoreSelection();
+                    event.forceUpdate();
+                    this._changeDetectorRef.markForCheck(); // 強制更新
+                    console.log('forceUpdated()')
+                })
+            )
+            .subscribe({
+                next: (res) => {
+                    if (res && res.results && res.results.length > 0) {
+                        this.data.count = res.count ?? 0;
+                        this.data.results.splice(currentFirst, res.results.length, ...res.results);
+                        for (let i = 0; i < pagesToLoad; i++) {
+                            this.loadedPages.add(currentPage + i);
+                        }
+                    }
+                },
+                error: (err) => {
+                    console.error('Error:', err);
+                }
+            });
+    }
+
+    private restoreSelection() {
+        this.data.results.forEach(item => {
+            if (item) {
+                const selectedItem = this.selectedItems.find(selected => this.isSameItem(selected, item));
+                if (selectedItem) {
+                    item.selected = true;
+                }
+            }
+        });
+    }
+
+    private isSameItem(item1: any, item2: any): boolean {
+        return item1.dbid === item2.dbid;
+    }
+
+    onRowSelect(event: any) {
+        const item = event.data;
+        if (!this.selectedItems.some(selected => this.isSameItem(selected, item))) {
+            this.selectedItems.push(item);
+        }
+        console.log('Selected items:', this.selectedItems);
+    }
+
+    onRowUnselect(event: any) {
+        const item = event.data;
+        this.selectedItems = this.selectedItems.filter(selected => !this.isSameItem(selected, item));
+        console.log('Selected items:', this.selectedItems);
+    }
+
+    onClickAggregated(): void {
+        if (!this.selectedItems || this.selectedItems.length === 0) {
+            this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-model')}.` });
+            return;
+        }
+        this.showAggregatedDialog();
+    }
+
+    showAggregatedDialog(): void {
+        console.log(this.selectedItems);
+        this._matDialog.open(ApsViewerComponent, {
+            width: '99vw',
+            height: '95vh',
+            data: this.selectedItems
+        });
+    }
+
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
+    }
+
     private resetTableScroll() {
         if (this.dataTable) {
-            this.dataTable.scrollToVirtualIndex(0); // 滾動到第 0 行
-            this.dataTable.first = 0; // 重置 first，避免觸發無效的 loadBimObjects
-            // console.log('Table scroll reset to index 0');
+            this.dataTable.scrollToVirtualIndex(0);
+            this.dataTable.first = 0;
         }
     }
 }

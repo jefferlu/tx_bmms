@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-    selector: 'app-search-panel',
+    selector: 'search-panel',
     templateUrl: './search-panel.component.html',
     styleUrl: './search-panel.component.scss',
     imports: [NgClass, FormsModule, MatIconModule, MatButtonModule]

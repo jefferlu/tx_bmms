@@ -1,13 +1,10 @@
 <div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full" *transloco="let t">
-
     <div class="flex-auto overflow-y-auto p-6 sm:p-10" cdkScrollable>
-
         <!-- Advanced search -->
         <div class="flex flex-col bg-card shadow rounded-md mb-4 py-2">
             <div class="flex flex-row items-center justify-between p-4">
                 <!-- Header -->
                 <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">{{t('advanced-search')}}</div>
-
                 <!-- Search -->
                 <div class="flex items-center space-x-3 sm:ml-2 sm:mt-0">
                     <button mat-flat-button color="warn" (click)="onSearch()">
@@ -16,12 +13,70 @@
                     </button>
                 </div>
             </div>
-            <app-search-panel [criteria]="criteria" (keywordChange)="onKeywordChange($event)" (categoryChange)="onCategoryChange($event)"></app-search-panel>
+        </div>
+
+        <div class="flex flex-col bg-card shadow rounded-md mb-4 py-2">
+            <div class="flex flex-row items-center justify-between p-4">
+                <!-- Header -->
+                <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">
+                    {{t('advanced-search')}}
+                </div>
+            </div>
+            <div>
+                <!-- 已選條件 -->
+                <div class="flex items-center mx-10 px-6 py-2 md:px-8 border-t border-b">
+                    <div class="flex-shrink-0 items-center justify-center mr-4 leading-8 font-semibold">已選條件 :</div>
+                    <div class='flex flex-wrap gap-2'>
+                        @for(criterion of criteria;track criterion){
+                        @for(item of criterion.bim_categories;track item){
+                        @if(item.selected){
+                        <span class='flex items-center py-1 px-2 rounded cursor-pointer text-center border bg-gray-600 border-gray-400'
+                            (click)="onSelected(item)">{{item.value}}
+                            <mat-icon class="icon-size-5 ml-1" [svgIcon]="'heroicons_mini:x-mark'"></mat-icon>
+                        </span>
+                        }
+                        }
+                        }
+                    </div>
+                </div>
+
+                <!-- 關鍵字查詢 -->
+                <div class="flex items-center mx-10 px-6 py-2 md:px-8 border-b">
+                    <div class="flex-shrink-0 items-center justify-center mr-9 leading-8 font-semibold">關鍵字 :</div>
+                    <div class='flex flex-wrap gap-2'>
+                        <div class="">
+                            <input type="text"
+                                class="px-2 py-1.5 border rounded min-w-64 focus:border-white bg-gray-700 border-gray-600 placeholder:text-gray-400 text-white"
+                                placeholder="請輸入關鍵字..." (input)="onKeywordChange($event)" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 動態條件 -->
+                @for(criterion of criteria;track criterion){
+                <div class="flex items-center mx-10 px-6 py-2 md:px-8 cursor-pointer border-b">
+                    <div class="flex-shrink-0 self-start items-center justify-center mr-4 leading-8 font-semibold">{{criterion.name}} :</div>
+                    <div class="flex flex-wrap gap-2 transition-all duration-300"
+                        [ngClass]="{'max-h-10 overflow-hidden': !criterion.collapse, 'max-h-[1000px] overflow-visible': criterion.collapse}">
+                        @for (item of criterion.bim_categories; track item) {
+                        <span class="py-1 px-2 rounded cursor-pointer text-center border hover:border-gray-400"
+                            [ngClass]="{'border-gray-50': item.selected, 'border-transparent': !item.selected}" (click)="onSelected(item)">
+                            {{ item.value }}
+                        </span>
+                        }
+                    </div>
+                    <div class="flex-none self-start ml-auto">
+                        <button class='py-1 px-2 rounded cursor-pointer text-center border border-gray-400 primary' (click)="onCollapse(criterion)">
+                            {{ criterion.collapse ? '▲' : '▼' }}
+                        </button>
+                    </div>
+                </div>
+                }
+            </div>
         </div>
 
         <!-- Result table -->
-        <div class="flex flex-col flex-auto bg-card shadow rounded-md overflow-y-auto ">
-
+        <div class="flex flex-col flex-auto bg-card shadow rounded-md overflow-y-auto">
             <div class="flex flex-row items-center justify-start p-4">
                 @if(data){
                 <div>
@@ -47,7 +102,6 @@
                     </mat-menu>
                 </div>
                 }
-
                 <div class="ml-auto">
                     <!-- View model -->
                     <div class="flex items-center space-x-3 sm:ml-2 sm:mt-0">
@@ -56,16 +110,15 @@
                             <span class="ml-2">{{t('bim-model-viewer')}}</span>
                         </button>
                     </div>
-
                 </div>
             </div>
 
             <!-- Result table -->
             <div class="flex h-full">
-
                 <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="data?.count" [scrollable]="true" scrollHeight="600px"
-                    [styleClass]="'p-datatable-lg'" [rows]="100" [virtualScroll]="true" [virtualScrollItemSize]="46" [lazy]="true"
-                    (onLazyLoad)="loadBimObjects($event)" [(selection)]="selectedItems">
+                    [rows]="100" [virtualScroll]="true" [virtualScrollItemSize]="46" [lazy]="true"
+                    (onLazyLoad)="loadBimObjects($event)" [selection]="selectedItems" (onRowSelect)="onRowSelect($event)"
+                    (onRowUnselect)="onRowUnselect($event)">
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
                             <th class="w-20 pl-8"></th>
@@ -83,7 +136,7 @@
                             <td class="pl-8">
                                 <p-tableCheckbox [value]="item" />
                             </td>
-                            <td>{{ rowIndex+1 }}</td>
+                            <td>{{ rowIndex + 1 }}</td>
                             <td>{{ item.model_name }}</td>
                             <td>{{ item.version }}</td>
                             <td>{{ item.group_name }}</td>
@@ -92,7 +145,6 @@
                             <td>{{ item.dbid }}</td>
                         </tr>
                     </ng-template>
-
                     <ng-template pTemplate="loadingbody">
                         <tr style="height: 46px">
                             <td class="pl-8"><p-skeleton width="20px" /></td>
@@ -105,7 +157,6 @@
                             <td><p-skeleton /></td>
                         </tr>
                     </ng-template>
-
                 </p-table>
             </div>
         </div>
