@@ -148,8 +148,8 @@
 }
 
 .p-toggleswitch {
-    width: 50px;
-    height: 25px;
+  width: 50px;
+  height: 25px;
 }
 
 .p-datatable-hoverable
@@ -198,8 +198,38 @@
   @apply border-b-0 #{'!important'};
 }
 
-
 /* Skeleton */
 .p-skeleton {
-    @apply bg-slate-600 #{'!important'};
+  @apply bg-slate-600 #{'!important'};
+}
+
+/* Paginator */
+.p-paginator {
+  .p-paginator-page.p-paginator-page-selected {
+    @apply text-default bg-slate-700 #{'!important'};
+  }
+  .p-paginator-pages {
+    .p-paginator-page:not(.p-highlight):hover:is(.dark *) {
+        @apply text-default #{'!important'};
+    }
+  }
+  
+}
+.p-paginator {
+  @apply bg-transparent border-transparent;
+  .p-paginator-pages {
+    .p-paginator-page:not(.p-highlight):hover {
+      @apply dark:bg-slate-800;
+    }
+    .p-paginator-page.p-highlight {
+      @apply text-default bg-slate-200 dark:bg-card;
+    }
+  }
+
+  .p-paginator-first:not(.p-disabled):not(.p-highlight):hover,
+  .p-paginator-prev:not(.p-disabled):not(.p-highlight):hover,
+  .p-paginator-next:not(.p-disabled):not(.p-highlight):hover,
+  .p-paginator-last:not(.p-disabled):not(.p-highlight):hover {
+    @apply text-default bg-slate-200 dark:bg-card;
+  }
 }
