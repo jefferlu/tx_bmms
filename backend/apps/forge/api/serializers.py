@@ -42,9 +42,10 @@ class BimModelSerializer(serializers.ModelSerializer):
 
 
 class BimCategorySerializer(serializers.ModelSerializer):
+
     class Meta:
         model = models.BimCategory
-        fields = ['id', 'value', 'display_name']
+        fields = ['id', 'value', 'display_name', 'bim_group']
 
 
 class BimGroupSerializer(serializers.ModelSerializer):

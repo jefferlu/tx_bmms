@@ -16,27 +16,45 @@
                 </div>
             </div>
             <div>
+                <div class="flex flex-col sm:flex-row  mx-10 px-6 py-2 md:px-8 gap-20">
+                    <!-- 標別 -->
+                    <div class="flex items-center gap-2">
+                        <div class="flex-shrink-0 leading-8 mr-9 font-semibold">標別 :</div>
+                        <div class="flex flex-wrap">
+                            <p-select [options]="tenderOptions" [checkmark]="true" [(ngModel)]="selectedTender" (onChange)="onTenderChange(selectedTender)"
+                                placeholder="Select Tender" class="w-full md:w-56">
+                            </p-select>
+                        </div>
+                    </div>
+
+                    <!-- 檔名 -->
+                    <div class="flex items-center gap-2">
+                        <div class="flex-shrink-0 leading-8 mr-9 font-semibold">檔名 :</div>
+                        <div class="flex flex-wrap">
+                            <p-multiselect [options]="nameOptions" [(ngModel)]="selectedNames" [filter]="false" [showToggleAll]="false"
+                                placeholder="--" [maxSelectedLabels]="1" [disabled]="!selectedTender" class="w-full md:w-80">
+                            </p-multiselect>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 關鍵字查詢 -->
                 <div class="flex items-center mx-10 px-6 py-2 md:px-8">
-                    <div class="flex-shrink-0 items-center justify-center mr-4 leading-8 font-semibold">標別/檔名 :</div>
+                    <div class="flex-shrink-0 items-center justify-center mr-9 leading-8 font-semibold">關鍵字 :</div>
                     <div class='flex flex-wrap gap-2'>
-                        @for(criterion of criteria;track criterion){
-                        @for(item of criterion.bim_categories;track item){
-                        @if(item.selected){
-                        <span class='flex items-center py-1 px-2 rounded cursor-pointer text-center border bg-gray-600 border-gray-400'
-                            (click)="onSelected(item)">{{item.value}}
-                            <mat-icon class="icon-size-5 ml-1" [svgIcon]="'heroicons_mini:x-mark'"></mat-icon>
-                        </span>
-                        }
-                        }
-                        }
+                        <div class="">
+                            <input type="text"
+                                class="px-2 py-1.5 border rounded w-full sm:min-w-64 focus:border-white bg-gray-700 border-gray-600 placeholder:text-gray-400 text-white"
+                                placeholder="請輸入關鍵字..." (input)="onKeywordChange($event)" />
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-row items-center justify-between p-4">
+            <div class="flex flex-row items-center justify-between p-4 mt-6">
                 <!-- Header -->
                 <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">
-                    標籤
+                    COBie 標籤
                 </div>
             </div>
 
@@ -53,18 +71,6 @@
                             <mat-icon class="icon-size-5 ml-1" [svgIcon]="'heroicons_mini:x-mark'"></mat-icon>
                         </span>
                         }}}
-                    </div>
-                </div>
-
-                <!-- 關鍵字查詢 -->
-                <div class="flex items-center mx-10 px-6 py-2 md:px-8 border-b">
-                    <div class="flex-shrink-0 items-center justify-center mr-9 leading-8 font-semibold">關鍵字 :</div>
-                    <div class='flex flex-wrap gap-2'>
-                        <div class="">
-                            <input type="text"
-                                class="px-2 py-1.5 border rounded min-w-64 focus:border-white bg-gray-700 border-gray-600 placeholder:text-gray-400 text-white"
-                                placeholder="請輸入關鍵字..." (input)="onKeywordChange($event)" />
-                        </div>
                     </div>
                 </div>
 

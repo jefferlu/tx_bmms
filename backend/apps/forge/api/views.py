@@ -488,7 +488,7 @@ class StandardResultsSetPagination(pagination.PageNumberPagination):
     max_page_size = 100
 
 
-class BimObjectViewSet(viewsets.ReadOnlyModelViewSet):  # 移除 AutoPrefetchViewSetMixin，因未提供定義
+class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.BimObjectSerializer
     pagination_class = StandardResultsSetPagination
 
@@ -497,6 +497,7 @@ class BimObjectViewSet(viewsets.ReadOnlyModelViewSet):  # 移除 AutoPrefetchVie
         value = request.query_params.get('value', None)
         categories = request.query_params.get('category', None)
 
+        print(value, categories)
         if not value and not categories:
             raise ValidationError("請提供至少一個查詢參數 'value' 或 'category'。")
 
@@ -505,8 +506,18 @@ class BimObjectViewSet(viewsets.ReadOnlyModelViewSet):  # 移除 AutoPrefetchVie
             filters &= Q(value__icontains=value)  # 模糊搜尋
 
         if categories:
-            category_list = categories.split(',')
-            filters &= Q(category__value__in=category_list)
+            try:
+                category_list = json.loads(categories)  # 解析 JSON
+                category_qs = models.BimCategory.objects.filter(
+                    Q(*[
+                        Q(bim_group_id=cat["bim_group"], value=cat["value"])
+                        for cat in category_list
+                    ])
+                ).values_list("id", flat=True)  # 只取 ID，提高查詢效能
+
+                filters &= Q(category_id__in=list(category_qs))  # 用 category_id 過濾
+            except json.JSONDecodeError:
+                raise ValidationError("category 參數格式錯誤，應為 JSON 陣列")
 
         # 子查詢：獲取每個 BimModel 的最新 version 的 conversion_id
         latest_conversion = Subquery(
@@ -516,7 +527,9 @@ class BimObjectViewSet(viewsets.ReadOnlyModelViewSet):  # 移除 AutoPrefetchVie
         )
 
         ip_address = request.META.get('REMOTE_ADDR')
-        log_user_activity(self.request.user, '圖資檢索', f'查詢{categories};{value}', 'SUCCESS', ip_address)
+        log_user_activity(self.request.user, '圖資檢索', f'查詢 {categories}; {value}', 'SUCCESS', ip_address)
+
+        print('filters', filters)
 
         # 過濾只包含最新 version 的 BimObject
         return models.BimObject.objects.filter(
@@ -524,4 +537,8 @@ class BimObjectViewSet(viewsets.ReadOnlyModelViewSet):  # 移除 AutoPrefetchVie
             conversion__id__in=latest_conversion
         ).select_related(
             'category', 'category__bim_group', 'conversion', 'conversion__bim_model'
+        ).prefetch_related(
+            'category__bim_group', 'conversion__bim_model'  # 預先加載相關表
         )
+
+        

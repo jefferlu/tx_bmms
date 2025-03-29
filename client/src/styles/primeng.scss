@@ -56,25 +56,47 @@
   @apply text-base text-default bg-default;
 }
 
-/* Dropdown */
-.p-dropdown {
-  @apply text-base text-default bg-transparent;
-  @apply border-gray-300 dark:border-gray-500;
+/* Select */
+.p-select {
+  @apply text-base text-default bg-transparent #{'!important'};
+  @apply border-gray-300 dark:border-slate-50;
 
-  .p-dropdown-panel {
-    @apply text-base text-default bg-default;
-    @apply border-gray-300 dark:border-gray-500;
-
-    .p-dropdown-header {
-      @apply text-base text-default bg-default;
-    }
+  .p-select-overlay {
+    @apply text-base text-default bg-default #{'!important'};
   }
+
+  .p-select-option {
+    @apply text-inherit;
+  }
+
+  .p-select-option.p-select-option-selected.p-focus {
+    @apply text-inherit bg-gray-800;
+  }
+
+  .p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus {
+    @apply text-inherit bg-gray-800;
+  }
+
+  .p-select-option.p-select-option-selected {
+    @apply text-inherit bg-gray-800;
+  }
+
+  .p-select-label {
+    @apply text-inherit;
+  }
+
+  .p-select-option-check-icon {
+    @apply text-inherit;
+  }
+ 
 }
+
+
 
 /* MultiSelect */
 .p-multiselect {
   @apply text-base text-default bg-transparent #{'!important'};
-  @apply border-gray-300 dark:border-gray-500;
+  @apply border-gray-300 dark:border-slate-50;
 
   .p-multiselect-overlay {
     @apply text-base text-default bg-default #{'!important'};
@@ -210,10 +232,9 @@
   }
   .p-paginator-pages {
     .p-paginator-page:not(.p-highlight):hover:is(.dark *) {
-        @apply text-default #{'!important'};
+      @apply text-default #{'!important'};
     }
   }
-  
 }
 .p-paginator {
   @apply bg-transparent border-transparent;

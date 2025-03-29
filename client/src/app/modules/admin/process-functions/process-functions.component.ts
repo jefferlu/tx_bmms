@@ -1,17 +1,26 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+
+import { finalize, Subject, takeUntil } from 'rxjs';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { Table, TableModule, TableLazyLoadEvent } from 'primeng/table';
-import { ApsViewerComponent } from "../../../layout/common/aps-viewer/aps-viewer.component";
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { ProcessFunctionsService } from './process-functions.service';
-import { finalize, Subject, takeUntil } from 'rxjs';
-import { ToastService } from 'app/layout/common/toast/toast.service';
 import { MatDialog } from '@angular/material/dialog';
-import { CdkScrollable } from '@angular/cdk/scrolling';
-import { NgClass } from '@angular/common';
+
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { Table, TableModule, TableLazyLoadEvent } from 'primeng/table';
+import { SelectModule } from 'primeng/select';
+import { MultiSelectModule } from 'primeng/multiselect';
+
+import { ToastService } from 'app/layout/common/toast/toast.service';
+import { ApsViewerComponent } from "../../../layout/common/aps-viewer/aps-viewer.component";
+import { ProcessFunctionsService } from './process-functions.service';
+import { FormsModule } from '@angular/forms';
+
+
 
 @Component({
     selector: 'app-process-functions',
@@ -19,10 +28,11 @@ import { NgClass } from '@angular/common';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        NgClass,
+        NgClass, CdkScrollable, FormsModule,
         MatButtonModule, MatIconModule,
         MatMenuModule, MatDividerModule,
-        TableModule, TranslocoModule, CdkScrollable
+        TableModule, TranslocoModule,
+        SelectModule, MultiSelectModule
     ]
 })
 export class ProcessFunctionsComponent implements OnInit, OnDestroy {
@@ -38,6 +48,22 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     selectedItems: any[] = [];
     rowsPerPage: number = 100; // 每頁顯示行數
 
+    // 用於選擇tender和name
+    selectedTender: string;
+    selectedNames: string[] = [];
+
+    // 用於過濾選項
+    tenderOptions = [];
+    nameOptions = [];
+
+    data1 = [
+        { "id": 38, "tender": "T3-TP01", "name": "T3-TP01-TX1-XX-XXX-M3-SE-00001-7002.nwc" },
+        { "id": 39, "tender": "T3-TP01", "name": "T3-TP01-XXX-XX-XXX-M3-XX-00001.nwd" },
+        { "id": 36, "tender": "T3-TP16", "name": "T3-TP16-XXX-XX-XXX-M3-XX-00001.nwd" },
+        { "id": 40, "tender": "T3-TP21A", "name": "T3-TP21A-XXX-XX-XXX-M3-XX-00001.nwd" },
+        { "id": 37, "tender": "T3-TP25", "name": "T3-TP25-XXX-XX-XXX-M3-XX-00001.nwd" }
+    ];
+
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _translocoService: TranslocoService,
@@ -52,6 +78,23 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             .subscribe((criteria: any) => {
                 this.criteria = criteria;
             });
+        this.tenderOptions = [...new Set(this.data1.map(item => item.tender))];
+
+        // 預設選擇第一個tender
+        if (this.tenderOptions.length > 0) {
+            this.selectedTender = this.tenderOptions[0];  // 設定為第一個tender
+            this.onTenderChange(this.selectedTender);      // 更新name選項
+        }
+    }
+
+    // 當選擇tender時，更新name選項
+    onTenderChange(tender: string) {
+        console.log('onTenderChange')
+        // 根據選擇的tender過濾對應的name選項
+        this.nameOptions = this.data1.filter(item => item.tender === this.selectedTender).map(item => item.name);
+        // 重設選擇的name
+        console.log(this.data1, this.selectedTender, this.nameOptions)
+        this.selectedNames = [];
     }
 
     onKeywordChange(event: Event) {
@@ -60,11 +103,17 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     onSelected(item) {
+        console.log(item)
         item.selected = !item.selected;
         const selectedItems = this.criteria
-            .flatMap(item => item.bim_categories)
-            .filter(bc => bc.selected)
-            .map(bc => bc.value);
+            .flatMap(item =>
+                item.bim_categories.map(bc => ({
+                    bim_group: item.id,  // 取上層的 bim_group ID
+                    value: bc.value,     // 取 category 的 value
+                    selected: bc.selected // 保持 selected 屬性
+                }))
+            )
+            .filter(bc => bc.selected); // 只保留被選中的項目
         this.categories = selectedItems;
     }
 
@@ -79,10 +128,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     loadPage(page: number) {
+        if (!this.criteria || this.isLoading) return; // 避免初始化時觸發
+
         let request: any = {};
         if (this.keyword) request.value = this.keyword;
+
         if (Array.isArray(this.categories) && this.categories.length > 0) {
-            request.category = this.categories.join(',');
+            request.category = JSON.stringify(this.categories);
         }
         request.page = page;
         request.size = this.rowsPerPage;
@@ -93,6 +145,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             return;
         }
 
+        console.log(request)
         this.isLoading = true;
         this._processFunctionsService.getData(request)
             .pipe(
