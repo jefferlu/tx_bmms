@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AppService } from 'app/app.service';
-import { BehaviorSubject, map, Observable, take, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Injectable({
     providedIn: 'root'
