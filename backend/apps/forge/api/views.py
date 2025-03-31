@@ -9,6 +9,8 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.db.models import Subquery, OuterRef, Prefetch, Q
 
+from django.db import connection
+
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
@@ -250,7 +252,7 @@ class BimUpdateCategoriesView(APIView):
 
         # 獲取請求參數
         filenames = request.data.get('filenames')
-       
+
         # 如果未提供 filenames，則處理所有 BimModel
         if not filenames:
             bim_models = models.BimModel.objects.all()
@@ -261,7 +263,7 @@ class BimUpdateCategoriesView(APIView):
         elif not isinstance(filenames, list):
             return Response({"error": "The 'filenames' parameter must be a list."},
                             status=status.HTTP_400_BAD_REQUEST)
-    
+
         processed_files = []
         errors = []
 
@@ -377,32 +379,24 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         filters = Q()
         if value:
-            filters &= Q(value__icontains=value)  # 模糊搜尋
+            filters &= Q(value__icontains=value)
 
         if categories:
             try:
-                category_list = json.loads(categories)  # 解析 JSON
+                category_list = json.loads(categories)
                 category_qs = models.BimCategory.objects.filter(
-                    Q(*[
-                        Q(bim_group_id=cat["bim_group"], value=cat["value"])
-                        for cat in category_list
-                    ])
-                ).values_list("id", flat=True)  # 只取 ID，提高查詢效能
-                filters &= Q(category_id__in=list(category_qs))  # 用 category_id 過濾
+                    Q(*[Q(bim_group_id=cat["bim_group"], value=cat["value"]) for cat in category_list])
+                ).values_list("id", flat=True)
+                filters &= Q(category_id__in=list(category_qs))
             except json.JSONDecodeError:
                 raise ValidationError("category 參數格式錯誤，應為 JSON 陣列")
 
-        # 子查詢：獲取每個 BimModel 的最新 version 的 conversion_id
         latest_conversion = Subquery(
             models.BimConversion.objects.filter(
-                bim_model=OuterRef('category__conversion__bim_model')  # 修改為從 category__conversion 獲取
+                bim_model=OuterRef('category__conversion__bim_model')
             ).order_by('-version').values('id')[:1]
         )
 
-        ip_address = request.META.get('REMOTE_ADDR')
-        log_user_activity(self.request.user, '圖資檢索', f'查詢 {categories}; {value}', 'SUCCESS', ip_address)
-
-        # 過濾只包含最新 version 的 BimObject，透過 category__conversion
         return models.BimObject.objects.filter(
             filters,
             category__conversion__id__in=latest_conversion
@@ -411,3 +405,27 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         ).prefetch_related(
             'category__bim_group', 'category__conversion__bim_model'
         )
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        ip_address = request.META.get('REMOTE_ADDR')
+        log_user_activity(self.request.user, '圖資檢索',
+                          f'查詢 {request.query_params.get("category")}; {request.query_params.get("value")}', 'SUCCESS', ip_address)
+        return response
+
+
+class BimModelWithCategoriesViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = models.BimModel.objects.all()
+    serializer_class = serializers.BimModelWithCategoriesSerializer
+
+    def get_queryset(self):
+        print("get_queryset called")
+        queryset = models.BimModel.objects.prefetch_related(
+            Prefetch(
+                'bim_conversions__bim_categories',
+                queryset=models.BimCategory.objects.filter(is_active=True).select_related('bim_group'),
+                to_attr='active_categories'
+            )
+        ).all()
+        print("Queries executed:", len(connection.queries))
+        return queryset

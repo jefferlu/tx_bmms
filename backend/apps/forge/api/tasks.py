@@ -420,37 +420,24 @@ and value='(02)26553456'
 -- where  _objects_id.id=13803
 
 4.
+WITH filtered_eav AS (
+    SELECT eav.entity_id, attrs.display_name, vals.value
+    FROM _objects_eav eav
+    JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
+    JOIN _objects_val vals ON vals.id = eav.value_id
+    WHERE attrs.display_name IN ('COBie.Floor.Name','COBie.Space.Name','COBie.Space.RoomTag','COBie.Type.Name','COBie.Type.Category','COBie.Type.Manufacturer','Cobie.Type.ModelNumber','COBie.Type.WarrantyGuarantorLabor')
+)
 SELECT DISTINCT 
-                eav.entity_id AS dbid, 
-                name_vals.value AS value,
-                parent_vals.value AS parent,
-                GROUP_CONCAT(child_vals.value) AS child,
-                CASE WHEN EXISTS (
-                    SELECT 1 FROM _objects_eav eav2
-                    JOIN _objects_attr attrs2 ON attrs2.id = eav2.attribute_id
-                    WHERE eav2.entity_id = eav.entity_id AND attrs2.category = '__child__'
-                ) THEN 0 ELSE 1 END AS is_leaf,
-                parent_name_vals.value AS parent_name
-            FROM _objects_eav eav
-            JOIN _objects_attr name_attrs ON name_attrs.id = eav.attribute_id AND name_attrs.category = '__name__'
-            JOIN _objects_val name_vals ON name_vals.id = eav.value_id
-            LEFT JOIN _objects_eav parent_eav ON parent_eav.entity_id = eav.entity_id
-                AND parent_eav.attribute_id = (SELECT id FROM _objects_attr WHERE category = '__parent__')
-            LEFT JOIN _objects_val parent_vals ON parent_vals.id = parent_eav.value_id
-            LEFT JOIN _objects_eav child_eav ON child_eav.entity_id = eav.entity_id
-                AND child_eav.attribute_id = (SELECT id FROM _objects_attr WHERE category = '__child__')
-            LEFT JOIN _objects_val child_vals ON child_vals.id = child_eav.value_id
-            LEFT JOIN _objects_eav parent_name_eav ON parent_name_eav.entity_id = parent_vals.value
-                AND parent_name_eav.attribute_id = (SELECT id FROM _objects_attr WHERE category = '__name__')
-            LEFT JOIN _objects_val parent_name_vals ON parent_name_vals.id = parent_name_eav.value_id
-            WHERE eav.entity_id IN (
-                SELECT eav.entity_id
-                FROM _objects_eav eav
-                JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
-                JOIN _objects_val vals ON vals.id = eav.value_id
-                WHERE attrs.display_name IN ('COBie.Floor.Name','COBie.Space.Name','COBie.Space.RoomTag','COBie.Type.Name','COBie.Type.Category','COBie.Type.Manufacturer','Cobie.Type.ModelNumber','COBie.Type.WarrantyGuarantorLabor')
-				and vals.value='(02)26553456'
-            )
-			
-            GROUP BY eav.entity_id, name_vals.value, parent_vals.value, parent_name_vals.value
+    eav.entity_id AS dbid,
+    name_vals.value AS value,
+    cat.display_name AS category_display_name,
+    cat.value AS category_value
+FROM _objects_eav eav
+JOIN _objects_attr name_attrs ON name_attrs.id = eav.attribute_id AND name_attrs.category = '__name__'
+JOIN _objects_val name_vals ON name_vals.id = eav.value_id
+LEFT JOIN filtered_eav cat ON cat.entity_id = eav.entity_id
+WHERE eav.entity_id IN (
+    SELECT entity_id FROM filtered_eav
+)
+GROUP BY eav.entity_id, name_vals.value, cat.display_name, cat.value
 '''

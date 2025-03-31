@@ -8,12 +8,12 @@
                 <!-- Header -->
                 <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">{{t('advanced-search')}}</div>
                 <!-- Search -->
-                <div class="flex items-center space-x-3 sm:ml-2 sm:mt-0">
+                <!-- <div class="flex items-center space-x-3 sm:ml-2 sm:mt-0">
                     <button mat-flat-button color="warn" (click)="onSearch()">
                         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
                         <span class="ml-2">{{t('search')}}</span>
                     </button>
-                </div>
+                </div> -->
             </div>
             <div>
                 <div class="flex flex-col sm:flex-row  mx-10 px-6 py-2 md:px-8 gap-20">
@@ -22,7 +22,7 @@
                         <div class="flex-shrink-0 leading-8 mr-9 font-semibold">標別 :</div>
                         <div class="flex flex-wrap">
                             <p-select [options]="tenderOptions" [checkmark]="true" [(ngModel)]="selectedTender" (onChange)="onTenderChange(selectedTender)"
-                                placeholder="Select Tender" class="w-full md:w-56">
+                                placeholder="Select Tender" class="w-full md:w-64 px-2">
                             </p-select>
                         </div>
                     </div>
@@ -31,24 +31,14 @@
                     <div class="flex items-center gap-2">
                         <div class="flex-shrink-0 leading-8 mr-9 font-semibold">檔名 :</div>
                         <div class="flex flex-wrap">
-                            <p-multiselect [options]="nameOptions" [(ngModel)]="selectedNames" [filter]="false" [showToggleAll]="false"
-                                placeholder="--" [maxSelectedLabels]="1" [disabled]="!selectedTender" class="w-full md:w-80">
+                            <p-multiselect [options]="nameOptions" [(ngModel)]="selectedNames" [filter]="false" [showToggleAll]="false" placeholder="--"
+                                [maxSelectedLabels]="1" [disabled]="!selectedTender" class="w-full md:w-80" (onChange)="onNameSelectionChange($event)">
                             </p-multiselect>
                         </div>
                     </div>
                 </div>
 
-                <!-- 關鍵字查詢 -->
-                <div class="flex items-center mx-10 px-6 py-2 md:px-8">
-                    <div class="flex-shrink-0 items-center justify-center mr-9 leading-8 font-semibold">關鍵字 :</div>
-                    <div class='flex flex-wrap gap-2'>
-                        <div class="">
-                            <input type="text"
-                                class="px-2 py-1.5 border rounded w-full sm:min-w-64 focus:border-white bg-gray-700 border-gray-600 placeholder:text-gray-400 text-white"
-                                placeholder="請輸入關鍵字..." (input)="onKeywordChange($event)" />
-                        </div>
-                    </div>
-                </div>
+
             </div>
 
             <div class="flex flex-row items-center justify-between p-4 mt-6">
@@ -74,13 +64,25 @@
                     </div>
                 </div>
 
+                <!-- 關鍵字查詢 -->
+                <div class="flex items-center mx-10 px-6 py-2 md:px-8 border-b">
+                    <div class="flex-shrink-0 items-center justify-center mr-9 leading-8 font-semibold">關鍵字 :</div>
+                    <div class='flex flex-wrap gap-2'>
+                        <div class="">
+                            <input type="text"
+                                class="px-2 py-1.5 border rounded w-full sm:min-w-64 focus:border-white bg-gray-700 border-gray-600 placeholder:text-gray-400 text-white"
+                                placeholder="請輸入關鍵字..." (input)="onKeywordChange($event)" />
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 動態條件 -->
-                @for(criterion of criteria;track criterion){
+                @for(criterion of criteria;track criterion.id){
                 <div class="flex items-center mx-10 px-6 py-2 md:px-8 cursor-pointer border-b">
                     <div class="flex-shrink-0 self-start items-center justify-center mr-4 leading-8 font-semibold">{{criterion.name}} :</div>
                     <div class="flex flex-wrap gap-2 transition-all duration-300"
                         [ngClass]="{'max-h-10 overflow-hidden': !criterion.collapse, 'max-h-[1000px] overflow-visible': criterion.collapse}">
-                        @for (item of criterion.bim_categories; track item) {
+                        @for (item of criterion.bim_categories; track item.id) {
                         <span class="py-1 px-2 rounded cursor-pointer text-center border hover:border-gray-400"
                             [ngClass]="{'border-gray-50': item.selected, 'border-transparent': !item.selected}" (click)="onSelected(item)">
                             {{ item.value }}
@@ -144,8 +146,8 @@
             <!-- Result table -->
             <div class="flex h-160">
                 <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="data?.count" [scrollable]="true" scrollHeight="flex"
-                    [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [paginator]="true" [lazy]="true" [selection]="selectedItems"
-                    (onLazyLoad)="onPageChange($event)" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
+                    selectionMode="multiple" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [paginator]="true" [lazy]="true"
+                    [selection]="selectedItems" (onLazyLoad)="onPageChange($event)" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
                             <th class="w-20 pl-8"></th>
@@ -159,7 +161,7 @@
                         </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
-                        <tr class="hover:bg-hover">
+                        <tr class="hover:bg-hover" [pSelectableRow]="item" [pSelectableRowIndex]="rowIndex">
                             <td class="pl-8">
                                 <p-tableCheckbox [value]="item" />
                             </td>
@@ -170,6 +172,18 @@
                             <td>{{ item.category }}</td>
                             <td>{{ item.value }}</td>
                             <td>{{ item.dbid }}</td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="9" class="text-center border-0">
+                                <div class="flex flex-auto flex-col items-center justify-center h-140">
+                                    <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"></mat-icon>
+                                    <div class="text-secondary mt-4 font-semibold tracking-tight">
+                                        {{t('no-data')}}
+                                    </div>
+                                </div>
+                            </td>
                         </tr>
                     </ng-template>
                 </p-table>

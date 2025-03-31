@@ -88,10 +88,7 @@
   .p-select-option-check-icon {
     @apply text-inherit;
   }
- 
 }
-
-
 
 /* MultiSelect */
 .p-multiselect {
@@ -167,6 +164,12 @@
       @apply border-inherit #{'!important'};
     }
   }
+}
+
+.p-datatable-hoverable
+  .p-datatable-tbody
+  > tr:not(.p-datatable-row-selected):hover {
+  @apply dark:bg-transparent;
 }
 
 .p-toggleswitch {

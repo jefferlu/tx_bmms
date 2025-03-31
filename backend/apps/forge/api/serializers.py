@@ -47,6 +47,12 @@ class BimCategorySerializer(serializers.ModelSerializer):
         model = models.BimCategory
         fields = ['id', 'value', 'display_name', 'bim_group', 'conversion']  # 添加 conversion
 
+    def to_representation(self, instance):
+        # 根據 context['fields'] 來動態選擇需要回傳的欄位
+        fields = self.context.get('fields', self.Meta.fields)
+        data = super().to_representation(instance)
+        return {key: value for key, value in data.items() if key in fields}
+
 
 class BimGroupSerializer(serializers.ModelSerializer):
     bim_categories = BimCategorySerializer(many=True, read_only=True)
@@ -72,3 +78,25 @@ class BimObjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BimObject
         fields = ['id', 'model_name', 'version', 'group_name', 'category', 'urn', 'dbid', 'value']
+
+
+class BimModelWithCategoriesSerializer(serializers.ModelSerializer):
+    categories = serializers.SerializerMethodField()
+    tender = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.BimModel
+        fields = ['id', 'tender', 'name', 'categories']
+
+    def get_tender(self, obj):
+        return get_tender_name(obj.name)
+
+    def get_categories(self, obj):
+        if obj.bim_conversions.exists():
+            latest_conversion = sorted(obj.bim_conversions.all(), key=lambda x: x.version, reverse=True)[0]
+            return BimCategorySerializer(
+                latest_conversion.active_categories,
+                many=True,
+                context={'fields': ['id']}
+            ).data
+        return []

@@ -23,25 +23,26 @@ export class AppService {
 
     get(method: string, params?: any, request?: any): Observable<any> {
         let queryString = '';
-        for (let key in params) {
-            if (queryString === '')
-                queryString = `?${key}=${params[key]}`
-            else
-                queryString += `&${key}=${params[key]}`
-
+        if (params) {
+            const queryParams = [];
+            for (let key in params) {
+                // 對每個參數的值進行 URL 編碼
+                const encodedValue = encodeURIComponent(params[key]);
+                queryParams.push(`${key}=${encodedValue}`);
+            }
+            // 將所有參數用 & 連接，並在開頭添加 ?
+            queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
         }
 
         let url = `${endpoint}/${method}/${queryString}`;
-        // console.log(url)
+        // console.log(url); // 檢查生成的 URL
         return this._httpClient.get(url, request).pipe(
             switchMap((res: any) => {
                 return of(res);
             }),
             catchError((e) => {
-
-                console.log(e)
+                console.log(e);
                 this._handleError(e);
-
                 // Return false
                 return throwError(() => e);
             })
