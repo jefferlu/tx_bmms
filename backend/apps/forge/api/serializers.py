@@ -12,7 +12,6 @@ class ObjectSerializer(serializers.Serializer):
     size = serializers.IntegerField()
     location = serializers.CharField()
     is_oss = serializers.SerializerMethodField()
-    # status = serializers.CharField()
 
     def get_is_oss(self, obj):
         return True
@@ -42,10 +41,11 @@ class BimModelSerializer(serializers.ModelSerializer):
 
 
 class BimCategorySerializer(serializers.ModelSerializer):
+    conversion = BimConversionSerializer(read_only=True)  # 新增 conversion 欄位
 
     class Meta:
         model = models.BimCategory
-        fields = ['id', 'value', 'display_name', 'bim_group']
+        fields = ['id', 'value', 'display_name', 'bim_group', 'conversion']  # 添加 conversion
 
 
 class BimGroupSerializer(serializers.ModelSerializer):
@@ -63,11 +63,11 @@ class BimGroupSerializer(serializers.ModelSerializer):
 
 
 class BimObjectSerializer(serializers.ModelSerializer):
-    model_name = serializers.ReadOnlyField(source='conversion.bim_model.name')
-    version = serializers.ReadOnlyField(source='conversion.version')
+    model_name = serializers.ReadOnlyField(source='category.conversion.bim_model.name')  # 修改路徑
+    version = serializers.ReadOnlyField(source='category.conversion.version')  # 修改路徑
     group_name = serializers.ReadOnlyField(source='category.bim_group.name')
     category = serializers.ReadOnlyField(source='category.value')
-    urn = serializers.ReadOnlyField(source='conversion.urn')
+    urn = serializers.ReadOnlyField(source='category.conversion.urn')  # 修改路徑
 
     class Meta:
         model = models.BimObject

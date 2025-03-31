@@ -23,7 +23,7 @@ from django_auto_prefetching import AutoPrefetchViewSetMixin
 
 from drf_spectacular.utils import extend_schema
 
-from apps.forge.api.tasks import bim_data_import
+from apps.forge.api.tasks import bim_data_import, bim_update_categories
 from apps.forge.services import check_redis, get_aps_credentials, get_aps_bucket
 
 from ..aps_toolkit import Auth, Bucket, Derivative, PropReader
@@ -177,195 +177,6 @@ class CompareSqliteView(APIView):
 
         return Response({'result': diff_df}, status=status.HTTP_200_OK)
 
-# class CompareSqliteView(APIView):
-#     def fetch_eav_data_from_db(self, db_file):
-#         """從 SQLite 資料庫中抓取 _objects_eav 的資料"""
-#         conn = sqlite3.connect(db_file)
-#         query = """
-#         SELECT
-#             eav.entity_id,
-#             eav.attribute_id,
-#             eav.value_id
-#         FROM
-#             _objects_eav AS eav
-#         """
-#         df = pd.read_sql_query(query, conn)
-#         conn.close()
-#         return df
-
-#     def compare_eav_tables(self, db_file_1, db_file_2):
-#         """比對兩個資料庫中的 _objects_eav 資料表差異"""
-#         # 從兩個資料庫抓取 _objects_eav 的資料
-#         df1 = self.fetch_eav_data_from_db(db_file_1)
-#         df2 = self.fetch_eav_data_from_db(db_file_2)
-
-#         # 比對 _objects_eav 資料表，找出不同的行
-#         merged_df = pd.merge(df1, df2, on=["entity_id", "attribute_id", "value_id"], how="outer", indicator=True)
-
-#         # 只保留存在差異的資料
-#         diff_eav_df = merged_df[merged_df['_merge'] != 'both']
-
-#         return diff_eav_df
-
-#     def join_with_other_tables(self, db_file, diff_eav_df):
-#         """將差異資料與其他表進行 JOIN，獲取相關資訊"""
-#         # 連接資料庫
-#         conn = sqlite3.connect(db_file)
-
-#         # 根據差異資料的 entity_id 和 value_id 進行 JOIN 操作，獲取 display_name 和 value
-#         query = """
-#         SELECT
-#             eav.entity_id,
-#             attr.category,
-#             attr.display_name,
-#             val.value
-#         FROM
-#             _objects_eav AS eav
-#         JOIN
-#             _objects_attr AS attr ON eav.attribute_id = attr.id
-#         JOIN
-#             _objects_val AS val ON eav.value_id = val.id
-#         WHERE
-#             eav.entity_id IN ({})
-#         """.format(','.join([str(x) for x in diff_eav_df['entity_id'].unique()]))
-
-#         # 執行查詢並返回結果
-#         result_df = pd.read_sql_query(query, conn)
-#         conn.close()
-
-#         return result_df
-
-#     def compare_sqlite_databases(self, db_file_1, db_file_2):
-#         """比較兩個 SQLite 資料庫，並將差異結果進行 JOIN"""
-#         # 先比對 _objects_eav 資料表的差異
-#         diff_eav_df = self.compare_eav_tables(db_file_1, db_file_2)
-
-#         if not diff_eav_df.empty:
-#             # 若有差異，則進行其他表的 JOIN 操作
-#             final_result_df_1 = self.join_with_other_tables(db_file_1, diff_eav_df)
-#             final_result_df_2 = self.join_with_other_tables(db_file_2, diff_eav_df)
-
-#             # 合併兩個結果，並標示出每個資料的來源 (model_1 或 model_2)
-#             final_df = pd.merge(final_result_df_1, final_result_df_2, on=["entity_id", "category", "display_name"], suffixes=("_model_1", "_model_2"))
-
-#             # 比較 value 欄位，找出差異
-#             final_df["value_diff"] = final_df["value_model_1"] != final_df["value_model_2"]
-
-#             # 只保留有差異的部分（value_diff為True）
-#             diff_df = final_df[final_df["value_diff"] == True]
-
-#             # 只顯示需要的欄位
-#             diff_df = diff_df[["entity_id", "category", "display_name", "value_model_1", "value_model_2", "value_diff"]]
-
-#             return diff_df
-#         else:
-#             return pd.DataFrame()
-
-#     def get(self, request):
-#         try:
-#             path = os.path.join(Path(__file__).parent.parent.parent.parent, "media-root/database")
-
-#             # 連接到兩個 SQLite 資料庫
-#             model_1_db = f'{path}/TEST.rvt.db'
-#             model_2_db = f'{path}/TEST(刪除管線).rvt.db'
-#             print('start compare...')
-#             # 比較兩個 SQLite 資料庫
-#             # diff_df = self.compare_sqlite_databases(model_1_db, model_2_db)
-#             diff_eav_df = self.compare_eav_tables(model_1_db, model_2_db)
-#             diff_dict = diff_eav_df.to_dict(orient='records')
-
-#             # 顯示比較結果
-#             if not diff_eav_df.empty:
-#                 print("模型之間的差異：")
-#                 print(diff_eav_df)
-#             else:
-#                 print("兩個模型之間沒有差異。")
-
-#             return Response({'result': diff_dict}, status=status.HTTP_200_OK)
-#         except sqlite3.DatabaseError as e:
-#             return Response({'error': f'SQLite database error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-#         except Exception as e:
-#             return Response({'error': f'An unexpected error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-# class CompareSqliteView(APIView):
-#     def compare_models(self, model_1_db, model_2_db):
-#         """比較兩個模型的屬性差異"""
-#         try:
-#             query = """
-#                 SELECT
-#                     t1.id,
-#                     t1.external_id,
-#                     t2.category,
-#                     t2.display_name,
-#                     t3.value
-#                 FROM _objects_id AS t1
-#                     JOIN _objects_eav AS eav1 ON t1.id = eav1.entity_id
-#                     JOIN _objects_attr AS t2 ON eav1.attribute_id = t2.id
-#                     JOIN _objects_val AS t3 ON eav1.value_id = t3.id
-#             """
-#             # query = """
-#             # SELECT _objects_id.external_id,
-#             #        _objects_attr.category,
-#             #        _objects_attr.display_name,
-#             #        _objects_val.value
-#             # FROM _objects_id
-#             # JOIN _objects_eav ON _objects_id.id = _objects_eav.entity_id
-#             # JOIN _objects_attr ON _objects_eav.attribute_id = _objects_attr.id
-#             # JOIN _objects_val ON _objects_eav.value_id = _objects_val.id
-#             # """
-
-#             # 連接到第一個資料庫並抓取數據
-#             connection_1 = sqlite3.connect(model_1_db)
-#             df1 = pd.read_sql_query(query, connection_1)
-#             connection_1.close()
-
-#             # 連接到第二個資料庫並抓取數據
-#             connection_2 = sqlite3.connect(model_2_db)
-#             df2 = pd.read_sql_query(query, connection_2)
-#             connection_2.close()
-
-#             # 將兩個 DataFrame 合併，並找出不一致的部分
-#             merged_df = pd.merge(df1, df2, on=["id", "category", "display_name"],
-#                                  how="outer", suffixes=("_model_1", "_model_2"))
-
-#             # 比較 value 欄位，找出差異
-#             merged_df["value_diff"] = merged_df["value_model_1"] != merged_df["value_model_2"]
-
-#             # 只保留有差異的部分（value_diff為True）
-#             diff_df = merged_df[merged_df["value_diff"] == True]
-
-#             # 回傳差異結果
-#             return diff_df
-
-#         except Exception as e:
-#             return f"發生錯誤: {e}"
-
-#     def get(self, request):
-#         try:
-#             path = os.path.join(Path(__file__).parent.parent.parent.parent, "media-root/database")
-
-#             # 連接到兩個 SQLite 資料庫
-#             model_1_db = f'{path}/TEST.rvt.db'
-#             model_2_db = f'{path}/TEST(刪除管線).rvt.db'
-
-#             # 比較兩個模型
-#             diff_df = self.compare_models(model_1_db, model_2_db)
-
-
-#             if isinstance(diff_df, pd.DataFrame) and not diff_df.empty:
-#                 print("模型之間的差異：")
-#                 print(diff_df)
-#             else:
-#                 print("模型之間沒有差異")
-#                 print(diff_df)
-
-#             return Response({'result': diff_df},status=status.HTTP_200_OK)
-#         except sqlite3.DatabaseError as e:
-#             return Response({'error': f'SQLite database error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-#         except Exception as e:
-#             return Response({'error': f'An unexpected error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @extend_schema(
     summary="BIM data import",
@@ -381,7 +192,7 @@ class BimDataImportView(APIView):
 
         file = request.FILES.get('file')
         if not file:
-            return Response({"error": "No file provided"}, status=400)
+            return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         # check_redis('localhost')
 
@@ -400,7 +211,7 @@ class BimDataImportView(APIView):
         log_user_activity(self.request.user, '模型匯入', f'匯入{file.name}', 'SUCCESS', ip_address)
 
         # 回應上傳成功的訊息
-        return Response({"message": f"File '{file.name}' is being processed."}, status=200)
+        return Response({"message": f"File '{file.name}' is being processed."}, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -414,31 +225,95 @@ class BimDataReloadView(APIView):
         client_id, client_secret = get_aps_credentials(request.user)
         bucket_key = get_aps_bucket(client_id, client_secret)
 
-        filename = request.data.get('filename')
-        if not filename:
-            return Response({"error": "No filename provided"}, status=400)
+        file_name = request.data.get('filename')
+        if not file_name:
+            return Response({"error": "No filename provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 執行Autodesk Model Derivative API轉換
-        bim_data_import.delay(client_id, client_secret, bucket_key, filename, 'progress_group', True)
+        bim_data_import.delay(client_id, client_secret, bucket_key, file_name, 'progress_group', True)
         # bim_data_import(client_id, client_secret, bucket_key, filename, 'progress_group', True)
 
         # 記錄操作
         ip_address = request.META.get('REMOTE_ADDR')
-        log_user_activity(self.request.user, '模型匯入', f'重新匯入{filename}', 'SUCCESS', ip_address)
+        log_user_activity(self.request.user, '模型匯入', f'重新匯入{file_name}', 'SUCCESS', ip_address)
 
         # 回應上傳成功的訊息
-        return Response({"message": f"File '{filename}' is being processed."}, status=200)
+        return Response({"message": f"File '{file_name}' is being processed."}, status=status.HTTP_200_OK)
+
+
+class BimUpdateCategoriesView(APIView):
+    def post(self, request, *args, **kwargs):
+        """
+        POST 請求，異步更新多個檔案的 BimCategory 和 BimObject。
+        處理所有 BimModel
+        """
+
+        # 獲取請求參數
+        filenames = request.data.get('filenames')
+       
+        # 如果未提供 filenames，則處理所有 BimModel
+        if not filenames:
+            bim_models = models.BimModel.objects.all()
+            if not bim_models:
+                return Response({"error": "No BimModel found in the database."},
+                                status=status.HTTP_404_NOT_FOUND)
+            filenames = [model.name for model in bim_models]
+        elif not isinstance(filenames, list):
+            return Response({"error": "The 'filenames' parameter must be a list."},
+                            status=status.HTTP_400_BAD_REQUEST)
+    
+        processed_files = []
+        errors = []
+
+        # 迴圈處理每個檔案
+        for file_name in filenames:
+            # 獲取最新的 BimConversion
+            latest_conversion = models.BimConversion.objects.filter(
+                bim_model__name=file_name
+            ).order_by('-version').first()
+
+            if not latest_conversion:
+                errors.append(f"No BimConversion found for file_name '{file_name}'.")
+                continue
+
+            bim_conversion = latest_conversion
+
+            # 確定 SQLite 檔案路徑
+            sqlite_path = f"media-root/database/{file_name}.db"
+            if not os.path.exists(sqlite_path):
+                errors.append(f"SQLite file not found at: {sqlite_path}")
+                continue
+
+            # 提交 Celery 任務
+            bim_update_categories.delay(sqlite_path, bim_conversion.id, file_name, 'update_category_group')
+            processed_files.append({
+                "file_name": file_name,
+                "version": bim_conversion.version
+            })
+
+        # 回應結果
+        response_data = {
+            "message": f"Update tasks submitted for {len(processed_files)} files.",
+            "processed_files": processed_files
+        }
+        if errors:
+            response_data["errors"] = errors
+            status_code = status.HTTP_207_MULTI_STATUS if processed_files else status.HTTP_400_BAD_REQUEST
+        else:
+            status_code = status.HTTP_202_ACCEPTED
+
+        return Response(response_data, status=status_code)
 
 
 class BimGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.BimGroup.objects.filter(is_active=True).prefetch_related(
-        Prefetch('bim_categories', queryset=models.BimCategory.objects.filter(is_active=True).order_by('value'))
+        Prefetch('bim_categories', queryset=models.BimCategory.objects.filter(
+            is_active=True).select_related('conversion').order_by('value'))
     )
     serializer_class = serializers.BimGroupSerializer
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
-        # 移除 None (null) 的項目
         response.data = [item for item in response.data if item is not None]
         return response
 
@@ -497,7 +372,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         value = request.query_params.get('value', None)
         categories = request.query_params.get('category', None)
 
-        print(value, categories)
         if not value and not categories:
             raise ValidationError("請提供至少一個查詢參數 'value' 或 'category'。")
 
@@ -514,7 +388,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         for cat in category_list
                     ])
                 ).values_list("id", flat=True)  # 只取 ID，提高查詢效能
-
                 filters &= Q(category_id__in=list(category_qs))  # 用 category_id 過濾
             except json.JSONDecodeError:
                 raise ValidationError("category 參數格式錯誤，應為 JSON 陣列")
@@ -522,23 +395,19 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         # 子查詢：獲取每個 BimModel 的最新 version 的 conversion_id
         latest_conversion = Subquery(
             models.BimConversion.objects.filter(
-                bim_model=OuterRef('conversion__bim_model')
+                bim_model=OuterRef('category__conversion__bim_model')  # 修改為從 category__conversion 獲取
             ).order_by('-version').values('id')[:1]
         )
 
         ip_address = request.META.get('REMOTE_ADDR')
         log_user_activity(self.request.user, '圖資檢索', f'查詢 {categories}; {value}', 'SUCCESS', ip_address)
 
-        print('filters', filters)
-
-        # 過濾只包含最新 version 的 BimObject
+        # 過濾只包含最新 version 的 BimObject，透過 category__conversion
         return models.BimObject.objects.filter(
             filters,
-            conversion__id__in=latest_conversion
+            category__conversion__id__in=latest_conversion
         ).select_related(
-            'category', 'category__bim_group', 'conversion', 'conversion__bim_model'
+            'category', 'category__bim_group', 'category__conversion', 'category__conversion__bim_model'
         ).prefetch_related(
-            'category__bim_group', 'conversion__bim_model'  # 預先加載相關表
+            'category__bim_group', 'category__conversion__bim_model'
         )
-
-        

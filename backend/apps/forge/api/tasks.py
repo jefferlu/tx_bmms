@@ -1,7 +1,7 @@
 import os
 import time
 import json
-import urllib.parse
+import sqlite3
 import pandas as pd
 
 from django.db import transaction
@@ -92,7 +92,6 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     # Step 5: Download SQLite
     send_progress('download-sqlite', 'Downloading SQLite to server...')
     db = DbReader(urn, token, object_data['objectKey'])
-    sqlite_path = f"{download_dir}/{file_name}.sqlite"
 
     # Step 6: Process SQLite Data
     group_types = models.BimGroup.objects.filter(is_active=True).prefetch_related(
@@ -108,7 +107,6 @@ def process_translation(urn, token, file_name, object_data, send_progress):
         value_clauses = [f"(attrs.display_name = '{d}' AND vals.value = '{v}')" for d, v in value_conditions.items()]
         where_clause = f"({where_clause}) AND ({' OR '.join(value_clauses)})"
     where_clause = where_clause if display_names else "1=0"
-    send_progress('where_clause', where_clause)
 
     # Extract BimCategory
     send_progress('extract-bimcategory', 'Extracting BimCategory from SQLite...')
@@ -123,20 +121,7 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     send_progress('extract-bimcategory', f'Extracted {len(df)} BimCategory records.')
 
     with transaction.atomic():
-        send_progress('process-bimcategory', 'Processing BimCategory records...')
-        for i, row in enumerate(df.itertuples(), 1):
-            group = models.BimGroup.objects.filter(types__display_name=row.display_name).first()
-            if group:
-                models.BimCategory.objects.update_or_create(
-                    bim_group=group,
-                    value=row.value,
-                    defaults={'display_name': row.display_name}
-                )
-            if i % 100 == 0:
-                send_progress('process-bimcategory', f'Processed {i}/{len(df)} BimCategory records.')
-        send_progress('process-bimcategory', 'BimCategory processing completed.')
-
-        # Create BimModel and BimConversion
+        # Create BimModel and BimConversion first
         send_progress('process-model-conversion', 'Creating BimModel and BimConversion...')
         bim_model, _ = models.BimModel.objects.get_or_create(name=file_name)
         version = bim_model.bim_conversions.count() + 1
@@ -148,6 +133,26 @@ def process_translation(urn, token, file_name, object_data, send_progress):
             svf_file=f"media-root/svf/{file_name}"
         )
         send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{version}) created.')
+
+        # Process BimCategory records with BimConversion
+        send_progress('process-bimcategory', 'Processing BimCategory records...')
+        bim_categories = {}
+        for i, row in enumerate(df.itertuples(), 1):
+            group = models.BimGroup.objects.filter(types__display_name=row.display_name).first()
+            if group:
+                category, _ = models.BimCategory.objects.update_or_create(
+                    bim_group=group,
+                    conversion=bim_conversion,
+                    value=row.value,
+                    defaults={
+                        'display_name': row.display_name,
+                        'conversion': bim_conversion  # 將 conversion 綁定到 BimCategory
+                    }
+                )
+                bim_categories[row.value] = category  # 儲存映射供後續使用
+            if i % 100 == 0:
+                send_progress('process-bimcategory', f'Processed {i}/{len(df)} BimCategory records.')
+        send_progress('process-bimcategory', 'BimCategory processing completed.')
 
         # Extract BimObject and Category data from SQLite
         send_progress('extract-bimobject', 'Extracting BimObject and Category data from SQLite...')
@@ -176,26 +181,16 @@ def process_translation(urn, token, file_name, object_data, send_progress):
         obj_df = db.execute_query(query)
         send_progress('extract-bimobject', f'Extracted {len(obj_df)} BimObject records with category info.')
 
-        # 預載 BimCategory 映射
-        bim_categories = {cat.value: cat for cat in models.BimCategory.objects.filter(bim_group__is_active=True)}
-
-        # 在 DataFrame 中處理資料
-        send_progress('process-bimobject', 'Processing BimObject records in DataFrame...')
-        obj_df['category'] = obj_df.apply(
-            lambda row: bim_categories.get(
-                row['category_value']) if row['category_display_name'] in display_names and row['category_value'] in bim_categories else None,
-            axis=1
-        )
-        obj_df = obj_df[obj_df['category'].notnull()].copy()  # 只保留有效 category
-
-        # 構建 BimObject 物件
+        # Process BimObject records (no conversion field)
+        send_progress('process-bimobject', 'Processing BimObject records...')
         bim_objects = [
             models.BimObject(
-                category=row['category'],
-                conversion=bim_conversion,
+                category=bim_categories.get(row['category_value']),
                 dbid=row['dbid'],
                 value=row['value']
-            ) for _, row in obj_df.iterrows()
+            )
+            for _, row in obj_df.iterrows()
+            if row['category_value'] in bim_categories  # 確保 category 存在
         ]
         send_progress('process-bimobject', f'Processed {len(bim_objects)} valid BimObject records.')
 
@@ -205,6 +200,156 @@ def process_translation(urn, token, file_name, object_data, send_progress):
         send_progress('process-bimobject', f'BimObject processing completed: {len(bim_objects)} records inserted.')
 
         send_progress('complete', 'BIM data import completed.')
+
+
+@shared_task
+def bim_update_categories(sqlite_path, bim_conversion_id, file_name, group_name):
+    """
+    根據本地的 SQLite 檔案和最新的 BimGroup 更新 BimCategory 和 BimObject。
+    - 刪除指定 conversion 的舊 BimCategory 和 BimObject。
+    - 根據新的 BimGroup 重新生成相同版本的 BimCategory 和 BimObject。
+    """
+    def send_progress(status, message):
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            group_name, {
+                'type': 'update.category',
+                'name': file_name,
+                'status': status,
+                'message': message
+            },
+        )
+
+    try:
+        # 根據 ID 查詢 BimConversion
+        bim_conversion = models.BimConversion.objects.get(id=bim_conversion_id)
+
+        # Step 1: 從 BimGroup 獲取條件
+        group_types = models.BimGroup.objects.filter(is_active=True).prefetch_related(
+            'types').values('types__display_name', 'types__value')
+        if not group_types:
+            print('error', "No active BimGroup types found.")
+            send_progress('error', "No active BimGroup types found.")
+            raise Exception("No active BimGroup types found.")
+
+        display_names = [gt['types__display_name'] for gt in group_types]
+        value_conditions = {gt['types__display_name']: gt['types__value'] for gt in group_types if gt['types__value']}
+        display_names_str = ','.join([f"'{d}'" for d in display_names])
+        where_clause = f"attrs.display_name IN ({display_names_str})"
+        if value_conditions:
+            value_clauses = [f"(attrs.display_name = '{d}' AND vals.value = '{v}')" for d, v in value_conditions.items()]
+            where_clause = f"({where_clause}) AND ({' OR '.join(value_clauses)})"
+        where_clause = where_clause if display_names else "1=0"
+        print('where_clause', where_clause)
+
+        # Step 2: 提取 BimCategory 資料
+        print('extract-bimcategory', 'Extracting BimCategory from SQLite...')
+        send_progress('extract-bimcategory', 'Extracting BimCategory from SQLite...')
+        conn = sqlite3.connect(sqlite_path)
+        category_query = f"""
+            SELECT DISTINCT attrs.display_name AS display_name, vals.value AS value
+            FROM _objects_eav eav
+            JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
+            JOIN _objects_val vals ON vals.id = eav.value_id
+            WHERE {where_clause}
+        """
+        df_categories = pd.read_sql_query(category_query, conn)
+
+        # Step 3: 提取 BimObject 資料
+        print('extract-bimobject', 'Extracting BimObject from SQLite...')
+        send_progress('extract-bimobject', 'Extracting BimObject from SQLite...')
+        object_query = f"""
+            WITH filtered_eav AS (
+                SELECT eav.entity_id, attrs.display_name, vals.value
+                FROM _objects_eav eav
+                JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
+                JOIN _objects_val vals ON vals.id = eav.value_id
+                WHERE {where_clause}
+            )
+            SELECT DISTINCT 
+                eav.entity_id AS dbid,
+                name_vals.value AS value,
+                cat.display_name AS category_display_name,
+                cat.value AS category_value
+            FROM _objects_eav eav
+            JOIN _objects_attr name_attrs ON name_attrs.id = eav.attribute_id AND name_attrs.category = '__name__'
+            JOIN _objects_val name_vals ON name_vals.id = eav.value_id
+            LEFT JOIN filtered_eav cat ON cat.entity_id = eav.entity_id
+            WHERE eav.entity_id IN (
+                SELECT entity_id FROM filtered_eav
+            )
+            GROUP BY eav.entity_id, name_vals.value, cat.display_name, cat.value
+        """
+        df_objects = pd.read_sql_query(object_query, conn)
+        conn.close()
+        print('extract-bimcategory', f'Extracted {len(df_categories)} BimCategory records.')
+        send_progress('extract-bimcategory', f'Extracted {len(df_categories)} BimCategory records.')
+        print('extract-bimobject', f'Extracted {len(df_objects)} BimObject records.')
+        send_progress('extract-bimobject', f'Extracted {len(df_objects)} BimObject records.')
+
+        # Step 4: 處理 BimCategory 和 BimObject
+        with transaction.atomic():
+            # 刪除舊的 BimCategory 和 BimObject
+            deleted_count_categories = models.BimCategory.objects.filter(conversion=bim_conversion).delete()[0]
+            print('process-bimcategory',
+                  f'Deleted {deleted_count_categories} old BimCategory records for conversion {bim_conversion.version}.')
+            send_progress('process-bimcategory',
+                          f'Deleted {deleted_count_categories} old BimCategory records for conversion {bim_conversion.version}.')
+            # 注意：如果 on_delete=CASCADE，這一步可能已經刪除了 BimObject，但為了明確性，我們仍檢查並清理
+            deleted_count_objects = models.BimObject.objects.filter(category__conversion=bim_conversion).delete()[0]
+            print('process-bimobject',
+                  f'Deleted {deleted_count_objects} old BimObject records for conversion {bim_conversion.version}.')
+            send_progress('process-bimobject',
+                          f'Deleted {deleted_count_objects} old BimObject records for conversion {bim_conversion.version}.')
+
+            # 重新生成 BimCategory
+            bim_categories = {}
+            for i, row in enumerate(df_categories.itertuples(), 1):
+                group = models.BimGroup.objects.filter(types__display_name=row.display_name).first()
+                if group:
+                    category = models.BimCategory.objects.create(
+                        bim_group=group,
+                        conversion=bim_conversion,
+                        value=row.value,
+                        display_name=row.display_name
+                    )
+                    bim_categories[row.value] = category
+                else:
+                    logger.warning(f"No BimGroup found for display_name: {row.display_name}")
+                if i % 100 == 0:
+                    print('process-bimcategory', f'Processed {i}/{len(df_categories)} BimCategory records.')
+                    send_progress('process-bimcategory', f'Processed {i}/{len(df_categories)} BimCategory records.')
+
+            # 重新生成 BimObject
+            bim_objects = []
+            for i, row in enumerate(df_objects.itertuples(), 1):
+                category = bim_categories.get(row.category_value)
+                if category:  # 確保找到對應的 BimCategory
+                    bim_objects.append(
+                        models.BimObject(
+                            category=category,
+                            dbid=row.dbid,
+                            value=row.value
+                        )
+                    )
+                if i % 100 == 0:
+                    print('process-bimobject', f'Processed {i}/{len(df_objects)} BimObject records.')
+                    send_progress('process-bimobject', f'Processed {i}/{len(df_objects)} BimObject records.')
+            models.BimObject.objects.bulk_create(bim_objects)  # 批量創建以提高效能
+            print('process-bimcategory', 'BimCategory processing completed.')
+            send_progress('process-bimcategory', 'BimCategory processing completed.')
+            print('process-bimobject', f'BimObject processing completed: {len(bim_objects)} records inserted.')
+            send_progress('process-bimobject', f'BimObject processing completed: {len(bim_objects)} records inserted.')
+
+        print('complete', 'Bim data update completed.')
+        send_progress('complete', 'Bim data update completed.')
+        return {"categories_count": len(bim_categories), "objects_count": len(bim_objects)}  # 可序列化返回值
+
+    except Exception as e:
+        logger.error(f"Error updating Bim data: {str(e)}")
+        print('error', f"Error updating Bim data: {str(e)}")
+        send_progress('error', f"Error updating Bim data: {str(e)}")
+        raise
 
 
 '''

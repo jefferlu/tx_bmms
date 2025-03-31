@@ -18,7 +18,8 @@ class BimGroupTypeAdmin(admin.ModelAdmin):
 
 @admin.register(models.BimCategory)
 class BimCategoryAdmin(admin.ModelAdmin):
-    list_display = ('value', 'bim_group', 'is_active', 'display_name', 'id', )
+    list_display = ('value', 'bim_group', 'conversion', 'is_active', 'display_name', 'id', )
+    search_fields = ('display_name', 'value')
 
 
 @admin.register(models.BimModel)
@@ -33,4 +34,4 @@ class BimConversionAdmin(admin.ModelAdmin):
 
 @admin.register(models.BimObject)
 class BimObjectAdmin(admin.ModelAdmin):
-    list_display = ('category', 'conversion', 'dbid', 'value',)
+    list_display = ('category', 'dbid', 'value',)

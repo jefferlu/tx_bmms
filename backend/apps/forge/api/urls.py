@@ -26,6 +26,7 @@ urlpatterns = [
     re_path(r'^compare-sqlite/?$', views.CompareSqliteView.as_view(), name='compare_selite'),
     re_path(r'^bim-data-import/?$', views.BimDataImportView.as_view(), name='bim_data_import'),
     re_path(r'^bim-data-reload/?$', views.BimDataReloadView.as_view(), name='bim_data_reload'),
+    re_path(r'^bim-update-categories/?$', views.BimUpdateCategoriesView.as_view(), name='bim_update_categories'),
 
     path('', include(router.urls)),
 ]

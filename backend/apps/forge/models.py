@@ -7,7 +7,7 @@ class BimGroupType(models.Model):
     description = models.TextField(null=True, blank=True)
 
     class Meta:
-        db_table = "forge_bim_group_type"
+        db_table = "forge_bim_type"
         indexes = [
             models.Index(fields=['display_name']),
             models.Index(fields=['value']),
@@ -38,6 +38,8 @@ class BimGroup(models.Model):
 
 class BimCategory(models.Model):
     bim_group = models.ForeignKey(BimGroup, on_delete=models.CASCADE, related_name='bim_categories', null=True, blank=True)
+    conversion = models.ForeignKey('BimConversion', on_delete=models.CASCADE,
+                                   related_name='bim_categories', null=True, blank=True)  # 新增
     value = models.CharField(max_length=255)  # 對應 SQLite 的 vals.value
     is_active = models.BooleanField(default=True)
     display_name = models.TextField(null=True, blank=True)  # 對應 SQLite 的 attrs.display_name
@@ -46,9 +48,11 @@ class BimCategory(models.Model):
         db_table = "forge_bim_category"
         verbose_name_plural = 'Bim categories'
         ordering = ["id"]
+        unique_together = ('bim_group', 'value', 'conversion')
         indexes = [
             models.Index(fields=['bim_group']),
             models.Index(fields=['value']),
+            models.Index(fields=['conversion']),  # 新增索引
         ]
 
     def __str__(self):
@@ -86,7 +90,7 @@ class BimConversion(models.Model):
             models.Index(fields=['bim_model']),
             models.Index(fields=['version']),
             models.Index(fields=['urn']),
-            models.Index(fields=['bim_model', 'version']),  # 新增聯合索引
+            models.Index(fields=['bim_model', 'version']),  # 聯合索引
         ]
 
     def __str__(self):
@@ -95,7 +99,6 @@ class BimConversion(models.Model):
 
 class BimObject(models.Model):
     category = models.ForeignKey('BimCategory', on_delete=models.CASCADE, related_name="bim_objects")
-    conversion = models.ForeignKey('BimConversion', on_delete=models.CASCADE, related_name="bim_objects")
     dbid = models.IntegerField()
     value = models.CharField(max_length=255)  # 對應 SQLite 的 vals.value (即 name)
 
@@ -103,7 +106,6 @@ class BimObject(models.Model):
         db_table = "forge_bim_object"
         indexes = [
             models.Index(fields=['category']),
-            models.Index(fields=['conversion']),
         ]
 
     def __str__(self):
