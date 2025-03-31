@@ -1,0 +1,63 @@
+<div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full" *transloco="let t">
+    <div class="mx-auto flex w-full h-full max-w-screen-xl flex-wrap p-6">
+        <div class="flex flex-auto flex-col h-full sm:col-span-2 lg:col-span-3">
+
+            <!-- Header -->
+            <div class="flex flex-row items-center justify-between pt-6 pb-2">
+                <!-- Title -->
+                <div class="text-3xl font-extrabold leading-none tracking-tight">
+                    {{t('bim-management')}}
+                </div>
+
+                <!-- Actions -->
+                <div>
+                    <button mat-flat-button (click)="onReprocessData()">
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+                        <span class="ml-2">{{t('reprocess-data')}}</span>
+                    </button>       
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex h-full overflow-y-auto bg-card rounded-md">
+                <!-- @if(files?.length>0){ -->
+                <p-table class="w-full" [value]="data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [loading]="isLoading">
+                    <ng-template pTemplate="header">
+                        <tr class="border-b-2">
+                            <th class="w-20 py-4 pl-8">NO</th>
+                            <th class="w-100">{{t('file-name')}}</th>                           
+                            <th class="w-40 text-center">{{t('status')}}</th>
+                            <th>{{t('message')}}</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-d let-index="rowIndex">
+                        <tr class="hover:bg-hover">
+                            <td class="pl-8">{{index+1}}</td>
+                            <td>{{d.name}}</td>                           
+                            <td class="text-center sm:min-w-60">
+                                <!-- {{file.status}} -->
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide" [ngClass]="{
+                                    'dark:bg-indigo-600 dark:text-indigo-50-50': d.status !== 'error' && d.status !== 'complete',
+                                    'dark:bg-red-600 dark:text-red-50': d.status === 'error',
+                                    'dark:bg-green-600 dark:text-green-50': d.status === 'complete'}">
+                                    <span class="whitespace-nowrap leading-relaxed">{{ d.status }}</span>
+                                </span>
+                            </td>
+                            <td class="text-sm">{{d.message}}</td>                            
+                        </tr>
+                    </ng-template>
+                </p-table>
+                <!-- }
+                @else {
+                <div class="flex flex-auto flex-col items-center justify-center text-secondary mb-10">
+                    <mat-icon class="icon-size-24" [svgIcon]="'heroicons_outline:exclamation-circle'"></mat-icon>
+                    <div class="mt-4 text-2xl font-semibold tracking-tight">
+                        {{t('no-data-found')}}
+                    </div>
+                </div>
+                } -->
+            </div>
+
+        </div>
+    </div>
+</div>
