@@ -375,7 +375,7 @@ class StandardResultsSetPagination(PageNumberPagination):
         except (ValueError, TypeError):
             return 1
 
-    def get_page_size(self, request, paginator=None):  
+    def get_page_size(self, request, paginator=None):
         """從 request.data 或 request.query_params 獲取 size"""
         if request.method == 'POST':
             size = request.data.get(self.page_size_query_param, self.page_size)
@@ -393,14 +393,12 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.BimObjectSerializer
     pagination_class = StandardResultsSetPagination
 
-    def get_queryset(self):
-        return models.BimObject.objects.none()  # 不支援 GET
-
     def list(self, request, *args, **kwargs):
         raise ValidationError("此端點僅支援 POST 請求，請使用 POST 方法查詢資料。")
 
     def create(self, request, *args, **kwargs):
         """處理 POST 請求的查詢邏輯"""
+        model_ids = request.data.get('model_ids', None)
         value = request.data.get('value', None)
         categories = request.data.get('category', None)
 
@@ -409,17 +407,42 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         filters = Q()
         if value:
-            filters &= Q(value__icontains=value)
+            # filters &= Q(value__icontains=value)
+            filters |= Q(value__icontains=value)
 
         if categories:
             try:
                 category_list = categories
+
+                # 用 | 組合 Q 物件
+                category_condition = Q()
+                for cate in category_list:
+                    category_condition |= Q(bim_group_id=cate["bim_group"], value=cate["value"])
+
+                # 篩選最新版本的 BimConversion
+                latest_conversion_subquery = Subquery(
+                    models.BimConversion.objects.filter(
+                        bim_model=OuterRef('conversion__bim_model')
+                    ).order_by('-version').values('id')[:1]
+                )
+                print("latest_conversion_subquery", latest_conversion_subquery)
+
+                # 查詢 BimCategory，限制 conversion 是最新版本
                 category_qs = models.BimCategory.objects.filter(
-                    Q(*[Q(bim_group_id=cat["bim_group"], value=cat["value"]) for cat in category_list])
+                    category_condition,
+                    conversion__id__in=latest_conversion_subquery
                 ).values_list("id", flat=True)
-                filters &= Q(category_id__in=list(category_qs))
+                print("category_qs:", list(category_qs))
+
+                filters |= Q(category_id__in=list(category_qs))
             except (TypeError, KeyError):
                 raise ValidationError("category 參數格式錯誤，應為物件列表，例如 [{'bim_group': 32, 'value': 'example'}]")
+
+        # 如果有 model_ids，加入 filters 條件
+        if model_ids:
+            filters &= Q(category__conversion__bim_model_id__in=model_ids)
+
+        print(filters)
 
         latest_conversion = Subquery(
             models.BimConversion.objects.filter(
@@ -434,7 +457,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             'category', 'category__bim_group', 'category__conversion', 'category__conversion__bim_model'
         ).prefetch_related(
             'category__bim_group', 'category__conversion__bim_model'
-        )
+        ).order_by('value')
 
         # 分頁處理
         paginator = self.pagination_class()

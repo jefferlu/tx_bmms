@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, ElementRef } from '@angular/core';
-import { Subject, merge } from 'rxjs';
+import { Subject } from 'rxjs';
 import { debounceTime, takeUntil, finalize } from 'rxjs/operators';
 import { NgClass } from '@angular/common';
 import { CdkScrollable } from '@angular/cdk/scrolling';
@@ -19,6 +19,14 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BimModel, BimCategory, BimGroup, SearchResult, RouteData, SearchResultItem } from './process-functions.types';
 
+`
+1. resolve載入models及groups
+2. 從models取得tenderOptions及nameOptions
+3. 當選擇tender p-select及name p-multiselect時，觸發 updateCriteria() 動態顯示類別(標籤)內容
+4. 選擇的類別(標籤)記錄在 this.categories中並與keyword組合成request條件發送至後端
+   (當 this.selectedNames 有值時，代表有限制查詢的檔名，需加入request中)
+5. 使用filterChangeSubject及 rxjs的 debounceTime()觸發 LoadPage()調用api查詢 BimObject 結果
+`
 @Component({
     selector: 'app-process-functions',
     templateUrl: './process-functions.component.html',
@@ -47,8 +55,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     criteria: BimGroup[] = [];
     isLoading: boolean = false;
     keyword: string = '';
-    categories: { bim_group: number; value: string; selected: boolean }[] = [];
-    selectedItems: SearchResultItem[] = [];
+    categories: { bim_group: number; value: string; selected: boolean }[] = []; //已選類別(標籤)
+    selectedObjectItems: SearchResultItem[] = [];
     rowsPerPage: number = 100;
 
     tenderOptions: { label: string; value: string }[] = [];
@@ -85,7 +93,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
         this.filterChangeSubject
             .pipe(
-                debounceTime(500),
+                debounceTime(800),
                 takeUntil(this._unsubscribeAll)
             )
             .subscribe(() => {
@@ -94,9 +102,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             });
     }
 
-    onKeywordChange(event: Event): void {
-        const element = event.target as HTMLInputElement;
-        this.keyword = element.value;
+    onKeywordChange(): void {
         this.filterChangeSubject.next();
     }
 
@@ -107,10 +113,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             .filter(model => model.tender === selectedTender)
             .map(model => ({ label: model.name, value: model }));
         this.updateCriteria(this.getCategoryIdsFromTender(selectedTender));
-
-        // this.filterChangeSubject.next();
-        this.dataTable?.reset();
-        this.data = null;
+        this.clearCriteria();
     }
 
     onNameSelectionChange(event: any): void {
@@ -118,24 +121,19 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             ? this.getCategoryIdsFromTender(this.selectedTender!)
             : this.getCategoryIdsFromNames(this.selectedNames);
         this.updateCriteria(categoryIds);
-        // this.filterChangeSubject.next();
-        this.dataTable?.reset();
-        this.data = null;
+        this.clearCriteria();
     }
 
-    onSelected(category: BimCategory): void {
+    onCriteriaSelect(category: BimCategory): void {
         category.selected = !category.selected;
-        this.categories = this.criteria
-            .flatMap(group => group.bim_categories.map(bc => ({
-                bim_group: group.id,
-                value: bc.value,
-                selected: bc.selected || false
-            })))
-            .filter(bc => bc.selected);
+        this.updateCategories();
+        this.filterChangeSubject.next();
+    }
 
-        if (this.categories.length > 0)
-            this.filterChangeSubject.next();
-        this._changeDetectorRef.markForCheck();
+    onCriteriaUnselect(category: BimCategory): void {
+        category.selected = !category.selected;
+        this.updateCategories();
+        this.filterChangeSubject.next();
     }
 
     onCollapse(criterion: BimGroup): void {
@@ -143,8 +141,23 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this._changeDetectorRef.markForCheck();
     }
 
+    onPageChange(event: TableLazyLoadEvent): void {
+        const page = event.first! / event.rows! + 1;
+        this.loadPage(page);
+    }
+
+    onRowSelect(event: any): void {
+        this.selectedObjectItems = [...this.selectedObjectItems, event.data];
+        this._changeDetectorRef.markForCheck();
+    }
+
+    onRowUnselect(event: any): void {
+        this.selectedObjectItems = this.selectedObjectItems.filter(item => item.id !== event.data.id);
+        this._changeDetectorRef.markForCheck();
+    }
+
     onSearch(): void {
-        this.selectedItems = [];
+        this.selectedObjectItems = [];
         this.dataTable?.reset();
         this.loadPage(1);
     }
@@ -152,13 +165,16 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     loadPage(page: number): void {
         if (!this.criteria || this.isLoading) return;
 
+        console.log(this.selectedNames)
         const request: any = {
             page,
             size: this.rowsPerPage,
             ...(this.keyword && { value: this.keyword }),
-            ...(this.categories.length > 0 && { category: this.categories })
+            ...(this.categories.length > 0 && { category: this.categories }),
+            ...(this.selectedNames.length > 0 && { model_ids: this.selectedNames.map(model => model.id) }),
         };
 
+        console.log(request)
         const cacheKey = JSON.stringify(request);
         if (this._cache.has(cacheKey)) {
             this.data = this._cache.get(cacheKey)!;
@@ -173,7 +189,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         }
 
         this.isLoading = true;
-        console.log(request)
+
         this._processFunctionsService.getData(request)
             .pipe(
                 takeUntil(this._unsubscribeAll),
@@ -200,16 +216,61 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             });
     }
 
-    onPageChange(event: TableLazyLoadEvent): void {
-        const page = event.first! / event.rows! + 1;
-        this.loadPage(page);
+    onClickAggregated(): void {
+        console.log(this.selectedObjectItems)
+        if (!this.selectedObjectItems.length) {
+            this._toastService.open({ message: this._translocoService.translate('select-at-least-one-model') });
+            return;
+        }
+
+        this._matDialog.open(ApsViewerComponent, {
+            width: '99vw',
+            height: '95vh',
+            data: this.selectedObjectItems
+        });
     }
 
-    onRowSelect(event: any): void {
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next();
+        this._unsubscribeAll.complete();
+    }
+
+    private clearCriteria(): void {
+        this.dataTable?.reset();
+        this.data = null;
+        this.keyword = '';
+
+        // reset this.criteria
+        this.criteria = this.criteria.map(criterion => ({
+            ...criterion,
+            bim_categories: criterion.bim_categories.map(category => ({
+                ...category,
+                selected: false
+            }))
+        }));
+        console.log(this.criteria)
+
         this._changeDetectorRef.markForCheck();
     }
 
-    onRowUnselect(event: any): void {
+    private updateCriteria(categoryIds: number[]): void {
+        this.criteria = this.groups
+            .map(group => ({
+                ...group,
+                bim_categories: group.bim_categories.filter(category => categoryIds.includes(category.id))
+            }))
+            .filter(group => group.bim_categories.length > 0);
+        this._changeDetectorRef.markForCheck();
+    }
+
+    private updateCategories(): void {
+        this.categories = this.criteria
+            .flatMap(group => group.bim_categories.map(bc => ({
+                bim_group: group.id,
+                value: bc.value,
+                selected: bc.selected || false
+            })))
+            .filter(bc => bc.selected);
         this._changeDetectorRef.markForCheck();
     }
 
@@ -223,40 +284,11 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         return names.flatMap(model => model.categories.map(category => category.id));
     }
 
-    private updateCriteria(categoryIds: number[]): void {
-        this.criteria = this.groups
-            .map(group => ({
-                ...group,
-                bim_categories: group.bim_categories.filter(category => categoryIds.includes(category.id))
-            }))
-            .filter(group => group.bim_categories.length > 0);
-        this._changeDetectorRef.markForCheck();
-    }
+
 
     private scrollToTable(): void {
         if (this.dataTableElement) {
             this.dataTableElement.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-    }
-
-    onClickAggregated(): void {
-        if (!this.selectedItems.length) {
-            this._toastService.open({ message: this._translocoService.translate('select-at-least-one-model') });
-            return;
-        }
-        this.showAggregatedDialog();
-    }
-
-    showAggregatedDialog(): void {
-        this._matDialog.open(ApsViewerComponent, {
-            width: '99vw',
-            height: '95vh',
-            data: this.selectedItems
-        });
-    }
-
-    ngOnDestroy(): void {
-        this._unsubscribeAll.next();
-        this._unsubscribeAll.complete();
     }
 }

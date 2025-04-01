@@ -29,6 +29,7 @@ export interface SearchResult {
 }
 
 export interface SearchResultItem {
+    id: number;
     model_name: string;
     version: string;
     group_name: string;
