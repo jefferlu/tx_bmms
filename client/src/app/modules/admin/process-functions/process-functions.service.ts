@@ -22,8 +22,8 @@ export class ProcessFunctionsService {
         );
     }
 
-    getData(params: any) {
-        return this._appService.get('forge/bim-object', params).pipe(
+    getData(request: any) {
+        return this._appService.post('forge/bim-object', request).pipe(
             tap((res: any) => { })
         );
     }

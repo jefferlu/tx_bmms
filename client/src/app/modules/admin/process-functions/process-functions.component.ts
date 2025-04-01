@@ -156,7 +156,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             page,
             size: this.rowsPerPage,
             ...(this.keyword && { value: this.keyword }),
-            ...(this.categories.length > 0 && { category: JSON.stringify(this.categories) })
+            ...(this.categories.length > 0 && { category: this.categories })
         };
 
         const cacheKey = JSON.stringify(request);
@@ -173,6 +173,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         }
 
         this.isLoading = true;
+        console.log(request)
         this._processFunctionsService.getData(request)
             .pipe(
                 takeUntil(this._unsubscribeAll),

@@ -359,10 +359,34 @@ class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
         return response
 
 
-class StandardResultsSetPagination(pagination.PageNumberPagination):
+class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'size'
     max_page_size = 100
+
+    def get_page_number(self, request, paginator):
+        """從 request.data 或 request.query_params 獲取 page"""
+        if request.method == 'POST':
+            page = request.data.get('page', 1)
+        else:
+            page = request.query_params.get(self.page_query_param, 1)
+        try:
+            return int(page)
+        except (ValueError, TypeError):
+            return 1
+
+    def get_page_size(self, request, paginator=None):  
+        """從 request.data 或 request.query_params 獲取 size"""
+        if request.method == 'POST':
+            size = request.data.get(self.page_size_query_param, self.page_size)
+        else:
+            size = request.query_params.get(self.page_size_query_param, self.page_size)
+        try:
+            if self.max_page_size and int(size) > self.max_page_size:
+                return self.max_page_size
+            return int(size)
+        except (ValueError, TypeError):
+            return self.page_size
 
 
 class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
@@ -370,9 +394,15 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        request = self.request
-        value = request.query_params.get('value', None)
-        categories = request.query_params.get('category', None)
+        return models.BimObject.objects.none()  # 不支援 GET
+
+    def list(self, request, *args, **kwargs):
+        raise ValidationError("此端點僅支援 POST 請求，請使用 POST 方法查詢資料。")
+
+    def create(self, request, *args, **kwargs):
+        """處理 POST 請求的查詢邏輯"""
+        value = request.data.get('value', None)
+        categories = request.data.get('category', None)
 
         if not value and not categories:
             raise ValidationError("請提供至少一個查詢參數 'value' 或 'category'。")
@@ -383,13 +413,13 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         if categories:
             try:
-                category_list = json.loads(categories)
+                category_list = categories
                 category_qs = models.BimCategory.objects.filter(
                     Q(*[Q(bim_group_id=cat["bim_group"], value=cat["value"]) for cat in category_list])
                 ).values_list("id", flat=True)
                 filters &= Q(category_id__in=list(category_qs))
-            except json.JSONDecodeError:
-                raise ValidationError("category 參數格式錯誤，應為 JSON 陣列")
+            except (TypeError, KeyError):
+                raise ValidationError("category 參數格式錯誤，應為物件列表，例如 [{'bim_group': 32, 'value': 'example'}]")
 
         latest_conversion = Subquery(
             models.BimConversion.objects.filter(
@@ -397,7 +427,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             ).order_by('-version').values('id')[:1]
         )
 
-        return models.BimObject.objects.filter(
+        queryset = models.BimObject.objects.filter(
             filters,
             category__conversion__id__in=latest_conversion
         ).select_related(
@@ -406,11 +436,23 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             'category__bim_group', 'category__conversion__bim_model'
         )
 
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
+        # 分頁處理
+        paginator = self.pagination_class()
+        page_queryset = paginator.paginate_queryset(queryset, request)
+        if page_queryset is not None:
+            serializer = self.get_serializer(page_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        response = Response(serializer.data)
+
+        # 記錄日誌
         ip_address = request.META.get('REMOTE_ADDR')
-        log_user_activity(self.request.user, '圖資檢索',
-                          f'查詢 {request.query_params.get("category")}; {request.query_params.get("value")}', 'SUCCESS', ip_address)
+        log_user_activity(
+            self.request.user, '圖資檢索',
+            f'查詢 {request.data.get("category")}; {request.data.get("value")}',
+            'SUCCESS', ip_address
+        )
         return response
 
 
