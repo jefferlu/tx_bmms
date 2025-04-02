@@ -57,10 +57,10 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
             this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-model')}.` });
             return;
         }
-        if (!this.checkTenderConsistency(this.selectedItems)) {
-            this._toastService.open({ message: `${this._translocoService.translate('unsupported-aggregated-view')}.` });
-            return;
-        }
+        // if (!this.checkTenderConsistency(this.selectedItems)) {
+        //     this._toastService.open({ message: `${this._translocoService.translate('unsupported-aggregated-view')}.` });
+        //     return;
+        // }
 
         this.showAggregatedDialog();
     }
