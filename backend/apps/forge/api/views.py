@@ -1,3 +1,4 @@
+from django.db.models import Q, OuterRef, Subquery
 import os
 import json
 import sqlite3
@@ -10,6 +11,8 @@ from django.core.files.base import ContentFile
 from django.db.models import Subquery, OuterRef, Prefetch, Q
 
 from django.db import connection
+from django.contrib.postgres.aggregates import ArrayAgg, JSONBAgg
+from django.db.models.functions import JSONObject
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -288,6 +291,7 @@ class BimUpdateCategoriesView(APIView):
 
             # 提交 Celery 任務
             bim_update_categories.delay(sqlite_path, bim_conversion.id, file_name, 'update_category_group')
+            # bim_update_categories(sqlite_path, bim_conversion.id, file_name, 'update_category_group')
             processed_files.append({
                 "file_name": file_name,
                 "version": bim_conversion.version
@@ -397,7 +401,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         raise ValidationError("此端點僅支援 POST 請求，請使用 POST 方法查詢資料。")
 
     def create(self, request, *args, **kwargs):
-        """處理 POST 請求的查詢邏輯"""
         model_ids = request.data.get('model_ids', None)
         value = request.data.get('value', None)
         categories = request.data.get('category', None)
@@ -407,59 +410,50 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         filters = Q()
         if value:
-            # filters &= Q(value__icontains=value)
             filters |= Q(value__icontains=value)
 
         if categories:
-            try:
-                category_list = categories
+            category_list = categories
+            category_ids = [cate["bim_category"] for cate in category_list]
+            grouped_categories = {}
+            for cate in category_list:
+                bim_group_id = cate["bim_group"]
+                grouped_categories.setdefault(bim_group_id, []).append(cate["bim_category"])
 
-                # 用 | 組合 Q 物件
-                category_condition = Q()
-                for cate in category_list:
-                    category_condition |= Q(bim_group_id=cate["bim_group"], value=cate["value"])
+            # 計算 valid_dbids
+            valid_dbids = set(models.BimObject.objects.filter(
+                category__id__in=category_ids
+            ).values_list('dbid', flat=True).distinct())
+            for group_id, category_ids_in_group in grouped_categories.items():
+                group_dbids = set(models.BimObject.objects.filter(
+                    category__id__in=category_ids_in_group
+                ).values_list('dbid', flat=True).distinct())
+                valid_dbids &= group_dbids
 
-                # 篩選最新版本的 BimConversion
-                latest_conversion_subquery = Subquery(
-                    models.BimConversion.objects.filter(
-                        bim_model=OuterRef('conversion__bim_model')
-                    ).order_by('-version').values('id')[:1]
-                )
-                print("latest_conversion_subquery", latest_conversion_subquery)
+            filters &= Q(category__id__in=category_ids)
+            filters &= Q(dbid__in=list(valid_dbids))
 
-                # 查詢 BimCategory，限制 conversion 是最新版本
-                category_qs = models.BimCategory.objects.filter(
-                    category_condition,
-                    conversion__id__in=latest_conversion_subquery
-                ).values_list("id", flat=True)
-                print("category_qs:", list(category_qs))
-
-                filters |= Q(category_id__in=list(category_qs))
-            except (TypeError, KeyError):
-                raise ValidationError("category 參數格式錯誤，應為物件列表，例如 [{'bim_group': 32, 'value': 'example'}]")
-
-        # 如果有 model_ids，加入 filters 條件
         if model_ids:
             filters &= Q(category__conversion__bim_model_id__in=model_ids)
 
-        print(filters)
+        # 使用聚合查詢直接分組
+        queryset = models.BimObject.objects.filter(filters).values(
+            'dbid',
+            'primary_value',
+            'category__conversion__bim_model__name',
+            'category__conversion__version',
+            'category__conversion__urn'
+        ).annotate(
+            # attributes=JSONBAgg(
+            #     JSONObject(
+            #         group_name='category__bim_group__name',
+            #         category='category__value',
+            #         category='value'
+            #     )
+            # )
+            attributes=ArrayAgg('value')  # 直接聚合為陣列
+        ).order_by('dbid')
 
-        latest_conversion = Subquery(
-            models.BimConversion.objects.filter(
-                bim_model=OuterRef('category__conversion__bim_model')
-            ).order_by('-version').values('id')[:1]
-        )
-
-        queryset = models.BimObject.objects.filter(
-            filters,
-            category__conversion__id__in=latest_conversion
-        ).select_related(
-            'category', 'category__bim_group', 'category__conversion', 'category__conversion__bim_model'
-        ).prefetch_related(
-            'category__bim_group', 'category__conversion__bim_model'
-        ).order_by('value')
-
-        # 分頁處理
         paginator = self.pagination_class()
         page_queryset = paginator.paginate_queryset(queryset, request)
         if page_queryset is not None:
@@ -469,7 +463,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         response = Response(serializer.data)
 
-        # 記錄日誌
         ip_address = request.META.get('REMOTE_ADDR')
         log_user_activity(
             self.request.user, '圖資檢索',

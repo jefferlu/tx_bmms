@@ -44,14 +44,14 @@
             <div class="flex flex-row items-center justify-between p-4 mt-6">
                 <!-- Header -->
                 <div class="mr-4 text-3xl font-medium tracking-tight leading-6 truncate">
-                    COBie 標籤
+                    COBie 屬性
                 </div>
             </div>
 
             <div>
                 <!-- 已選條件 -->
                 <div class="flex items-center mx-10 px-6 py-2 md:px-8 border-t border-b">
-                    <div class="flex-shrink-0 items-center justify-center mr-4 leading-8 font-semibold">已選標籤 :</div>
+                    <div class="flex-shrink-0 items-center justify-center mr-4 leading-8 font-semibold">已選屬性 :</div>
                     <div class='flex flex-wrap gap-2'>
                         @for(criterion of criteria;track criterion){
                         @for(item of criterion.bim_categories;track item){
@@ -154,9 +154,11 @@
                             <th>NO.</th>
                             <th>{{t('file-label')}}</th>
                             <th>{{t('version')}}</th>
-                            <th>{{t('bim-group')}}</th>
-                            <th>{{t('bim-category')}}</th>
-                            <th>{{t('bim-name')}}</th>
+                            <!-- <th>{{t('bim-group')}}</th>
+                            <th>{{t('bim-category')}}</th> -->
+                            <th>Cobie屬性</th>
+                            <!-- <th>{{t('bim-name')}}</th> -->
+                            <th>名稱</th>
                             <th>DBID</th>
                         </tr>
                     </ng-template>
@@ -168,9 +170,10 @@
                             <td>{{ rowIndex + 1 }}</td>
                             <td>{{ item.model_name }}</td>
                             <td>{{ item.version }}</td>
-                            <td>{{ item.group_name }}</td>
-                            <td>{{ item.category }}</td>
-                            <td>{{ item.value }}</td>
+                            <!-- <td>{{ item.group_name }}</td>
+                            <td>{{ item.category }}</td> -->
+                            <td>{{ item.attributes?.join(', ') }}</td>
+                            <td>{{ item.primary_value }}</td>
                             <td>{{ item.dbid }}</td>
                         </tr>
                     </ng-template>

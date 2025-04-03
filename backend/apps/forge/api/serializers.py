@@ -68,16 +68,27 @@ class BimGroupSerializer(serializers.ModelSerializer):
         return representation
 
 
-class BimObjectSerializer(serializers.ModelSerializer):
-    model_name = serializers.ReadOnlyField(source='category.conversion.bim_model.name')  # 修改路徑
-    version = serializers.ReadOnlyField(source='category.conversion.version')  # 修改路徑
+class BimObjectAttributeSerializer(serializers.ModelSerializer):
     group_name = serializers.ReadOnlyField(source='category.bim_group.name')
     category = serializers.ReadOnlyField(source='category.value')
-    urn = serializers.ReadOnlyField(source='category.conversion.urn')  # 修改路徑
+    value = serializers.ReadOnlyField()
 
     class Meta:
         model = models.BimObject
-        fields = ['id', 'model_name', 'version', 'group_name', 'category', 'urn', 'dbid', 'value']
+        fields = ['group_name', 'category', 'value']
+
+
+class BimObjectSerializer(serializers.Serializer):  # 改為 Serializer，因為不再直接綁定 Model
+    id = serializers.IntegerField(source='dbid')  # 使用 dbid 作為 id
+    dbid = serializers.IntegerField()
+    primary_value = serializers.CharField()
+    model_name = serializers.CharField(source='category__conversion__bim_model__name')
+    version = serializers.IntegerField(source='category__conversion__version')
+    urn = serializers.CharField(source='category__conversion__urn')
+    attributes = serializers.JSONField()
+
+    class Meta:
+        fields = ['id', 'dbid', 'model_name', 'primary_value', 'version', 'urn', 'attributes']
 
 
 class BimModelWithCategoriesSerializer(serializers.ModelSerializer):

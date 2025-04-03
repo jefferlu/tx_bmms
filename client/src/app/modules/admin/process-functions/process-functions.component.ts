@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil, finalize } from 'rxjs/operators';
-import { NgClass } from '@angular/common';
+import { JsonPipe, NgClass } from '@angular/common';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -33,7 +33,7 @@ import { BimModel, BimCategory, BimGroup, SearchResult, RouteData, SearchResultI
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        NgClass, CdkScrollable, FormsModule,
+        NgClass, CdkScrollable, FormsModule, JsonPipe,
         MatButtonModule, MatIconModule,
         MatMenuModule, MatDividerModule,
         TableModule, TranslocoModule,
@@ -55,7 +55,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     criteria: BimGroup[] = [];
     isLoading: boolean = false;
     keyword: string = '';
-    categories: { bim_group: number; value: string; selected: boolean }[] = []; //已選類別(標籤)
+    categories: { bim_group: number; bim_category: number, value: string; selected: boolean }[] = []; //已選類別(標籤)
     selectedObjectItems: SearchResultItem[] = [];
     rowsPerPage: number = 100;
 
@@ -248,7 +248,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 selected: false
             }))
         }));
-        console.log(this.criteria)
 
         this._changeDetectorRef.markForCheck();
     }
@@ -267,6 +266,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.categories = this.criteria
             .flatMap(group => group.bim_categories.map(bc => ({
                 bim_group: group.id,
+                bim_category: bc.id,
                 value: bc.value,
                 selected: bc.selected || false
             })))

@@ -100,12 +100,16 @@ class BimConversion(models.Model):
 class BimObject(models.Model):
     category = models.ForeignKey('BimCategory', on_delete=models.CASCADE, related_name="bim_objects")
     dbid = models.IntegerField()
-    value = models.CharField(max_length=255)  # 對應 SQLite 的 vals.value (即 name)
+    primary_value = models.CharField(max_length=255)  # 儲存主要值，(__name__)
+    display_name = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
 
     class Meta:
         db_table = "forge_bim_object"
         indexes = [
             models.Index(fields=['category']),
+            models.Index(fields=['dbid']),
+            models.Index(fields=['dbid', 'category']),  # 新增聯合索引
         ]
 
     def __str__(self):
