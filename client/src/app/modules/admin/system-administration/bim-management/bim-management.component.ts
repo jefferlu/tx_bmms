@@ -68,6 +68,7 @@ export class BimManagementComponent implements OnInit, OnDestroy {
             next: (res) => {
                 res.data = res.data.map(r => { return { ...r, status: 'complete' }; });
                 this.data = res.data;
+                console.log(this.data)
                 this._changeDetectorRef.markForCheck();
                 console.log('Data loaded:', this.data);
             },
@@ -77,8 +78,11 @@ export class BimManagementComponent implements OnInit, OnDestroy {
         });
     }
 
-    onReprocessData(): void {
-        this._bimManagementService.bimReprocessData()
+    onReprocessData(filename: string = null): void {
+        const request: any = { ...(filename && { filenames: [filename] }) }
+        console.log(request)
+        
+        this._bimManagementService.bimReprocessData(request)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
                 next: (res) => { },

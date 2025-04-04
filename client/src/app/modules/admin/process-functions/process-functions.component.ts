@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil, finalize } from 'rxjs/operators';
-import { JsonPipe, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -33,7 +33,7 @@ import { BimModel, BimCategory, BimGroup, SearchResult, RouteData, SearchResultI
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        NgClass, CdkScrollable, FormsModule, JsonPipe,
+        NgClass, CdkScrollable, FormsModule,
         MatButtonModule, MatIconModule,
         MatMenuModule, MatDividerModule,
         TableModule, TranslocoModule,
