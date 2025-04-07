@@ -147,7 +147,8 @@
             <div class="flex h-160">
                 <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="data?.count" [scrollable]="true" scrollHeight="flex"
                     selectionMode="multiple" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [paginator]="true" [lazy]="true"
-                    [selection]="selectedObjectItems" (onLazyLoad)="onPageChange($event)" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
+                    [loading]="isLoading" [selection]="selectedObjectItems" (onLazyLoad)="onPageChange($event)" (onRowSelect)="onRowSelect($event)"
+                    (onRowUnselect)="onRowUnselect($event)">
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
                             <th class="w-20 pl-8"></th>

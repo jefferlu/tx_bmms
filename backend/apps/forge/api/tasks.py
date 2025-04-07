@@ -138,7 +138,7 @@ def process_translation(urn, token, file_name, object_data, send_progress):
 
         # Process BimCategory records
         send_progress('process-bimcategory', 'Processing BimCategory records...')
-        bim_categories = {}
+        bim_categories = {}  # 使用 (value, display_name) 作為鍵
         for i, row in enumerate(df_categories.itertuples(), 1):
             group = models.BimGroup.objects.filter(types__display_name=row.display_name).first()
             if group:
@@ -151,7 +151,7 @@ def process_translation(urn, token, file_name, object_data, send_progress):
                         'conversion': bim_conversion
                     }
                 )
-                bim_categories[row.value] = category
+                bim_categories[(row.value, row.display_name)] = category  # 修改鍵為元組
             if i % 100 == 0:
                 send_progress('process-bimcategory', f'Processed {i}/{len(df_categories)} BimCategory records.')
         send_progress('process-bimcategory', 'BimCategory processing completed.')
@@ -190,18 +190,21 @@ def process_translation(urn, token, file_name, object_data, send_progress):
         # Process BimObject records
         send_progress('process-bimobject', 'Processing BimObject records...')
         bim_objects = []
-        for _, row in df_objects.iterrows():
-            category = bim_categories.get(row['value'])
+        for i, row in df_objects.iterrows():
+            category = bim_categories.get((row['value'], row['display_name']))  # 修改查找邏輯
             if category:
                 bim_objects.append(
                     models.BimObject(
                         category=category,
                         dbid=row['dbid'],
-                        primary_value=row['primary_value'],  # 使用 __name__ 作為 primary_value
+                        primary_value=row['primary_value'],
                         display_name=row['display_name'],
                         value=row['value']
                     )
                 )
+            if i % 100 == 0:
+                print('process-bimobject', f'Processed {i}/{len(df_objects)} BimObject records.')
+                send_progress('process-bimobject', f'Processed {i}/{len(df_objects)} BimObject records.')
         models.BimObject.objects.bulk_create(bim_objects)
         send_progress('process-bimobject', f'BimObject processing completed: {len(bim_objects)} records inserted.')
 
@@ -210,11 +213,6 @@ def process_translation(urn, token, file_name, object_data, send_progress):
 
 @shared_task
 def bim_update_categories(sqlite_path, bim_conversion_id, file_name, group_name):
-    """
-    根據本地的 SQLite 檔案和最新的 BimGroup 更新 BimCategory 和 BimObject。
-    - 刪除指定 conversion 的舊 BimCategory 和 BimObject。
-    - 根據新的 BimGroup 重新生成相同版本的 BimCategory 和 BimObject。
-    """
     def send_progress(status, message):
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
@@ -227,7 +225,6 @@ def bim_update_categories(sqlite_path, bim_conversion_id, file_name, group_name)
         )
 
     try:
-        # 根據 ID 查詢 BimConversion
         bim_conversion = models.BimConversion.objects.get(id=bim_conversion_id)
 
         # Step 1: 從 BimGroup 獲取條件
@@ -318,7 +315,7 @@ def bim_update_categories(sqlite_path, bim_conversion_id, file_name, group_name)
                         value=row.value,
                         display_name=row.display_name
                     )
-                    bim_categories[row.value] = category
+                    bim_categories[(row.value, row.display_name)] = category
                 if i % 100 == 0:
                     print('process-bimcategory', f'Processed {i}/{len(df_categories)} BimCategory records.')
                     send_progress('process-bimcategory', f'Processed {i}/{len(df_categories)} BimCategory records.')
@@ -329,8 +326,8 @@ def bim_update_categories(sqlite_path, bim_conversion_id, file_name, group_name)
             print('process-bimobject', 'Processing BimObject records...')
             send_progress('process-bimobject', 'Processing BimObject records...')
             bim_objects = []
-            for _, row in df_objects.iterrows():                
-                category = bim_categories.get(row['value'])
+            for i, row in df_objects.iterrows():  # 直接使用 iterrows()
+                category = bim_categories.get((row['value'], row['display_name']))
                 if category:
                     bim_objects.append(
                         models.BimObject(
@@ -341,6 +338,9 @@ def bim_update_categories(sqlite_path, bim_conversion_id, file_name, group_name)
                             value=row['value']
                         )
                     )
+                if i % 100 == 0:
+                    print('process-bimobject', f'Processed {i}/{len(df_objects)} BimObject records.')
+                    send_progress('process-bimobject', f'Processed {i}/{len(df_objects)} BimObject records.')
             models.BimObject.objects.bulk_create(bim_objects)
             print('complete', f'BimObject processing completed: {len(bim_objects)} records inserted.')
             send_progress('complete', f'BimObject processing completed: {len(bim_objects)} records inserted.')
