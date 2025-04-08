@@ -252,8 +252,6 @@ class BimUpdateCategoriesView(APIView):
         POST 請求，異步更新多個檔案的 BimCategory 和 BimObject。
         處理所有 BimModel
         """
-
-        # 獲取請求參數
         filenames = request.data.get('filenames')
 
         # 如果未提供 filenames，則處理所有 BimModel
@@ -270,34 +268,26 @@ class BimUpdateCategoriesView(APIView):
         processed_files = []
         errors = []
 
-        # 迴圈處理每個檔案
         for file_name in filenames:
-            # 獲取最新的 BimConversion
-            latest_conversion = models.BimConversion.objects.filter(
-                bim_model__name=file_name
-            ).order_by('-version').first()
-
-            if not latest_conversion:
-                errors.append(f"No BimConversion found for file_name '{file_name}'.")
+            # 直接使用 BimModel，不依賴 BimConversion
+            try:
+                bim_model = models.BimModel.objects.get(name=file_name)
+            except models.BimModel.DoesNotExist:
+                errors.append(f"No BimModel found for file_name '{file_name}'.")
                 continue
 
-            bim_conversion = latest_conversion
-
-            # 確定 SQLite 檔案路徑
             sqlite_path = f"media-root/database/{file_name}.db"
             if not os.path.exists(sqlite_path):
                 errors.append(f"SQLite file not found at: {sqlite_path}")
                 continue
 
-            # 提交 Celery 任務
-            bim_update_categories.delay(sqlite_path, bim_conversion.id, file_name, 'update_category_group')
-            # bim_update_categories(sqlite_path, bim_conversion.id, file_name, 'update_category_group')
+            # 提交 Celery 任務，使用 bim_model.id
+            bim_update_categories.delay(sqlite_path, bim_model.id, file_name, 'update_category_group')
             processed_files.append({
                 "file_name": file_name,
-                "version": bim_conversion.version
+                "version": bim_model.version
             })
 
-        # 回應結果
         response_data = {
             "message": f"Update tasks submitted for {len(processed_files)} files.",
             "processed_files": processed_files
@@ -313,8 +303,7 @@ class BimUpdateCategoriesView(APIView):
 
 class BimGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.BimGroup.objects.filter(is_active=True).prefetch_related(
-        Prefetch('bim_categories', queryset=models.BimCategory.objects.filter(
-            is_active=True).select_related('conversion').order_by('value'))
+        Prefetch('bim_categories', queryset=models.BimCategory.objects.filter(is_active=True).order_by('value'))
     )
     serializer_class = serializers.BimGroupSerializer
 
@@ -323,37 +312,9 @@ class BimGroupViewSet(viewsets.ReadOnlyModelViewSet):
         response.data = [item for item in response.data if item is not None]
         return response
 
-
 class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
-    """ 只查詢 BIMModel 及最新的 BimConversion """
-    queryset = models.BimModel.objects.annotate(
-        latest_version=Subquery(
-            models.BimConversion.objects.filter(
-                bim_model=OuterRef('id')
-            ).order_by('-version').values('version')[:1]
-        ),
-        latest_urn=Subquery(
-            models.BimConversion.objects.filter(
-                bim_model=OuterRef('id')
-            ).order_by('-version').values('urn')[:1]
-        ),
-        latest_original_file=Subquery(
-            models.BimConversion.objects.filter(
-                bim_model=OuterRef('id')
-            ).order_by('-version').values('original_file')[:1]
-        ),
-        latest_svf_file=Subquery(
-            models.BimConversion.objects.filter(
-                bim_model=OuterRef('id')
-            ).order_by('-version').values('svf_file')[:1]
-        ),
-        latest_conversion_created_at=Subquery(
-            models.BimConversion.objects.filter(
-                bim_model=OuterRef('id')
-            ).order_by('-version').values('created_at')[:1]
-        ),
-    )
-
+    """ 只查詢 BIMModel """
+    queryset = models.BimModel.objects.all()  # 直接查詢 BimModel，不依賴 BimConversion
     serializer_class = serializers.BimModelSerializer
 
     def list(self, request, *args, **kwargs):
@@ -420,7 +381,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 bim_group_id = cate["bim_group"]
                 grouped_categories.setdefault(bim_group_id, []).append(cate["bim_category"])
 
-            # 計算 valid_dbids
             valid_dbids = set(models.BimObject.objects.filter(
                 category__id__in=category_ids
             ).values_list('dbid', flat=True).distinct())
@@ -434,24 +394,18 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             filters &= Q(dbid__in=list(valid_dbids))
 
         if model_ids:
-            filters &= Q(category__conversion__bim_model_id__in=model_ids)
+            # 修改為直接使用 BimModel，不依賴 BimConversion
+            filters &= Q(category__bim_model_id__in=model_ids)
 
-        # 使用聚合查詢直接分組
         queryset = models.BimObject.objects.filter(filters).values(
             'dbid',
             'primary_value',
-            'category__conversion__bim_model__name',
-            'category__conversion__version',
-            'category__conversion__urn'
+            # 修改為直接從 BimModel 獲取資訊
+            'category__bim_model__name',
+            'category__bim_model__version',
+            'category__bim_model__urn'
         ).annotate(
-            # attributes=JSONBAgg(
-            #     JSONObject(
-            #         group_name='category__bim_group__name',
-            #         category='category__value',
-            #         category='value'
-            #     )
-            # )
-            attributes=ArrayAgg('value')  # 直接聚合為陣列
+            attributes=ArrayAgg('value')
         ).order_by('dbid')
 
         paginator = self.pagination_class()
@@ -477,10 +431,9 @@ class BimModelWithCategoriesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.BimModelWithCategoriesSerializer
 
     def get_queryset(self):
-        print("get_queryset called")
         queryset = models.BimModel.objects.prefetch_related(
             Prefetch(
-                'bim_conversions__bim_categories',
+                'bim_categories',
                 queryset=models.BimCategory.objects.filter(is_active=True).select_related('bim_group'),
                 to_attr='active_categories'
             )

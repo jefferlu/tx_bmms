@@ -18,7 +18,6 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
 @Component({
     selector: 'app-bim-model-viewer',
     templateUrl: './bim-model-viewer.component.html',
-    styleUrl: './bim-model-viewer.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
