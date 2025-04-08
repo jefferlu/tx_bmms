@@ -55,7 +55,7 @@ class BimGroup(models.Model):
 
 
 class BimCategory(models.Model):
-    bim_group = models.ForeignKey(BimGroup, on_delete=models.CASCADE, related_name='bim_categories', null=True, blank=True)
+    bim_group = models.ForeignKey(BimGroup, on_delete=models.CASCADE, related_name='bim_categories')
     bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_categories')
     value = models.CharField(max_length=255)  # 對應 SQLite 的 vals.value
     is_active = models.BooleanField(default=True)
@@ -65,7 +65,7 @@ class BimCategory(models.Model):
         db_table = "forge_bim_category"
         verbose_name_plural = 'Bim categories'
         ordering = ["id"]
-        unique_together = ('bim_group', 'value',)
+        unique_together = ('bim_model', 'bim_group', 'value')
         indexes = [
             models.Index(fields=['bim_group']),
             models.Index(fields=['value']),

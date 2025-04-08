@@ -143,6 +143,7 @@ def process_translation(urn, token, file_name, object_data, send_progress):
             if group:
                 category, _ = models.BimCategory.objects.update_or_create(
                     bim_group=group,
+                    bim_model=bim_model,
                     value=row.value,
                     defaults={'display_name': row.display_name}
                 )
