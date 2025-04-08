@@ -93,6 +93,9 @@ class ApsCredentials(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        db_table = "core_aps_credentials"
+
     def __str__(self):
         return f"Autodesk Credentials ({self.client_id})"
 
