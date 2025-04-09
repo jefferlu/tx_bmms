@@ -98,13 +98,22 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     # Step 6: Create or Update BimModel and Process Data
     send_progress('process-model-conversion', 'Creating or updating BimModel...')
     with transaction.atomic():
+        # 從 file_name 提取 zone（第3組）和 level（第4組）
+        parts = file_name.split('-')
+        zone = parts[2].upper()  
+        level = parts[3].upper()
+        zone_code = models.ZoneCode.objects.get(code=zone)
+        level_code = models.LevelCode.objects.get(code=level)
+
         bim_model, created = models.BimModel.objects.get_or_create(
             name=file_name,
-            defaults={'urn': urn, 'version': 1}
+            defaults={'urn': urn, 'version': 1, 'zone_code': zone_code, 'level_code': level_code}
         )
         if not created:
             bim_model.urn = urn
             bim_model.version += 1
+            bim_model.zone_code = zone_code
+            bim_model.level_code = level_code
             bim_model.save()
         send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) updated.')
 
@@ -146,6 +155,7 @@ def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send
         logger.error(f"Error updating Bim data: {str(e)}")
         send_progress('error', f"Error updating Bim data: {str(e)}")
         raise
+
 
 def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_progress):
     bim_model = models.BimModel.objects.get(id=bim_model_id)

@@ -135,7 +135,7 @@ INSTALLED_APPS = [
     # 'django_celery_results',
 
     # commands
-    # 'daemon',
+    'daemon',
 
     # app
     'apps.account',

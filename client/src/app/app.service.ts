@@ -49,7 +49,7 @@ export class AppService {
         );
     }
 
-    post(method: string, request: any, options = {}): Observable<any> {
+    post(method: string, request: any, options = {}, showDialog = true): Observable<any> {
 
         return this._httpClient.post(`${endpoint}/${method}`, request, options).pipe(
             switchMap((res: any) => {
@@ -58,7 +58,8 @@ export class AppService {
             catchError((e) => {
 
                 console.log(e);
-                this._handleError(e);
+                if (showDialog)
+                    this._handleError(e);
 
                 // Return false
                 return throwError(() => e);

@@ -199,24 +199,48 @@ class BimDataImportView(APIView):
         if not file:
             return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # check_redis('localhost')
+        # 檢查檔案格式
+        file_name = file.name
+        parts = file_name.split('-')
+        if len(parts) < 4:
+            return Response(
+                {"error": f"Invalid file name format: '{file_name}'. Must have at least 4 parts separated by '-'."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 檢查 zone_code
+        zone = parts[2].upper()  # 第三組，例如 "TX1"
+        try:
+            zone_code = models.ZoneCode.objects.get(code=zone)
+        except models.ZoneCode.DoesNotExist:
+            return Response(
+                {"error": f"Zone code '{zone}' not defined in ZoneCode table."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 檢查 level_code
+        level = parts[3].upper()  # 第四組，例如 "XX"
+        try:
+            level_code = models.LevelCode.objects.get(code=level)
+        except models.LevelCode.DoesNotExist:
+            return Response(
+                {"error": f"Level code '{level}' not defined in LevelCode table."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Save file
-        file_path = f'uploads/{file.name}'
-        # if default_storage.exists(file_path):
-        #     default_storage.delete(file_path)
+        file_path = f'uploads/{file_name}'
         default_storage.save(file_path, ContentFile(file.read()))
 
-        # 執行Autodesk Model Derivative API轉換
-        bim_data_import.delay(client_id, client_secret, bucket_key, file.name, 'progress_group')
-        # bim_data_import(client_id, client_secret, bucket_key, file.name, 'progress_group')
+        # 執行 Celery 任務
+        bim_data_import.delay(client_id, client_secret, bucket_key, file_name, 'progress_group')
 
         # 記錄操作
         ip_address = request.META.get('REMOTE_ADDR')
-        log_user_activity(self.request.user, '模型匯入', f'匯入{file.name}', 'SUCCESS', ip_address)
+        log_user_activity(self.request.user, '模型匯入', f'匯入{file_name}', 'SUCCESS', ip_address)
 
         # 回應上傳成功的訊息
-        return Response({"message": f"File '{file.name}' is being processed."}, status=status.HTTP_200_OK)
+        return Response({"message": f"File '{file_name}' is being processed."}, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -225,7 +249,6 @@ class BimDataImportView(APIView):
     tags=['APS']
 )
 class BimDataReloadView(APIView):
-
     def post(self, request, *args, **kwargs):
         client_id, client_secret = get_aps_credentials(request.user)
         bucket_key = get_aps_bucket(client_id, client_secret)
@@ -234,15 +257,42 @@ class BimDataReloadView(APIView):
         if not file_name:
             return Response({"error": "No filename provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 執行Autodesk Model Derivative API轉換
+        # 檢查檔案格式
+        parts = file_name.split('-')
+        if len(parts) < 4:
+            return Response(
+                {"error": f"Invalid file name format: '{file_name}'. Must have at least 4 parts separated by '-'."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 檢查 zone_code
+        zone = parts[2].upper()  # 第三組，例如 "TX1"
+        try:
+            zone_code = models.ZoneCode.objects.get(code=zone)
+        except models.ZoneCode.DoesNotExist:
+            return Response(
+                {"error": f"Zone code '{zone}' not defined in ZoneCode table."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 檢查 level_code
+        level = parts[3].upper()  # 第四組，例如 "XX"
+        try:
+            level_code = models.LevelCode.objects.get(code=level)
+        except models.LevelCode.DoesNotExist:
+            return Response(
+                {"error": f"Level code '{level}' not defined in LevelCode table."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 執行 Celery 任務
         bim_data_import.delay(client_id, client_secret, bucket_key, file_name, 'progress_group', True)
-        # bim_data_import(client_id, client_secret, bucket_key, filename, 'progress_group', True)
 
         # 記錄操作
         ip_address = request.META.get('REMOTE_ADDR')
         log_user_activity(self.request.user, '模型匯入', f'重新匯入{file_name}', 'SUCCESS', ip_address)
 
-        # 回應上傳成功的訊息
+        # 回應處理中的訊息
         return Response({"message": f"File '{file_name}' is being processed."}, status=status.HTTP_200_OK)
 
 
@@ -311,6 +361,7 @@ class BimGroupViewSet(viewsets.ReadOnlyModelViewSet):
         response = super().list(request, *args, **kwargs)
         response.data = [item for item in response.data if item is not None]
         return response
+
 
 class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
     """ 只查詢 BIMModel """

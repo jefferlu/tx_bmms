@@ -83,7 +83,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                 },
                 error: (e) => {
                     this.isLoading = false;
-                    console.error('Error loading data:', e);                    
+                    console.error('Error loading data:', e);
                 }
             })
     }
@@ -121,12 +121,19 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
 
     onBimDataImport(file: any): void {
 
-        // if (!this._apsCredentials.check()) {
-        //     this._toastService.open({ message: this._translocoService.translate('no-aps-credentials') });
-        //     return;
-        // }
-
         if (file.status === 'ready') {
+            const fileName = file.name;
+            const parts = fileName.split('-');
+
+            // 檢查檔案格式是否至少有 4 組
+            if (parts.length < 4) {
+                // alert(`Invalid file name format: '${fileName}'. Must have at least 4 parts separated by '-'.`);
+                file.status = 'error';
+                file.message = `Invalid file name format: '${fileName}'. Must have at least 4 parts separated by '-'.`;
+                return;
+            }
+
+            // 格式正確，執行上傳
             this._bimDataImport(file);
         }
         else {
@@ -177,7 +184,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                 },
                 error: (err) => {
                     file.status = 'error';
-                    file.message = JSON.stringify(err);
+                    file.message = err.error ? JSON.stringify(err.error) : JSON.stringify(err);
                     this._changeDetectorRef.markForCheck();
                 },
                 complete: () => {
@@ -198,8 +205,9 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                     file.status = 'process';
                 },
                 error: (err) => {
+
                     file.status = 'error';
-                    file.message = JSON.stringify(err);
+                    file.message = err.error ? JSON.stringify(err.error) : JSON.stringify(err);
                     this._changeDetectorRef.markForCheck();
                 }
             });
@@ -235,8 +243,10 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     }
 
     private _delete(file: any) {
+        this.isLoading = true;
         this._bimDataImportService.delete(file.name).pipe(
             finalize(() => {
+                this.isLoading = false;
                 this._changeDetectorRef.markForCheck();
             })
         ).subscribe({

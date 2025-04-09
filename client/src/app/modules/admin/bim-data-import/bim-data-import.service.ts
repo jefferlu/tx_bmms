@@ -19,11 +19,11 @@ export class BimDataImportService {
         // formData.append('file', file, encodeURIComponent(file.name));
         formData.append('file', file, file.name);
 
-        return this._appService.post('forge/bim-data-import', formData, { reportProgress: true, observe: 'events' });
+        return this._appService.post('forge/bim-data-import', formData, { reportProgress: true, observe: 'events' }, false);
     }
 
     bimDataReload(filename: string): Observable<any> {
-        return this._appService.post('forge/bim-data-reload', { filename: filename }).pipe(
+        return this._appService.post('forge/bim-data-reload', { filename: filename }, {}, false).pipe(
             tap((res: any) => { })
         )
     }
