@@ -5,7 +5,7 @@
         </mat-drawer>
 
         <mat-drawer-content>
-            <div class="flex flex-auto flex-col h-full bg-white dark:bg-gray-900" *transloco="let t">
+            <div class="flex flex-auto flex-col h-full bg-white dark:bg-gray-900 p-6" *transloco="let t">
 
                 <!-- Header -->
                 <div class="flex flex-row items-center justify-between px-6 py-8 md:px-8">
@@ -25,13 +25,13 @@
                 </div>
 
                 <!-- Content -->
-                <div class="flex h-full overflow-y-auto">
+                <div class="flex h-full overflow-y-auto bg-card rounded-md">
                     @if(page.data){
                     <p-table class="w-full" [value]="page.data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" selectionMode="single"
                         [metaKeySelection]="true" (onRowSelect)="onOpenDrawer($event)">
                         <ng-template pTemplate="header">
                             <tr>
-                                <th class="pl-8">{{t('email')}}</th>
+                                <th class="pl-8 py-4">{{t('email')}}</th>
                                 <th>{{t('name')}}</th>
                                 <th>{{t('auth-permission')}}</th>
                                 <th>{{t('last-login')}}</th>
