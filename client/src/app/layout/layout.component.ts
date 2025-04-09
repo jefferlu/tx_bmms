@@ -11,6 +11,7 @@ import { EmptyLayoutComponent } from './layouts/empty/empty.component';
 import { CompactLayoutComponent } from './layouts/vertical/compact/compact.component';
 import { TranslocoService } from '@jsverse/transloco';
 import { LocalStorageService } from 'app/core/services/local-storage/local-storage.service';
+import { DenseLayoutComponent } from './layouts/vertical/dense/dense.component';
 ;
 
 @Component({
@@ -18,7 +19,7 @@ import { LocalStorageService } from 'app/core/services/local-storage/local-stora
     templateUrl: './layout.component.html',
     styleUrls: ['./layout.component.scss'],
     encapsulation: ViewEncapsulation.None,
-    imports: [NgIf, EmptyLayoutComponent, CompactLayoutComponent]
+    imports: [EmptyLayoutComponent, CompactLayoutComponent, DenseLayoutComponent]
 })
 export class LayoutComponent implements OnInit, OnDestroy {
     config: GtsConfig;

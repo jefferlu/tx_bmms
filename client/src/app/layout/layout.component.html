@@ -1,3 +1,8 @@
-<empty-layout *ngIf="layout === 'empty'"></empty-layout>
+<!-- Empty layout -->
+@if (layout === 'empty') {<empty-layout></empty-layout>}
 
-<compact-layout *ngIf="layout === 'compact'"></compact-layout>
+<!-- Compact -->
+@if (layout === 'compact') {<compact-layout></compact-layout>}
+
+<!-- Dense -->
+@if (layout === 'dense') {<dense-layout></dense-layout>}
