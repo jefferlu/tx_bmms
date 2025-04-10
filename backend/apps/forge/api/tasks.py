@@ -100,7 +100,7 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     with transaction.atomic():
         # 從 file_name 提取 zone（第3組）和 level（第4組）
         parts = file_name.split('-')
-        zone = parts[2].upper()  
+        zone = parts[2].upper()
         level = parts[3].upper()
         zone_code = models.ZoneCode.objects.get(code=zone)
         level_code = models.LevelCode.objects.get(code=level)
@@ -160,14 +160,14 @@ def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send
 def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_progress):
     bim_model = models.BimModel.objects.get(id=bim_model_id)
 
-    # Step 1: 從 BimGroup 獲取條件
+    # Step 1: 獲取當前 BimGroup 條件
     group_types = models.BimGroup.objects.filter(is_active=True).prefetch_related(
         'types').values('types__display_name', 'types__value')
     if not group_types:
         send_progress('error', "No active BimGroup types found.")
         raise Exception("No active BimGroup types found.")
 
-    display_names = [gt['types__display_name'] for gt in group_types]
+    display_names = set(gt['types__display_name'] for gt in group_types)
     value_conditions = {gt['types__display_name']: gt['types__value'] for gt in group_types if gt['types__value']}
     display_names_str = ','.join([f"'{d}'" for d in display_names])
     where_clause = f"attrs.display_name IN ({display_names_str})"
@@ -175,9 +175,8 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         value_clauses = [
             f"(attrs.display_name = '{d}' AND CAST(vals.value AS TEXT) = '{v}')" for d, v in value_conditions.items()]
         where_clause = f"({where_clause}) AND ({' OR '.join(value_clauses)})"
-    where_clause = where_clause if display_names else "1=0"
 
-    # Step 2: 提取 BimCategory 資料
+    # Step 2: 從 SQLite 提取新資料
     send_progress('extract-bimcategory', 'Extracting BimCategory from SQLite...')
     conn = sqlite3.connect(sqlite_path)
     category_query = f"""
@@ -223,47 +222,80 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
     conn.close()
     send_progress('extract-bimobject', f'Extracted {len(df_objects)} BimObject records.')
 
-    # Step 4: 處理 BimCategory 和 BimObject
+    # Step 4: 處理 BimCategory 和 BimObject（增量更新）
     with transaction.atomic():
-        # 刪除舊資料
-        deleted_count_categories = models.BimCategory.objects.filter(bim_model=bim_model).delete()
-        send_progress('process-bimcategory', f'Deleted {deleted_count_categories} old BimCategory records.')
+        # 獲取現有 BimCategory 和 BimObject
+        existing_categories = {
+            (c.display_name, c.value): c
+            for c in models.BimCategory.objects.filter(bim_model=bim_model)
+        }
+        existing_objects = {
+            (o.dbid, o.display_name, o.value): o
+            for o in models.BimObject.objects.filter(category__bim_model=bim_model)
+        }
 
-        # 處理 BimCategory
+        # 定義新資料的有效條件
+        valid_category_pairs = set((row.display_name, row.value) for _, row in df_categories.iterrows())
+        valid_display_names = set(display_names)
+
+        # 清理不再符合條件的 BimCategory 和相關 BimObject
+        send_progress('cleanup-bimcategory', 'Cleaning up outdated BimCategory and BimObject records...')
+        to_delete_categories = [
+            cat for (disp_name, val), cat in existing_categories.items()
+            if disp_name not in valid_display_names or (disp_name, val) not in valid_category_pairs
+        ]
+        if to_delete_categories:
+            to_delete_ids = [cat.id for cat in to_delete_categories]
+            # 先批量刪除相關 BimObject
+            deleted_objects_count = models.BimObject.objects.filter(category_id__in=to_delete_ids).delete()[0]
+            # 再批量刪除 BimCategory
+            deleted_categories_count = models.BimCategory.objects.filter(id__in=to_delete_ids).delete()[0]
+            send_progress('cleanup-bimcategory',
+                          f'Deleted {deleted_categories_count} outdated BimCategory and {deleted_objects_count} BimObject records.')
+        else:
+            send_progress('cleanup-bimcategory', 'No outdated BimCategory records to delete.')
+
+        # 增量更新 BimCategory
         send_progress('process-bimcategory', 'Processing BimCategory records...')
-        bim_categories = {}
+        new_categories = {}
         for i, row in enumerate(df_categories.itertuples(), 1):
-            group = models.BimGroup.objects.filter(types__display_name=row.display_name).first()
-            if group:
-                category = models.BimCategory.objects.create(
-                    bim_group=group,
-                    bim_model=bim_model,
-                    value=row.value,
-                    display_name=row.display_name
-                )
-                bim_categories[(row.value, row.display_name)] = category
+            key = (row.display_name, row.value)
+            if key not in existing_categories:
+                group = models.BimGroup.objects.filter(types__display_name=row.display_name).first()
+                if group:
+                    category = models.BimCategory.objects.create(
+                        bim_group=group,
+                        bim_model=bim_model,
+                        value=row.value,
+                        display_name=row.display_name
+                    )
+                    new_categories[key] = category
             if i % 100 == 0:
                 send_progress('process-bimcategory', f'Processed {i}/{len(df_categories)} BimCategory records.')
-        send_progress('process-bimcategory', 'BimCategory processing completed.')
+        send_progress('process-bimcategory', f'BimCategory processing completed: {len(new_categories)} new records.')
 
-        # 處理 BimObject
+        # 增量更新 BimObject
         send_progress('process-bimobject', 'Processing BimObject records...')
         bim_objects = []
-        for i, row in df_objects.iterrows():
-            category = bim_categories.get((row['value'], row['display_name']))
+        for i, row in enumerate(df_objects.itertuples(), 1):
+            category = new_categories.get((row.display_name, row.value)) or existing_categories.get((row.display_name, row.value))
             if category:
-                bim_objects.append(
-                    models.BimObject(
-                        category=category,
-                        dbid=row['dbid'],
-                        primary_value=row['primary_value'],
-                        display_name=row['display_name'],
-                        value=row['value']
+                key = (row.dbid, row.display_name, row.value)
+                if key not in existing_objects:
+                    bim_objects.append(
+                        models.BimObject(
+                            category=category,
+                            dbid=row.dbid,
+                            primary_value=row.primary_value,
+                            display_name=row.display_name,
+                            value=row.value
+                        )
                     )
-                )
-            if i % 100 == 0:
+            if i % 1000 == 0:
                 send_progress('process-bimobject', f'Processed {i}/{len(df_objects)} BimObject records.')
-        models.BimObject.objects.bulk_create(bim_objects)
-        send_progress('process-bimobject', f'BimObject processing completed: {len(bim_objects)} records inserted.')
 
-    return {"categories_count": len(bim_categories), "objects_count": len(bim_objects)}
+        # 批量創建新 BimObject
+        models.BimObject.objects.bulk_create(bim_objects)
+        send_progress('process-bimobject', f'BimObject processing completed: {len(bim_objects)} new records inserted.')
+
+    return {"categories_count": len(new_categories), "objects_count": len(bim_objects)}

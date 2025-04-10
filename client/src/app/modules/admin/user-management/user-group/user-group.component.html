@@ -25,7 +25,7 @@
                 </div>
 
                 <!-- Content -->
-                <div class="flex h-full overflow-y-auto  bg-card rounded-md">
+                <div class="flex h-full overflow-y-auto bg-card rounded-md">
                     @if(page.data){
                     <p-table class="w-full" [value]="page.data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" selectionMode="single"
                         [metaKeySelection]="true" (onRowSelect)="onOpenDrawer($event)">
