@@ -7,6 +7,7 @@ class ZoneCode(models.Model):
 
     class Meta:
         db_table = "forge_zone_code"
+        indexes = [models.Index(fields=['code'])]
 
     def __str__(self):
         return f"{self.code} - {self.description}"
@@ -18,6 +19,7 @@ class LevelCode(models.Model):
 
     class Meta:
         db_table = "forge_level_code"
+        indexes = [models.Index(fields=['code'])]
 
     def __str__(self):
         return f"{self.code} - {self.description}"
@@ -80,7 +82,6 @@ class BimGroup(models.Model):
 
 class BimCategory(models.Model):
     bim_group = models.ForeignKey(BimGroup, on_delete=models.CASCADE, related_name='bim_categories')
-    bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_categories')
     value = models.CharField(max_length=255)  # 對應 SQLite 的 vals.value
     is_active = models.BooleanField(default=True)
     display_name = models.TextField(null=True, blank=True)  # 對應 SQLite 的 attrs.display_name
@@ -89,7 +90,7 @@ class BimCategory(models.Model):
         db_table = "forge_bim_category"
         verbose_name_plural = 'Bim categories'
         ordering = ["id"]
-        unique_together = ('bim_model', 'bim_group', 'value')
+        unique_together = ('bim_group', 'value')
         indexes = [
             models.Index(fields=['bim_group']),
             models.Index(fields=['value']),
@@ -100,18 +101,19 @@ class BimCategory(models.Model):
 
 
 class BimObject(models.Model):
-    category = models.ForeignKey('BimCategory', on_delete=models.CASCADE, related_name="bim_objects")
+    bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_categories')
     dbid = models.IntegerField()
-    primary_value = models.CharField(max_length=255)  # 儲存主要值，(__name__)
+    # primary_value = models.CharField(max_length=255)  # 儲存主要值，(__name__)
     display_name = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
 
     class Meta:
         db_table = "forge_bim_object"
         indexes = [
-            models.Index(fields=['category']),
+            models.Index(fields=['bim_model']),
             models.Index(fields=['dbid']),
-            models.Index(fields=['dbid', 'category']),  # 新增聯合索引
+            models.Index(fields=['display_name']),
+            models.Index(fields=['value']),
         ]
 
     def __str__(self):

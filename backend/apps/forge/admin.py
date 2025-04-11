@@ -34,4 +34,4 @@ class BimModelAdmin(admin.ModelAdmin):
 
 @admin.register(models.BimObject)
 class BimObjectAdmin(admin.ModelAdmin):
-    list_display = ('category', 'dbid', 'value',)
+    list_display = ('bim_model', 'dbid', 'value',)
