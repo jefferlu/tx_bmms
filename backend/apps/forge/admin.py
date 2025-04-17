@@ -1,35 +1,28 @@
 from django.contrib import admin
+from mptt.admin import MPTTModelAdmin
 from . import models
 
 
-@admin.register(models.BimGroup)
-class BimGroupAdmin(admin.ModelAdmin):
-    list_display = ('name', 'typess', 'is_active', 'description', 'order', )
-    filter_horizontal = ('types',)
+@admin.register(models.BimCondition)
+class BimConditionAdmin(MPTTModelAdmin):
+    list_display = ('name', 'display_name', 'value', 'description', 'parent', 'order', 'is_active', )
+    mptt_level_indent = 20
 
-    def typess(self, obj):
-        return ", ".join([c.display_name for c in obj.types.all()])
-
-
-@admin.register(models.BimGroupType)
-class BimGroupTypeAdmin(admin.ModelAdmin):
-    list_display = ('display_name', 'value', 'description', )
+    def get_queryset(self, request):
+        models.BimCondition.objects.rebuild()  # 確保樹結構依model之order_insertion_by排序重新生成
+        qs = super().get_queryset(request)
+        return qs
 
 
 @admin.register(models.BimCategory)
 class BimCategoryAdmin(admin.ModelAdmin):
-    list_display = ('value', 'bim_group', 'is_active', 'display_name', 'id', )
+    list_display = ('condition',  'display_name', 'value', 'is_active',)
     search_fields = ('display_name', 'value')
 
 
 @admin.register(models.BimModel)
 class BimModelAdmin(admin.ModelAdmin):
     list_display = ('name', 'created_at', )
-
-
-# @admin.register(models.BimConversion)
-# class BimConversionAdmin(admin.ModelAdmin):
-#     list_display = ('bim_model', 'urn', 'version', 'original_file', 'svf_file', 'created_at', )
 
 
 @admin.register(models.BimObject)

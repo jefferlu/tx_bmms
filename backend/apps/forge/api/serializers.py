@@ -44,18 +44,18 @@ class BimCategorySerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         return {key: value for key, value in data.items() if key in fields}
 
-class BimGroupSerializer(serializers.ModelSerializer):
-    bim_categories = BimCategorySerializer(many=True, read_only=True)
+# class BimGroupSerializer(serializers.ModelSerializer):
+#     bim_categories = BimCategorySerializer(many=True, read_only=True)
 
-    class Meta:
-        model = models.BimGroup
-        fields = ['id', 'name', 'description', 'order', 'bim_categories']
+#     class Meta:
+#         model = models.BimGroup
+#         fields = ['id', 'name', 'description', 'order', 'bim_categories']
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if not representation.get('bim_categories'):
-            return None
-        return representation
+#     def to_representation(self, instance):
+#         representation = super().to_representation(instance)
+#         if not representation.get('bim_categories'):
+#             return None
+#         return representation
 
 
 class BimObjectAttributeSerializer(serializers.ModelSerializer):

@@ -74,14 +74,67 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
-       
+        this._route.data.subscribe({
+            next: (res: RouteData) => {
+                this.bimModels = res.data.models;
+                this.groups = res.data.groups;
+
+                this.tenderOptions = [...new Set<string>(res.data.models.map(model => model.tender))]
+                    .map(tender => ({ label: tender, value: tender }));
+
+                if (this.tenderOptions.length > 0) {
+                    this.selectedTender = this.tenderOptions[0].value;
+                    this.onTenderChange(this.selectedTender);
+                }
+                this._changeDetectorRef.markForCheck();
+            },
+            error: (e) => console.error('Error loading data:', e)
+        });
+
+        this.filterChangeSubject
+            .pipe(
+                debounceTime(800),
+                takeUntil(this._unsubscribeAll)
+            )
+            .subscribe(() => {
+                this.onSearch();
+                this.scrollToTable();
+            });
     }
 
     onKeywordChange(): void {
         this.filterChangeSubject.next();
     }
 
-    
+    onTenderChange(selectedTender: string): void {
+        this.selectedTender = selectedTender;
+        this.selectedNames = [];
+        this.nameOptions = this.bimModels
+            .filter(model => model.tender === selectedTender)
+            .map(model => ({ label: model.name, value: model }));
+        this.updateCriteria(this.getCategoryIdsFromTender(selectedTender));
+        this.clearCriteria();
+    }
+
+    onNameSelectionChange(event: any): void {
+        const categoryIds = this.selectedNames.length === 0
+            ? this.getCategoryIdsFromTender(this.selectedTender!)
+            : this.getCategoryIdsFromNames(this.selectedNames);
+        this.updateCriteria(categoryIds);
+        this.clearCriteria();
+    }
+
+    onCriteriaSelect(category: BimCategory): void {
+        category.selected = !category.selected;
+        this.updateCategories();
+        this.filterChangeSubject.next();
+    }
+
+    onCriteriaUnselect(category: BimCategory): void {
+        category.selected = !category.selected;
+        this.updateCategories();
+        this.filterChangeSubject.next();
+    }
 
     onCollapse(criterion: BimGroup): void {
         criterion.collapse = !criterion.collapse;
@@ -92,7 +145,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         const page = event.first! / event.rows! + 1;
         this.loadPage(page);
     }
-        
+
     onRowSelect(event: any): void {
         this.selectedObjectItems = [...this.selectedObjectItems, event.data];
         this._changeDetectorRef.markForCheck();

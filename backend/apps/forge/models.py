@@ -1,4 +1,5 @@
 from django.db import models
+from mptt.models import MPTTModel, TreeForeignKey
 
 
 class ZoneCode(models.Model):
@@ -14,8 +15,8 @@ class ZoneCode(models.Model):
 
 
 class LevelCode(models.Model):
-    code = models.CharField(max_length=10, unique=True)  # 例如 "XX"
-    description = models.CharField(max_length=255)       # 樓層描述，例如 "Ground Floor" 或 "B1"
+    code = models.CharField(max_length=10, unique=True)
+    description = models.CharField(max_length=255)
 
     class Meta:
         db_table = "forge_level_code"
@@ -26,14 +27,14 @@ class LevelCode(models.Model):
 
 
 class BimModel(models.Model):
-    name = models.CharField(max_length=255)  # 對應檔案名稱
+    name = models.CharField(max_length=255)
     urn = models.CharField(max_length=255)
     version = models.IntegerField()
-    zone_code = models.ForeignKey(ZoneCode, on_delete=models.RESTRICT,  related_name="bim_models")
+    zone_code = models.ForeignKey(ZoneCode, on_delete=models.RESTRICT, related_name="bim_models")
     level_code = models.ForeignKey(LevelCode, on_delete=models.RESTRICT, related_name="bim_models_level")
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    last_processed_version = models.IntegerField(null=True, blank=True) # 判別是否需刪除
+    last_processed_version = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = "forge_bim_model"
@@ -46,54 +47,44 @@ class BimModel(models.Model):
         return self.name
 
 
-class BimGroupType(models.Model):
-    display_name = models.CharField(max_length=255)  # 對應 SQLite 的 attrs.display_name
+class BimCondition(MPTTModel):
+    name = models.CharField(max_length=255)
+    display_name = models.CharField(max_length=255, null=True, blank=True)
     value = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-
-    class Meta:
-        db_table = "forge_bim_type"
-        indexes = [
-            models.Index(fields=['display_name']),
-            models.Index(fields=['value']),
-        ]
-
-    def __str__(self):
-        return self.display_name
-
-
-class BimGroup(models.Model):
-    name = models.CharField(max_length=255, unique=True)  # 對應 SQLite 的 attrs.name
     is_active = models.BooleanField(default=True)
-    types = models.ManyToManyField(BimGroupType, blank=True, related_name='bim_groups')
-    description = models.TextField(null=True, blank=True)
     order = models.IntegerField(default=1)
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
 
     class Meta:
-        db_table = "forge_bim_group"
-        ordering = ["id"]
+        db_table = "forge_bim_condition"
         indexes = [
             models.Index(fields=['name']),
+            models.Index(fields=['display_name']),
+            models.Index(fields=['value']),
             models.Index(fields=['order']),
         ]
+
+    class MPTTMeta:
+        order_insertion_by = ['order']
 
     def __str__(self):
         return self.name
 
 
 class BimCategory(models.Model):
-    bim_group = models.ForeignKey(BimGroup, on_delete=models.CASCADE, related_name='bim_categories')
-    value = models.CharField(max_length=255)  # 對應 SQLite 的 vals.value
+    condition = models.ForeignKey(BimCondition, on_delete=models.CASCADE, related_name='categories')
+    value = models.CharField(max_length=255)
+    display_name = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    display_name = models.TextField(null=True, blank=True)  # 對應 SQLite 的 attrs.display_name
 
     class Meta:
         db_table = "forge_bim_category"
         verbose_name_plural = 'Bim categories'
         ordering = ["id"]
-        unique_together = ('bim_group', 'value')
+        unique_together = ('condition', 'value')
         indexes = [
-            models.Index(fields=['bim_group']),
+            models.Index(fields=['condition']),
             models.Index(fields=['value']),
         ]
 
@@ -104,7 +95,6 @@ class BimCategory(models.Model):
 class BimObject(models.Model):
     bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_objects')
     dbid = models.IntegerField()
-    # primary_value = models.CharField(max_length=255)  # 儲存主要值，(__name__)
     display_name = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
 
