@@ -57,13 +57,6 @@ def get_aps_urn(object_id: str) -> str:
     return urn
 
 
-def get_conversion_version(bim_model) -> int:
-    last_conversion = forge_models.BimConversion.objects.filter(bim_model=bim_model).order_by("-version").first()
-    new_version = 1 if last_conversion is None else last_conversion.version + 1  # 取得最新版本 +1
-
-    return new_version
-
-
 def get_tender_name(file_name) -> str:
     parts = file_name.split('-')
     if len(parts) >= 2:

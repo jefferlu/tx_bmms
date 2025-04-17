@@ -33,6 +33,7 @@ class BimModel(models.Model):
     level_code = models.ForeignKey(LevelCode, on_delete=models.RESTRICT, related_name="bim_models_level")
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    last_processed_version = models.IntegerField(null=True, blank=True) # 判別是否需刪除
 
     class Meta:
         db_table = "forge_bim_model"
@@ -101,7 +102,7 @@ class BimCategory(models.Model):
 
 
 class BimObject(models.Model):
-    bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_categories')
+    bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_objects')
     dbid = models.IntegerField()
     # primary_value = models.CharField(max_length=255)  # 儲存主要值，(__name__)
     display_name = models.CharField(max_length=255)

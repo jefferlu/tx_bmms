@@ -1,8 +1,8 @@
-import os
 import time
 import json
 import sqlite3
 import pandas as pd
+import os
 
 from django.db import transaction
 from channels.layers import get_channel_layer
@@ -12,7 +12,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 
 from ..aps_toolkit import Auth, Bucket, Derivative, SVFReader, DbReader
-from ..services import get_aps_urn, get_conversion_version
+from ..services import get_aps_urn
 from .. import models
 
 logger = get_task_logger(__name__)
@@ -31,6 +31,8 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
             },
         )
 
+    start_time = time.time()
+
     try:
         auth = Auth(client_id, client_secret)
         token = auth.auth2leg()
@@ -48,15 +50,20 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
                 raise Exception("Object not found in bucket.")
             urn = get_aps_urn(object_data['objectId'])
 
-        result = process_translation(urn, token, file_name, object_data, send_progress)
-        return {"status": "BIM data import completed.", "file": file_name, **result}
+        # 傳遞 is_reload 給 process_translation
+        result = process_translation(urn, token, file_name, object_data, send_progress, is_reload)
+
+        elapsed_time = time.time() - start_time
+        send_progress('complete', f'BIM data import completed in {elapsed_time:.2f} seconds.')
+        return {"status": "BIM data import completed.", "file": file_name, "elapsed_time": elapsed_time, **result}
     except Exception as e:
         logger.error(str(e))
         send_progress('error', str(e))
-        return {"status": f"BIM data import failed: {str(e)}", "file": file_name}
+        elapsed_time = time.time() - start_time
+        return {"status": f"BIM data import failed: {str(e)}", "file": file_name, "elapsed_time": elapsed_time}
 
 
-def process_translation(urn, token, file_name, object_data, send_progress):
+def process_translation(urn, token, file_name, object_data, send_progress, is_reload):
     # Step 2: Trigger Translation
     send_progress('translate-job', 'Triggering translation job...')
     derivative = Derivative(urn, token)
@@ -98,24 +105,44 @@ def process_translation(urn, token, file_name, object_data, send_progress):
     # Step 6: Create or Update BimModel and Process Data
     send_progress('process-model-conversion', 'Creating or updating BimModel...')
     with transaction.atomic():
-        # 從 file_name 提取 zone（第3組）和 level（第4組）
+        # 檢查 file_name 格式
         parts = file_name.split('-')
+        if len(parts) < 4:
+            raise ValueError(f"Invalid file_name format: {file_name}. Expected at least 4 parts.")
         zone = parts[2].upper()
         level = parts[3].upper()
-        zone_code = models.ZoneCode.objects.get(code=zone)
-        level_code = models.LevelCode.objects.get(code=level)
 
-        bim_model, created = models.BimModel.objects.get_or_create(
-            name=file_name,
-            defaults={'urn': urn, 'version': 1, 'zone_code': zone_code, 'level_code': level_code}
-        )
-        if not created:
-            bim_model.urn = urn
-            bim_model.version += 1
-            bim_model.zone_code = zone_code
-            bim_model.level_code = level_code
-            bim_model.save()
-        send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) updated.')
+        # 確保 ZoneCode 和 LevelCode 存在
+        try:
+            zone_code = models.ZoneCode.objects.get(code=zone)
+        except models.ZoneCode.DoesNotExist:
+            raise ValueError(f"ZoneCode '{zone}' not found.")
+        try:
+            level_code = models.LevelCode.objects.get(code=level)
+        except models.LevelCode.DoesNotExist:
+            raise ValueError(f"LevelCode '{level}' not found.")
+
+        if is_reload:
+            # is_reload=True: 假設 BimModel 存在，不更新版本
+            try:
+                bim_model = models.BimModel.objects.get(name=file_name)
+                send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) reloaded.')
+            except models.BimModel.DoesNotExist:
+                raise ValueError(f"BimModel with name '{file_name}' not found during reload.")
+        else:
+            # is_reload=False: 創建新 BimModel 或更新版本
+            bim_model, created = models.BimModel.objects.get_or_create(
+                name=file_name,
+                defaults={'urn': urn, 'version': 1, 'zone_code': zone_code, 'level_code': level_code}
+            )
+            if not created:
+                # 若存在，更新 urn 並遞增版本
+                bim_model.urn = urn
+                bim_model.version += 1
+                bim_model.zone_code = zone_code
+                bim_model.level_code = level_code
+                bim_model.save()
+            send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) updated.')
 
         result = _process_categories_and_objects(
             sqlite_path=sqlite_path,
@@ -142,6 +169,8 @@ def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send
         )
     send_progress = send_progress or default_send_progress
 
+    start_time = time.time()
+
     try:
         result = _process_categories_and_objects(
             sqlite_path=sqlite_path,
@@ -149,19 +178,22 @@ def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send
             file_name=file_name,
             send_progress=send_progress
         )
-        send_progress('complete', f'BIM data update completed.')
-        return result
+        elapsed_time = time.time() - start_time
+        send_progress('complete', f'BIM data update completed in {elapsed_time:.2f} seconds.')
+        return {**result, "elapsed_time": elapsed_time}
     except Exception as e:
         logger.error(f"Error updating Bim data: {str(e)}")
         send_progress('error', f"Error updating Bim data: {str(e)}")
-        raise
+        elapsed_time = time.time() - start_time
+        return {"error": f"Error updating Bim data: {str(e)}", "elapsed_time": elapsed_time}
 
 
 def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_progress):
     bim_model = models.BimModel.objects.get(id=bim_model_id)
 
     # Step 1: 獲取 BimGroup 條件
-    group_types = models.BimGroup.objects.filter(is_active=True).prefetch_related('types').values('types__display_name', 'types__value')
+    group_types = models.BimGroup.objects.filter(is_active=True).prefetch_related(
+        'types').values('types__display_name', 'types__value')
     if not group_types:
         send_progress('error', "No active BimGroup types found.")
         raise Exception("No active BimGroup types found.")
@@ -171,7 +203,8 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
     display_names_str = ','.join([f"'{d}'" for d in display_names])
     where_clause = f"attrs.display_name IN ({display_names_str})"
     if value_conditions:
-        value_clauses = [f"(attrs.display_name = '{d}' AND CAST(vals.value AS TEXT) = '{v}')" for d, v in value_conditions.items()]
+        value_clauses = [
+            f"(attrs.display_name = '{d}' AND CAST(vals.value AS TEXT) = '{v}')" for d, v in value_conditions.items()]
         where_clause = f"({where_clause}) AND ({' OR '.join(value_clauses)})"
 
     # Step 2: 更新 BimCategory
@@ -189,31 +222,28 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
     send_progress('extract-bimcategory', f'Extracted {len(df_categories)} BimCategory records.')
 
     with transaction.atomic():
-        # existing_categories = {(c.display_name, c.value): c for c in models.BimCategory.objects.filter(bim_model=bim_model)}
         existing_categories = {(c.bim_group_id, c.display_name, c.value): c for c in models.BimCategory.objects.all()}
-        valid_pairs = set((row.display_name, row.value) for _, row in df_categories.iterrows())
+        valid_pairs = set((group.id if group else None, row.display_name, row.value)
+                          for row in df_categories.itertuples()
+                          for group in [models.BimGroup.objects.filter(types__display_name=row.display_name).first()])
 
-        # 清理不再符合條件的 BimCategory
-        to_delete = [cat.id for (disp, val), cat in existing_categories.items() if (disp, val) not in valid_pairs]
+        to_delete = [cat.id for (grp_id, disp, val), cat in existing_categories.items() if (grp_id, disp, val) not in valid_pairs]
         deleted_count = models.BimCategory.objects.filter(id__in=to_delete).delete()[0]
         send_progress('cleanup-bimcategory', f'Deleted {deleted_count} outdated BimCategory records.')
 
-        # 新增 BimCategory
         new_categories = {}
         for row in df_categories.itertuples():
             key = (row.display_name, row.value)
-            if key not in existing_categories:
-                group = models.BimGroup.objects.filter(types__display_name=row.display_name).first()
-                if group:
-                    category = models.BimCategory.objects.create(
-                        bim_group=group,
-                        bim_model=bim_model,
-                        value=row.value,
-                        display_name=row.display_name
-                    )
-                    new_categories[key] = category
+            group = models.BimGroup.objects.filter(types__display_name=row.display_name).first()
+            if group and (group.id, row.display_name, row.value) not in existing_categories:
+                category = models.BimCategory.objects.create(
+                    bim_group=group,
+                    value=row.value,
+                    display_name=row.display_name
+                )
+                new_categories[key] = category
 
-    # Step 3: 更新 BimObject（僅初次或 SQLite 變更時執行）
+    # Step 3: 更新 BimObject
     send_progress('extract-bimobject', 'Extracting BimObject from SQLite...')
     object_query = """
         SELECT 
@@ -223,24 +253,39 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         FROM _objects_eav eav
         JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
         JOIN _objects_val vals ON vals.id = eav.value_id
-        WHERE vals.value IS NOT NULL AND TRIM(vals.value) != '' 
+        WHERE vals.value IS NOT NULL AND attrs.display_name IS NOT NULL
+            AND TRIM(vals.value) != ''
     """
     df_objects = pd.read_sql_query(object_query, conn)
     conn.close()
     send_progress('extract-bimobject', f'Extracted {len(df_objects)} BimObject records.')
 
-    with transaction.atomic():
-        # 僅初次或 SQLite 變更時全量更新
-        if not models.BimObject.objects.filter(bim_model=bim_model).exists():
-            bim_objects = [
-                models.BimObject(
-                    bim_model=bim_model,
-                    dbid=row.dbid,
-                    display_name=row.display_name,
-                    value=row.value
-                ) for row in df_objects.itertuples()
-            ]
-            models.BimObject.objects.bulk_create(bim_objects)
-            send_progress('process-bimobject', f'Inserted {len(bim_objects)} BimObject records.')
+    # 分批插入 BimObject
+    existing_objects = models.BimObject.objects.filter(bim_model=bim_model)
+    if not existing_objects.exists() or bim_model.version != bim_model.last_processed_version:
+        if existing_objects.exists():
+            existing_objects.delete()
+            send_progress('process-bimobject', 'Cleared old BimObject records due to version change.')
+
+        batch_size = 10000
+        bim_objects = [
+            models.BimObject(
+                bim_model=bim_model,
+                dbid=row.dbid,
+                display_name=row.display_name,
+                value=row.value
+            ) for row in df_objects.itertuples()
+        ]
+        total = len(bim_objects)
+        for i in range(0, total, batch_size):
+            batch = bim_objects[i:i + batch_size]
+            with transaction.atomic():
+                models.BimObject.objects.bulk_create(batch)
+            progress = min((i + len(batch)) / total * 100, 100)
+            send_progress('process-bimobject', f'Inserted {i + len(batch)} of {total} records ({progress:.1f}%)')
+
+        # 更新 last_processed_version
+        bim_model.last_processed_version = bim_model.version
+        bim_model.save()
 
     return {"categories_count": len(new_categories), "objects_count": len(df_objects)}
