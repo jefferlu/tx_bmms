@@ -8,10 +8,10 @@ import { forkJoin } from "rxjs";
 export default [{
     path: '',
     component: ProcessFunctionsComponent,
-    resolve: {
-        data: () => forkJoin({
-            groups: inject(ProcessFunctionsService).getBimGroup(),
-            // models: inject(ProcessFunctionsService).getBimModelWithCategiries()
-        })
-    }
+    // resolve: {
+    //     data: () => forkJoin({
+    //         groups: inject(ProcessFunctionsService).getBimGroup(),
+    //         // models: inject(ProcessFunctionsService).getBimModelWithCategiries()
+    //     })
+    // }
 }] as Routes

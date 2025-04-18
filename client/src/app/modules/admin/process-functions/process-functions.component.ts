@@ -33,7 +33,7 @@ import { BimModel, BimCategory, BimGroup, SearchResult, RouteData, SearchResultI
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        NgClass, CdkScrollable, FormsModule,
+        FormsModule,
         MatButtonModule, MatIconModule,
         MatMenuModule, MatDividerModule,
         TableModule, TranslocoModule,
