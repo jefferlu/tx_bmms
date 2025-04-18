@@ -233,7 +233,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         # Fetch existing BimCategory
         existing_categories = {
             (c.condition_id, c.display_name, c.value): c
-            for c in models.BimCategory.objects.filter(condition__is_active=True)
+            for c in models.BimCategory.objects.filter(condition__is_active=True, bim_model_id=bim_model_id)
         }
 
         # Identify valid (condition_id, display_name, value) pairs
@@ -280,6 +280,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
             key = (condition['id'], row.display_name, row.value)
             if key not in existing_categories:
                 category = models.BimCategory(
+                    bim_model_id=bim_model_id,
                     condition_id=condition['id'],
                     value=row.value,
                     display_name=row.display_name

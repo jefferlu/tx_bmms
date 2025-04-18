@@ -74,6 +74,7 @@ class BimCondition(MPTTModel):
 
 
 class BimCategory(models.Model):
+    bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_categories')
     condition = models.ForeignKey(BimCondition, on_delete=models.CASCADE, related_name='bim_categories')
     value = models.CharField(max_length=255)
     display_name = models.TextField(null=True, blank=True)
@@ -83,7 +84,7 @@ class BimCategory(models.Model):
         db_table = "forge_bim_category"
         verbose_name_plural = 'Bim categories'
         ordering = ["id"]
-        unique_together = ('condition', 'value')
+        unique_together = ('bim_model', 'condition', 'value')
         indexes = [
             models.Index(fields=['condition']),
             models.Index(fields=['value']),
