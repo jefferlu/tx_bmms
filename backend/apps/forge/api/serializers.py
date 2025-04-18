@@ -17,12 +17,6 @@ class ObjectSerializer(serializers.Serializer):
         return True
 
 
-# class BimConversionSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = models.BimConversion
-#         fields = ['urn', 'version', 'original_file', 'svf_file', 'created_at']
-
-
 class BimModelSerializer(serializers.ModelSerializer):
     tender = serializers.SerializerMethodField()
 
@@ -37,25 +31,32 @@ class BimModelSerializer(serializers.ModelSerializer):
 class BimCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BimCategory
-        fields = ['id', 'value', 'display_name', 'bim_group']
+        fields = ['id', 'value', 'display_name']
+
+
+class BimConditionSerializer(serializers.ModelSerializer):
+    categories = serializers.SerializerMethodField()
+    children = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.BimCondition
+        fields = ['id', 'name', 'display_name', 'value',  'categories', 'children']
+
+    def get_categories(self, obj):
+        categories = obj.bim_categories.filter(is_active=True)
+        return BimCategorySerializer(categories, many=True).data
+
+    def get_children(self, obj):
+        children = obj.get_children().filter(is_active=True)
+        return BimConditionSerializer(children, many=True).data
 
     def to_representation(self, instance):
-        fields = self.context.get('fields', self.Meta.fields)
-        data = super().to_representation(instance)
-        return {key: value for key, value in data.items() if key in fields}
-
-# class BimGroupSerializer(serializers.ModelSerializer):
-#     bim_categories = BimCategorySerializer(many=True, read_only=True)
-
-#     class Meta:
-#         model = models.BimGroup
-#         fields = ['id', 'name', 'description', 'order', 'bim_categories']
-
-#     def to_representation(self, instance):
-#         representation = super().to_representation(instance)
-#         if not representation.get('bim_categories'):
-#             return None
-#         return representation
+        representation = super().to_representation(instance)
+        if representation.get('categories') == []:
+            representation.pop('categories')
+        if representation.get('children') == []:
+            representation.pop('children')
+        return representation
 
 
 class BimObjectAttributeSerializer(serializers.ModelSerializer):

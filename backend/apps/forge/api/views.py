@@ -351,16 +351,18 @@ class BimUpdateCategoriesView(APIView):
         return Response(response_data, status=status_code)
 
 
-# class BimGroupViewSet(viewsets.ReadOnlyModelViewSet):
-#     queryset = models.BimGroup.objects.filter(is_active=True).prefetch_related(
-#         Prefetch('bim_categories', queryset=models.BimCategory.objects.filter(is_active=True).order_by('value'))
-#     )
-#     serializer_class = serializers.BimGroupSerializer
+class BimConditionTreeViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = serializers.BimConditionSerializer
+    # Preload all active conditions and their categories
+    queryset = models.BimCondition.objects.filter(is_active=True).order_by('order').prefetch_related(
+        'bim_categories',
+        Prefetch('children', queryset=models.BimCondition.objects.filter(is_active=True).order_by('order'))
+    )
 
-#     def list(self, request, *args, **kwargs):
-#         response = super().list(request, *args, **kwargs)
-#         response.data = [item for item in response.data if item is not None]
-#         return response
+    def list(self, request, *args, **kwargs):
+        root_nodes = self.get_queryset().filter(level=0)
+        serializer = self.get_serializer(root_nodes, many=True)
+        return Response(serializer.data)
 
 
 class BimModelViewSet(viewsets.ReadOnlyModelViewSet):

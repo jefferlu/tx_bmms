@@ -63,6 +63,7 @@ class BimCondition(MPTTModel):
             models.Index(fields=['display_name']),
             models.Index(fields=['value']),
             models.Index(fields=['order']),
+            models.Index(fields=['parent_id']),
         ]
 
     class MPTTMeta:
@@ -73,7 +74,7 @@ class BimCondition(MPTTModel):
 
 
 class BimCategory(models.Model):
-    condition = models.ForeignKey(BimCondition, on_delete=models.CASCADE, related_name='categories')
+    condition = models.ForeignKey(BimCondition, on_delete=models.CASCADE, related_name='bim_categories')
     value = models.CharField(max_length=255)
     display_name = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)

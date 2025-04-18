@@ -67,7 +67,7 @@ CELERY_TASK_SERIALIZER = 'json'
 
 # Django channels
 CHANNEL_LAYERS = {
-    'default': {        
+    'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             'hosts': [(REDIS['HOST'], REDIS['PORT'])],
@@ -250,3 +250,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
+
+INTERNAL_IPS = ['127.0.0.1']
+
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
