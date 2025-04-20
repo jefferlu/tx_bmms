@@ -16,7 +16,7 @@ class BimConditionAdmin(MPTTModelAdmin):
 
 @admin.register(models.BimCategory)
 class BimCategoryAdmin(admin.ModelAdmin):
-    list_display = ('condition',  'display_name', 'value', 'is_active',)
+    list_display = ('bim_model', 'condition',  'display_name', 'value', 'is_active',)
     search_fields = ('display_name', 'value')
 
 

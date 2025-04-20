@@ -88,6 +88,7 @@ class BimCategory(models.Model):
         indexes = [
             models.Index(fields=['condition']),
             models.Index(fields=['value']),
+            models.Index(fields=['display_name', 'value']),
         ]
 
     def __str__(self):

@@ -43,7 +43,7 @@ class BimConditionSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'display_name', 'value',  'categories', 'children']
 
     def get_categories(self, obj):
-        categories = obj.bim_categories.filter(is_active=True)
+        categories = obj.bim_categories.filter(is_active=True).order_by('value').distinct('display_name', 'value')
         return BimCategorySerializer(categories, many=True).data
 
     def get_children(self, obj):

@@ -230,35 +230,12 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
     send_progress('extract-bimcategory', f'Extracted {len(df_categories)} BimCategory records.')
 
     with transaction.atomic():
-        # Fetch existing BimCategory
-        existing_categories = {
-            (c.condition_id, c.display_name, c.value): c
-            for c in models.BimCategory.objects.filter(condition__is_active=True, bim_model_id=bim_model_id)
-        }
+        # Delete all existing BimCategory for this bim_model
+        deleted_count = models.BimCategory.objects.filter(bim_model_id=bim_model_id).delete()[0]
+        send_progress('cleanup-bimcategory', f'Deleted {deleted_count} BimCategory records for bim_model_id={bim_model_id}.')
 
-        # Identify valid (condition_id, display_name, value) pairs
-        valid_pairs = set()
-        for row in df_categories.itertuples():
-            # Try matching by display_name first
-            if row.display_name in condition_by_display:
-                for condition in condition_by_display[row.display_name]:
-                    if not condition['value'] or condition['value'] == row.value:
-                        valid_pairs.add((condition['id'], row.display_name, row.value))
-            # If no display_name match, try matching by value
-            elif row.value in condition_by_value:
-                condition = condition_by_value[row.value]
-                valid_pairs.add((condition['id'], row.display_name, row.value))
-
-        # Delete invalid BimCategory
-        to_delete = [
-            cat.id for (cond_id, disp, val), cat in existing_categories.items()
-            if (cond_id, disp, val) not in valid_pairs
-        ]
-        deleted_count = models.BimCategory.objects.filter(id__in=to_delete).delete()[0]
-        send_progress('cleanup-bimcategory', f'Deleted {deleted_count} outdated BimCategory records.')
-
-        # Create new BimCategory
-        new_categories = {}
+        # Create new BimCategory in bulk
+        new_categories = []
         total_categories = len(df_categories)
         current_category = 0
         for row in df_categories.itertuples():
@@ -277,19 +254,22 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
             if not condition:
                 continue
 
-            key = (condition['id'], row.display_name, row.value)
-            if key not in existing_categories:
-                category = models.BimCategory(
+            new_categories.append(
+                models.BimCategory(
                     bim_model_id=bim_model_id,
                     condition_id=condition['id'],
                     value=row.value,
                     display_name=row.display_name
                 )
-                category.save()
-                new_categories[key] = category
-                send_progress('process-bimcategory', f'Processing BimCategory {current_category}/{total_categories}')
+            )
+            send_progress('process-bimcategory', f'Processing BimCategory {current_category}/{total_categories}')
 
-    # Step 4: Update BimObject
+        # Bulk create new categories
+        if new_categories:
+            models.BimCategory.objects.bulk_create(new_categories)
+            send_progress('process-bimcategory', f'Created {len(new_categories)} new BimCategory records.')
+
+    # Step 4: Update BimObject (保持不變)
     existing_objects = models.BimObject.objects.filter(bim_model=bim_model)
     if not existing_objects.exists() or bim_model.version != bim_model.last_processed_version:
         send_progress('extract-bimobject', 'Extracting BimObject from SQLite...')
