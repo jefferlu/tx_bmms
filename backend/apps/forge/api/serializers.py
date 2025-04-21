@@ -4,6 +4,28 @@ from ..services import get_tender_name
 from .. import models
 
 
+class ModelSerializer(serializers.Serializer):
+    bim_model_id = serializers.IntegerField()
+    dbid = serializers.IntegerField()
+
+
+class LevelSerializer(serializers.Serializer):
+    label = serializers.CharField()
+    data = serializers.ListField(child=ModelSerializer())
+
+
+class ZoneSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    label = serializers.CharField()
+    children = serializers.ListField(child=LevelSerializer())
+
+
+class BimRegionTreeSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    label = serializers.CharField()
+    children = serializers.ListField(child=LevelSerializer())
+
+
 class ObjectSerializer(serializers.Serializer):
     name = serializers.CharField(source='objectKey')
     bucketKey = serializers.CharField()
@@ -59,43 +81,13 @@ class BimConditionSerializer(serializers.ModelSerializer):
         return representation
 
 
-class BimObjectAttributeSerializer(serializers.ModelSerializer):
-    group_name = serializers.ReadOnlyField(source='category.bim_group.name')
-    category = serializers.ReadOnlyField(source='category.value')
-    value = serializers.ReadOnlyField()
-
-    class Meta:
-        model = models.BimObject
-        fields = ['group_name', 'category', 'value']
-
-
 class BimObjectSerializer(serializers.Serializer):
-    id = serializers.IntegerField(source='dbid')  # 使用 dbid 作為 id
     dbid = serializers.IntegerField()
-    primary_value = serializers.CharField()
-    model_name = serializers.CharField(source='category__bim_model__name')
-    version = serializers.IntegerField(source='category__bim_model__version')
-    urn = serializers.CharField(source='category__bim_model__urn')
-    attributes = serializers.JSONField()
+    value = serializers.CharField()
+    display_name = serializers.CharField()
+    bim_model_name = serializers.CharField(source='bim_model__name')
+    bim_model_version = serializers.IntegerField(source='bim_model__version')
+    bim_model_urn = serializers.CharField(source='bim_model__urn')
 
     class Meta:
-        fields = ['id', 'dbid', 'model_name', 'primary_value', 'version', 'urn', 'attributes']
-
-
-class BimModelWithCategoriesSerializer(serializers.ModelSerializer):
-    categories = serializers.SerializerMethodField()
-    tender = serializers.SerializerMethodField()
-
-    class Meta:
-        model = models.BimModel
-        fields = ['id', 'tender', 'name', 'categories']
-
-    def get_tender(self, obj):
-        return get_tender_name(obj.name)
-
-    def get_categories(self, obj):
-        return BimCategorySerializer(
-            obj.bim_categories.filter(is_active=True),
-            many=True,
-            context={'fields': ['id']}
-        ).data
+        fields = ['dbid', 'value', 'display_name', 'bim_model_name', 'bim_model_version', 'bim_model_urn']

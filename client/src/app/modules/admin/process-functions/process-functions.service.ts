@@ -10,14 +10,8 @@ export class ProcessFunctionsService {
 
     constructor(private _appService: AppService) { }
 
-    getBimGroup(): Observable<any> {
-        return this._appService.get('forge/bim-group').pipe(
-            tap((response: any) => { })
-        );
-    }
-
-    getBimModelWithCategiries(): Observable<any> {
-        return this._appService.get('forge/bim-models-with-categories').pipe(
+    getConditions(): Observable<any> {
+        return this._appService.get('forge/bim-conditions').pipe(
             tap((response: any) => { })
         );
     }

@@ -3,6 +3,7 @@ import json
 import sqlite3
 import pandas as pd
 import os
+from collections import Counter
 
 from django.db import transaction
 from channels.layers import get_channel_layer
@@ -20,24 +21,41 @@ logger = get_task_logger(__name__)
 
 @shared_task
 def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name, is_reload=False):
+    """
+    Import BIM data from a file, including upload to Autodesk OSS, translation, and data processing.
+
+    Args:
+        client_id (str): Autodesk Forge client ID.
+        client_secret (str): Autodesk Forge client secret.
+        bucket_key (str): Autodesk OSS bucket key.
+        file_name (str): Name of the file to process (e.g., 'T3-TP16-A06-1F-145-M3-AR-00001-7000').
+        group_name (str): Channels group name for progress updates.
+        is_reload (bool): Whether to reload an existing object from the bucket.
+
+    Returns:
+        dict: Import status, file name, elapsed time, and processing results.
+    """
     def send_progress(status, message):
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            group_name, {
+            group_name,
+            {
                 'type': 'progress.message',
                 'name': file_name,
                 'status': status,
                 'message': message
-            },
+            }
         )
 
     start_time = time.time()
 
     try:
+        # Authenticate with Autodesk Forge
         auth = Auth(client_id, client_secret)
         token = auth.auth2leg()
         bucket = Bucket(token)
 
+        # Upload or reload file
         if not is_reload:
             send_progress('upload-object', 'Uploading file to Autodesk OSS...')
             object_data = bucket.upload_object(bucket_key, f'media-root/uploads/{file_name}', file_name)
@@ -50,7 +68,7 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
                 raise Exception("Object not found in bucket.")
             urn = get_aps_urn(object_data['objectId'])
 
-        # Pass is_reload to process_translation
+        # Process translation and data extraction
         result = process_translation(urn, token, file_name, object_data, send_progress, is_reload)
 
         elapsed_time = time.time() - start_time
@@ -64,14 +82,28 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
 
 
 def process_translation(urn, token, file_name, object_data, send_progress, is_reload):
-    # Step 2: Trigger Translation
+    """
+    Process translation job, download SVF and SQLite, and update BimModel data.
+
+    Args:
+        urn (str): URN of the object.
+        token (str): Autodesk Forge authentication token.
+        file_name (str): Name of the file.
+        object_data (dict): Object data from Autodesk OSS.
+        send_progress (callable): Function to send progress updates.
+        is_reload (bool): Whether to reload an existing object.
+
+    Returns:
+        dict: Processing results (categories, zones, hierarchies, objects).
+    """
+    # Trigger translation job
     send_progress('translate-job', 'Triggering translation job...')
     derivative = Derivative(urn, token)
     translate_job_ret = json.loads(derivative.translate_job())
     if 'errorCode' in translate_job_ret:
         raise Exception(translate_job_ret['developerMessage'])
 
-    # Step 3: Monitor Translation Status
+    # Monitor translation status
     send_progress('translate-job', 'Monitoring translation status...')
     while True:
         status = derivative.check_job_status()
@@ -84,7 +116,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
             raise Exception("Translation failed.")
         time.sleep(1)
 
-    # Step 4: Download SVF
+    # Download SVF
     send_progress('download-svf', 'Downloading SVF to server...')
     svf_reader = SVFReader(urn, token, "US")
     download_dir = f"media-root/svf/{file_name}"
@@ -96,23 +128,21 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     else:
         raise Exception("No manifest items found for download.")
 
-    # Step 5: Download SQLite
+    # Download SQLite
     send_progress('download-sqlite', 'Downloading SQLite to server...')
     db = DbReader(urn, token, object_data['objectKey'])
     sqlite_path = db.db_path
     send_progress('download-sqlite', 'SQLite download completed.')
 
-    # Step 6: Create or Update BimModel and Process Data
+    # Create or update BimModel
     send_progress('process-model-conversion', 'Creating or updating BimModel...')
     with transaction.atomic():
-        # Check file_name format
         parts = file_name.split('-')
         if len(parts) < 4:
             raise ValueError(f"Invalid file_name format: {file_name}. Expected at least 4 parts.")
         zone = parts[2].upper()
         level = parts[3].upper()
 
-        # Ensure ZoneCode and LevelCode exist
         try:
             zone_code = models.ZoneCode.objects.get(code=zone)
         except models.ZoneCode.DoesNotExist:
@@ -123,20 +153,17 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
             raise ValueError(f"LevelCode '{level}' not found.")
 
         if is_reload:
-            # is_reload=True: Assume BimModel exists, do not update version
             try:
                 bim_model = models.BimModel.objects.get(name=file_name)
                 send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) reloaded.')
             except models.BimModel.DoesNotExist:
                 raise ValueError(f"BimModel with name '{file_name}' not found during reload.")
         else:
-            # is_reload=False: Create new BimModel or update version
             bim_model, created = models.BimModel.objects.get_or_create(
                 name=file_name,
                 defaults={'urn': urn, 'version': 1, 'zone_code': zone_code, 'level_code': level_code}
             )
             if not created:
-                # If exists, update urn and increment version
                 bim_model.urn = urn
                 bim_model.version += 1
                 bim_model.zone_code = zone_code
@@ -144,6 +171,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
                 bim_model.save()
             send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) updated.')
 
+        # Process categories, regions, hierarchies, and objects
         result = _process_categories_and_objects(
             sqlite_path=sqlite_path,
             bim_model_id=bim_model.id,
@@ -157,15 +185,29 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
 
 @shared_task
 def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send_progress=None):
+    """
+    Update BIM categories, regions, hierarchies, and objects from SQLite.
+
+    Args:
+        sqlite_path (str): Path to SQLite database.
+        bim_model_id (int): ID of the BimModel.
+        file_name (str): Name of the file.
+        group_name (str): Channels group name for progress updates.
+        send_progress (callable, optional): Function to send progress updates.
+
+    Returns:
+        dict: Processing results or error details.
+    """
     def default_send_progress(status, message):
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            group_name, {
+            group_name,
+            {
                 'type': 'update.category',
                 'name': file_name,
                 'status': status,
                 'message': message
-            },
+            }
         )
     send_progress = send_progress or default_send_progress
 
@@ -189,7 +231,22 @@ def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send
 
 
 def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_progress):
-    bim_model = models.BimModel.objects.get(id=bim_model_id)
+    """
+    Process categories, regions, hierarchies, and objects from SQLite database.
+
+    Args:
+        sqlite_path (str): Path to SQLite database.
+        bim_model_id (int): ID of the BimModel.
+        file_name (str): Name of the file.
+        send_progress (callable): Function to send progress updates.
+
+    Returns:
+        dict: Counts of processed categories, regions, hierarchies, and objects.
+    """
+    try:
+        bim_model = models.BimModel.objects.get(id=bim_model_id)
+    except models.BimModel.DoesNotExist:
+        raise ValueError(f"BimModel with id={bim_model_id} not found.")
 
     # Step 1: Fetch BimCondition conditions
     conditions = models.BimCondition.objects.filter(is_active=True).values('id', 'display_name', 'value')
@@ -226,7 +283,11 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         WHERE {where_clause}
         ORDER BY display_name
     """
-    df_categories = pd.read_sql_query(category_query, conn)
+    try:
+        df_categories = pd.read_sql_query(category_query, conn)
+    except Exception as e:
+        logger.error(f"Failed to extract BimCategory: {str(e)}")
+        df_categories = pd.DataFrame(columns=['display_name', 'value'])
     send_progress('extract-bimcategory', f'Extracted {len(df_categories)} BimCategory records.')
 
     with transaction.atomic():
@@ -241,13 +302,11 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         for row in df_categories.itertuples():
             current_category += 1
             condition = None
-            # Try matching by display_name first
             if row.display_name in condition_by_display:
                 for cond in condition_by_display[row.display_name]:
                     if not cond['value'] or cond['value'] == row.value:
                         condition = cond
                         break
-            # If no display_name match, try matching by value
             if not condition and row.value in condition_by_value:
                 condition = condition_by_value[row.value]
 
@@ -264,12 +323,131 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
             )
             send_progress('process-bimcategory', f'Processing BimCategory {current_category}/{total_categories}')
 
-        # Bulk create new categories
         if new_categories:
             models.BimCategory.objects.bulk_create(new_categories)
             send_progress('process-bimcategory', f'Created {len(new_categories)} new BimCategory records.')
 
-    # Step 4: Update BimObject (保持不變)
+    # Step 3.5: Update BimRegion
+    send_progress('extract-bimregion', 'Extracting BimRegion from SQLite...')
+    parts = file_name.split('-')
+    if len(parts) < 2:
+        raise ValueError(f"Invalid file_name format for BimRegion: {file_name}. Expected at least 2 parts.")
+    prefix = f"{parts[0]}-{parts[1]}"
+
+    region_query = """
+        SELECT 
+            eav.entity_id AS dbid,
+            attrs.display_name AS display_name,
+            CAST(vals.value AS TEXT) AS value
+        FROM _objects_eav eav
+        JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
+        JOIN _objects_val vals ON vals.id = eav.value_id
+        WHERE attrs.display_name = 'Name' AND vals.value LIKE ?
+    """
+    try:
+        df_bim_regions = pd.read_sql_query(region_query, conn, params=(f"{prefix}%",))
+    except Exception as e:
+        logger.error(f"Failed to extract BimRegion: {str(e)}")
+        df_bim_regions = pd.DataFrame(columns=['dbid', 'display_name', 'value'])
+    send_progress('extract-bimregion', f'Extracted {len(df_bim_regions)} BimRegion records.')
+
+    with transaction.atomic():
+        deleted_count = models.BimRegion.objects.filter(bim_model_id=bim_model_id).delete()[0]
+        send_progress('cleanup-bimregion', f'Deleted {deleted_count} BimRegion records for bim_model_id={bim_model_id}.')
+
+        new_bim_regions = []
+        total_bim_regions = len(df_bim_regions)
+        current_bim_region = 0
+        for row in df_bim_regions.itertuples():
+            current_bim_region += 1
+            value_parts = row.value.split('-')
+            if len(value_parts) < 4:
+                logger.warning(f"Skipping invalid value format: {row.value}")
+                continue
+
+            zone_code = value_parts[2]
+            level = value_parts[3]
+
+            try:
+                zone = models.ZoneCode.objects.get(code=zone_code)
+            except models.ZoneCode.DoesNotExist:
+                logger.warning(f"ZoneCode '{zone_code}' not found for value: {row.value}")
+                continue
+
+            new_bim_regions.append(
+                models.BimRegion(
+                    bim_model_id=bim_model_id,
+                    zone=zone,
+                    level=level,
+                    value=row.value,
+                    dbid=row.dbid
+                )
+            )
+            send_progress('process-bimregion', f'Processing BimRegion {current_bim_region}/{total_bim_regions}')
+
+        if new_bim_regions:
+            batch_size = 10000
+            for i in range(0, len(new_bim_regions), batch_size):
+                batch = new_bim_regions[i:i + batch_size]
+                models.BimRegion.objects.bulk_create(batch)
+                send_progress('process-bimregion', f'Created {i + len(batch)} of {len(new_bim_regions)} BimRegion records.')
+
+    # Step 3.6: Update BimObjectHierarchy
+    new_hierarchies = []  # Initialize new_hierarchies to avoid UnboundLocalError
+    existing_hierarchies = models.BimObjectHierarchy.objects.filter(bim_model_id=bim_model_id)
+    if not existing_hierarchies.exists() or bim_model.version != bim_model.last_processed_version:
+        send_progress('extract-bimobjecthierarchy', 'Extracting BimObjectHierarchy from SQLite...')
+        hierarchy_query = """
+            SELECT 
+                eav.entity_id AS entity_id,
+                CAST(vals.value AS INTEGER) AS related_id,
+                attrs.category AS relationship
+            FROM _objects_eav eav
+            JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
+            JOIN _objects_val vals ON vals.id = eav.value_id
+            WHERE attrs.category = '__parent__'  -- Only process __parent__ records
+        """
+        try:
+            df_hierarchy = pd.read_sql_query(hierarchy_query, conn)
+        except Exception as e:
+            logger.error(f"Failed to extract BimObjectHierarchy: {str(e)}")
+            df_hierarchy = pd.DataFrame(columns=['entity_id', 'related_id', 'relationship'])
+        send_progress('extract-bimobjecthierarchy', f'Extracted {len(df_hierarchy)} BimObjectHierarchy records.')
+
+        with transaction.atomic():
+            # Create new hierarchy records directly (no deduplication)
+            for row in df_hierarchy.itertuples():
+                try:
+                    entity_id = row.entity_id
+                    parent_id = int(row.related_id)  # related_id is the parent
+                    new_hierarchies.append(
+                        models.BimObjectHierarchy(
+                            bim_model_id=bim_model_id,
+                            entity_id=entity_id,
+                            parent_id=parent_id
+                        )
+                    )
+                except (ValueError, TypeError):
+                    logger.warning(f"Skipping invalid related_id for entity_id={row.entity_id}, value={row.related_id}")
+                    continue
+
+            if new_hierarchies:
+                batch_size = 10000
+                for i in range(0, len(new_hierarchies), batch_size):
+                    batch = new_hierarchies[i:i + batch_size]
+                    models.BimObjectHierarchy.objects.bulk_create(batch)
+                    send_progress('process-bimobjecthierarchy',
+                                  f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
+            else:
+                logger.warning(f"No valid BimObjectHierarchy records found for bim_model_id={bim_model_id}")
+
+            # Update last_processed_version after processing
+            bim_model.last_processed_version = bim_model.version
+            bim_model.save()
+    else:
+        send_progress('process-bimobjecthierarchy', 'BimObjectHierarchy data is up-to-date, no update needed.')
+
+    # Step 4: Update BimObject
     existing_objects = models.BimObject.objects.filter(bim_model=bim_model)
     if not existing_objects.exists() or bim_model.version != bim_model.last_processed_version:
         send_progress('extract-bimobject', 'Extracting BimObject from SQLite...')
@@ -282,9 +460,13 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
             JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
             JOIN _objects_val vals ON vals.id = eav.value_id
             WHERE vals.value IS NOT NULL AND attrs.display_name IS NOT NULL
-                AND TRIM(vals.value) != ''
+                AND TRIM(CAST(vals.value AS TEXT)) != ''
         """
-        df_objects = pd.read_sql_query(object_query, conn)
+        try:
+            df_objects = pd.read_sql_query(object_query, conn)
+        except Exception as e:
+            logger.error(f"Failed to extract BimObject: {str(e)}")
+            df_objects = pd.DataFrame(columns=['dbid', 'display_name', 'value'])
         send_progress('extract-bimobject', f'Extracted {len(df_objects)} BimObject records.')
 
         if existing_objects.exists():
@@ -308,11 +490,15 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
             progress = min((i + len(batch)) / total * 100, 100)
             send_progress('process-bimobject', f'Inserted {i + len(batch)} of {total} records ({progress:.1f}%)')
 
-        # Update last_processed_version
         bim_model.last_processed_version = bim_model.version
         bim_model.save()
     else:
         send_progress('process-bimobject', 'BimObject data is up-to-date, no update needed.')
 
     conn.close()
-    return {"categories_count": len(new_categories), "objects_count": len(df_objects) if 'df_objects' in locals() else 0}
+    return {
+        "categories_count": len(new_categories),
+        "bim_regions_count": len(new_bim_regions) if new_bim_regions else 0,
+        "hierarchy_count": len(new_hierarchies),
+        "objects_count": len(df_objects) if 'df_objects' in locals() else 0
+    }

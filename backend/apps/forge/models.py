@@ -14,24 +14,11 @@ class ZoneCode(models.Model):
         return f"{self.code} - {self.description}"
 
 
-class LevelCode(models.Model):
-    code = models.CharField(max_length=10, unique=True)
-    description = models.CharField(max_length=255)
-
-    class Meta:
-        db_table = "forge_level_code"
-        indexes = [models.Index(fields=['code'])]
-
-    def __str__(self):
-        return f"{self.code} - {self.description}"
-
-
 class BimModel(models.Model):
     name = models.CharField(max_length=255)
     urn = models.CharField(max_length=255)
     version = models.IntegerField()
     zone_code = models.ForeignKey(ZoneCode, on_delete=models.RESTRICT, related_name="bim_models")
-    level_code = models.ForeignKey(LevelCode, on_delete=models.RESTRICT, related_name="bim_models_level")
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_processed_version = models.IntegerField(null=True, blank=True)
@@ -95,6 +82,46 @@ class BimCategory(models.Model):
         return self.value
 
 
+class BimRegion(models.Model):
+    bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_regions')
+    zone = models.ForeignKey(ZoneCode, on_delete=models.RESTRICT, related_name='bim_regions')
+    level = models.CharField(max_length=50)
+    value = models.CharField(max_length=255)
+    dbid = models.IntegerField()
+
+    class Meta:
+        db_table = "forge_bim_region"
+        verbose_name_plural = 'Bim regions'
+        ordering = ["id"]
+        unique_together = ('bim_model', 'zone', 'level', 'dbid')
+        indexes = [
+            models.Index(fields=['bim_model']),
+            models.Index(fields=['zone']),
+            models.Index(fields=['level']),
+        ]
+
+    def __str__(self):
+        return f"{self.zone.code} - {self.level} (dbid: {self.dbid})"
+
+
+class BimObjectHierarchy(models.Model):
+    bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='object_hierarchies')
+    entity_id = models.IntegerField()
+    parent_id = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        db_table = "forge_bim_object_hierarchy"
+        unique_together = ('bim_model', 'entity_id')
+        indexes = [
+            models.Index(fields=['bim_model']),
+            models.Index(fields=['entity_id']),
+            models.Index(fields=['parent_id']),
+        ]
+
+    def __str__(self):
+        return f"Object {self.entity_id} (Parent: {self.parent_id})"
+
+
 class BimObject(models.Model):
     bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_objects')
     dbid = models.IntegerField()
@@ -108,6 +135,7 @@ class BimObject(models.Model):
             models.Index(fields=['dbid']),
             models.Index(fields=['display_name']),
             models.Index(fields=['value']),
+            models.Index(fields=['display_name', 'value']),
         ]
 
     def __str__(self):

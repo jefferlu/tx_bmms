@@ -25,35 +25,51 @@
 
 /* TreeSelet */
 .p-treeselect {
-  @apply text-base text-default bg-transparent;
+  @apply text-base text-white bg-card #{'!important'};
   @apply border-gray-300 dark:border-gray-500;
   @apply transition-none;
 
   .p-treeselect-label {
-    @apply transition-none;
+    @apply dark:text-default;
   }
 
-  .p-treeselect-panel {
-    @apply text-base text-default bg-default;
-    @apply border-gray-300 dark:border-gray-500;
-
-    .p-treeselect-header {
-      @apply text-base text-default bg-default;
-
-      .p-treeselect-items-wrapper {
-        @apply text-base text-default bg-default;
-      }
-    }
-
-    .p-treenode-content {
-      @apply text-default hover:bg-slate-300 dark:hover:bg-slate-800;
-    }
+  .p-treeselect-label.p-placeholder {
+    @apply text-slate-400 #{'!important'};
   }
+}
+
+.p-treeselect-overlay {
+  @apply text-base text-white bg-card #{'!important'};
+}
+
+.p-tree-node-content.p-tree-node-selectable:not(.p-tree-node-selected):hover {
+  /* @apply dark:bg-slate-500 dark:text-default; */
+}
+
+.p-treeselect:not(.p-disabled).p-focus {
+  @apply dark:border-transparent;
+}
+
+.p-tree-node:focus-visible > .p-tree-node-content {
+  @apply dark:outline-none;
+}
+
+.p-tree-root-children, .p-tree-node-children {
+    @apply flex #{'!important'};
 }
 
 /* Tree */
 .p-tree {
-  @apply text-base text-default bg-default;
+  @apply text-base text-default bg-card #{'!important'};
+  .p-tree-node-content {
+    @apply dark:text-default;
+  }
+  .p-tree-node-content.p-tree-node-selected {
+    @apply dark:bg-slate-600;
+  }
+  .p-tree-node-content.p-tree-node-selected .p-tree-node-icon {
+    @apply dark:text-default;
+  }
 }
 
 /* Select */

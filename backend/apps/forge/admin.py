@@ -3,6 +3,11 @@ from mptt.admin import MPTTModelAdmin
 from . import models
 
 
+@admin.register(models.ZoneCode)
+class ZoneCodeAdmin(admin.ModelAdmin):
+    list_display = ('code', 'description',)
+
+
 @admin.register(models.BimCondition)
 class BimConditionAdmin(MPTTModelAdmin):
     list_display = ('name', 'display_name', 'value', 'description', 'parent', 'order', 'is_active', )
@@ -16,8 +21,12 @@ class BimConditionAdmin(MPTTModelAdmin):
 
 @admin.register(models.BimCategory)
 class BimCategoryAdmin(admin.ModelAdmin):
-    list_display = ('bim_model', 'condition',  'display_name', 'value', 'is_active',)
-    search_fields = ('display_name', 'value')
+    list_display = ('bim_model', 'condition', 'display_name', 'value', 'is_active',)
+
+
+@admin.register(models.BimRegion)
+class BimRegionAdmin(admin.ModelAdmin):
+    list_display = ('bim_model', 'zone',  'level', 'value', 'dbid',)
 
 
 @admin.register(models.BimModel)

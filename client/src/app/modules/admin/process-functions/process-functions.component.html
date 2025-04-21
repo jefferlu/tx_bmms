@@ -1,20 +1,103 @@
-<div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full">
-    <!-- Header: 包含兩個並排的 input -->
-    <div class="flex w-full p-2 bg-cardb border-b">
-        <div class="flex w-full flex-col sm:flex-row gap-4 max-w-3xl mx-auto">
-            <input type="text" class="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Input 1" />
-            <input type="text" class="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Input 2" />
+<div class="absolute inset-0 flex min-w-0 flex-col h-full" *transloco="let t">
+
+    <div class="flex w-full p-2 border-b">
+        <div class="flex w-full flex-col sm:flex-row gap-4">
+            <!-- 區域 -->
+            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedNodes"
+                [options]="conditions[0].children" placeholder="區域" (onNodeSelect)="onNodeSelect($event)">
+                <ng-template pTemplate="option" let-node>
+                    <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
+                        {{ node.label }}
+                    </div>
+                </ng-template>
+            </p-treeselect>
+
+            <!-- 空間 -->
+            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedSpaces"
+                [options]="conditions[1].children[0].children" placeholder="空間" (onNodeSelect)="onNodeSelect($event)">
+                <ng-template pTemplate="option" let-node>
+                    <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
+                        {{ node.label }}
+                    </div>
+                </ng-template>
+            </p-treeselect>
+
+            <!-- 系統 -->
+            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedSpaces"
+                [options]="conditions[1].children[0].children" placeholder="系統" (onNodeSelect)="onNodeSelect($event)">
+                <ng-template pTemplate="option" let-node>
+                    <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
+                        {{ node.label }}
+                    </div>
+                </ng-template>
+            </p-treeselect>
+
+            <!-- <input type="text" class="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Input 2" /> -->
+            <!-- <p-treeselect class="w-full md:w-80" containerStyleClass="w-full" [(ngModel)]="selectedSpaces" [options]="conditions[1].children[0].children"
+                [metaKeySelection]="false" selectionMode="single" placeholder="空間" (onNodeSelect)="onNodeSelect($event)" /> -->
+
+            <!-- 關鍵字查詢 -->
+            <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                placeholder="請輸入關鍵字..." [(ngModel)]="keyword" (input)="onKeywordChange()" />
+
+            <!-- Search -->
+            <div>
+                <button mat-flat-button (click)="onSearch()">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                    <span class="ml-2">{{t('search')}}</span>
+                </button>
+            </div>
         </div>
     </div>
-    <!-- Content: 三個不同比例的區塊，確保不超出畫面 -->
+
     <div class="mx-auto flex w-full h-full flex-wrap p-2">
         <div class="flex w-full flex-col md:flex-row gap-2 max-w-full">
-            <div class="flex-[1] min-w-0 p-4 bg-card rounded-md md:flex-[1]">區塊 1 (1/6)</div>
-            <div class="flex-[1] min-w-0 rounded-md flex flex-col gap-2 md:flex-[2]">
-                <div class="flex-[3] p-4 bg-card rounded-md sm:flex-[3] md:flex-[3]">區塊 2 - Row 1</div>
-                <div class="flex-[2] p-4 bg-card rounded-md sm:flex-[2] md:flex-[2]">區塊 2 - Row 2</div>
+            <div class="flex-[1] min-w-0 bg-card rounded-md md:flex-[1]">
+                <!-- 區塊 1 (1/6) -->
+                <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="data?.count" [scrollable]="true" scrollHeight="flex"
+                    selectionMode="multiple" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [paginator]="true" [lazy]="true"
+                    [loading]="isLoading" [selection]="selectedObjectItems" (onLazyLoad)="onPageChange($event)" (onRowSelect)="onRowSelect($event)"
+                    (onRowUnselect)="onRowUnselect($event)">
+                    <ng-template pTemplate="header">
+                        <tr class="border-b-2">
+                            <th>Cobie屬性</th>
+                            <!-- <th>{{t('bim-name')}}</th> -->
+                            <th>名稱</th>
+                            <!-- <th>DBID</th> -->
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                        <tr class="hover:bg-hover" [pSelectableRow]="item" [pSelectableRowIndex]="rowIndex">
+                            <td>{{ item.attributes?.join(', ') }}</td>
+                            <td>{{ item.primary_value }}</td>
+                            <td>{{ item.dbid }}</td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="9" class="text-center border-0">
+                                <div class="flex flex-auto flex-col items-center justify-center h-120">
+                                    <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"></mat-icon>
+                                    <div class="text-secondary mt-4 font-semibold tracking-tight">
+                                        {{t('no-data')}}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
             </div>
-            <div class="flex-[1] min-w-0 p-4 bg-card rounded-md md:flex-[3]">區塊 3 (3/6)</div>
+            <div class="flex-[1] min-w-0 rounded-md flex flex-col gap-2 md:flex-[2]">
+                <div class="flex-[1] p-4 bg-card rounded-md sm:flex-[1] md:flex-[1]">
+                    區塊 2 - Row 1
+                </div>
+                <div class="flex-[2] p-4 bg-card rounded-md sm:flex-[2] md:flex-[2]">
+                    區塊 2 - Row 2
+                </div>
+            </div>
+            <div class="flex-[1] min-w-0 p-4 bg-card rounded-md md:flex-[3]">
+                區塊 3 (3/6)
+            </div>
         </div>
     </div>
 </div>

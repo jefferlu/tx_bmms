@@ -365,6 +365,54 @@ class BimConditionTreeViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
+class BimRegionTreeViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = serializers.BimRegionTreeSerializer
+    queryset = models.BimRegion.objects.all().select_related('zone', 'bim_model')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        # 按 zone_id 分組並構建樹狀結構
+        zone_groups = {}
+        for region in queryset:
+            zone = region.zone
+            zone_key = zone.id
+            if zone_key not in zone_groups:
+                zone_groups[zone_key] = {
+                    'code': zone.code,
+                    'label': zone.description,
+                    'levels': {}
+                }
+
+            level = region.level
+            if level not in zone_groups[zone_key]['levels']:
+                zone_groups[zone_key]['levels'][level] = []
+
+            zone_groups[zone_key]['levels'][level].append({
+                'bim_model_id': region.bim_model_id,
+                'dbid': region.dbid
+            })
+
+        # 構建樹狀數據
+        tree_data = []
+        for zone_key, group in sorted(zone_groups.items(), key=lambda x: x[1]['code']):
+            levels_data = [
+                {
+                    'label': level,
+                    'data': models
+                }
+                for level, models in sorted(group['levels'].items())
+            ]
+            tree_data.append({
+                'code': group['code'],
+                'label': group['label'],
+                'children': levels_data
+            })
+
+        serializer = self.get_serializer(tree_data, many=True)
+        return Response(serializer.data)
+
+
 class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
     """ 只查詢 BIMModel """
     queryset = models.BimModel.objects.all()  # 直接查詢 BimModel，不依賴 BimConversion
@@ -416,49 +464,77 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
     def create(self, request, *args, **kwargs):
         model_ids = request.data.get('model_ids', None)
-        value = request.data.get('value', None)
-        categories = request.data.get('category', None)
+        properties = request.data.get('properties', None)
+        regions = request.data.get('regions', request.data.get('zones', None))  # 兼容 zones
+        level = request.data.get('level', None)
 
-        if not value and not categories:
-            raise ValidationError("請提供至少一個查詢參數 'value' 或 'category'。")
+        if not (properties or regions):
+            raise ValidationError("請提供至少一個查詢參數 'properties' 或 'regions'。")
 
         filters = Q()
-        if value:
-            filters |= Q(value__icontains=value)
 
-        if categories:
-            category_list = categories
-            category_ids = [cate["bim_category"] for cate in category_list]
-            grouped_categories = {}
-            for cate in category_list:
-                bim_group_id = cate["bim_group"]
-                grouped_categories.setdefault(bim_group_id, []).append(cate["bim_category"])
+        if properties:
+            if not isinstance(properties, list):
+                raise ValidationError("'properties' 必須是列表。")
+            value_list = [prop['value'] for prop in properties if prop.get('value')]
+            if not value_list:
+                raise ValidationError("properties 中必須包含至少一個有效的 'value'。")
+            filters |= Q(value__in=value_list)
 
-            valid_dbids = set(models.BimObject.objects.filter(
-                category__id__in=category_ids
-            ).values_list('dbid', flat=True).distinct())
-            for group_id, category_ids_in_group in grouped_categories.items():
-                group_dbids = set(models.BimObject.objects.filter(
-                    category__id__in=category_ids_in_group
-                ).values_list('dbid', flat=True).distinct())
-                valid_dbids &= group_dbids
+        if regions:
+            if not isinstance(regions, list):
+                raise ValidationError("'regions' 必須是列表。")
+            region_dbids = [region['id'] for region in regions if region.get('id')]
+            print('-->', region_dbids)
+            if not region_dbids:
+                raise ValidationError("regions 中必須包含至少一個有效的 'id'。")
 
-            filters &= Q(category__id__in=category_ids)
-            filters &= Q(dbid__in=list(valid_dbids))
+            region_query = models.BimRegion.objects.filter(dbid__in=region_dbids)
+            print(region_query)
+            if level:
+                region_query = region_query.filter(level__exact=level)
+
+            region_dbids = list(
+                region_query.values_list('dbid', flat=True).distinct()
+            )
+            print(f"Filtered region_dbids: {region_dbids}")
+            if not region_dbids:
+                print(f"No BimRegion records found for dbids={region_dbids}, level={level}")
+                filters &= Q(dbid__in=[])
+            else:
+                # 使用純 SQL 查詢，避免 raw() 的主鍵限制
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        WITH RECURSIVE tree AS (
+                            SELECT entity_id
+                            FROM forge_bim_object_hierarchy
+                            WHERE bim_model_id IN %s AND entity_id IN %s
+                            UNION ALL
+                            SELECT t.entity_id
+                            FROM forge_bim_object_hierarchy t
+                            JOIN tree ON t.parent_id = tree.entity_id
+                            WHERE t.bim_model_id IN %s
+                        )
+                        SELECT entity_id FROM tree
+                    """, [tuple(model_ids or []), tuple(region_dbids), tuple(model_ids or [])])
+                    hierarchy_dbids = [row[0] for row in cursor.fetchall()]
+                print(f"Hierarchy dbids: {hierarchy_dbids}")
+                filters &= Q(dbid__in=region_dbids + hierarchy_dbids)
 
         if model_ids:
-            # 修改為直接使用 BimModel，不依賴 BimConversion
-            filters &= Q(category__bim_model_id__in=model_ids)
-
+            if not isinstance(model_ids, list):
+                raise ValidationError("'model_ids' 必須是列表。")
+            if not models.BimModel.objects.filter(id__in=model_ids).exists():
+                raise ValidationError("指定的 model_ids 無效。")
+            filters &= Q(bim_model_id__in=model_ids)
+        print(f"Final filters: {filters}")
         queryset = models.BimObject.objects.filter(filters).values(
             'dbid',
-            'primary_value',
-            # 修改為直接從 BimModel 獲取資訊
-            'category__bim_model__name',
-            'category__bim_model__version',
-            'category__bim_model__urn'
-        ).annotate(
-            attributes=ArrayAgg('value')
+            'value',
+            'display_name',
+            'bim_model__name',
+            'bim_model__version',
+            'bim_model__urn'
         ).order_by('dbid')
 
         paginator = self.pagination_class()
@@ -471,25 +547,16 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         response = Response(serializer.data)
 
         ip_address = request.META.get('REMOTE_ADDR')
+        log_values = (
+            f"properties: {[p['value'] for p in properties if p.get('value')][:10]}" if properties else ""
+        )
+        log_regions = f"regions: {region_dbids[:10]}" if regions else ""
+        log_message = f"查詢 {log_values}{' ; ' if log_values and log_regions else ''}{log_regions}"
         log_user_activity(
-            self.request.user, '圖資檢索',
-            f'查詢 {request.data.get("category")}; {request.data.get("value")}',
-            'SUCCESS', ip_address
+            self.request.user,
+            '圖資檢索',
+            log_message,
+            'SUCCESS',
+            ip_address
         )
         return response
-
-
-class BimModelWithCategoriesViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = models.BimModel.objects.all()
-    serializer_class = serializers.BimModelWithCategoriesSerializer
-
-    def get_queryset(self):
-        queryset = models.BimModel.objects.prefetch_related(
-            Prefetch(
-                'bim_categories',
-                queryset=models.BimCategory.objects.filter(is_active=True).select_related('bim_group'),
-                to_attr='active_categories'
-            )
-        ).all()
-        print("Queries executed:", len(connection.queries))
-        return queryset
