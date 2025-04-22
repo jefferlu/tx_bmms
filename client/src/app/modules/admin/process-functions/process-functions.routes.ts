@@ -10,6 +10,7 @@ export default [{
     component: ProcessFunctionsComponent,
     resolve: {
         data: () => forkJoin({
+            regions: inject(ProcessFunctionsService).getRegions(),
             conditions: inject(ProcessFunctionsService).getConditions(),
         })
     }

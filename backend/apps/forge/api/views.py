@@ -1,5 +1,5 @@
-from django.db.models import Q, OuterRef, Subquery
 import os
+import re
 import json
 import sqlite3
 import pandas as pd
@@ -201,30 +201,9 @@ class BimDataImportView(APIView):
 
         # 檢查檔案格式
         file_name = file.name
-        parts = file_name.split('-')
-        if len(parts) < 4:
+        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
             return Response(
-                {"error": f"Invalid file name format: '{file_name}'. Must have at least 4 parts separated by '-'."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 檢查 zone_code
-        zone = parts[2].upper()  # 第三組，例如 "TX1"
-        try:
-            zone_code = models.ZoneCode.objects.get(code=zone)
-        except models.ZoneCode.DoesNotExist:
-            return Response(
-                {"error": f"Zone code '{zone}' not defined in ZoneCode table."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 檢查 level_code
-        level = parts[3].upper()  # 第四組，例如 "XX"
-        try:
-            level_code = models.LevelCode.objects.get(code=level)
-        except models.LevelCode.DoesNotExist:
-            return Response(
-                {"error": f"Level code '{level}' not defined in LevelCode table."},
+                {"error": f"Invalid file name format: '{file_name}'. Expected format: XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -257,31 +236,11 @@ class BimDataReloadView(APIView):
         if not file_name:
             return Response({"error": "No filename provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 檢查檔案格式
-        parts = file_name.split('-')
-        if len(parts) < 4:
+         # 檢查檔案格式
+        file_name = file_name
+        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
             return Response(
-                {"error": f"Invalid file name format: '{file_name}'. Must have at least 4 parts separated by '-'."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 檢查 zone_code
-        zone = parts[2].upper()  # 第三組，例如 "TX1"
-        try:
-            zone_code = models.ZoneCode.objects.get(code=zone)
-        except models.ZoneCode.DoesNotExist:
-            return Response(
-                {"error": f"Zone code '{zone}' not defined in ZoneCode table."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 檢查 level_code
-        level = parts[3].upper()  # 第四組，例如 "XX"
-        try:
-            level_code = models.LevelCode.objects.get(code=level)
-        except models.LevelCode.DoesNotExist:
-            return Response(
-                {"error": f"Level code '{level}' not defined in LevelCode table."},
+                {"error": f"Invalid file name format: '{file_name}'. Expected format: XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -379,8 +338,9 @@ class BimRegionTreeViewSet(viewsets.ReadOnlyModelViewSet):
             zone_key = zone.id
             if zone_key not in zone_groups:
                 zone_groups[zone_key] = {
-                    'code': zone.code,
+                    'key': zone.id,
                     'label': zone.description,
+                    'code': zone.code,
                     'levels': {}
                 }
 
@@ -398,14 +358,16 @@ class BimRegionTreeViewSet(viewsets.ReadOnlyModelViewSet):
         for zone_key, group in sorted(zone_groups.items(), key=lambda x: x[1]['code']):
             levels_data = [
                 {
+                    'key': level,
                     'label': level,
                     'data': models
                 }
                 for level, models in sorted(group['levels'].items())
             ]
             tree_data.append({
-                'code': group['code'],
+                'key': group['key'],
                 'label': group['label'],
+                'code': group['code'],
                 'children': levels_data
             })
 

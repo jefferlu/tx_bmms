@@ -3,8 +3,8 @@
     <div class="flex w-full p-2 border-b">
         <div class="flex w-full flex-col sm:flex-row gap-4">
             <!-- 區域 -->
-            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedNodes"
-                [options]="conditions[0].children" placeholder="區域" (onNodeSelect)="onNodeSelect($event)">
+            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedRegions"
+                [options]="regions" placeholder="區域" (onNodeSelect)="onNodeSelect($event,'regions')">
                 <ng-template pTemplate="option" let-node>
                     <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
                         {{ node.label }}
@@ -14,7 +14,7 @@
 
             <!-- 空間 -->
             <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedSpaces"
-                [options]="conditions[1].children[0].children" placeholder="空間" (onNodeSelect)="onNodeSelect($event)">
+                [options]="spaces" placeholder="空間" (onNodeSelect)="onNodeSelect($event)">
                 <ng-template pTemplate="option" let-node>
                     <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
                         {{ node.label }}
@@ -24,7 +24,7 @@
 
             <!-- 系統 -->
             <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedSpaces"
-                [options]="conditions[1].children[0].children" placeholder="系統" (onNodeSelect)="onNodeSelect($event)">
+                [options]="systems" placeholder="系統" (onNodeSelect)="onNodeSelect($event)">
                 <ng-template pTemplate="option" let-node>
                     <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
                         {{ node.label }}

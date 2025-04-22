@@ -1,8 +1,10 @@
+import os
 import time
 import json
+import re
 import sqlite3
 import pandas as pd
-import os
+
 from collections import Counter
 
 from django.db import transaction
@@ -137,20 +139,10 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     # Create or update BimModel
     send_progress('process-model-conversion', 'Creating or updating BimModel...')
     with transaction.atomic():
-        parts = file_name.split('-')
-        if len(parts) < 4:
-            raise ValueError(f"Invalid file_name format: {file_name}. Expected at least 4 parts.")
-        zone = parts[2].upper()
-        level = parts[3].upper()
-
-        try:
-            zone_code = models.ZoneCode.objects.get(code=zone)
-        except models.ZoneCode.DoesNotExist:
-            raise ValueError(f"ZoneCode '{zone}' not found.")
-        try:
-            level_code = models.LevelCode.objects.get(code=level)
-        except models.LevelCode.DoesNotExist:
-            raise ValueError(f"LevelCode '{level}' not found.")
+        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
+            raise ValueError(f"Invalid file_name format: {file_name}. (Expected XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX)")
+        
+        # parts = file_name.split('-')
 
         if is_reload:
             try:
@@ -161,13 +153,11 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
         else:
             bim_model, created = models.BimModel.objects.get_or_create(
                 name=file_name,
-                defaults={'urn': urn, 'version': 1, 'zone_code': zone_code, 'level_code': level_code}
+                defaults={'urn': urn, 'version': 1}
             )
             if not created:
                 bim_model.urn = urn
                 bim_model.version += 1
-                bim_model.zone_code = zone_code
-                bim_model.level_code = level_code
                 bim_model.save()
             send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) updated.')
 
@@ -330,8 +320,8 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
     # Step 3.5: Update BimRegion
     send_progress('extract-bimregion', 'Extracting BimRegion from SQLite...')
     parts = file_name.split('-')
-    if len(parts) < 2:
-        raise ValueError(f"Invalid file_name format for BimRegion: {file_name}. Expected at least 2 parts.")
+    if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
+        raise ValueError(f"Invalid file_name format for BimRegion: {file_name}. Expected format: XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX")
     prefix = f"{parts[0]}-{parts[1]}"
 
     region_query = """
@@ -348,7 +338,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         df_bim_regions = pd.read_sql_query(region_query, conn, params=(f"{prefix}%",))
     except Exception as e:
         logger.error(f"Failed to extract BimRegion: {str(e)}")
-        df_bim_regions = pd.DataFrame(columns=['dbid', 'display_name', 'value'])
+        raise Exception(f"Failed to extract BimRegion from SQLite: {str(e)}")
     send_progress('extract-bimregion', f'Extracted {len(df_bim_regions)} BimRegion records.')
 
     with transaction.atomic():
@@ -356,22 +346,24 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         send_progress('cleanup-bimregion', f'Deleted {deleted_count} BimRegion records for bim_model_id={bim_model_id}.')
 
         new_bim_regions = []
+        missing_zones = set()
         total_bim_regions = len(df_bim_regions)
         current_bim_region = 0
         for row in df_bim_regions.itertuples():
             current_bim_region += 1
             value_parts = row.value.split('-')
             if len(value_parts) < 4:
-                logger.warning(f"Skipping invalid value format: {row.value}")
+                logger.warning(f"Skipping invalid value format in file '{file_name}': {row.value}")
                 continue
 
             zone_code = value_parts[2]
             level = value_parts[3]
 
             try:
-                zone = models.ZoneCode.objects.get(code=zone_code)
+                zone = models.ZoneCode.objects.get(code=zone_code, is_active=True)
             except models.ZoneCode.DoesNotExist:
-                logger.warning(f"ZoneCode '{zone_code}' not found for value: {row.value}")
+                missing_zones.add(zone_code)
+                logger.warning(f"Active ZoneCode '{zone_code}' not found for value: {row.value} in file '{file_name}'")
                 continue
 
             new_bim_regions.append(
@@ -385,12 +377,20 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
             )
             send_progress('process-bimregion', f'Processing BimRegion {current_bim_region}/{total_bim_regions}')
 
+        if missing_zones:
+            send_progress('warning', f"Missing active ZoneCode entries for file '{file_name}': {', '.join(missing_zones)}")
+
+        if not new_bim_regions:
+            send_progress('error', f"No valid BimRegion records created for file '{file_name}'. Check ZoneCode table for active entries.")
+            logger.error(f"No valid BimRegion records created for file '{file_name}'.")
+
         if new_bim_regions:
             batch_size = 10000
             for i in range(0, len(new_bim_regions), batch_size):
                 batch = new_bim_regions[i:i + batch_size]
                 models.BimRegion.objects.bulk_create(batch)
                 send_progress('process-bimregion', f'Created {i + len(batch)} of {len(new_bim_regions)} BimRegion records.')
+        send_progress('process-bimregion', f'Created {len(new_bim_regions)} BimRegion records.')
 
     # Step 3.6: Update BimObjectHierarchy
     new_hierarchies = []  # Initialize new_hierarchies to avoid UnboundLocalError

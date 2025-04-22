@@ -31,13 +31,13 @@ import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     private _unsubscribeAll: Subject<void> = new Subject<void>();
 
-    conditions: any;
-    zones!: any[];
-    selectedNodes: any;
-    selectedZones: any;
-    selectedSpaces: any;
-    selectedSystem: any;
+    regions: any;
+    spaces: any;
+    systems: any;
 
+    selectedRegions: any;
+    selectedSpaces: any;
+    selectedSystems: any;
 
     constructor(
         private _route: ActivatedRoute,
@@ -52,8 +52,15 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
         this._route.data.subscribe({
             next: (res: any) => {
-                this.conditions = this._transformData(res.data.conditions);
-                console.log(this.conditions, this.conditions[0])
+                this.regions = res.data.regions;
+
+                res.data.conditions = this._transformData(res.data.conditions);
+                const spaceNode = res.data.conditions.find(item => item.label === 'space');
+                this.spaces = spaceNode?.children ?? [];
+                const systemNode = res.data.conditions.find(item => item.label === 'system');
+                this.systems = systemNode?.children ?? [];
+
+                console.log(res.data)
                 this._changeDetectorRef.markForCheck();
             },
             error: (e) => console.error('Error loading data:', e)
@@ -61,10 +68,15 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     }
 
-    onNodeSelect(event: any) {
+    onNodeSelect(event: any, tag: string) {
         const node = event.node;
         if (node.children && node.children.length > 0) {
-            this.selectedNodes = null;
+            switch (tag) {
+                case 'region': this.selectedRegions = null; break;
+                case 'space': this.selectedSpaces = null; break;
+                case 'system': this.selectedSystems = null; break;
+            }
+
         }
     }
 

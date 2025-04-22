@@ -10,6 +10,12 @@ export class ProcessFunctionsService {
 
     constructor(private _appService: AppService) { }
 
+    getRegions(): Observable<any> {
+        return this._appService.get('forge/bim-regions').pipe(
+            tap((response: any) => { })
+        );
+    }
+
     getConditions(): Observable<any> {
         return this._appService.get('forge/bim-conditions').pipe(
             tap((response: any) => { })

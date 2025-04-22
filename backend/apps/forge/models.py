@@ -5,6 +5,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 class ZoneCode(models.Model):
     code = models.CharField(max_length=10, unique=True)
     description = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = "forge_zone_code"
@@ -18,7 +19,6 @@ class BimModel(models.Model):
     name = models.CharField(max_length=255)
     urn = models.CharField(max_length=255)
     version = models.IntegerField()
-    zone_code = models.ForeignKey(ZoneCode, on_delete=models.RESTRICT, related_name="bim_models")
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_processed_version = models.IntegerField(null=True, blank=True)

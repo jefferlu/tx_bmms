@@ -10,19 +10,15 @@ class ModelSerializer(serializers.Serializer):
 
 
 class LevelSerializer(serializers.Serializer):
+    key = serializers.CharField()
     label = serializers.CharField()
     data = serializers.ListField(child=ModelSerializer())
 
 
-class ZoneSerializer(serializers.Serializer):
-    code = serializers.CharField()
-    label = serializers.CharField()
-    children = serializers.ListField(child=LevelSerializer())
-
-
 class BimRegionTreeSerializer(serializers.Serializer):
-    code = serializers.CharField()
+    key = serializers.CharField()
     label = serializers.CharField()
+    code = serializers.CharField()
     children = serializers.ListField(child=LevelSerializer())
 
 
