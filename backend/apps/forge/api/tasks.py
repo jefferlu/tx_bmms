@@ -141,7 +141,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     with transaction.atomic():
         if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
             raise ValueError(f"Invalid file_name format: {file_name}. (Expected XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX)")
-        
+
         # parts = file_name.split('-')
 
         if is_reload:
@@ -352,7 +352,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         for row in df_bim_regions.itertuples():
             current_bim_region += 1
             value_parts = row.value.split('-')
-            if len(value_parts) < 4:
+            if len(value_parts) < 4:    # 與file_name不同，此row.value找出的名稱是記錄在sqlite資料庫中的資料
                 logger.warning(f"Skipping invalid value format in file '{file_name}': {row.value}")
                 continue
 
@@ -381,7 +381,8 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
             send_progress('warning', f"Missing active ZoneCode entries for file '{file_name}': {', '.join(missing_zones)}")
 
         if not new_bim_regions:
-            send_progress('error', f"No valid BimRegion records created for file '{file_name}'. Check ZoneCode table for active entries.")
+            send_progress(
+                'error', f"No valid BimRegion records created for file '{file_name}'. Check ZoneCode table for active entries.")
             logger.error(f"No valid BimRegion records created for file '{file_name}'.")
 
         if new_bim_regions:
@@ -392,6 +393,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                 send_progress('process-bimregion', f'Created {i + len(batch)} of {len(new_bim_regions)} BimRegion records.')
         send_progress('process-bimregion', f'Created {len(new_bim_regions)} BimRegion records.')
 
+
     # Step 3.6: Update BimObjectHierarchy
     new_hierarchies = []  # Initialize new_hierarchies to avoid UnboundLocalError
     existing_hierarchies = models.BimObjectHierarchy.objects.filter(bim_model_id=bim_model_id)
@@ -400,22 +402,28 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         hierarchy_query = """
             SELECT 
                 eav.entity_id AS entity_id,
-                CAST(vals.value AS INTEGER) AS related_id,
-                attrs.category AS relationship
+                CAST(vals.value AS INTEGER) AS related_id
             FROM _objects_eav eav
             JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
             JOIN _objects_val vals ON vals.id = eav.value_id
-            WHERE attrs.category = '__parent__'  -- Only process __parent__ records
+            WHERE attrs.category = '__parent__'            
         """
         try:
             df_hierarchy = pd.read_sql_query(hierarchy_query, conn)
+            # Remove duplicates in pandas
+            df_hierarchy = df_hierarchy.drop_duplicates(subset=['entity_id', 'related_id'])
         except Exception as e:
             logger.error(f"Failed to extract BimObjectHierarchy: {str(e)}")
-            df_hierarchy = pd.DataFrame(columns=['entity_id', 'related_id', 'relationship'])
+            df_hierarchy = pd.DataFrame(columns=['entity_id', 'related_id'])
         send_progress('extract-bimobjecthierarchy', f'Extracted {len(df_hierarchy)} BimObjectHierarchy records.')
 
         with transaction.atomic():
-            # Create new hierarchy records directly (no deduplication)
+            # Delete existing hierarchy records
+            deleted_count = models.BimObjectHierarchy.objects.filter(bim_model_id=bim_model_id).delete()[0]
+            send_progress('cleanup-bimobjecthierarchy',
+                        f'Deleted {deleted_count} BimObjectHierarchy records for bim_model_id={bim_model_id}.')
+
+            # Create new hierarchy records
             for row in df_hierarchy.itertuples():
                 try:
                     entity_id = row.entity_id
@@ -437,7 +445,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                     batch = new_hierarchies[i:i + batch_size]
                     models.BimObjectHierarchy.objects.bulk_create(batch)
                     send_progress('process-bimobjecthierarchy',
-                                  f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
+                                f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
             else:
                 logger.warning(f"No valid BimObjectHierarchy records found for bim_model_id={bim_model_id}")
 

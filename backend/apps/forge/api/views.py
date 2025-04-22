@@ -427,11 +427,13 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
     def create(self, request, *args, **kwargs):
         model_ids = request.data.get('model_ids', None)
         properties = request.data.get('properties', None)
-        regions = request.data.get('regions', request.data.get('zones', None))  # 兼容 zones
+        regions = request.data.get('regions', request.data.get('zones', None))
         level = request.data.get('level', None)
+        exact_values = request.data.get('exact_values', None)
+        fuzzy_keyword = request.data.get('fuzzy_keyword', None)
 
-        if not (properties or regions):
-            raise ValidationError("請提供至少一個查詢參數 'properties' 或 'regions'。")
+        if not (properties or regions or exact_values or fuzzy_keyword):
+            raise ValidationError("請提供至少一個查詢參數 'properties'、'regions'、'exact_values' 或 'fuzzy_keyword'。")
 
         filters = Q()
 
@@ -446,31 +448,28 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         if regions:
             if not isinstance(regions, list):
                 raise ValidationError("'regions' 必須是列表。")
+
             region_dbids = [region['id'] for region in regions if region.get('id')]
-            print('-->', region_dbids)
             if not region_dbids:
                 raise ValidationError("regions 中必須包含至少一個有效的 'id'。")
 
             region_query = models.BimRegion.objects.filter(dbid__in=region_dbids)
-            print(region_query)
             if level:
                 region_query = region_query.filter(level__exact=level)
 
             region_dbids = list(
                 region_query.values_list('dbid', flat=True).distinct()
             )
-            print(f"Filtered region_dbids: {region_dbids}")
+
             if not region_dbids:
-                print(f"No BimRegion records found for dbids={region_dbids}, level={level}")
                 filters &= Q(dbid__in=[])
             else:
-                # 使用純 SQL 查詢，避免 raw() 的主鍵限制
                 with connection.cursor() as cursor:
                     cursor.execute("""
                         WITH RECURSIVE tree AS (
                             SELECT entity_id
                             FROM forge_bim_object_hierarchy
-                            WHERE bim_model_id IN %s AND entity_id IN %s
+                            WHERE bim_model_id IN %s AND parent_id IN %s
                             UNION ALL
                             SELECT t.entity_id
                             FROM forge_bim_object_hierarchy t
@@ -480,8 +479,23 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         SELECT entity_id FROM tree
                     """, [tuple(model_ids or []), tuple(region_dbids), tuple(model_ids or [])])
                     hierarchy_dbids = [row[0] for row in cursor.fetchall()]
-                print(f"Hierarchy dbids: {hierarchy_dbids}")
-                filters &= Q(dbid__in=region_dbids + hierarchy_dbids)
+                filters &= Q(dbid__in=hierarchy_dbids)
+
+        if exact_values:
+            if not isinstance(exact_values, list):
+                raise ValidationError("'exact_values' 必須是列表。")
+            if not all(isinstance(v, str) for v in exact_values):
+                raise ValidationError("'exact_values' 的元素必須是字串。")
+            if not exact_values:
+                raise ValidationError("'exact_values' 不能為空列表。")
+            filters &= Q(value__in=exact_values)
+
+        if fuzzy_keyword:
+            if not isinstance(fuzzy_keyword, str):
+                raise ValidationError("'fuzzy_keyword' 必須是字串。")
+            if not fuzzy_keyword.strip():
+                raise ValidationError("'fuzzy_keyword' 不能為空字串。")
+            filters &= Q(value__contains=fuzzy_keyword)
 
         if model_ids:
             if not isinstance(model_ids, list):
@@ -489,7 +503,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             if not models.BimModel.objects.filter(id__in=model_ids).exists():
                 raise ValidationError("指定的 model_ids 無效。")
             filters &= Q(bim_model_id__in=model_ids)
-        print(f"Final filters: {filters}")
+        
         queryset = models.BimObject.objects.filter(filters).values(
             'dbid',
             'value',
@@ -513,7 +527,9 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             f"properties: {[p['value'] for p in properties if p.get('value')][:10]}" if properties else ""
         )
         log_regions = f"regions: {region_dbids[:10]}" if regions else ""
-        log_message = f"查詢 {log_values}{' ; ' if log_values and log_regions else ''}{log_regions}"
+        log_exact = f"exact_values: {exact_values[:10]}" if exact_values else ""
+        log_fuzzy = f"fuzzy_keyword: {fuzzy_keyword}" if fuzzy_keyword else ""
+        log_message = f"查詢 {log_values}{' ; ' if log_values else ''}{log_regions}{' ; ' if log_regions else ''}{log_exact}{' ; ' if log_exact and log_fuzzy else ''}{log_fuzzy}"
         log_user_activity(
             self.request.user,
             '圖資檢索',
