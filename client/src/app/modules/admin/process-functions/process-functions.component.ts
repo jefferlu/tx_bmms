@@ -29,15 +29,20 @@ import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
     standalone: true
 })
 export class ProcessFunctionsComponent implements OnInit, OnDestroy {
+    private _cache = new Map<string, any>();
     private _unsubscribeAll: Subject<void> = new Subject<void>();
 
     regions: any;
     spaces: any;
     systems: any;
 
-    selectedRegions: any;
-    selectedSpaces: any;
-    selectedSystems: any;
+    selectedRegions: any = [];
+    selectedSpaces: any = [];
+    selectedSystems: any = [];
+
+    keyword: string = '';
+
+    rowsPerPage: number = 100;
 
     constructor(
         private _route: ActivatedRoute,
@@ -78,6 +83,82 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             }
 
         }
+    }
+
+    onPageChange(event: TableLazyLoadEvent): void {
+        const page = event.first! / event.rows! + 1;
+        if (page > 1)
+            this._loadPage(page);
+    }
+
+    onSearch(): void {
+        this._loadPage(1)
+    }
+
+    private _loadPage(page?: number): void {
+        console.log(this.selectedSpaces)
+        const request: any = {
+            page,
+            size: this.rowsPerPage,
+            ...(this.selectedRegions.length > 0 && { regions: this.selectedRegions }),
+            ...(this.selectedSpaces.length > 0 && { spaces: this.selectedSpaces.map(e => e.label) }),
+            ...(this.keyword && { value: this.keyword }),
+
+        }
+        console.log(request)
+        return;
+
+        // if (!this.criteria || this.isLoading) return;
+
+        // console.log(this.selectedNames)
+        // const request: any = {
+        //     page,
+        //     size: this.rowsPerPage,
+        //     ...(this.keyword && { value: this.keyword }),
+        //     ...(this.categories.length > 0 && { category: this.categories }),
+        //     ...(this.selectedNames.length > 0 && { model_ids: this.selectedNames.map(model => model.id) }),
+        // };
+
+        // console.log(request)
+        // const cacheKey = JSON.stringify(request);
+        // if (this._cache.has(cacheKey)) {
+        //     this.data = this._cache.get(cacheKey)!;
+        //     this._changeDetectorRef.markForCheck();
+        //     return;
+        // }
+
+        // if (!request.value && !request.category) {
+        //     this.data = { count: 0, results: [] };
+        //     this._changeDetectorRef.markForCheck();
+        //     return;
+        // }
+
+        // this.isLoading = true;
+
+        // this._processFunctionsService.getData(request)
+        //     .pipe(
+        //         takeUntil(this._unsubscribeAll),
+        //         finalize(() => {
+        //             this.isLoading = false;
+        //             this._changeDetectorRef.markForCheck();
+        //         })
+        //     )
+        //     .subscribe({
+        //         next: (res) => {
+        //             if (res && res.count >= 0 && res.results) {
+        //                 this.data = { count: res.count, results: res.results };
+        //                 this._cache.set(cacheKey, this.data);
+        //             } else {
+        //                 this.data = { count: 0, results: [] };
+        //             }
+        //             this._changeDetectorRef.markForCheck();
+        //         },
+        //         error: (err) => {
+        //             console.error('Error:', err);
+        //             this.data = { count: 0, results: [] };
+        //             this._changeDetectorRef.markForCheck();
+        //         }
+        //     });
     }
 
     ngOnDestroy(): void {

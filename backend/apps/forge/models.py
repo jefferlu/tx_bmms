@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.indexes import GinIndex
 from mptt.models import MPTTModel, TreeForeignKey
 
 
@@ -105,7 +106,7 @@ class BimRegion(models.Model):
 
 
 class BimObjectHierarchy(models.Model):
-    bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='object_hierarchies')
+    bim_model = models.ForeignKey('BimModel', on_delete=models.CASCADE, related_name='object_hierarchies')
     entity_id = models.IntegerField()
     parent_id = models.IntegerField(null=True, blank=True)
 
@@ -116,6 +117,8 @@ class BimObjectHierarchy(models.Model):
             models.Index(fields=['bim_model']),
             models.Index(fields=['entity_id']),
             models.Index(fields=['parent_id']),
+            models.Index(fields=['bim_model', 'parent_id']),
+            models.Index(fields=['parent_id', 'entity_id']),
         ]
 
     def __str__(self):
@@ -123,7 +126,7 @@ class BimObjectHierarchy(models.Model):
 
 
 class BimObject(models.Model):
-    bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_objects')
+    bim_model = models.ForeignKey('BimModel', on_delete=models.CASCADE, related_name='bim_objects')
     dbid = models.IntegerField()
     display_name = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
@@ -135,7 +138,8 @@ class BimObject(models.Model):
             models.Index(fields=['dbid']),
             models.Index(fields=['display_name']),
             models.Index(fields=['value']),
-            models.Index(fields=['display_name', 'value']),
+            models.Index(fields=['bim_model', 'dbid', 'value']),
+            GinIndex(fields=['value'], name='idx_bim_obj_val_trgm', opclasses=['gin_trgm_ops']),
         ]
 
     def __str__(self):
