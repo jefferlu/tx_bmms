@@ -454,57 +454,28 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         if regions:
             if not isinstance(regions, list):
                 raise ValidationError("'regions' 必須是列表。")
+            if not regions:
+                raise ValidationError("'regions' 不能為空列表。")
 
-            has_new_format = any('model_id' in region and 'dbids' in region for region in regions)
-            has_old_format = any('id' in region for region in regions)
-
-            if has_new_format and has_old_format:
-                raise ValidationError("'regions' 格式不一致，僅支援一種格式：[{id: x}, ...] 或 [{model_id: x, dbids: [y, z]}, ...]")
-
-            if has_new_format:
-                # 新格式：ORM 子查詢
-                valid_model_ids = set()
-                for region in regions:
-                    model_id = region.get('model_id')
-                    dbids = region.get('dbids')
-                    if not isinstance(model_id, int):
-                        raise ValidationError(f"'model_id' 必須是整數，收到：{model_id}")
-                    if not isinstance(dbids, list) or not all(isinstance(dbid, int) for dbid in dbids):
-                        raise ValidationError(f"'dbids' 必須是整數列表，收到：{dbids}")
-                    valid_model_ids.add(model_id)
-                    if not models.BimModel.objects.filter(id=model_id).exists():
-                        raise ValidationError(f"無效的 model_id：{model_id}")
-                    # 迭代查詢層次（最多 10 層）
-                    current_dbids = set(dbids)
-                    all_dbids = set(dbids)
-                    for _ in range(10):
-                        sub_qs = models.BimObjectHierarchy.objects.filter(
-                            bim_model_id=model_id,
-                            parent_id__in=current_dbids
-                        ).values('entity_id')
-                        new_dbids = set(models.BimObjectHierarchy.objects.filter(
-                            entity_id__in=Subquery(sub_qs)
-                        ).values_list('entity_id', flat=True))
-                        if not new_dbids:
-                            break
-                        all_dbids.update(new_dbids)
-                        current_dbids = new_dbids
-                    hierarchy_dbids.extend(all_dbids)
-                # 確保 model_ids 一致
-                if model_ids:
-                    if set(model_ids) != valid_model_ids:
-                        raise ValidationError(f"'model_ids' {model_ids} 與 regions 中的 model_id {valid_model_ids} 不一致")
-                else:
-                    model_ids = list(valid_model_ids)
-            else:
-                # 舊格式：ORM 子查詢
-                region_dbids = [region['id'] for region in regions if region.get('id')]
-                if not region_dbids:
-                    raise ValidationError("regions 中必須包含至少一個有效的 'id'。")
-                current_dbids = set(region_dbids)
-                all_dbids = set(region_dbids)
+            valid_model_ids = set()
+            for region in regions:
+                model_id = region.get('model_id')
+                dbids = region.get('dbids')
+                if not isinstance(model_id, int):
+                    raise ValidationError(f"'model_id' 必須是整數，收到：{model_id}")
+                if not isinstance(dbids, list) or not all(isinstance(dbid, int) for dbid in dbids):
+                    raise ValidationError(f"'dbids' 必須是整數列表，收到：{dbids}")
+                if not dbids:
+                    raise ValidationError(f"'dbids' 不能為空列表，model_id：{model_id}")
+                valid_model_ids.add(model_id)
+                if not models.BimModel.objects.filter(id=model_id).exists():
+                    raise ValidationError(f"無效的 model_id：{model_id}")
+                # 迭代查詢層次（最多 10 層）
+                current_dbids = set(dbids)
+                all_dbids = set(dbids)
                 for _ in range(10):
                     sub_qs = models.BimObjectHierarchy.objects.filter(
+                        bim_model_id=model_id,
                         parent_id__in=current_dbids
                     ).values('entity_id')
                     new_dbids = set(models.BimObjectHierarchy.objects.filter(
@@ -515,6 +486,12 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                     all_dbids.update(new_dbids)
                     current_dbids = new_dbids
                 hierarchy_dbids.extend(all_dbids)
+            # 確保 model_ids 一致
+            if model_ids:
+                if set(model_ids) != valid_model_ids:
+                    raise ValidationError(f"'model_ids' {model_ids} 與 regions 中的 model_id {valid_model_ids} 不一致")
+            else:
+                model_ids = list(valid_model_ids)
 
             if hierarchy_dbids:
                 filters &= Q(dbid__in=hierarchy_dbids)

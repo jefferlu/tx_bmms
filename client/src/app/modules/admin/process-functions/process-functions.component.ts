@@ -96,15 +96,50 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     private _loadPage(page?: number): void {
-        console.log(this.selectedSpaces)
-        const request: any = {
+        console.log(this.selectedRegions, this.selectedSpaces)
+
+        // 處理 regions，將 bim_model_id 和 dbid 按 model_id 分組
+        const regionsMap = {};
+
+        this.selectedRegions.forEach((region) => {
+            // 統一處理 data 為陣列
+            const data = Array.isArray(region.data) ? region.data : [region.data];
+            data.forEach((item) => {
+                const modelId = item.bim_model_id;
+                const dbid = item.dbid;
+                if (!regionsMap[modelId]) {
+                    regionsMap[modelId] = new Set();
+                }
+                regionsMap[modelId].add(dbid);
+            });
+        });
+
+        // 轉換 regionsMap 為目標格式
+        const regions = Object.entries(regionsMap).map(([modelId, dbids]) => ({
+            model_id: parseInt(modelId),
+            dbids: Array.from(dbids as any),
+        }));
+
+        // 處理 exact_values
+        const exact_values = this.selectedSpaces.map((space) => space.label);
+
+        // 組裝最終 request
+        const request = {
             page,
             size: this.rowsPerPage,
-            ...(this.selectedRegions.length > 0 && { regions: this.selectedRegions }),
-            ...(this.selectedSpaces.length > 0 && { spaces: this.selectedSpaces.map(e => e.label) }),
-            ...(this.keyword && { value: this.keyword }),
+            ...(regions.length > 0 && { regions }),
+            ...(exact_values.length > 0 && { exact_values }),
+            ...(this.keyword && { fuzzy_keyword: this.keyword }),
+        };
 
-        }
+        // const request: any = {
+        //     page,
+        //     size: this.rowsPerPage,
+        //     ...(this.selectedRegions.length > 0 && { regions: this.selectedRegions }),
+        //     ...(this.selectedSpaces.length > 0 && { spaces: this.selectedSpaces.map(e => e.label) }),
+        //     ...(this.keyword && { value: this.keyword }),
+
+        // }
         console.log(request)
         return;
 
