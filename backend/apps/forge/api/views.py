@@ -328,7 +328,7 @@ class BimConditionTreeViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-class BimRegionTreeViewSet(viewsets.ReadOnlyModelViewSet):
+class BimRegionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.BimRegionTreeSerializer
     queryset = models.BimRegion.objects.all().select_related('zone', 'bim_model')
 

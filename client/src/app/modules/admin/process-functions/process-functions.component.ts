@@ -121,7 +121,11 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         }));
 
         // 處理 exact_values
-        const exact_values = this.selectedSpaces.map((space) => space.label);
+        const exact_values = this.selectedSpaces.map((space) => ({
+            bim_model: space.bim_model,
+            dbid: space.key,
+            value: space.label
+        }));
 
         // 組裝最終 request
         const request = {
@@ -226,7 +230,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 .map((category: any) => ({
                     key: category.id.toString(), // 使用 category.id 作為 key
                     label: category.value, // 使用 category.value 作為 label
-                    icon: 'pi pi-fw pi-tag' // 為 category 節點設置圖標
+                    bim_model: category.bim_model,
+                    icon: 'pi pi-fw pi-tag', // 為 category 節點設置圖標
                 }));
 
             // 遞歸處理所有子節點

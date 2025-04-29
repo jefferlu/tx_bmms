@@ -15,7 +15,7 @@ class OptionalSlashRouter(DefaultRouter):
 
 router = OptionalSlashRouter()
 router.register(r'bim-conditions', views.BimConditionTreeViewSet)
-router.register(r'bim-regions', views.BimRegionTreeViewSet)
+router.register(r'bim-regions', views.BimRegionViewSet)
 router.register(r'bim-model', views.BimModelViewSet)
 router.register(r'bim-object', views.BimObjectViewSet, basename='bim-object')
 
