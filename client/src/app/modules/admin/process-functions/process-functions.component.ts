@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 import { MatMenuModule } from '@angular/material/menu';
+import { NgTemplateOutlet } from '@angular/common';
 
 @Component({
     selector: 'app-process-functions',
@@ -22,7 +23,7 @@ import { MatMenuModule } from '@angular/material/menu';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        FormsModule,
+        FormsModule, NgTemplateOutlet,
         MatButtonModule, MatIconModule, MatMenuModule,
         TableModule, TranslocoModule,
         SelectModule, TreeSelectModule
@@ -45,8 +46,15 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     rowsPerPage: number = 100;
     selectedObjects: any[] = [];
 
+    criteriaRegions: string = '';
+    criteriaSpaces: string = '';
+    criteriaSystems: string = '';
+
+
     data: any = { count: 0, results: [] };
     isLoading: boolean = false;
+    isShowAggregated: boolean = false;
+    isSelectedForgeNode: boolean = false;
 
     constructor(
         private _route: ActivatedRoute,
@@ -85,7 +93,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 case 'space': this.selectedSpaces = null; break;
                 case 'system': this.selectedSystems = null; break;
             }
-
         }
     }
 
@@ -102,17 +109,18 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     onPageChange(event: TableLazyLoadEvent): void {
         const page = event.first! / event.rows! + 1;
-        if (page > 1)
-            this.loadPage(page);
+        this.loadPage(page);
     }
 
     onSearch(): void {
         this.loadPage(1)
     }
 
-    private loadPage(page?: number): void {
+    loadPage(page?: number): void {
 
-        // 處理 regions，將 bim_model_id 和 dbid 按 model_id 分組
+        // if (!this.regions || this.isLoading) return;
+
+        // 處理 regions
         const regionsMap = {};
 
         this.selectedRegions.forEach((region) => {
@@ -148,7 +156,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             ...(categories.length > 0 && { categories }),
             ...(this.keyword && { fuzzy_keyword: this.keyword }),
         };
-
+        console.log('-->', request)
         const cacheKey = JSON.stringify(request);
         if (this._cache.has(cacheKey)) {
             this.data = this._cache.get(cacheKey)!;
@@ -181,6 +189,10 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     } else {
                         this.data = { count: 0, results: [] };
                     }
+
+                    this.criteriaRegions = this.formatCriteria(this.selectedRegions);
+                    this.criteriaSpaces = this.formatCriteria(this.selectedSpaces);
+                    this.criteriaSystems = this.formatCriteria(this.selectedSystems);
                     this._changeDetectorRef.markForCheck();
                 },
                 error: (err) => {
@@ -194,6 +206,31 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
+    }
+
+    // 私有方法：格式化 selectedRegions
+    private formatCriteria(criteria: any[]): string {
+        if (!Array.isArray(criteria) || criteria.length === 0) {
+            return null;
+        }
+
+        const groupedRegions = criteria.reduce((acc: { [key: string]: string[] }, node) => {
+            if (!node || !node.label || !node.parent || !node.parent.label) {
+                return acc;
+            }
+            const parentLabel = node.parent.label;
+            if (!acc[parentLabel]) {
+                acc[parentLabel] = [];
+            }
+            acc[parentLabel].push(node.label);
+            return acc;
+        }, {});
+
+        return Object.entries(groupedRegions)
+            .map(([parentLabel, childLabels]: [string, string[]]) => {
+                return `${parentLabel}: ${childLabels.join(', ')}`;
+            })
+            .join('; ');
     }
 
     private _transformData(data: any[]): any[] {

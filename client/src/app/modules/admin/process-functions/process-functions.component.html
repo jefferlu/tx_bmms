@@ -1,4 +1,4 @@
-<div class="absolute inset-0 flex min-w-0 flex-col h-full" *transloco="let t">
+<div class="absolute inset-0 flex min-w-0 flex-col h-full overflow-hidden" *transloco="let t">
 
     <div class="flex w-full p-2 border-b">
         <div class="flex w-full flex-col sm:flex-row gap-4">
@@ -47,26 +47,26 @@
                     <span class="ml-2">{{t('search')}}</span>
                 </button>
             </div>
-            <!-- Aggregated button -->
-            <!-- @if(data?.results.length<0){ -->
-            <div class="flex justify-end">
-                <button mat-flat-button color="warn" (click)="onClickAggregated()">
-                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:photo'"></mat-icon>
-                    <span class="ml-2">{{t('bim-model-viewer')}}</span>
-                </button>
-            </div>
-            <!-- } -->
         </div>
+        <!-- Aggregated button -->
+        <!-- @if(data?.results.length<0){ -->
+        <div class="flex justify-end">
+            <button mat-flat-button (click)="onClickAggregated()">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:photo'"></mat-icon>
+                <span class="ml-2">{{t('bim-model-viewer')}}</span>
+            </button>
+        </div>
+        <!-- } -->
     </div>
 
-    <div class="mx-auto flex w-full h-full flex-wrap p-2">
-        <div class="flex w-full flex-col md:flex-row gap-2 max-w-full">
-            <div class="flex-[1] min-w-0 bg-card rounded-md md:flex-[1]">
+    <div class="mx-auto flex w-full h-full flex-wrap p-2 overflow-y-auto">
+        <div class="flex w-full flex-col md:flex-row gap-2 max-w-full h-full">
+            <div class="flex-[1] min-w-0 bg-card rounded-md md:flex-[1] h-full">
                 <!-- 區塊 1 (1/6) -->
                 <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="data?.count" [scrollable]="true" scrollHeight="flex"
-                    selectionMode="multiple" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [paginator]="true" [lazy]="true"
-                    [loading]="isLoading" [selection]="selectedObjects" (onLazyLoad)="onPageChange($event)" (onRowSelect)="onRowSelect($event)"
-                    (onRowUnselect)="onRowUnselect($event)">
+                    selectionMode="multiple" [pageLinks]="1" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [paginator]="true" [lazy]="true"
+                    [lazyLoadOnInit]="false" [loading]="isLoading" [selection]="selectedObjects" (onLazyLoad)="onPageChange($event)"
+                    (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
                     <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
                         <tr class="hover:bg-hover" [pSelectableRow]="item" [pSelectableRowIndex]="rowIndex">
                             <td class="pl-8">
@@ -92,37 +92,85 @@
             <div class="flex-[1] min-w-0 rounded-md flex flex-col gap-2 md:flex-[2]">
                 <div class="flex-[1] p-4 bg-card rounded-md sm:flex-[1] md:flex-[1]">
                     @if(data?.results.length>0){
-                    <div>
-                        <div class="text-secondary font-medium text-lg">查詢結果 : 全部 {{data?.count}} 筆資料 </div>
-                    </div>
-                    <div class="pl-2">
-                        <button mat-icon-button [matMenuTriggerFor]="exportMenu">
-                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:arrow-down-tray'"></mat-icon>
-                        </button>
-                        <mat-menu #exportMenu="matMenu">
-                            <button mat-menu-item>
-                                <span class="flex items-center">
-                                    <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
-                                    <span>匯出 CSV 檔案</span>
-                                </span>
+                    <div class="flex items-center justify-between">
+                        <div class="text-lg font-semibold leading-tight">查詢結果：全部 {{data?.count}} 筆資料</div>
+                        <div class="-mr-3">
+                            <button mat-icon-button [matMenuTriggerFor]="exportMenu">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:arrow-down-tray'"></mat-icon>
                             </button>
-                            <button mat-menu-item>
-                                <span class="flex items-center">
-                                    <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_solid:document-text'"></mat-icon>
-                                    <span>匯出 TXT 檔</span>
-                                </span>
-                            </button>
-                        </mat-menu>
+                            <mat-menu #exportMenu="matMenu">
+                                <button mat-menu-item>
+                                    <span class="flex items-center">
+                                        <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
+                                        <span>匯出 CSV 檔案</span>
+                                    </span>
+                                </button>
+                                <button mat-menu-item>
+                                    <span class="flex items-center">
+                                        <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_solid:document-text'"></mat-icon>
+                                        <span>匯出 TXT 檔</span>
+                                    </span>
+                                </button>
+                            </mat-menu>
+                        </div>
                     </div>
+
+                    <div class="mt-5 flex flex-col">
+                        <div class="flex items-center justify-between">
+                            <div class="text-lg font-semibold leading-tight">查詢條件：</div>
+                        </div>
+                        @if(this.criteriaRegions){
+                        <div class="mt-5 flex">
+                            <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
+                            <div>{{ criteriaRegions }}</div>
+                        </div>
+                        }
+                        @if(this.criteriaSpaces){
+                        <div class="mt-5 flex">
+                            <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
+                            <div>{{ criteriaSpaces }}</div>
+                        </div>
+                        }
+                        @if(this.criteriaSystems){
+                        <div class="mt-5 flex">
+                            <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
+                            <div>{{ criteriaSystems }}</div>
+                        </div>
+                        }
+                    </div>
+                    }
+                    @else {
+                    <ng-container
+                        *ngTemplateOutlet="noDataTemplate context: { icon: 'heroicons_outline:ellipsis-horizontal-circle', message: 'no-data' }"></ng-container>
                     }
                 </div>
                 <div class="flex-[2] p-4 bg-card rounded-md sm:flex-[2] md:flex-[2]">
-                    區塊 2 - Row 2
+                    @if(isSelectedForgeNode){
+
+                    }
+                    @else {
+                    <ng-container
+                        *ngTemplateOutlet="noDataTemplate context: { icon: 'heroicons_outline:ellipsis-horizontal-circle', message: 'no-bim-object' }"></ng-container>
+                    }
                 </div>
             </div>
             <div class="flex-[1] min-w-0 p-4 bg-card rounded-md md:flex-[3]">
-                區塊 3 (3/6)
+                @if(isShowAggregated){
+
+                }
+                @else {
+                <ng-container *ngTemplateOutlet="noDataTemplate context: { icon: 'heroicons_outline:photo', message: 'no-bim-model'}"></ng-container>
+                }
             </div>
         </div>
     </div>
+
+    <ng-template #noDataTemplate let-icon="icon" let-message="message">
+        <div class="flex flex-col items-center justify-center h-full">
+            <mat-icon class="icon-size-12" [svgIcon]="icon"></mat-icon>
+            <div class="text-secondary mt-4 font-semibold tracking-tight">
+                {{t(message)}}
+            </div>
+        </div>
+    </ng-template>
 </div>
