@@ -429,14 +429,14 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         raise ValidationError("此端點僅支援 POST 請求，請使用 POST 方法查詢資料。")
 
     def create(self, request, *args, **kwargs):
-        model_ids = request.data.get('model_ids', None)
+        bim_model_ids = request.data.get('bim_model_ids', None)
         regions = request.data.get('regions', request.data.get('zones', None))
         level = request.data.get('level', None)
-        exact_values = request.data.get('exact_values', None)
+        categories = request.data.get('categories', None)
         fuzzy_keyword = request.data.get('fuzzy_keyword', None)
 
-        if not (regions or exact_values or fuzzy_keyword):
-            raise ValidationError("請提供至少一個查詢參數 'regions'、'exact_values' 或 'fuzzy_keyword'。")
+        if not (regions or categories or fuzzy_keyword):
+            raise ValidationError("請提供至少一個查詢參數 'regions'、'categories' 或 'fuzzy_keyword'。")
 
         # 快取完整結果
         query_data = {k: v for k, v in request.data.items() if k not in ['page', 'size']}
@@ -450,32 +450,35 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         filters = Q()
         hierarchy_dbids = []
+        valid_bim_models = set()
+        category_bim_models = set()
+        category_values = []
 
+        # 處理 regions
         if regions:
             if not isinstance(regions, list):
                 raise ValidationError("'regions' 必須是列表。")
             if not regions:
                 raise ValidationError("'regions' 不能為空列表。")
 
-            valid_model_ids = set()
             for region in regions:
-                model_id = region.get('model_id')
+                bim_model = region.get('bim_model')
                 dbids = region.get('dbids')
-                if not isinstance(model_id, int):
-                    raise ValidationError(f"'model_id' 必須是整數，收到：{model_id}")
+                if not isinstance(bim_model, int):
+                    raise ValidationError(f"'bim_model' 必須是整數，收到：{bim_model}")
                 if not isinstance(dbids, list) or not all(isinstance(dbid, int) for dbid in dbids):
                     raise ValidationError(f"'dbids' 必須是整數列表，收到：{dbids}")
                 if not dbids:
-                    raise ValidationError(f"'dbids' 不能為空列表，model_id：{model_id}")
-                valid_model_ids.add(model_id)
-                if not models.BimModel.objects.filter(id=model_id).exists():
-                    raise ValidationError(f"無效的 model_id：{model_id}")
+                    raise ValidationError(f"'dbids' 不能為空列表，bim_model：{bim_model}")
+                valid_bim_models.add(bim_model)
+                if not models.BimModel.objects.filter(id=bim_model).exists():
+                    raise ValidationError(f"無效的 bim_model：{bim_model}")
                 # 迭代查詢層次（最多 10 層）
                 current_dbids = set(dbids)
                 all_dbids = set(dbids)
                 for _ in range(10):
                     sub_qs = models.BimObjectHierarchy.objects.filter(
-                        bim_model_id=model_id,
+                        bim_model_id=bim_model,
                         parent_id__in=current_dbids
                     ).values('entity_id')
                     new_dbids = set(models.BimObjectHierarchy.objects.filter(
@@ -486,48 +489,58 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                     all_dbids.update(new_dbids)
                     current_dbids = new_dbids
                 hierarchy_dbids.extend(all_dbids)
-            # 確保 model_ids 一致
-            if model_ids:
-                if set(model_ids) != valid_model_ids:
-                    raise ValidationError(f"'model_ids' {model_ids} 與 regions 中的 model_id {valid_model_ids} 不一致")
-            else:
-                model_ids = list(valid_model_ids)
 
             if hierarchy_dbids:
                 filters &= Q(dbid__in=hierarchy_dbids)
             else:
                 filters &= Q(dbid__in=[])
 
-        # 處理 exact_values 和 fuzzy_keyword 的 OR 關係
-        value_filters = Q()
-        if exact_values:
-            if not isinstance(exact_values, list):
-                raise ValidationError("'exact_values' 必須是列表。")
-            if not all(isinstance(v, str) for v in exact_values):
-                raise ValidationError("'exact_values' 的元素必須是字串。")
-            if not exact_values:
-                raise ValidationError("'exact_values' 不能為空列表。")
-            value_filters |= Q(value__in=exact_values)
+        # 處理 categories
+        if categories:
+            if not isinstance(categories, list):
+                raise ValidationError("'categories' 必須是列表。")
+            if not categories:
+                raise ValidationError("'categories' 不能為空列表。")
+            for item in categories:
+                if not isinstance(item, dict):
+                    raise ValidationError(f"'categories' 的元素必須是物件，收到：{item}")
+                bim_model = item.get('bim_model')
+                value = item.get('value')
+                if not isinstance(bim_model, int):
+                    raise ValidationError(f"'bim_model' 必須是整數，收到：{bim_model}")
+                if not isinstance(value, str) or not value.strip():
+                    raise ValidationError(f"'value' 必須是非空字串，收到：{value}")
+                category_bim_models.add(bim_model)
+                category_values.append(value)
+                if not models.BimModel.objects.filter(id=bim_model).exists():
+                    raise ValidationError(f"無效的 bim_model：{bim_model}")
 
+        # 處理 categories 和 fuzzy_keyword 的 OR 關係
+        value_filters = Q()
+        if category_bim_models and category_values:
+            value_filters |= Q(bim_model_id__in=category_bim_models) & Q(value__in=category_values)
         if fuzzy_keyword:
             if not isinstance(fuzzy_keyword, str):
                 raise ValidationError("'fuzzy_keyword' 必須是字串。")
             if not fuzzy_keyword.strip():
                 raise ValidationError("'fuzzy_keyword' 不能為空字串。")
             value_filters |= Q(value__trigram_similar=fuzzy_keyword)
-
-        # 組合 regions 和 (exact_values OR fuzzy_keyword)
         if value_filters:
             filters &= value_filters
 
-        if model_ids:
-            if not isinstance(model_ids, list):
-                raise ValidationError("'model_ids' 必須是列表。")
-            if not models.BimModel.objects.filter(id__in=model_ids).exists():
-                raise ValidationError("指定的 model_ids 無效。")
-            filters &= Q(bim_model_id__in=model_ids)
+        # 處理 bim_model_ids
+        if bim_model_ids:
+            if not isinstance(bim_model_ids, list):
+                raise ValidationError("'bim_model_ids' 必須是列表。")
+            if not models.BimModel.objects.filter(id__in=bim_model_ids).exists():
+                raise ValidationError("指定的 bim_model_ids 無效。")
+            filters &= Q(bim_model_id__in=bim_model_ids)
+        elif valid_bim_models or category_bim_models:
+            combined_bim_models = valid_bim_models.union(category_bim_models)
+            filters &= Q(bim_model_id__in=combined_bim_models)
 
         queryset = models.BimObject.objects.filter(filters).select_related('bim_model').values(
+            'id',
             'dbid',
             'value',
             'display_name',
@@ -547,9 +560,9 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         ip_address = request.META.get('REMOTE_ADDR')
         log_regions = f"regions: {regions[:10]}" if regions else ""
-        log_exact = f"exact_values: {exact_values[:10]}" if exact_values else ""
+        log_cats = f"categories: {categories[:10]}" if categories else ""
         log_fuzzy = f"fuzzy_keyword: {fuzzy_keyword}" if fuzzy_keyword else ""
-        log_models = f"model_ids: {model_ids[:10]}" if model_ids else "model_ids: all"
-        log_message = f"查詢 {log_regions}{' ; ' if log_regions else ''}{log_exact}{' ; ' if log_exact else ''}{log_fuzzy}{' ; ' if log_fuzzy else ''}{log_models}"
+        log_models = f"bim_model_ids: {bim_model_ids[:10]}" if bim_model_ids else "bim_model_ids: all"
+        log_message = f"查詢 {log_regions}{' ; ' if log_regions else ''}{log_cats}{' ; ' if log_cats else ''}{log_fuzzy}{' ; ' if log_fuzzy else ''}{log_models}"
         log_user_activity(self.request.user, '圖資檢索', log_message, 'SUCCESS', ip_address)
         return response

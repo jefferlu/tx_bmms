@@ -78,6 +78,7 @@ class BimConditionSerializer(serializers.ModelSerializer):
 
 
 class BimObjectSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
     dbid = serializers.IntegerField()
     value = serializers.CharField()
     display_name = serializers.CharField()
@@ -86,4 +87,4 @@ class BimObjectSerializer(serializers.Serializer):
     bim_model_urn = serializers.CharField(source='bim_model__urn')
 
     class Meta:
-        fields = ['dbid', 'value', 'display_name', 'bim_model_name', 'bim_model_version', 'bim_model_urn']
+        fields = ['id', 'dbid', 'value', 'display_name', 'bim_model_name', 'bim_model_version', 'bim_model_urn']

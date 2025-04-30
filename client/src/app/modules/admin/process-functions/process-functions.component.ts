@@ -14,6 +14,7 @@ import { ProcessFunctionsService } from './process-functions.service';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
     selector: 'app-process-functions',
@@ -22,7 +23,7 @@ import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         FormsModule,
-        MatButtonModule, MatIconModule,
+        MatButtonModule, MatIconModule, MatMenuModule,
         TableModule, TranslocoModule,
         SelectModule, TreeSelectModule
     ],
@@ -38,11 +39,14 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     selectedRegions: any = [];
     selectedSpaces: any = [];
-    selectedSystems: any = [];
-
+    selectedSystems: any = []
     keyword: string = '';
 
     rowsPerPage: number = 100;
+    selectedObjects: any[] = [];
+
+    data: any = { count: 0, results: [] };
+    isLoading: boolean = false;
 
     constructor(
         private _route: ActivatedRoute,
@@ -85,18 +89,28 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         }
     }
 
+    onRowSelect(event: any): void {
+        this.selectedObjects = [...this.selectedObjects, event.data];
+        console.log(this.selectedObjects)
+        this._changeDetectorRef.markForCheck();
+    }
+
+    onRowUnselect(event: any): void {
+        this.selectedObjects = this.selectedObjects.filter(item => item.id !== event.data.id);
+        this._changeDetectorRef.markForCheck();
+    }
+
     onPageChange(event: TableLazyLoadEvent): void {
         const page = event.first! / event.rows! + 1;
         if (page > 1)
-            this._loadPage(page);
+            this.loadPage(page);
     }
 
     onSearch(): void {
-        this._loadPage(1)
+        this.loadPage(1)
     }
 
-    private _loadPage(page?: number): void {
-        console.log(this.selectedRegions, this.selectedSpaces)
+    private loadPage(page?: number): void {
 
         // 處理 regions，將 bim_model_id 和 dbid 按 model_id 分組
         const regionsMap = {};
@@ -116,88 +130,65 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
         // 轉換 regionsMap 為目標格式
         const regions = Object.entries(regionsMap).map(([modelId, dbids]) => ({
-            model_id: parseInt(modelId),
+            bim_model: parseInt(modelId),
             dbids: Array.from(dbids as any),
         }));
 
         // 處理 exact_values
-        const exact_values = this.selectedSpaces.map((space) => ({
+        const categories = this.selectedSpaces.map((space: any) => ({
             bim_model: space.bim_model,
-            dbid: space.key,
             value: space.label
         }));
 
-        // 組裝最終 request
+        // 產生最終 request
         const request = {
             page,
             size: this.rowsPerPage,
             ...(regions.length > 0 && { regions }),
-            ...(exact_values.length > 0 && { exact_values }),
+            ...(categories.length > 0 && { categories }),
             ...(this.keyword && { fuzzy_keyword: this.keyword }),
         };
 
-        // const request: any = {
-        //     page,
-        //     size: this.rowsPerPage,
-        //     ...(this.selectedRegions.length > 0 && { regions: this.selectedRegions }),
-        //     ...(this.selectedSpaces.length > 0 && { spaces: this.selectedSpaces.map(e => e.label) }),
-        //     ...(this.keyword && { value: this.keyword }),
+        const cacheKey = JSON.stringify(request);
+        if (this._cache.has(cacheKey)) {
+            this.data = this._cache.get(cacheKey)!;
+            this._changeDetectorRef.markForCheck();
+            return;
+        }
 
-        // }
-        console.log(request)
-        return;
-
-        // if (!this.criteria || this.isLoading) return;
-
-        // console.log(this.selectedNames)
-        // const request: any = {
-        //     page,
-        //     size: this.rowsPerPage,
-        //     ...(this.keyword && { value: this.keyword }),
-        //     ...(this.categories.length > 0 && { category: this.categories }),
-        //     ...(this.selectedNames.length > 0 && { model_ids: this.selectedNames.map(model => model.id) }),
-        // };
-
-        // console.log(request)
-        // const cacheKey = JSON.stringify(request);
-        // if (this._cache.has(cacheKey)) {
-        //     this.data = this._cache.get(cacheKey)!;
-        //     this._changeDetectorRef.markForCheck();
-        //     return;
-        // }
-
-        // if (!request.value && !request.category) {
+        // if (!request.fuzzy_keyword && !request.regions) {
         //     this.data = { count: 0, results: [] };
         //     this._changeDetectorRef.markForCheck();
         //     return;
         // }
 
-        // this.isLoading = true;
+        this.isLoading = true;
 
-        // this._processFunctionsService.getData(request)
-        //     .pipe(
-        //         takeUntil(this._unsubscribeAll),
-        //         finalize(() => {
-        //             this.isLoading = false;
-        //             this._changeDetectorRef.markForCheck();
-        //         })
-        //     )
-        //     .subscribe({
-        //         next: (res) => {
-        //             if (res && res.count >= 0 && res.results) {
-        //                 this.data = { count: res.count, results: res.results };
-        //                 this._cache.set(cacheKey, this.data);
-        //             } else {
-        //                 this.data = { count: 0, results: [] };
-        //             }
-        //             this._changeDetectorRef.markForCheck();
-        //         },
-        //         error: (err) => {
-        //             console.error('Error:', err);
-        //             this.data = { count: 0, results: [] };
-        //             this._changeDetectorRef.markForCheck();
-        //         }
-        //     });
+        this._processFunctionsService.getData(request)
+            .pipe(
+                takeUntil(this._unsubscribeAll),
+                finalize(() => {
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                })
+            )
+            .subscribe({
+                next: (res) => {
+                    console.log(res)
+                    if (res && res.count >= 0 && res.results) {
+                        this.data = { count: res.count, results: res.results };
+                        this._cache.set(cacheKey, this.data);
+                    } else {
+                        this.data = { count: 0, results: [] };
+                    }
+                    this._changeDetectorRef.markForCheck();
+                },
+                error: (err) => {
+                    console.error('Error:', err);
+                    this.data = { count: 0, results: [] };
+                    this._changeDetectorRef.markForCheck();
+                }
+            });
     }
 
     ngOnDestroy(): void {
@@ -231,7 +222,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     key: category.id.toString(), // 使用 category.id 作為 key
                     label: category.value, // 使用 category.value 作為 label
                     bim_model: category.bim_model,
-                    icon: 'pi pi-fw pi-tag', // 為 category 節點設置圖標
+                    icon: '', // 為 category 節點設置圖標
                 }));
 
             // 遞歸處理所有子節點

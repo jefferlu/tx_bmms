@@ -47,6 +47,15 @@
                     <span class="ml-2">{{t('search')}}</span>
                 </button>
             </div>
+            <!-- Aggregated button -->
+            <!-- @if(data?.results.length<0){ -->
+            <div class="flex justify-end">
+                <button mat-flat-button color="warn" (click)="onClickAggregated()">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:photo'"></mat-icon>
+                    <span class="ml-2">{{t('bim-model-viewer')}}</span>
+                </button>
+            </div>
+            <!-- } -->
         </div>
     </div>
 
@@ -56,27 +65,20 @@
                 <!-- 區塊 1 (1/6) -->
                 <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="data?.count" [scrollable]="true" scrollHeight="flex"
                     selectionMode="multiple" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [paginator]="true" [lazy]="true"
-                    [loading]="isLoading" [selection]="selectedObjectItems" (onLazyLoad)="onPageChange($event)" (onRowSelect)="onRowSelect($event)"
+                    [loading]="isLoading" [selection]="selectedObjects" (onLazyLoad)="onPageChange($event)" (onRowSelect)="onRowSelect($event)"
                     (onRowUnselect)="onRowUnselect($event)">
-                    <ng-template pTemplate="header">
-                        <tr class="border-b-2">
-                            <th>Cobie屬性</th>
-                            <!-- <th>{{t('bim-name')}}</th> -->
-                            <th>名稱</th>
-                            <!-- <th>DBID</th> -->
-                        </tr>
-                    </ng-template>
                     <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
                         <tr class="hover:bg-hover" [pSelectableRow]="item" [pSelectableRowIndex]="rowIndex">
-                            <td>{{ item.attributes?.join(', ') }}</td>
-                            <td>{{ item.primary_value }}</td>
-                            <td>{{ item.dbid }}</td>
+                            <td class="pl-8">
+                                <p-tableCheckbox [value]="item" />
+                            </td>
+                            <td>{{ item.value }} ({{ item.dbid }})</td>
                         </tr>
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                         <tr>
                             <td colspan="9" class="text-center border-0">
-                                <div class="flex flex-auto flex-col items-center justify-center h-120">
+                                <div class="flex flex-auto flex-col items-center justify-center h-128">
                                     <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"></mat-icon>
                                     <div class="text-secondary mt-4 font-semibold tracking-tight">
                                         {{t('no-data')}}
@@ -89,7 +91,30 @@
             </div>
             <div class="flex-[1] min-w-0 rounded-md flex flex-col gap-2 md:flex-[2]">
                 <div class="flex-[1] p-4 bg-card rounded-md sm:flex-[1] md:flex-[1]">
-                    區塊 2 - Row 1
+                    @if(data?.results.length>0){
+                    <div>
+                        <div class="text-secondary font-medium text-lg">查詢結果 : 全部 {{data?.count}} 筆資料 </div>
+                    </div>
+                    <div class="pl-2">
+                        <button mat-icon-button [matMenuTriggerFor]="exportMenu">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:arrow-down-tray'"></mat-icon>
+                        </button>
+                        <mat-menu #exportMenu="matMenu">
+                            <button mat-menu-item>
+                                <span class="flex items-center">
+                                    <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
+                                    <span>匯出 CSV 檔案</span>
+                                </span>
+                            </button>
+                            <button mat-menu-item>
+                                <span class="flex items-center">
+                                    <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_solid:document-text'"></mat-icon>
+                                    <span>匯出 TXT 檔</span>
+                                </span>
+                            </button>
+                        </mat-menu>
+                    </div>
+                    }
                 </div>
                 <div class="flex-[2] p-4 bg-card rounded-md sm:flex-[2] md:flex-[2]">
                     區塊 2 - Row 2
