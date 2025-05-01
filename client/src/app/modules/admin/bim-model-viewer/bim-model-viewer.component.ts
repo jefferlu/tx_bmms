@@ -60,8 +60,12 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         //     this._toastService.open({ message: `${this._translocoService.translate('unsupported-aggregated-view')}.` });
         //     return;
         // }
-
-        this.showAggregatedDialog();
+        console.log(this.selectedItems);
+        this._matDialog.open(ApsViewerComponent, {
+            width: '99vw',
+            height: '95vh',
+            data: this.selectedItems
+        })
     }
 
     onClickCompare(): void {
@@ -70,16 +74,6 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
             return;
         }
         this.showCompareDialog(this.selectedItems)
-    }
-
-
-    showAggregatedDialog(): void {
-        ``
-        this._matDialog.open(ApsViewerComponent, {
-            width: '99vw',
-            height: '95vh',
-            data: this.selectedItems
-        })
     }
 
     showCompareDialog(items): void {

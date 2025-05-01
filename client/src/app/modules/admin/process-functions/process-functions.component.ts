@@ -16,6 +16,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 import { MatMenuModule } from '@angular/material/menu';
 import { NgTemplateOutlet } from '@angular/common';
+import { property } from 'lodash';
 
 @Component({
     selector: 'app-process-functions',
@@ -26,7 +27,8 @@ import { NgTemplateOutlet } from '@angular/common';
         FormsModule, NgTemplateOutlet,
         MatButtonModule, MatIconModule, MatMenuModule,
         TableModule, TranslocoModule,
-        SelectModule, TreeSelectModule
+        SelectModule, TreeSelectModule,
+        ApsViewerComponent
     ],
     standalone: true
 })
@@ -41,7 +43,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     selectedRegions: any = [];
     selectedSpaces: any = [];
     selectedSystems: any = []
-    keyword: string = '';
+    keyword: string = '通風';
 
     rowsPerPage: number = 100;
     selectedObjects: any[] = [];
@@ -49,12 +51,12 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     criteriaRegions: string = '';
     criteriaSpaces: string = '';
     criteriaSystems: string = '';
+    criteriaKeyword: string = '';
 
+    nodeInfo: any;
 
     data: any = { count: 0, results: [] };
     isLoading: boolean = false;
-    isShowAggregated: boolean = false;
-    isSelectedForgeNode: boolean = false;
 
     constructor(
         private _route: ActivatedRoute,
@@ -89,9 +91,9 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         const node = event.node;
         if (node.children && node.children.length > 0) {
             switch (tag) {
-                case 'region': this.selectedRegions = null; break;
-                case 'space': this.selectedSpaces = null; break;
-                case 'system': this.selectedSystems = null; break;
+                case 'region': this.selectedRegions = []; break;
+                case 'space': this.selectedSpaces = []; break;
+                case 'system': this.selectedSystems = []; break;
             }
         }
     }
@@ -113,6 +115,10 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     onSearch(): void {
+
+        this.selectedObjects = [];
+        this.nodeInfo = null;
+
         this.loadPage(1)
     }
 
@@ -142,9 +148,10 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             dbids: Array.from(dbids as any),
         }));
 
-        // 處理 exact_values
+        // 處理 category
         const categories = this.selectedSpaces.map((space: any) => ({
             bim_model: space.bim_model,
+            display_name: space.display_name,
             value: space.label
         }));
 
@@ -156,10 +163,12 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             ...(categories.length > 0 && { categories }),
             ...(this.keyword && { fuzzy_keyword: this.keyword }),
         };
-        console.log('-->', request)
+
+        this.updateCriteria();
+
         const cacheKey = JSON.stringify(request);
         if (this._cache.has(cacheKey)) {
-            this.data = this._cache.get(cacheKey)!;
+            this.data = this._cache.get(cacheKey);
             this._changeDetectorRef.markForCheck();
             return;
         }
@@ -190,9 +199,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                         this.data = { count: 0, results: [] };
                     }
 
-                    this.criteriaRegions = this.formatCriteria(this.selectedRegions);
-                    this.criteriaSpaces = this.formatCriteria(this.selectedSpaces);
-                    this.criteriaSystems = this.formatCriteria(this.selectedSystems);
                     this._changeDetectorRef.markForCheck();
                 },
                 error: (err) => {
@@ -203,12 +209,30 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             });
     }
 
+    updateCriteria() {
+        this.criteriaRegions = this.formatCriteria(this.selectedRegions);
+        this.criteriaSpaces = this.formatCriteria(this.selectedSpaces);
+        this.criteriaSystems = this.formatCriteria(this.selectedSystems);
+        this.criteriaKeyword = this.keyword;
+    }
+
+    // 處理從 ApsViewerComponent 發送的節點屬性
+    onProperties(event: any): void {
+        this.nodeInfo = {
+            dbId: event.dbId,
+            modelUrn: event.modelUrn,
+            name: event.name || 'Unknown',
+            properties: event.properties || []
+        };
+        console.log('Node info:', this.nodeInfo);
+    }
+
     ngOnDestroy(): void {
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
     }
 
-    // 私有方法：格式化 selectedRegions
+    // 格式化 selectedRegions
     private formatCriteria(criteria: any[]): string {
         if (!Array.isArray(criteria) || criteria.length === 0) {
             return null;
@@ -259,6 +283,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     key: category.id.toString(), // 使用 category.id 作為 key
                     label: category.value, // 使用 category.value 作為 label
                     bim_model: category.bim_model,
+                    display_name: category.display_name,
                     icon: '', // 為 category 節點設置圖標
                 }));
 

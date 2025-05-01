@@ -114,9 +114,7 @@ class BimObjectHierarchy(models.Model):
         db_table = "forge_bim_object_hierarchy"
         unique_together = ('bim_model', 'entity_id')
         indexes = [
-            models.Index(fields=['bim_model']),
             models.Index(fields=['entity_id']),
-            models.Index(fields=['parent_id']),
             models.Index(fields=['bim_model', 'parent_id']),
             models.Index(fields=['parent_id', 'entity_id']),
         ]

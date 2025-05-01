@@ -48,15 +48,6 @@
                 </button>
             </div>
         </div>
-        <!-- Aggregated button -->
-        <!-- @if(data?.results.length<0){ -->
-        <div class="flex justify-end">
-            <button mat-flat-button (click)="onClickAggregated()">
-                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:photo'"></mat-icon>
-                <span class="ml-2">{{t('bim-model-viewer')}}</span>
-            </button>
-        </div>
-        <!-- } -->
     </div>
 
     <div class="mx-auto flex w-full h-full flex-wrap p-2 overflow-y-auto">
@@ -91,7 +82,7 @@
             </div>
             <div class="flex-[1] min-w-0 rounded-md flex flex-col gap-2 md:flex-[2]">
                 <div class="flex-[1] p-4 bg-card rounded-md sm:flex-[1] md:flex-[1]">
-                    @if(data?.results.length>0){
+                    @if(this.criteriaRegions|| this.criteriaSpaces || this.criteriaSystems || this.criteriaKeyword){
                     <div class="flex items-center justify-between">
                         <div class="text-lg font-semibold leading-tight">查詢結果：全部 {{data?.count}} 筆資料</div>
                         <div class="-mr-3">
@@ -137,6 +128,12 @@
                             <div>{{ criteriaSystems }}</div>
                         </div>
                         }
+                        @if(this.criteriaKeyword){
+                        <div class="mt-5 flex">
+                            <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
+                            <div>{{ criteriaKeyword }}</div>
+                        </div>
+                        }
                     </div>
                     }
                     @else {
@@ -144,19 +141,42 @@
                         *ngTemplateOutlet="noDataTemplate context: { icon: 'heroicons_outline:ellipsis-horizontal-circle', message: 'no-data' }"></ng-container>
                     }
                 </div>
-                <div class="flex-[2] p-4 bg-card rounded-md sm:flex-[2] md:flex-[2]">
-                    @if(isSelectedForgeNode){
+                <div class="flex-[2] bg-card rounded-md sm:flex-[2] md:flex-[2] overflow-y-hidden">
+                    @if(nodeInfo){
+                    <div class="flex flex-col bg-slate-700">
+                        <div class="flex items-center justify-between p-4">
+                            <div class="text-lg font-semibold leading-tight">{{nodeInfo?.name}}</div>
+                        </div>
+                    </div>
+                    }
 
-                    }
-                    @else {
-                    <ng-container
-                        *ngTemplateOutlet="noDataTemplate context: { icon: 'heroicons_outline:ellipsis-horizontal-circle', message: 'no-bim-object' }"></ng-container>
-                    }
+                    <p-table #propertyTable class="w-full" [value]="nodeInfo?.properties" [scrollable]="true" scrollHeight="flex"
+                        [styleClass]="'p-datatable-lg'">
+                        <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                            <tr class="hover:bg-hover">
+                                <td>{{ item.displayName }}</td>
+                                <td>{{ item.displayValue }}</td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="9" class="text-center border-0">
+                                    <div class="flex flex-auto flex-col items-center justify-center h-100">
+                                        <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"></mat-icon>
+                                        <div class="text-secondary mt-4 font-semibold tracking-tight">
+                                            {{t('no-data')}}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+
                 </div>
             </div>
-            <div class="flex-[1] min-w-0 p-4 bg-card rounded-md md:flex-[3]">
-                @if(isShowAggregated){
-
+            <div class="flex-[1] min-w-0 bg-card rounded-md md:flex-[3]">
+                @if (selectedObjects?.length > 0){
+                <aps-viewer [data]="selectedObjects" (nodeProperties)="onProperties($event)"></aps-viewer>
                 }
                 @else {
                 <ng-container *ngTemplateOutlet="noDataTemplate context: { icon: 'heroicons_outline:photo', message: 'no-bim-model'}"></ng-container>
