@@ -426,7 +426,10 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def list(self, request, *args, **kwargs):
-        raise ValidationError("此端點僅支援 POST 請求，請使用 POST 方法查詢資料。")
+        raise ValidationError({
+            "detail": "此端點僅支援 POST 請求，請使用 POST 方法查詢資料。",
+            "code": "method_not_allowed"
+        })
 
     def create(self, request, *args, **kwargs):
         regions = request.data.get('regions', request.data.get('zones', None))
@@ -434,7 +437,10 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         fuzzy_keyword = request.data.get('fuzzy_keyword', None)
 
         if not (regions or categories or fuzzy_keyword):
-            raise ValidationError("請提供至少一個查詢參數 'regions'、'categories' 或 'fuzzy_keyword'。")
+            raise ValidationError({
+                "detail": "請提供至少一個查詢參數 'regions'、'categories' 或 'fuzzy_keyword'。",
+                "code": "missing_parameters"
+            })
 
         # 快取完整結果
         query_data = {k: v for k, v in request.data.items() if k not in ['page', 'size']}
@@ -448,7 +454,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         filters = Q()
         hierarchy_dbids = []
-        valid_bim_models = set()  # 初始化 valid_bim_models
+        valid_bim_models = set()
         category_bim_models = set()
         category_display_names = set()
         category_values = []
@@ -456,57 +462,81 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         # 處理 regions
         if regions:
             if not isinstance(regions, list):
-                raise ValidationError("'regions' 必須是列表。")
+                raise ValidationError({
+                    "regions": "必須是列表。",
+                    "code": "invalid_regions_format"
+                })
             if not regions:
-                raise ValidationError("'regions' 不能為空列表。")
+                raise ValidationError({
+                    "regions": "不能為空列表。",
+                    "code": "empty_regions"
+                })
 
             for region in regions:
                 bim_model = region.get('bim_model')
                 dbids = region.get('dbids')
                 if not isinstance(bim_model, int):
-                    raise ValidationError(f"'bim_model' 必須是整數，收到：{bim_model}")
+                    raise ValidationError({
+                        "bim_model": f"必須是整數，收到：{bim_model}",
+                        "code": "invalid_bim_model"
+                    })
                 if not isinstance(dbids, list) or not all(isinstance(dbid, int) for dbid in dbids):
-                    raise ValidationError(f"'dbids' 必須是整數列表，收到：{dbids}")
+                    raise ValidationError({
+                        "dbids": f"必須是整數列表，收到：{dbids}",
+                        "code": "invalid_dbids_format"
+                    })
                 if not dbids:
-                    raise ValidationError(f"'dbids' 不能為空列表，bim_model：{bim_model}")
-                if len(dbids) > 5:
-                    raise ValidationError(f"'dbids' 數量過多，最大允許 5 個，收到：{len(dbids)}")
+                    raise ValidationError({
+                        "dbids": f"不能為空列表，bim_model：{bim_model}",
+                        "code": "empty_dbids"
+                    })
                 valid_bim_models.add(bim_model)
                 if not models.BimModel.objects.filter(id=bim_model).exists():
-                    raise ValidationError(f"無效的 bim_model：{bim_model}")
+                    raise ValidationError({
+                        "bim_model": f"無效的 bim_model：{bim_model}",
+                        "code": "invalid_bim_model_id"
+                    })
 
-                # 檢查快取
-                cache_key = f"hierarchy_{bim_model}_{hashlib.md5(str(sorted(dbids)).encode()).hexdigest()}"
-                cached_dbids = cache.get(cache_key)
-                if cached_dbids:
-                    hierarchy_dbids.extend(cached_dbids)
-                    continue
-
-                # 使用遞迴 CTE 查詢層次（限制 5 層）
-                with connection.cursor() as cursor:
-                    cursor.execute("""
-                        WITH RECURSIVE hierarchy AS (
-                            SELECT entity_id, 1 AS depth
-                            FROM forge_bim_object_hierarchy
-                            WHERE bim_model_id = %s AND parent_id = ANY(%s)
+                # 分批處理 dbids
+                batch_size = 5
+                for i in range(0, len(dbids), batch_size):
+                    batch_dbids = dbids[i:i + batch_size]
+                    # 檢查快取
+                    cache_key = f"hierarchy_{bim_model}_{hashlib.md5(str(sorted(batch_dbids)).encode()).hexdigest()}"
+                    cached_dbids = cache.get(cache_key)
+                    if cached_dbids:
+                        hierarchy_dbids.extend(cached_dbids)
+                        continue
+                    # 使用遞迴 CTE 查詢層次（限制 5 層）
+                    with connection.cursor() as cursor:
+                        cursor.execute("""
+                            WITH RECURSIVE hierarchy AS (
+                                SELECT entity_id, 1 AS depth
+                                FROM forge_bim_object_hierarchy
+                                WHERE bim_model_id = %s AND parent_id = ANY(%s)
+                                UNION
+                                SELECT h.entity_id, hr.depth + 1
+                                FROM forge_bim_object_hierarchy h
+                                INNER JOIN hierarchy hr ON h.parent_id = hr.entity_id
+                                WHERE h.bim_model_id = %s AND hr.depth < 5
+                            )
+                            SELECT entity_id FROM hierarchy
+                            WHERE depth <= 5
                             UNION
-                            SELECT h.entity_id, hr.depth + 1
-                            FROM forge_bim_object_hierarchy h
-                            INNER JOIN hierarchy hr ON h.parent_id = hr.entity_id
-                            WHERE h.bim_model_id = %s AND hr.depth < 5
-                        )
-                        SELECT entity_id FROM hierarchy
-                        WHERE depth <= 5
-                        UNION
-                        SELECT unnest(%s) AS entity_id
-                    """, [bim_model, dbids, bim_model, dbids])
-                    result = cursor.fetchall()
-                    new_dbids = [row[0] for row in result]
-                    if len(new_dbids) > 10000:
-                        raise ValidationError(f"查詢結果過大，hierarchy_dbids 數量：{len(new_dbids)}，請減少 dbids 或層次深度")
-                    hierarchy_dbids.extend(new_dbids)
-                    cache.set(cache_key, new_dbids, timeout=3600)
+                            SELECT unnest(%s) AS entity_id
+                        """, [bim_model, batch_dbids, bim_model, batch_dbids])
+                        result = cursor.fetchall()
+                        new_dbids = [row[0] for row in result]
+                        # if len(new_dbids) > 10000:
+                        #     raise ValidationError({
+                        #         "dbids": f"查詢結果過大，hierarchy_dbids 數量：{len(new_dbids)}，請選擇較少節點",
+                        #         "code": "hierarchy_too_large"
+                        #     })
+                        hierarchy_dbids.extend(new_dbids)
+                        cache.set(cache_key, new_dbids, timeout=3600)
 
+            # 使用 set 去重
+            hierarchy_dbids = list(set(hierarchy_dbids))
             if hierarchy_dbids:
                 filters &= Q(dbid__in=hierarchy_dbids)
             else:
@@ -515,26 +545,47 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         # 處理 categories
         if categories:
             if not isinstance(categories, list):
-                raise ValidationError("'categories' 必須是列表。")
+                raise ValidationError({
+                    "categories": "必須是列表。",
+                    "code": "invalid_categories_format"
+                })
             if not categories:
-                raise ValidationError("'categories' 不能為空列表。")
+                raise ValidationError({
+                    "categories": "不能為空列表。",
+                    "code": "empty_categories"
+                })
             for item in categories:
                 if not isinstance(item, dict):
-                    raise ValidationError(f"'categories' 的元素必須是物件，收到：{item}")
+                    raise ValidationError({
+                        "categories": f"元素必須是物件，收到：{item}",
+                        "code": "invalid_category_item"
+                    })
                 bim_model = item.get('bim_model')
                 display_name = item.get('display_name')
                 value = item.get('value')
                 if not isinstance(bim_model, int):
-                    raise ValidationError(f"'bim_model' 必須是整數，收到：{bim_model}")
+                    raise ValidationError({
+                        "bim_model": f"必須是整數，收到：{bim_model}",
+                        "code": "invalid_bim_model"
+                    })
                 if not isinstance(display_name, str) or not display_name.strip():
-                    raise ValidationError(f"'display_name' 必須是非空字串，收到：{display_name}")
+                    raise ValidationError({
+                        "display_name": f"必須是非空字串，收到：{display_name}",
+                        "code": "invalid_display_name"
+                    })
                 if not isinstance(value, str) or not value.strip():
-                    raise ValidationError(f"'value' 必須是非空字串，收到：{value}")
+                    raise ValidationError({
+                        "value": f"必須是非空字串，收到：{value}",
+                        "code": "invalid_value"
+                    })
                 category_bim_models.add(bim_model)
                 category_display_names.add(display_name)
                 category_values.append(value)
                 if not models.BimModel.objects.filter(id=bim_model).exists():
-                    raise ValidationError(f"無效的 bim_model：{bim_model}")
+                    raise ValidationError({
+                        "bim_model": f"無效的 bim_model：{bim_model}",
+                        "code": "invalid_bim_model_id"
+                    })
 
         # 處理 categories 和 fuzzy_keyword 的 OR 關係
         value_filters = Q()
@@ -546,9 +597,15 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             )
         if fuzzy_keyword:
             if not isinstance(fuzzy_keyword, str):
-                raise ValidationError("'fuzzy_keyword' 必須是字串。")
+                raise ValidationError({
+                    "fuzzy_keyword": "必須是字串。",
+                    "code": "invalid_fuzzy_keyword"
+                })
             if not fuzzy_keyword.strip():
-                raise ValidationError("'fuzzy_keyword' 不能為空字串。")
+                raise ValidationError({
+                    "fuzzy_keyword": "不能為空字串。",
+                    "code": "empty_fuzzy_keyword"
+                })
             value_filters |= Q(value__trigram_similar=fuzzy_keyword)
         if value_filters:
             filters &= value_filters
