@@ -218,6 +218,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.criteriaSpaces = this.formatCriteria(this.selectedSpaces);
         this.criteriaSystems = this.formatCriteria(this.selectedSystems);
         this.criteriaKeyword = this.keyword;
+
+        console.log(this.criteriaSpaces)
     }
 
     // 處理從 ApsViewerComponent 發送的節點屬性
@@ -236,12 +238,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this._unsubscribeAll.complete();
     }
 
-    // 格式化 selectedRegions
-    private formatCriteria(criteria: any[]): string {
+    // 格式化 criteria
+    private formatCriteria(criteria: any[]): any {
         if (!Array.isArray(criteria) || criteria.length === 0) {
-            return null;
+            return [];
         }
 
+        // 按 parent.label 分組，明確指定 acc 為 { [key: string]: string[] }
         const groupedRegions = criteria.reduce((acc: { [key: string]: string[] }, node) => {
             if (!node || !node.label || !node.parent || !node.parent.label) {
                 return acc;
@@ -254,11 +257,14 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             return acc;
         }, {});
 
-        return Object.entries(groupedRegions)
-            .map(([parentLabel, childLabels]: [string, string[]]) => {
-                return `${parentLabel}: ${childLabels.join(', ')}`;
-            })
-            .join('; ');
+        // 轉為目標格式，criteria 合併為逗號分隔字串
+        const result = Object.entries(groupedRegions).map(([name, criteria]: [string, string[]]) => ({
+            name,
+            criteria: criteria.join(',')
+        }));
+
+        console.log('formatCriteria result:', result);
+        return result;
     }
 
     private _transformData(data: any[]): any[] {

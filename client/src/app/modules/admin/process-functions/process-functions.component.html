@@ -83,7 +83,7 @@
                     <div class="flex flex-col bg-slate-700">
                         <div class="flex items-center justify-between px-4 py-2">
                             <div class="flex items-center justify-start">
-                               
+
                                 <div class="text-xl font-semibold leading-tight">查詢結果：全部共 <span class="italic"> {{data?.count}}</span> 筆資料</div>
                             </div>
 
@@ -110,30 +110,53 @@
                     </div>
 
                     <div class="flex flex-col">
-                        <!-- <div class="flex items-center justify-between">
-                            <div class="text-lg font-semibold leading-tight">查詢條件：</div>
-                        </div> -->
-                        <!-- <div class="flex items-center justify-start px-4 py-4">
-                            <div class="text-lg font-semibold leading-tight">查詢條件</div>
-                        </div> -->
-                        @if(this.criteriaRegions){
-                        <div class="flex mt-5 px-4">
+
+                        <!-- regions -->
+                        @if (criteriaRegions && criteriaRegions.length > 0) {
+                        @for (item of criteriaRegions; track item.name; let index = $index) {
+                        @if(index==0){
+                        <div class="flex mt-5 px-4" [attr.data-index]="index">
                             <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
-                            <div>{{ criteriaRegions }}</div>
+                            <div>{{ item.name }}: {{ item.criteria }}</div>
                         </div>
                         }
-                        @if(this.criteriaSpaces){
-                        <div class="flex mt-5 px-4">
+                        @else {
+                        <div class="flex mt-2 px-4" [attr.data-index]="index">
+                            <div class="pl-7">{{ item.name }}: {{ item.criteria }}</div>
+                        </div>
+                        }}}
+
+                        <!-- spaces -->
+                        @if (criteriaSpaces && criteriaSpaces.length > 0) {
+                        @for (item of criteriaSpaces; track item.name; let index = $index) {
+                        @if(index==0){
+                        <div class="flex mt-5 px-4" [attr.data-index]="index">
                             <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
-                            <div>{{ criteriaSpaces }}</div>
+                            <div>{{ item.name }}: {{ item.criteria }}</div>
                         </div>
                         }
-                        @if(this.criteriaSystems){
-                        <div class="flex mt-5 px-4">
+                        @else {
+                        <div class="flex mt-2 px-4" [attr.data-index]="index">
+                            <div class="pl-7">{{ item.name }}: {{ item.criteria }}</div>
+                        </div>
+                        }}}
+
+                        <!-- systems -->
+                        @if (criteriaSystems && criteriaSystems.length > 0) {
+                        @for (item of criteriaSystems; track item.name; let index = $index) {
+                        @if(index==0){
+                        <div class="flex mt-5 px-4" [attr.data-index]="index">
                             <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
-                            <div>{{ criteriaSystems }}</div>
+                            <div>{{ item.name }}: {{ item.criteria }}</div>
                         </div>
                         }
+                        @else {
+                        <div class="flex mt-2 px-4" [attr.data-index]="index">
+                            <div class="pl-7">{{ item.name }}: {{ item.criteria }}</div>
+                        </div>
+                        }}}
+
+                        <!-- keyword -->
                         @if(this.criteriaKeyword){
                         <div class="flex mt-5 px-4">
                             <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
