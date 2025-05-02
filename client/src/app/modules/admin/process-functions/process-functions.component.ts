@@ -224,11 +224,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     // 處理從 ApsViewerComponent 發送的節點屬性
     onProperties(event: any): void {
+
+        event.properties = event.properties.length == 0 ? [{ 'displayName': 'Name', 'displayValue': event.name }] : event.properties;
         this.nodeInfo = {
             dbId: event.dbId,
             modelUrn: event.modelUrn,
             name: event.name || 'Unknown',
-            properties: event.properties || []
+            properties: event.properties
         };
         console.log('Node info:', this.nodeInfo);
     }
