@@ -525,11 +525,11 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         """, [bim_model, batch_dbids, bim_model, batch_dbids])
                         result = cursor.fetchall()
                         new_dbids = [row[0] for row in result]
-                        if len(new_dbids) > 10000:
-                            raise ValidationError({
-                                "dbids": f"查詢結果過大，hierarchy_dbids 數量：{len(new_dbids)}，請選擇較少節點",
-                                "code": "hierarchy_too_large"
-                            })
+                        # if len(new_dbids) > 10000:
+                        #     raise ValidationError({
+                        #         "dbids": f"查詢結果過大，hierarchy_dbids 數量：{len(new_dbids)}，請選擇較少節點",
+                        #         "code": "hierarchy_too_large"
+                        #     })
                         hierarchy_dbids.extend(new_dbids)
                         cache.set(cache_key, new_dbids, timeout=3600)
 
