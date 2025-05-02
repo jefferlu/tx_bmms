@@ -48,37 +48,38 @@
 
     <div class="mx-auto flex w-full h-full flex-wrap p-2 overflow-y-auto">
         <div class="flex w-full flex-col md:flex-row gap-2 max-w-full h-full">
-            <div class="flex-[1] min-w-0 bg-card rounded-md md:flex-[1] h-full">
-                <!-- 區塊 1 (1/6) -->
-                <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="data?.count" [scrollable]="true" scrollHeight="flex"
-                    selectionMode="multiple" [pageLinks]="1" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [paginator]="true" [lazy]="true"
-                    [lazyLoadOnInit]="false" [loading]="isLoading" [selection]="selectedObjects" (onLazyLoad)="onPageChange($event)"
-                    (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
-                    <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
-                        <tr class="hover:bg-hover" [pSelectableRow]="item" [pSelectableRowIndex]="rowIndex">
-                            <td class="pl-8">
-                                <p-tableCheckbox [value]="item" />
-                            </td>
-                            <td>{{ item.value }} ({{ item.dbid }})</td>
-                        </tr>
-                    </ng-template>
-                    <ng-template pTemplate="emptymessage">
-                        <tr>
-                            <td colspan="9" class="text-center border-0">
-                                <div class="flex flex-auto flex-col items-center justify-center h-128">
-                                    <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"></mat-icon>
-                                    <div class="text-secondary mt-4 font-semibold tracking-tight">
-                                        {{t('no-data')}}
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    </ng-template>
-                </p-table>
-            </div>
-            <div class="flex-[1] min-w-0 rounded-md flex flex-col gap-2 md:flex-[2]">
-                <div class="flex-[1] bg-card rounded-md sm:flex-[1] md:flex-[1] overflow-y-auto pb-4">
 
+            <div class="flex-[1] min-w-0 rounded-md flex flex-col gap-2 md:flex-[1]">
+                <div class="flex-[5] bg-card rounded-md sm:flex-[5] md:flex-[5] overflow-y-hidden">
+                    <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="data?.count" [scrollable]="true" scrollHeight="flex"
+                        selectionMode="multiple" [pageLinks]="1" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [paginator]="true"
+                        [lazy]="true" [lazyLoadOnInit]="false" [loading]="isLoading" [selection]="selectedObjects" (onLazyLoad)="onPageChange($event)"
+                        (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
+                        <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                            <tr class="hover:bg-hover" [pSelectableRow]="item" [pSelectableRowIndex]="rowIndex">
+                                <td class="pl-8">
+                                    <p-tableCheckbox [value]="item" />
+                                </td>
+                                <td>{{ item.value }} ({{ item.dbid }})</td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="9" class="text-center border-0">
+                                    <div class="flex flex-auto flex-col items-center justify-center h-100">
+                                        <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"></mat-icon>
+                                        <div class="text-secondary mt-4 font-semibold tracking-tight">
+                                            {{t('no-data')}}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+
+
+                </div>
+                <div class="flex-[2] bg-card rounded-md sm:flex-[2] md:flex-[2] overflow-y-auto pb-4">
                     @if(this.data?.results.length){
                     <div class="flex flex-col bg-slate-700">
                         <div class="flex items-center justify-between px-4 py-2">
@@ -169,41 +170,11 @@
                     <ng-container
                         *ngTemplateOutlet="noDataTemplate context: { icon: 'heroicons_outline:ellipsis-horizontal-circle', message: 'no-data' }"></ng-container>
                     }
-                </div>
-                <div class="flex-[2] bg-card rounded-md sm:flex-[2] md:flex-[2] overflow-y-hidden">
-                    @if(nodeInfo){
-                    <div class="flex flex-col bg-slate-700">
-                        <div class="flex items-center justify-start p-4">
-                            <mat-icon class="mr-2 icon-size-5" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
-                            <div class="text-xl font-semibold leading-tight">{{nodeInfo?.name}}</div>
-                        </div>
-                    </div>
-                    }
 
-                    <p-table #propertyTable class="w-full" [value]="nodeInfo?.properties" [scrollable]="true" scrollHeight="flex"
-                        [styleClass]="'p-datatable-lg'">
-                        <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
-                            <tr class="hover:bg-hover">
-                                <td>{{ item.displayName }}</td>
-                                <td>{{ item.displayValue }}</td>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="emptymessage">
-                            <tr>
-                                <td colspan="9" class="text-center border-0">
-                                    <div class="flex flex-auto flex-col items-center justify-center h-100">
-                                        <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
-                                        <div class="text-secondary mt-4 font-semibold tracking-tight">
-                                            {{t('no-data')}}
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
 
                 </div>
             </div>
+
             <div class="flex-[1] min-w-0 bg-card rounded-md md:flex-[3]">
                 @if (selectedObjects?.length > 0){
                 <aps-viewer [data]="selectedObjects" (nodeProperties)="onProperties($event)"></aps-viewer>
@@ -212,6 +183,39 @@
                 <ng-container *ngTemplateOutlet="noDataTemplate context: { icon: 'heroicons_outline:photo', message: 'no-bim-model'}"></ng-container>
                 }
             </div>
+
+            <div class="flex-[2] min-w-0 bg-card rounded-md md:flex-[2] overflow-hidden">
+                @if(nodeInfo){
+                <div class="flex flex-col bg-slate-700">
+                    <div class="flex items-center justify-start p-4">
+                        <mat-icon class="mr-2 icon-size-5" [svgIcon]="'heroicons_outline:window'"></mat-icon>
+                        <div class="text-xl font-semibold leading-tight">{{nodeInfo?.name}}</div>
+                    </div>
+                </div>
+                }
+
+                <p-table #propertyTable class="w-full" [value]="nodeInfo?.properties" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'">
+                    <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                        <tr class="hover:bg-hover">
+                            <td>{{ item.displayName }}</td>
+                            <td>{{ item.displayValue }}</td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="9" class="text-center border-0">
+                                <div class="flex flex-auto flex-col items-center justify-center h-160">
+                                    <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
+                                    <div class="text-secondary mt-4 font-semibold tracking-tight">
+                                        {{t('no-data')}}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+
         </div>
     </div>
 
