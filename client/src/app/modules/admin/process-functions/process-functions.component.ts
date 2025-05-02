@@ -43,7 +43,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     selectedRegions: any = [];
     selectedSpaces: any = [];
     selectedSystems: any = []
-    keyword: string = '通風';
+    keyword: string = '';
 
     rowsPerPage: number = 100;
     selectedObjects: any[] = [];
@@ -100,12 +100,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     onRowSelect(event: any): void {
         this.selectedObjects = [...this.selectedObjects, event.data];
-        console.log(this.selectedObjects)
+        this.nodeInfo = null;
         this._changeDetectorRef.markForCheck();
     }
 
     onRowUnselect(event: any): void {
         this.selectedObjects = this.selectedObjects.filter(item => item.id !== event.data.id);
+        this.nodeInfo = null;
         this._changeDetectorRef.markForCheck();
     }
 
@@ -164,11 +165,10 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             ...(this.keyword && { fuzzy_keyword: this.keyword }),
         };
 
-        this.updateCriteria();
-
         const cacheKey = JSON.stringify(request);
         if (this._cache.has(cacheKey)) {
             this.data = this._cache.get(cacheKey);
+            this.updateCriteria();
             this._changeDetectorRef.markForCheck();
             return;
         }
@@ -199,6 +199,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                         this.data = { count: 0, results: [] };
                     }
 
+                    this.updateCriteria();
                     this._changeDetectorRef.markForCheck();
                 },
                 error: (err) => {

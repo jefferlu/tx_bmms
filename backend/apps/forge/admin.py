@@ -36,4 +36,5 @@ class BimModelAdmin(admin.ModelAdmin):
 
 @admin.register(models.BimObject)
 class BimObjectAdmin(admin.ModelAdmin):
-    list_display = ('bim_model', 'dbid', 'value',)
+    list_display = ('bim_model', 'dbid', 'display_name', 'value',)
+    search_fields = ('display_name', 'value')

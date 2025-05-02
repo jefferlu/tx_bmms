@@ -82,7 +82,8 @@
             </div>
             <div class="flex-[1] min-w-0 rounded-md flex flex-col gap-2 md:flex-[2]">
                 <div class="flex-[1] p-4 bg-card rounded-md sm:flex-[1] md:flex-[1]">
-                    @if(this.criteriaRegions|| this.criteriaSpaces || this.criteriaSystems || this.criteriaKeyword){
+                    <!-- @if(this.criteriaRegions|| this.criteriaSpaces || this.criteriaSystems || this.criteriaKeyword){ -->
+                    @if(this.data?.results.length){
                     <div class="flex items-center justify-between">
                         <div class="text-lg font-semibold leading-tight">查詢結果：全部 {{data?.count}} 筆資料</div>
                         <div class="-mr-3">

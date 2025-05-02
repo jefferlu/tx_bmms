@@ -71,6 +71,8 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             'hosts': [(REDIS['HOST'], REDIS['PORT'])],
+            'capacity': 200,  # 增加每個通道的容量（默認 100）
+            'group_expiry': 86400,  # 群組過期時間（秒），默認為 86400（1 天）
         },
     },
 }

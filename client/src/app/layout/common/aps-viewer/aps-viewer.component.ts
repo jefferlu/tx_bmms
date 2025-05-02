@@ -259,7 +259,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             console.log('ModelStructure container:', modelStructure.container);
             console.log('ModelStructure properties:', Object.keys(modelStructure));
 
-            modelStructure.setVisible(true);
+            // modelStructure.setVisible(true);
 
             modelStructure.container.addEventListener('mouseup', (event: any) => {
                 console.log('Model Browser mouseup event:', event);
@@ -357,7 +357,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
                         console.log('Geometry loaded, checking modelStructure:', this.viewer.viewer.modelstructure);
                         if (this.viewer.viewer.modelstructure) {
-                            this.viewer.viewer.modelstructure.setVisible(true);
+                            // this.viewer.viewer.modelstructure.setVisible(true);
                             this.setupModelBrowser();
                         } else {
                             console.error('modelStructure 未初始化於 GEOMETRY_LOADED_EVENT');
@@ -418,7 +418,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
                         console.log('Geometry loaded, checking modelStructure:', this.viewer.viewer.modelstructure);
                         if (this.viewer.viewer.modelstructure) {
-                            this.viewer.viewer.modelstructure.setVisible(true);
+                            // this.viewer.viewer.modelstructure.setVisible(true);
                             this.setupModelBrowser();
                         } else {
                             console.error('modelStructure 未初始化於 GEOMETRY_LOADED_EVENT');
@@ -535,7 +535,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                                             if (this.dbids && this.dbids.length > 0) {
                                                 const modelStructure = this.viewer.viewer.modelstructure;
                                                 if (modelStructure) {
-                                                    modelStructure.setVisible(true);
+                                                    // modelStructure.setVisible(true);
                                                     console.log('Model structure panel opened:', modelStructure);
 
                                                     this.dbids.forEach((entry: any) => {
