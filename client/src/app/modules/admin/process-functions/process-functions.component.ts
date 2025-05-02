@@ -100,13 +100,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     onRowSelect(event: any): void {
         this.selectedObjects = [...this.selectedObjects, event.data];
-        this.nodeInfo = null;
+        if (this.selectedObjects.length === 0) this.nodeInfo = null;
         this._changeDetectorRef.markForCheck();
     }
 
     onRowUnselect(event: any): void {
         this.selectedObjects = this.selectedObjects.filter(item => item.id !== event.data.id);
-        this.nodeInfo = null;
+        if (this.selectedObjects.length === 0) this.nodeInfo = null;
         this._changeDetectorRef.markForCheck();
     }
 

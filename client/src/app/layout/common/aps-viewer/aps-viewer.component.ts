@@ -137,7 +137,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             const targetModel = this.loadedModels.find((model) => model.getData().urn === urn);
             if (targetModel) {
                 this.viewer.viewer.isolate(dbIds, targetModel);
-                this.viewer.viewer.fitToView([dbIds[0]], targetModel);
+                this.viewer.viewer.fitToView([dbIds[dbIds.length - 1]], targetModel);
                 console.log(`Updated model ${urn} with dbIds:`, dbIds);
 
                 const tree = targetModel.getInstanceTree();
@@ -160,7 +160,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                                 const newModel = this.loadedModels.find((model) => model.getData().urn === urn);
                                 if (newModel) {
                                     this.viewer.viewer.isolate(dbIds, newModel);
-                                    this.viewer.viewer.fitToView([dbIds[0]], newModel);
+                                    this.viewer.viewer.fitToView([dbIds[dbIds.length - 1]], newModel);
                                     console.log(`Loaded new model ${urn} with dbIds:`, dbIds);
                                 }
                             }).catch((err) => {
@@ -548,7 +548,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
                                                         if (targetModel) {
                                                             this.viewer.viewer.isolate(dbIds, targetModel);
-                                                            this.viewer.viewer.fitToView([dbIds[0]], targetModel);
+                                                            this.viewer.viewer.fitToView([dbIds[dbIds.length - 1]], targetModel);
                                                             console.log(`Isolated and fit to view for model ${urn}:`, dbIds);
 
                                                             const tree = targetModel.getInstanceTree();
