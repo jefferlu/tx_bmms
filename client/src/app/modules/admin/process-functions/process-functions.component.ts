@@ -117,7 +117,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     onSearch(): void {
 
-        if ([this.selectedObjects, this.selectedSpaces, this.selectedSystems].every(arr => arr.length === 0) &&
+        if ([this.selectedRegions, this.selectedSpaces, this.selectedSystems].every(arr => arr.length === 0) &&
             this.keyword === '') {
             this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-criteria')}.` });
             return;
@@ -181,12 +181,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             this._changeDetectorRef.markForCheck();
             return;
         }
-
-        // if (!request.fuzzy_keyword && !request.regions) {
-        //     this.data = { count: 0, results: [] };
-        //     this._changeDetectorRef.markForCheck();
-        //     return;
-        // }
 
         this.isLoading = true;
         console.log(request)

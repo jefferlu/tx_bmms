@@ -456,8 +456,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         hierarchy_dbids = []
         valid_bim_models = set()
         category_bim_models = set()
-        category_display_names = set()
-        category_values = []
 
         # 處理 regions
         if regions:
@@ -527,11 +525,11 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         """, [bim_model, batch_dbids, bim_model, batch_dbids])
                         result = cursor.fetchall()
                         new_dbids = [row[0] for row in result]
-                        # if len(new_dbids) > 10000:
-                        #     raise ValidationError({
-                        #         "dbids": f"查詢結果過大，hierarchy_dbids 數量：{len(new_dbids)}，請選擇較少節點",
-                        #         "code": "hierarchy_too_large"
-                        #     })
+                        if len(new_dbids) > 10000:
+                            raise ValidationError({
+                                "dbids": f"查詢結果過大，hierarchy_dbids 數量：{len(new_dbids)}，請選擇較少節點",
+                                "code": "hierarchy_too_large"
+                            })
                         hierarchy_dbids.extend(new_dbids)
                         cache.set(cache_key, new_dbids, timeout=3600)
 
@@ -554,6 +552,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                     "categories": "不能為空列表。",
                     "code": "empty_categories"
                 })
+            value_filters = Q()
             for item in categories:
                 if not isinstance(item, dict):
                     raise ValidationError({
@@ -579,22 +578,21 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         "code": "invalid_value"
                     })
                 category_bim_models.add(bim_model)
-                category_display_names.add(display_name)
-                category_values.append(value)
                 if not models.BimModel.objects.filter(id=bim_model).exists():
                     raise ValidationError({
                         "bim_model": f"無效的 bim_model：{bim_model}",
                         "code": "invalid_bim_model_id"
                     })
+                # 為每個 category 生成獨立的 Q 條件
+                value_filters |= (
+                    Q(bim_model_id=bim_model) &
+                    Q(display_name=display_name) &
+                    Q(value=value)
+                )
+            if value_filters:
+                filters &= value_filters
 
-        # 處理 categories 和 fuzzy_keyword 的 OR 關係
-        value_filters = Q()
-        if category_bim_models and category_display_names and category_values:
-            value_filters |= (
-                Q(bim_model_id__in=category_bim_models) &
-                Q(display_name__in=category_display_names) &
-                Q(value__in=category_values)
-            )
+        # 處理 fuzzy_keyword
         if fuzzy_keyword:
             if not isinstance(fuzzy_keyword, str):
                 raise ValidationError({
@@ -606,9 +604,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                     "fuzzy_keyword": "不能為空字串。",
                     "code": "empty_fuzzy_keyword"
                 })
-            value_filters |= Q(value__trigram_similar=fuzzy_keyword)
-        if value_filters:
-            filters &= value_filters
+            filters &= Q(value__trigram_similar=fuzzy_keyword)
 
         # 限制 bim_model_id
         if valid_bim_models or category_bim_models:

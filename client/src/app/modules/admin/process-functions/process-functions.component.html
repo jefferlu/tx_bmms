@@ -32,10 +32,6 @@
                 </ng-template>
             </p-treeselect>
 
-            <!-- <input type="text" class="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Input 2" /> -->
-            <!-- <p-treeselect class="w-full md:w-80" containerStyleClass="w-full" [(ngModel)]="selectedSpaces" [options]="conditions[1].children[0].children"
-                [metaKeySelection]="false" selectionMode="single" placeholder="空間" (onNodeSelect)="onNodeSelect($event)" /> -->
-
             <!-- 關鍵字查詢 -->
             <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
                 placeholder="請輸入關鍵字..." [(ngModel)]="keyword" />
@@ -81,56 +77,65 @@
                 </p-table>
             </div>
             <div class="flex-[1] min-w-0 rounded-md flex flex-col gap-2 md:flex-[2]">
-                <div class="flex-[1] p-4 bg-card rounded-md sm:flex-[1] md:flex-[1]">
-                    <!-- @if(this.criteriaRegions|| this.criteriaSpaces || this.criteriaSystems || this.criteriaKeyword){ -->
+                <div class="flex-[1] bg-card rounded-md sm:flex-[1] md:flex-[1] overflow-y-auto pb-4">
+
                     @if(this.data?.results.length){
-                    <div class="flex items-center justify-between">
-                        <div class="text-lg font-semibold leading-tight">查詢結果：全部 {{data?.count}} 筆資料</div>
-                        <div class="-mr-3">
-                            <button mat-icon-button [matMenuTriggerFor]="exportMenu">
-                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:arrow-down-tray'"></mat-icon>
-                            </button>
-                            <mat-menu #exportMenu="matMenu">
-                                <button mat-menu-item>
-                                    <span class="flex items-center">
-                                        <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
-                                        <span>匯出 CSV 檔案</span>
-                                    </span>
+                    <div class="flex flex-col bg-slate-700">
+                        <div class="flex items-center justify-between px-4 py-2">
+                            <div class="flex items-center justify-start">
+                               
+                                <div class="text-xl font-semibold leading-tight">查詢結果：全部 {{data?.count}} 筆資料</div>
+                            </div>
+
+                            <div class="-mr-3">
+                                <button mat-icon-button [matMenuTriggerFor]="exportMenu">
+                                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:arrow-down-tray'"></mat-icon>
                                 </button>
-                                <button mat-menu-item>
-                                    <span class="flex items-center">
-                                        <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_solid:document-text'"></mat-icon>
-                                        <span>匯出 TXT 檔</span>
-                                    </span>
-                                </button>
-                            </mat-menu>
+                                <mat-menu #exportMenu="matMenu">
+                                    <button mat-menu-item>
+                                        <span class="flex items-center">
+                                            <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
+                                            <span>匯出 CSV 檔案</span>
+                                        </span>
+                                    </button>
+                                    <button mat-menu-item>
+                                        <span class="flex items-center">
+                                            <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_solid:document-text'"></mat-icon>
+                                            <span>匯出 TXT 檔</span>
+                                        </span>
+                                    </button>
+                                </mat-menu>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mt-5 flex flex-col">
-                        <div class="flex items-center justify-between">
+                    <div class="flex flex-col">
+                        <!-- <div class="flex items-center justify-between">
                             <div class="text-lg font-semibold leading-tight">查詢條件：</div>
-                        </div>
+                        </div> -->
+                        <!-- <div class="flex items-center justify-start px-4 py-4">
+                            <div class="text-lg font-semibold leading-tight">查詢條件</div>
+                        </div> -->
                         @if(this.criteriaRegions){
-                        <div class="mt-5 flex">
+                        <div class="flex mt-5 px-4">
                             <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
                             <div>{{ criteriaRegions }}</div>
                         </div>
                         }
                         @if(this.criteriaSpaces){
-                        <div class="mt-5 flex">
+                        <div class="flex mt-5 px-4">
                             <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
                             <div>{{ criteriaSpaces }}</div>
                         </div>
                         }
                         @if(this.criteriaSystems){
-                        <div class="mt-5 flex">
+                        <div class="flex mt-5 px-4">
                             <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
                             <div>{{ criteriaSystems }}</div>
                         </div>
                         }
                         @if(this.criteriaKeyword){
-                        <div class="mt-5 flex">
+                        <div class="flex mt-5 px-4">
                             <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
                             <div>{{ criteriaKeyword }}</div>
                         </div>
@@ -145,8 +150,9 @@
                 <div class="flex-[2] bg-card rounded-md sm:flex-[2] md:flex-[2] overflow-y-hidden">
                     @if(nodeInfo){
                     <div class="flex flex-col bg-slate-700">
-                        <div class="flex items-center justify-between p-4">
-                            <div class="text-lg font-semibold leading-tight">{{nodeInfo?.name}}</div>
+                        <div class="flex items-center justify-start p-4">
+                            <mat-icon class="mr-2 icon-size-5" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
+                            <div class="text-xl font-semibold leading-tight">{{nodeInfo?.name}}</div>
                         </div>
                     </div>
                     }
@@ -163,7 +169,7 @@
                             <tr>
                                 <td colspan="9" class="text-center border-0">
                                     <div class="flex flex-auto flex-col items-center justify-center h-100">
-                                        <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"></mat-icon>
+                                        <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
                                         <div class="text-secondary mt-4 font-semibold tracking-tight">
                                             {{t('no-data')}}
                                         </div>
