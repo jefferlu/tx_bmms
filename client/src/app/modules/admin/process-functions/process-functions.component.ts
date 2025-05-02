@@ -117,6 +117,12 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     onSearch(): void {
 
+        if ([this.selectedObjects, this.selectedSpaces, this.selectedSystems].every(arr => arr.length === 0) &&
+            this.keyword === '') {
+            this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-criteria')}.` });
+            return;
+        }
+
         this.selectedObjects = [];
         this.nodeInfo = null;
 
