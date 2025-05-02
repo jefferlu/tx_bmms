@@ -150,7 +150,10 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         }));
 
         // 處理 category
-        const categories = this.selectedSpaces.map((space: any) => ({
+        const categories = [
+            ...this.selectedSpaces,
+            ...this.selectedSystems
+        ].map((space: any) => ({
             bim_model: space.bim_model,
             display_name: space.display_name,
             value: space.label
@@ -180,7 +183,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         // }
 
         this.isLoading = true;
-
+        console.log(request)
         this._processFunctionsService.getData(request)
             .pipe(
                 takeUntil(this._unsubscribeAll),
