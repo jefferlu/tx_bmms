@@ -604,7 +604,9 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                     "fuzzy_keyword": "不能為空字串。",
                     "code": "empty_fuzzy_keyword"
                 })
-            filters &= Q(value__trigram_similar=fuzzy_keyword)
+            # filters &= Q(value__trigram_similar=fuzzy_keyword)
+            filters &= (Q(value__trigram_similar=fuzzy_keyword) | Q(value__contains=fuzzy_keyword))
+            # filters &= (Q(value__contains=fuzzy_keyword))
 
         # 限制 bim_model_id
         if valid_bim_models or category_bim_models:
