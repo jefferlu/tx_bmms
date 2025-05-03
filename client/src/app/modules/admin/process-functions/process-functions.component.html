@@ -50,6 +50,7 @@
         <div class="flex w-full flex-col md:flex-row gap-2 max-w-full h-full">
 
             <div class="flex-[1] min-w-0 rounded-md flex flex-col gap-2 md:flex-[1]">
+
                 <div class="flex-[5] bg-card rounded-md sm:flex-[5] md:flex-[5] overflow-y-hidden">
                     <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="data?.count" [scrollable]="true" scrollHeight="flex"
                         selectionMode="multiple" [pageLinks]="1" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [paginator]="true"
@@ -78,6 +79,7 @@
                     </p-table>
 
                 </div>
+
                 <div class="flex flex-col flex-[2] bg-card rounded-md sm:flex-[2] md:flex-[2] overflow-y-auto pb-4">
 
                     @if(this.data?.results.length){
@@ -174,7 +176,7 @@
 
             </div>
 
-            <div class="flex-[1] min-w-0 bg-card rounded-md md:flex-[3]">
+            <div class="flex-[1] min-w-0 bg-card rounded-md md:flex-[4]">
                 @if (selectedObjects?.length > 0){
                 <aps-viewer [data]="selectedObjects" (nodeProperties)="onProperties($event)"></aps-viewer>
                 }
@@ -183,7 +185,7 @@
                 }
             </div>
 
-            <div class="flex flex-col flex-[1] min-w-0 bg-card rounded-md md:flex-[1] ">
+            <div class="flex flex-col flex-[1] min-w-0 bg-card rounded-md md:flex-[1]">
                 @if(nodeInfo){
                 <div class="flex flex-col bg-slate-700">
                     <div class="flex items-center justify-start p-4">
@@ -203,6 +205,10 @@
                     </div>
                     }
                 </div>
+                }
+                @else {
+                <ng-container
+                    *ngTemplateOutlet="noDataTemplate context: { icon: 'heroicons_outline:ellipsis-horizontal-circle', message: 'no-data' }"></ng-container>
                 }
             </div>
 
