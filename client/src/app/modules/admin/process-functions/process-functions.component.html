@@ -78,7 +78,7 @@
                     </p-table>
 
                 </div>
-                <div class="flex-[2] bg-card rounded-md sm:flex-[2] md:flex-[2] overflow-y-auto pb-4">
+                <div class="flex flex-col flex-[2] bg-card rounded-md sm:flex-[2] md:flex-[2] overflow-y-auto pb-4">
 
                     @if(this.data?.results.length){
                     <div class="flex flex-col bg-slate-700">
@@ -111,8 +111,7 @@
 
                     </div>
 
-                    <div class="flex flex-col">
-
+                    <div class="flex flex-col flex-1 overflow-y-auto">
                         <!-- regions -->
                         @if (criteriaRegions && criteriaRegions.length > 0) {
                         @for (item of criteriaRegions; track item.name; let index = $index) {
@@ -184,8 +183,7 @@
                 }
             </div>
 
-            <div class="flex-[1] min-w-0 bg-card rounded-md md:flex-[1] overflow-hidden">
-
+            <div class="flex flex-col flex-[1] min-w-0 bg-card rounded-md md:flex-[1] ">
                 @if(nodeInfo){
                 <div class="flex flex-col bg-slate-700">
                     <div class="flex items-center justify-start p-4">
@@ -193,27 +191,19 @@
                         <div class="text-xl font-semibold leading-tight">{{nodeInfo?.name}}</div>
                     </div>
                 </div>
+
+                <!-- 使用 flex-1 和 overflow-y-auto 填滿剩餘高度並啟用滾動條 -->
+                <div class="flex flex-col p-6 flex-1 overflow-y-auto">
+                    @for (item of nodeInfo?.properties; track item.displayName) {
+                    <div class="text font-medium leading-6 tracking-tight">
+                        {{ item.displayName }}
+                    </div>
+                    <div class="text-sm text-secondary font-medium pb-3">
+                        {{ item.displayValue }}
+                    </div>
+                    }
+                </div>
                 }
-                <p-table #propertyTable class="w-full" [value]="nodeInfo?.properties" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'">
-                    <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
-                        <tr class="hover:bg-hover">
-                            <td>{{ item.displayName }}</td>
-                            <td>{{ item.displayValue }}</td>
-                        </tr>
-                    </ng-template>
-                    <ng-template pTemplate="emptymessage">
-                        <tr>
-                            <td colspan="9" class="text-center border-0">
-                                <div class="flex flex-auto flex-col items-center justify-center h-160">
-                                    <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
-                                    <div class="text-secondary mt-4 font-semibold tracking-tight">
-                                        {{t('no-data')}}
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    </ng-template>
-                </p-table>
             </div>
 
         </div>
