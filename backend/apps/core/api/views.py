@@ -60,6 +60,21 @@ class RefreshObtainView(TokenRefreshView):
     serializer_class = serializers.RefreshObtainSerializer
 
 
+class UpdateBimCriteriaView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        try:
+            user_profile = request.user.user_profile
+            serializer = serializers.UserProfileSerializer(user_profile, data={'bim_criteria': request.data}, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=400)
+        except models.UserProfile.DoesNotExist:
+            return Response({"error": "UserProfile does not exist"}, status=404)
+
+
 @extend_schema(
     summary="Reset Password",
     description="Chane login user password",

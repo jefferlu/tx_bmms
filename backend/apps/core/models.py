@@ -20,6 +20,7 @@ class UserProfile(models.Model):
         to='account.User', on_delete=models.CASCADE, related_name='user_profile')
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, related_name='user_profile')
+    bim_criteria = models.JSONField(default=dict, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.email} - {self.company.name}"

@@ -4,7 +4,7 @@
         <div class="flex w-full flex-col sm:flex-row gap-4">
             <!-- 區域 -->
             <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedRegions" [options]="regions"
-                placeholder="區域" (onNodeSelect)="onNodeSelect($event,'region')">
+                placeholder="區域" (onNodeSelect)="onNodeSelect($event,'region')" (onNodeUnselect)="onNodeSelect($event,'region')">
                 <ng-template pTemplate="option" let-node>
                     <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
                         {{ node.label }}
@@ -14,7 +14,7 @@
 
             <!-- 空間 -->
             <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedSpaces" [options]="spaces"
-                placeholder="空間" (onNodeSelect)="onNodeSelect($event,'space')">
+                placeholder="空間" (onNodeSelect)="onNodeSelect($event,'space')" (onNodeUnselect)="onNodeSelect($event,'space')">
                 <ng-template pTemplate="option" let-node>
                     <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
                         {{ node.label }}
@@ -24,7 +24,7 @@
 
             <!-- 系統 -->
             <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedSystems" [options]="systems"
-                placeholder="系統" (onNodeSelect)="onNodeSelect($event,'system')">
+                placeholder="系統" (onNodeSelect)="onNodeSelect($event,'system')" (onNodeUnselect)="onNodeSelect($event,'system')">
                 <ng-template pTemplate="option" let-node>
                     <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
                         {{ node.label }}
@@ -43,6 +43,26 @@
                     <span class="ml-2">{{t('search')}}</span>
                 </button>
             </div>
+            <div class="ml-auto">
+                <button mat-flat-button [matMenuTriggerFor]="manageCriteria">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:cog-6-tooth'"></mat-icon>
+                    <span class="ml-2">{{t('manage-criteria')}}</span>
+                </button>
+                <mat-menu #manageCriteria="matMenu">
+                    <button mat-menu-item (click)="onSaveCriteria()">
+                        <span class="flex items-center">
+                            <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:bookmark-square'"></mat-icon>
+                            <span>{{t('save-criteria')}}</span>
+                        </span>
+                    </button>
+                    <button mat-menu-item>
+                        <span class="flex items-center">
+                            <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+                            <span>{{t('read-criteria')}}</span>
+                        </span>
+                    </button>
+                </mat-menu>
+            </div>
         </div>
     </div>
 
@@ -52,10 +72,10 @@
             <div class="flex-[1] min-w-0 rounded-md flex flex-col gap-2 md:flex-[1]">
 
                 <div class="flex-[5] bg-card rounded-md sm:flex-[5] md:flex-[5] overflow-y-hidden">
-                    <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="data?.count" [scrollable]="true" scrollHeight="flex"
-                        selectionMode="multiple" [pageLinks]="1" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [paginator]="true"
-                        [lazy]="true" [lazyLoadOnInit]="false" [loading]="isLoading" [selection]="selectedObjects" (onLazyLoad)="onPageChange($event)"
-                        (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
+                    <p-table #dataTable class="w-full" [value]="this.objects?.results" [totalRecords]="this.objects?.count" [scrollable]="true"
+                        scrollHeight="flex" selectionMode="multiple" [pageLinks]="1" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage"
+                        [first]="first" [paginator]="true" [lazy]="true" [lazyLoadOnInit]="false" [loading]="isLoading" [selection]="selectedObjects"
+                        (onLazyLoad)="onPageChange($event)" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
                         <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
                             <tr class="hover:bg-hover" [pSelectableRow]="item" [pSelectableRowIndex]="rowIndex">
                                 <td class="pl-8">
@@ -82,11 +102,11 @@
 
                 <div class="flex flex-col flex-[2] bg-card rounded-md sm:flex-[2] md:flex-[2] overflow-y-auto pb-4">
 
-                    @if(this.data?.results.length){
+                    @if(this.objects?.results.length){
                     <div class="flex flex-col bg-slate-700">
                         <div class="flex items-center justify-between px-4 py-2">
                             <div class="flex items-center justify-start">
-                                <div class="text-xl font-semibold leading-tight">查詢結果共 <span class="italic"> {{data?.count}}</span> 筆資料</div>
+                                <div class="text-xl font-semibold leading-tight">查詢結果共 <span class="italic"> {{this.objects?.count}}</span> 筆資料</div>
                             </div>
 
                             <div class="-mr-3">
@@ -193,9 +213,8 @@
                     </div>
                 </div>
 
-                <!-- 使用 flex-1 和 overflow-y-auto 填滿剩餘高度並啟用滾動條 -->
                 <div class="flex flex-col p-6 flex-1 overflow-y-auto">
-                    @for (item of nodeInfo?.properties; track item.displayName) {
+                    @for (item of nodeInfo?.properties; track $index) {
                     <div class="text font-medium leading-6 tracking-tight">
                         {{ item.displayName }}
                     </div>

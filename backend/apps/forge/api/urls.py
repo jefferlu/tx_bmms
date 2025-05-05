@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.routers import DefaultRouter
 
 from . import views
-
+from apps.core.api import views as core_views
 
 class OptionalSlashRouter(DefaultRouter):
 
@@ -28,6 +28,7 @@ urlpatterns = [
     re_path(r'^bim-data-import/?$', views.BimDataImportView.as_view(), name='bim-data-import'),
     re_path(r'^bim-data-reload/?$', views.BimDataReloadView.as_view(), name='bim-data-reload'),
     re_path(r'^bim-update-categories/?$', views.BimUpdateCategoriesView.as_view(), name='bim-update-categories'),
+    re_path(r"^bim-criteria/?$", core_views.UpdateBimCriteriaView.as_view(), name="update-bim-criteria"),
 
     path('', include(router.urls)),
 ]

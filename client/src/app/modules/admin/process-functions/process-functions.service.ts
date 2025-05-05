@@ -22,6 +22,12 @@ export class ProcessFunctionsService {
         );
     }
 
+    updateCriteria(bimCriteria): Observable<any> {
+        return this._appService.put('forge/bim-criteria', '', bimCriteria).pipe(
+            tap((response: any) => { })
+        );
+    }
+
     getData(request: any) {
         return this._appService.post('forge/bim-object', request).pipe(
             tap((res: any) => { })

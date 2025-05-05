@@ -17,6 +17,7 @@ import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 import { MatMenuModule } from '@angular/material/menu';
 import { NgTemplateOutlet } from '@angular/common';
 import { property } from 'lodash';
+import { UserService } from 'app/core/user/user.service';
 
 @Component({
     selector: 'app-process-functions',
@@ -36,17 +37,22 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     private _cache = new Map<string, any>();
     private _unsubscribeAll: Subject<void> = new Subject<void>();
 
+    bimCriteria: any;
     regions: any;
     spaces: any;
     systems: any;
+    objects: any = { count: 0, results: [] };
 
+    request: any = {};
     selectedRegions: any = [];
     selectedSpaces: any = [];
     selectedSystems: any = []
     keyword: string = '';
-
-    rowsPerPage: number = 100;
     selectedObjects: any[] = [];
+
+
+    first: number = 0;
+    rowsPerPage: number = 100;
 
     criteriaRegions: string = '';
     criteriaSpaces: string = '';
@@ -55,14 +61,14 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     nodeInfo: any;
 
-    data: any = { count: 0, results: [] };
+
     isLoading: boolean = false;
 
     constructor(
         private _route: ActivatedRoute,
         private _changeDetectorRef: ChangeDetectorRef,
         private _translocoService: TranslocoService,
-        private _matDialog: MatDialog,
+        private _userService: UserService,
         private _toastService: ToastService,
         private _processFunctionsService: ProcessFunctionsService
     ) { }
@@ -79,11 +85,33 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 const systemNode = res.data.conditions.find(item => item.label === 'system');
                 this.systems = systemNode?.children ?? [];
 
-                console.log(res.data)
                 this._changeDetectorRef.markForCheck();
             },
             error: (e) => console.error('Error loading data:', e)
         });
+
+        // Get user info
+        this._userService.user$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((user: any) => {
+                this.bimCriteria = user.bim_criteria;
+
+                // Check if bimCriteria has request
+                // [this.selectedRegions, this.selectedSpaces, this.selectedSystems].every(arr => arr.length === 0)
+
+                if (![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
+                    // Load page with bimCriteria.request
+                    this.selectedRegions = this.bimCriteria.regions;
+                    this.selectedSpaces = this.bimCriteria.spaces;
+                    this.selectedSystems = this.bimCriteria.systems;
+
+                    const page = this.bimCriteria.page || 1;
+                    this.first = (page - 1) * this.rowsPerPage; // 計算 first
+                    this.loadPage(page);
+                }
+
+                this._changeDetectorRef.markForCheck();
+            });
 
     }
 
@@ -96,6 +124,10 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 case 'system': this.selectedSystems = []; break;
             }
         }
+        this.request = {};
+        this.selectedObjects = [];
+        this.objects = { count: 0, results: [] };
+        this.nodeInfo = null;
     }
 
     onRowSelect(event: any): void {
@@ -111,12 +143,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     onPageChange(event: TableLazyLoadEvent): void {
-        const page = event.first! / event.rows! + 1;
+        this.first = event.first || 0;
+        this.rowsPerPage = event.rows || this.rowsPerPage;
+        const page = this.first / this.rowsPerPage + 1;
         this.loadPage(page);
     }
 
     onSearch(): void {
-
         if ([this.selectedRegions, this.selectedSpaces, this.selectedSystems].every(arr => arr.length === 0) &&
             this.keyword === '') {
             this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-criteria')}.` });
@@ -124,14 +157,17 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         }
 
         this.selectedObjects = [];
+        if (this.bimCriteria?.objects) {
+            this.bimCriteria.objects = [];
+        }
         this.nodeInfo = null;
 
         this.loadPage(1)
     }
 
     loadPage(page?: number): void {
-
-        // if (!this.regions || this.isLoading) return;
+        // 更新 first
+        this.first = (page - 1) * this.rowsPerPage;
 
         // 處理 regions
         const regionsMap = {};
@@ -166,7 +202,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         }));
 
         // 產生最終 request
-        const request = {
+        this.request = {
             page,
             size: this.rowsPerPage,
             ...(regions.length > 0 && { regions }),
@@ -174,17 +210,16 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             ...(this.keyword && { fuzzy_keyword: this.keyword }),
         };
 
-        const cacheKey = JSON.stringify(request);
+        const cacheKey = JSON.stringify(this.request);
         if (this._cache.has(cacheKey)) {
-            this.data = this._cache.get(cacheKey);
+            this.objects = this._cache.get(cacheKey);
             this.updateCriteria();
             this._changeDetectorRef.markForCheck();
             return;
         }
 
         this.isLoading = true;
-        console.log(request)
-        this._processFunctionsService.getData(request)
+        this._processFunctionsService.getData(this.request)
             .pipe(
                 takeUntil(this._unsubscribeAll),
                 finalize(() => {
@@ -194,21 +229,55 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             )
             .subscribe({
                 next: (res) => {
-                    console.log(res)
                     if (res && res.count >= 0 && res.results) {
-                        this.data = { count: res.count, results: res.results };
-                        this._cache.set(cacheKey, this.data);
+                        this.objects = { count: res.count, results: res.results };
+                        this._cache.set(cacheKey, this.objects);
                     } else {
-                        this.data = { count: 0, results: [] };
+                        this.objects = { count: 0, results: [] };
                     }
-
                     this.updateCriteria();
+
+                    // Set selectedObjects if bimCriteria has objects and they exist in this.objects.results
+                    // if (this.bimCriteria?.objects?.length > 0 && this.objects?.results?.length > 0) {
+                    // const validIds = new Set(this.objects.results.map((item: any) => item.id));
+                    // const validObjects = this.bimCriteria.objects.filter((obj: any) => validIds.has(obj.id));
+                    // if (this.selectedObjects.length > 0)
+                    //     this.selectedObjects = [this.selectedObjects, ...validObjects];
+                    // else
+                    //     this.selectedObjects = validObjects;
+                    // debugger;
+                    if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
+                        this.selectedObjects = this.bimCriteria.objects;
+                        this.bimCriteria.isRead = true;
+                    }
                     this._changeDetectorRef.markForCheck();
                 },
                 error: (err) => {
                     console.error('Error:', err);
-                    this.data = { count: 0, results: [] };
+                    this.objects = { count: 0, results: [] };
                     this._changeDetectorRef.markForCheck();
+                }
+            });
+    }
+
+    onSaveCriteria() {
+        // 構建要儲存的 bim_criteria 資料
+        const bimCriteria = {
+            page: this.request.page || 1,
+            objects: this.selectedObjects,
+            regions: this.selectedRegions.map(node => ({ key: node.key, label: node.label, data: node.data, parentLabel: node.parent?.label })),
+            spaces: this.selectedSpaces.map(node => ({ key: node.key, label: node.label, bim_model: node.bim_model, display_name: node.display_name, parentLabel: node.parent?.label })),
+            systems: this.selectedSystems.map(node => ({ key: node.key, label: node.label, bim_model: node.bim_model, display_name: node.display_name, parentLabel: node.parent?.label }))
+        };
+
+        // 調用服務發送資料到後端
+        this._processFunctionsService.updateCriteria(bimCriteria)
+            .subscribe({
+                next: (response) => {
+                    this._toastService.open({ message: `${this._translocoService.translate('bim-criteria-saved')}.` });
+                },
+                error: (error) => {
+                    console.error('Error saving BIM criteria:', error);
                 }
             });
     }
@@ -218,21 +287,22 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.criteriaSpaces = this.formatCriteria(this.selectedSpaces);
         this.criteriaSystems = this.formatCriteria(this.selectedSystems);
         this.criteriaKeyword = this.keyword;
-
-        console.log(this.criteriaSpaces)
     }
 
     // 處理從 ApsViewerComponent 發送的節點屬性
     onProperties(event: any): void {
 
         event.properties = [{ 'displayName': 'Name', 'displayValue': event.name }, ...event.properties];
+        const properties = Array.from(
+            new Map(event.properties.map(item => [item.displayName, item])).values()
+        );
+
         this.nodeInfo = {
             dbId: event.dbId,
             modelUrn: event.modelUrn,
             name: event.name || 'Unknown',
-            properties: event.properties
+            properties: properties
         };
-        console.log('Node info:', this.nodeInfo);
     }
 
     ngOnDestroy(): void {
@@ -246,27 +316,31 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             return [];
         }
 
-        // 按 parent.label 分組，明確指定 acc 為 { [key: string]: string[] }
+        // 按 parent.label 或 parentLabel 分組
         const groupedRegions = criteria.reduce((acc: { [key: string]: string[] }, node) => {
-            if (!node || !node.label || !node.parent || !node.parent.label) {
+            // 檢查節點有效性
+            if (!node || !node.label) {
                 return acc;
             }
-            const parentLabel = node.parent.label;
+
+            // 獲取父標籤，優先使用 parent.label，後備使用 parentLabel
+            const parentLabel = node.parent?.label || node.parentLabel || 'Unknown';
+
+            // 初始化分組
             if (!acc[parentLabel]) {
                 acc[parentLabel] = [];
             }
+
+            // 添加 label 到對應分組
             acc[parentLabel].push(node.label);
             return acc;
         }, {});
 
-        // 轉為目標格式，criteria 合併為逗號分隔字串
-        const result = Object.entries(groupedRegions).map(([name, criteria]: [string, string[]]) => ({
+        // 轉為目標格式
+        return Object.entries(groupedRegions).map(([name, criteria]: [string, string[]]) => ({
             name,
             criteria: criteria.join(',')
         }));
-
-        console.log('formatCriteria result:', result);
-        return result;
     }
 
     private _transformData(data: any[]): any[] {

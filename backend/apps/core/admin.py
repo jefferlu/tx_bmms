@@ -14,7 +14,7 @@ class CommpanyAdmin(admin.ModelAdmin):
 
 @admin.register(models.UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'company',)
+    list_display = ('id', 'user', 'company', 'bim_criteria')
 
 
 @admin.register(models.Navigation)

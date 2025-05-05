@@ -23,7 +23,6 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
-
         data = super().validate(attrs)
         update_last_login(None, self.user)
 
@@ -34,7 +33,6 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
 class RefreshObtainSerializer(TokenRefreshSerializer):
 
     def validate(self, attrs):
-
         data = super(RefreshObtainSerializer, self).validate(attrs)
         decoded_data = jwt.decode(attrs['refresh'], options={"verify_signature": False})
         user = User.objects.get(id=decoded_data['user_id'])
@@ -67,6 +65,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     groups_obj = serializers.SerializerMethodField()
+    bim_criteria = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -81,6 +80,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_groups_obj(self, obj):
         return GroupSerializer(obj.groups, many=True).data
+
+    def get_bim_criteria(self, obj):
+        # 透過 user_profile 關聯獲取 bim_criteria
+        try:
+            return obj.user_profile.bim_criteria
+        except models.UserProfile.DoesNotExist:
+            return {}
 
     def create(self, validated_data):
         user = User(
@@ -108,6 +114,11 @@ class UserSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.UserProfile
+        fields = ['bim_criteria',]  
 
 
 class NavigationSerializer(serializers.ModelSerializer):
