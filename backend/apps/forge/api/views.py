@@ -525,11 +525,11 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         """, [bim_model, batch_dbids, bim_model, batch_dbids])
                         result = cursor.fetchall()
                         new_dbids = [row[0] for row in result]
-                        # if len(new_dbids) > 10000:
-                        #     raise ValidationError({
-                        #         "dbids": f"查詢結果過大，hierarchy_dbids 數量：{len(new_dbids)}，請選擇較少節點",
-                        #         "code": "hierarchy_too_large"
-                        #     })
+                        if len(new_dbids) > 10000:
+                            raise ValidationError({
+                                "dbids": f"查詢結果過大，hierarchy_dbids 數量：{len(new_dbids)}，請選擇較少節點",
+                                "code": "hierarchy_too_large"
+                            })
                         hierarchy_dbids.extend(new_dbids)
                         cache.set(cache_key, new_dbids, timeout=3600)
 
@@ -541,6 +541,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 filters &= Q(dbid__in=[])
 
         # 處理 categories
+        value_filters = Q()
         if categories:
             if not isinstance(categories, list):
                 raise ValidationError({
@@ -552,7 +553,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                     "categories": "不能為空列表。",
                     "code": "empty_categories"
                 })
-            value_filters = Q()
             for item in categories:
                 if not isinstance(item, dict):
                     raise ValidationError({
@@ -589,10 +589,9 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                     Q(display_name=display_name) &
                     Q(value=value)
                 )
-            if value_filters:
-                filters &= value_filters
 
         # 處理 fuzzy_keyword
+        fuzzy_filters = Q()
         if fuzzy_keyword:
             if not isinstance(fuzzy_keyword, str):
                 raise ValidationError({
@@ -604,14 +603,19 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                     "fuzzy_keyword": "不能為空字串。",
                     "code": "empty_fuzzy_keyword"
                 })
-            # filters &= Q(value__trigram_similar=fuzzy_keyword)
-            filters &= (Q(value__trigram_similar=fuzzy_keyword) | Q(value__contains=fuzzy_keyword))
-            # filters &= (Q(value__contains=fuzzy_keyword))
+            fuzzy_filters = (Q(value__trigram_similar=fuzzy_keyword) | Q(value__contains=fuzzy_keyword))
 
-        # 限制 bim_model_id
-        if valid_bim_models or category_bim_models:
-            combined_bim_models = valid_bim_models.union(category_bim_models)
-            filters &= Q(bim_model_id__in=combined_bim_models)
+        # 結合 filters
+        if value_filters and fuzzy_filters:
+            filters &= (value_filters | fuzzy_filters)
+        elif value_filters:
+            filters &= value_filters
+        elif fuzzy_filters:
+            filters &= fuzzy_filters
+
+        # 僅對 regions 應用 bim_model_id 限制
+        if valid_bim_models:
+            filters &= Q(bim_model_id__in=valid_bim_models)
 
         queryset = models.BimObject.objects.filter(filters).select_related('bim_model').values(
             'id',
