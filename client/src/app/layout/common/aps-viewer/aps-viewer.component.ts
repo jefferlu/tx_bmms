@@ -32,6 +32,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     lang: string;
     private isViewerInitialized = false;
     private selectedNodeProperties: any[] = [];
+    private isLocalMode: boolean = false; // 追蹤是否為本地模式
 
     private debouncedLoadViewer = debounce(() => {
         this.processDataAndLoadViewer();
@@ -59,7 +60,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             const isDataChanged = !oldData || JSON.stringify(this.extractKeyData(newData)) !== JSON.stringify(this.extractKeyData(oldData));
 
             if (isDataChanged) {
-                console.log('Data changed significantly:', newData);
                 if (this.isViewerInitialized && Array.isArray(newData)) {
                     this.updateViewer(newData);
                 } else {
@@ -69,7 +69,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     this.debouncedLoadViewer();
                 }
             } else {
-                console.log('Data change ignored, no Viewer reload needed');
             }
         }
     }
@@ -95,7 +94,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         if (!acc[item.urn]) {
                             acc[item.urn] = { urn: item.urn, dbid: [] };
                         }
-                        acc[item.urn].dbid.push(item.dbid);
+                        acc[item.urn].dbid = [...new Set([...acc[item.urn].dbid, ...(Array.isArray(item.dbid) ? item.dbid : [item.dbid])])];
                     }
                     return acc;
                 }, {})
@@ -103,13 +102,20 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             : null;
 
         if (Array.isArray(this.data)) {
-            this.loadAggregatedView_oss(this.data);
+            this.isLocalMode = this.data.some(item => item.svf);
+            if (this.isLocalMode) {
+                this.loadAggregatedView(this.data);
+            } else {
+                this.loadAggregatedView_oss(this.data);
+            }
         } else {
+            this.isLocalMode = !!this.data.svf;
             this.loadGuiViewer3D(this.data);
         }
     }
 
     private updateViewer(newData: any[]): void {
+        // 更新 dbids，合併相同 URN 的 dbid
         this.dbids = newData.some(item => item.urn && item.dbid !== undefined)
             ? Object.values(
                 newData.reduce((acc, item) => {
@@ -117,7 +123,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         if (!acc[item.urn]) {
                             acc[item.urn] = { urn: item.urn, dbid: [] };
                         }
-                        acc[item.urn].dbid.push(item.dbid);
+                        acc[item.urn].dbid = [...new Set([...acc[item.urn].dbid, ...(Array.isArray(item.dbid) ? item.dbid : [item.dbid])])];
                     }
                     return acc;
                 }, {})
@@ -125,20 +131,24 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             : null;
 
         if (!this.viewer || !this.viewer.viewer) {
-            console.error('Viewer 未初始化，無法增量更新');
             this.processDataAndLoadViewer();
             return;
         }
 
+        // 收集所有需要載入的新模型
+        const newBubbleNodes: any[] = [];
+        const allDbIds: { dbId: number, model: any }[] = [];
+
+        // 處理現有模型的隔離和視圖更新
         this.dbids.forEach((entry) => {
             const urn = entry.urn;
             const dbIds = entry.dbid;
 
-            const targetModel = this.loadedModels.find((model) => model.getData().urn === urn);
+            let targetModel = this.loadedModels.find((model) => model.getData().urn === urn);
+
             if (targetModel) {
+                // 模型已載入，更新隔離狀態
                 this.viewer.viewer.isolate(dbIds, targetModel);
-                this.viewer.viewer.fitToView([dbIds[dbIds.length - 1]], targetModel);
-                console.log(`Updated model ${urn} with dbIds:`, dbIds);
 
                 const tree = targetModel.getInstanceTree();
                 if (tree && this.viewer.viewer.modelstructure) {
@@ -147,55 +157,134 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         if (nodePath) {
                             this.expandNodePathInTree(tree, nodePath, this.viewer.viewer.modelstructure, targetModel);
                         }
+                        allDbIds.push({ dbId: dbid, model: targetModel });
                     });
                 }
             } else {
-                this._appService.getToken().subscribe((aps: any) => {
-                    const documentId = `urn:${urn}`;
-                    Autodesk.Viewing.Document.load(documentId, (doc) => {
-                        const viewables = doc.getRoot().search({ type: 'geometry' });
-                        if (viewables.length > 0) {
-                            this.viewer.viewer.loadDocumentNode(doc, viewables[0]).then(() => {
-                                this.loadedModels = this.viewer.viewer.getAllModels();
-                                const newModel = this.loadedModels.find((model) => model.getData().urn === urn);
-                                if (newModel) {
-                                    this.viewer.viewer.isolate(dbIds, newModel);
-                                    this.viewer.viewer.fitToView([dbIds[dbIds.length - 1]], newModel);
-                                    console.log(`Loaded new model ${urn} with dbIds:`, dbIds);
-                                }
-                            }).catch((err) => {
-                                console.error(`Failed to load model ${urn}:`, err);
-                            });
-                        }
-                    }, (errorCode, errorMsg) => {
-                        console.error(`Failed to load document ${urn}:`, errorMsg);
-                    });
-                });
+                // 模型未載入，準備載入新模型
+                const dataItem = newData.find(item => item.urn === urn);
+                if (dataItem) {
+                    if (this.isLocalMode && dataItem.svf) {
+                        const svf = dataItem.svf.replace(/\\/g, '/');
+                        newBubbleNodes.push({ type: 'geometry', svf, urn });
+                    } else if (!this.isLocalMode) {
+                        newBubbleNodes.push({ urn, type: 'geometry' }); // 將在後續 OSS 載入中處理
+                    }
+                }
             }
         });
 
-        this.loadedModels.forEach((model) => {
-            const urn = model.getData().urn;
-            if (!this.dbids.some((entry) => entry.urn === urn)) {
-                this.viewer.viewer.unloadModel(model);
-                console.log(`Unloaded model ${urn}`);
+        // 載入新模型（如果有）
+        if (newBubbleNodes.length > 0) {
+            if (this.isLocalMode) {
+                // 本地模式：追加新模型到現有聚合視圖
+                this.viewer.setNodes([...this.viewer.getNodes(), ...newBubbleNodes]).then(() => {
+                    this.loadedModels = this.viewer.viewer.getAllModels();
+
+                    // 更新新載入模型的隔離狀態
+                    newBubbleNodes.forEach((node) => {
+                        const urn = node.urn;
+                        const dbIds = this.dbids.find(entry => entry.urn === urn)?.dbid || [];
+                        const targetModel = this.loadedModels.find((model) => model.getData().urn === urn);
+                        if (targetModel) {
+                            this.viewer.viewer.isolate(dbIds, targetModel);
+                            const tree = targetModel.getInstanceTree();
+                            if (tree && this.viewer.viewer.modelstructure) {
+                                dbIds.forEach((dbid) => {
+                                    const nodePath = this.getNodePath(tree, dbid);
+                                    if (nodePath) {
+                                        this.expandNodePathInTree(tree, nodePath, this.viewer.viewer.modelstructure, targetModel);
+                                    }
+                                    allDbIds.push({ dbId: dbid, model: targetModel });
+                                });
+                            }
+                        }
+                    });
+                }).catch((err) => {
+                    this._toastService.open({ message: '無法載入部分模型' });
+                });
+            } else {
+                // OSS 模式：逐一載入新模型
+                this._appService.getToken().subscribe((aps: any) => {
+                    newBubbleNodes.forEach((node) => {
+                        const urn = node.urn;
+                        const documentId = `urn:${urn}`;
+                        Autodesk.Viewing.Document.load(documentId, (doc) => {
+                            const viewables = doc.getRoot().search({ type: 'geometry' });
+                            if (viewables.length > 0) {
+                                this.viewer.viewer.loadDocumentNode(doc, viewables[0]).then(() => {
+                                    this.loadedModels = this.viewer.viewer.getAllModels();
+                                    const targetModel = this.loadedModels.find((model) => model.getData().urn === urn);
+                                    if (targetModel) {
+                                        const dbIds = this.dbids.find(entry => entry.urn === urn)?.dbid || [];
+                                        this.viewer.viewer.isolate(dbIds, targetModel);
+                                        const tree = targetModel.getInstanceTree();
+                                        if (tree && this.viewer.viewer.modelstructure) {
+                                            dbIds.forEach((dbid) => {
+                                                const nodePath = this.getNodePath(tree, dbid);
+                                                if (nodePath) {
+                                                    this.expandNodePathInTree(tree, nodePath, this.viewer.viewer.modelstructure, targetModel);
+                                                }
+                                                allDbIds.push({ dbId: dbid, model: targetModel });
+                                            });
+                                        }
+                                    }
+                                }).catch((err) => {
+                                    this._toastService.open({ message: `無法載入模型 ${urn}` });
+                                });
+                            }
+                        }, (errorCode, errorMsg) => {
+                            this._toastService.open({ message: `無法載入文件 ${urn}` });
+                        });
+                    });
+                });
             }
-        });
-        this.loadedModels = this.viewer.viewer.getAllModels();
+        }
+
+        // 統一適配視圖，確保所有隔離節點可見
+        if (allDbIds.length > 0) {
+            const uniqueModels = [...new Set(allDbIds.map(item => item.model))];
+            const dbIds = allDbIds.map(item => item.dbId);
+            try {
+                if (uniqueModels.length === 1) {
+                    // 單模型情況，使用單模型 fitToView
+                    this.viewer.viewer.fitToView(dbIds, uniqueModels[0]);
+                } else {
+                    // 多模型情況，確保模型有效
+                    const validModels = uniqueModels.filter(model => model && model.getData && model.getInstanceTree);
+                    if (validModels.length > 0) {
+                        this.viewer.viewer.fitToView(dbIds, validModels);
+                    } else {
+                    }
+                }
+            } catch (err) {
+                console.error('fitToView 失敗:', err);
+                this._toastService.open({ message: '無法適配視圖' });
+                // 後備：逐模型適配
+                uniqueModels.forEach(model => {
+                    const modelDbIds = allDbIds.filter(item => item.model === model).map(item => item.dbId);
+                    if (modelDbIds.length > 0) {
+                        try {
+                            this.viewer.viewer.fitToView(modelDbIds, model);
+                        } catch (e) {
+                            console.error(`模型 ${model.getData().urn} 的 fitToView 失敗:`, e);
+                        }
+                    }
+                });
+            }
+        }
     }
 
     private cleanupViewer(): void {
         if (this.viewer) {
             try {
                 if (this.isViewerInitialized) {
-                    console.log('Cleaning up initialized Viewer');
                     if (this.viewer.viewer) {
                         this.viewer.viewer.finish();
                     } else {
                         this.viewer.finish();
                     }
                 } else {
-                    console.log('Cleaning up uninitialized Viewer');
                     if (this.viewer.viewer) {
                         this.viewer.viewer.unload();
                         this.viewer.viewer.finish();
@@ -206,8 +295,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 }
                 this.viewer = null;
             } catch (e) {
-                console.error('Viewer 清理失敗:', e);
-                this._toastService.open({ message: 'Failed to clean up Viewer' });
+                this._toastService.open({ message: '無法清理 Viewer' });
             }
         }
         if (this.viewerContainer) {
@@ -218,12 +306,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
     private emitNodeProperties(dbId: number, model: any): void {
         this.viewer.viewer.getProperties(dbId, (result) => {
-            console.log('Node properties:', result);
             const filteredProperties = result.properties.filter((prop: any) => prop.displayName.startsWith('COBie'));
             const name = result.name ||
                 filteredProperties.find((prop: any) => prop.displayName === 'COBie.Space.Name')?.displayValue ||
                 filteredProperties.find((prop: any) => prop.displayName === 'Name')?.displayValue ||
-                'Unknown';
+                '未知';
             const nodeInfo = {
                 dbId,
                 modelUrn: model.getData().urn,
@@ -236,7 +323,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 this.nodeProperties.emit(nodeInfo);
             }
         }, (error) => {
-            console.error(`Failed to get properties for dbId ${dbId}:`, error);
+            console.error(`無法獲取 dbId ${dbId} 的屬性:`, error);
         });
     }
 
@@ -244,7 +331,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         if (modelStructure) {
             nodePath.forEach((dbId: number) => {
                 this.viewer.viewer.select([dbId], model);
-                console.log(`Selected node ${dbId} in model ${model.getData().urn}`);
                 this.emitNodeProperties(dbId, model);
             });
         } else {
@@ -255,23 +341,12 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     private setupModelBrowser(): void {
         const modelStructure = this.viewer.viewer.modelstructure;
         if (modelStructure) {
-            console.log('Setting up Model Browser listeners for:', modelStructure);
-            console.log('ModelStructure container:', modelStructure.container);
-            console.log('ModelStructure properties:', Object.keys(modelStructure));
-
-            // modelStructure.setVisible(true);
 
             modelStructure.container.addEventListener('mouseup', (event: any) => {
-                console.log('Model Browser mouseup event:', event);
                 const target = event.target.closest('[lmv-nodeid]');
                 const dbId = target ? parseInt(target.getAttribute('lmv-nodeid'), 10) : null;
                 const nodeLabel = target ? target.querySelector('label')?.textContent : null;
                 const modelId = target ? target.closest('[lmv-modelid]')?.getAttribute('lmv-modelid') : null;
-
-                console.log('Clicked element HTML:', target?.outerHTML);
-                console.log('Clicked element attributes:', target ? Array.from(target.attributes).map((attr: any) => `${attr.name}: ${attr.value}`) : null);
-                console.log('Node label:', nodeLabel);
-                console.log('Model ID:', modelId);
 
                 let model = this.viewer.viewer.model || this.viewer;
                 if (modelId && this.loadedModels) {
@@ -279,23 +354,21 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 }
 
                 if (dbId && !isNaN(dbId)) {
-                    console.log(`Model Browser mouseup, detected dbId: ${dbId}, model:`, model.getData()?.urn);
                     const tree = model.getInstanceTree();
                     if (tree && tree.nodeAccess.getIndex(dbId) !== -1) {
-                        console.log(`dbId ${dbId} is valid in instance tree`);
                         this.viewer.viewer.select([dbId], model);
                     } else {
-                        console.warn(`dbId ${dbId} is invalid in instance tree`);
+                        
                     }
                 } else {
-                    console.log('Model Browser mouseup: No valid dbId detected');
+                    
                     setTimeout(() => {
                         const viewerSelection = this.viewer.viewer.getSelection();
                         if (viewerSelection.length > 0) {
-                            console.log(`Model Browser mouseup, viewer selection: ${viewerSelection[0]}`);
+                            
                             this.viewer.viewer.select([viewerSelection[0]], model);
                         } else {
-                            console.log('Model Browser mouseup: No viewer selection');
+                            
                         }
                     }, 100);
                 }
@@ -303,11 +376,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
             ['mousedown', 'click'].forEach(eventType => {
                 modelStructure.container.addEventListener(eventType, (event: any) => {
-                    console.log(`Model Browser ${eventType} event:`, event);
+                    
                 });
             });
         } else {
-            console.error('ModelStructure 未初始化，無法設置監聽器');
+            
         }
     }
 
@@ -337,7 +410,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                             const dbId = selection[0];
                             this.emitNodeProperties(dbId, this.viewer);
                         } else {
-                            console.log('沒有選中任何物件');
+                            
                         }
                     });
 
@@ -346,21 +419,19 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     });
 
                     this.viewer.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
-                        console.log('Object tree created, setting up Model Browser');
                         this.setupModelBrowser();
                     });
 
                     this.viewer.addEventListener(Autodesk.Viewing.OBJECT_TREE_UNAVAILABLE_EVENT, () => {
-                        console.warn('Object tree unavailable, Model Browser may not be initialized');
+                        
                     });
 
                     this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
-                        console.log('Geometry loaded, checking modelStructure:', this.viewer.viewer.modelstructure);
+                        
                         if (this.viewer.viewer.modelstructure) {
-                            // this.viewer.viewer.modelstructure.setVisible(true);
                             this.setupModelBrowser();
                         } else {
-                            console.error('modelStructure 未初始化於 GEOMETRY_LOADED_EVENT');
+                            
                         }
                     });
                 }, (errorCode: number, errorMsg: string) => {
@@ -402,26 +473,25 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                             const dbId = selection[0];
                             this.emitNodeProperties(dbId, this.viewer);
                         } else {
-                            console.log('沒有選中任何物件');
+                            
                         }
                     });
 
                     this.viewer.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
-                        console.log('Object tree created, setting up Model Browser');
+                        
                         this.setupModelBrowser();
                     });
 
                     this.viewer.addEventListener(Autodesk.Viewing.OBJECT_TREE_UNAVAILABLE_EVENT, () => {
-                        console.warn('Object tree unavailable, Model Browser may not be initialized');
+                        
                     });
 
                     this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
-                        console.log('Geometry loaded, checking modelStructure:', this.viewer.viewer.modelstructure);
+                        
                         if (this.viewer.viewer.modelstructure) {
-                            // this.viewer.viewer.modelstructure.setVisible(true);
                             this.setupModelBrowser();
                         } else {
-                            console.error('modelStructure 未初始化於 GEOMETRY_LOADED_EVENT');
+                            
                         }
                     });
 
@@ -432,11 +502,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                             this.viewer.loadDocumentNode(doc, viewables[0]).then(() => {
                                 this.isViewerInitialized = true;
                             }).catch((err: any) => {
-                                console.error('模型加載失敗:', err);
+                                
                             });
                         }
                     }, (errorCode: number, errorMsg: string) => {
-                        console.error('文檔加載失敗:', errorMsg);
+                        
                     });
                 });
             } catch (e) {
@@ -447,7 +517,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
     private addGuiButton(): void {
         if (!this.viewer.toolbar) {
-            console.error('Viewer toolbar 尚未準備好');
+            console.error('Viewer 工具列尚未準備好');
             return;
         }
 
@@ -460,11 +530,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         button.container.style.display = 'flex';
         button.container.style.alignItems = 'center';
         button.container.style.justifyContent = 'center';
-        button.setToolTip('Search Object');
+        button.setToolTip('搜尋物件');
 
         button.onClick = () => {
             if (this.searchPanel == null) {
-                this.searchPanel = new SearchPanel(this.viewer, this.viewer.container, 'customButton', 'Search Model');
+                this.searchPanel = new SearchPanel(this.viewer, this.viewer.container, 'customButton', '搜尋模型');
             }
             this.searchPanel.setVisible(!this.searchPanel.isVisible());
         };
@@ -508,7 +578,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                                     if (loadedCount === data.length) {
                                         this.isViewerInitialized = true;
                                         this.loadedModels = this.viewer.viewer.getAllModels();
-                                        console.log('Loaded models:', this.loadedModels);
 
                                         this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
                                             this.addAggregatedButton();
@@ -530,13 +599,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
                                         this.viewer.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
                                             this.loadedModels = this.viewer.viewer.getAllModels();
-                                            console.log('Loaded models:', this.loadedModels);
 
                                             if (this.dbids && this.dbids.length > 0) {
                                                 const modelStructure = this.viewer.viewer.modelstructure;
-                                                if (modelStructure) {
-                                                    // modelStructure.setVisible(true);
-                                                    console.log('Model structure panel opened:', modelStructure);
+                                                if (modelStructure) {                                                    
 
                                                     this.dbids.forEach((entry: any) => {
                                                         const urn = entry.urn;
@@ -549,7 +615,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                                                         if (targetModel) {
                                                             this.viewer.viewer.isolate(dbIds, targetModel);
                                                             this.viewer.viewer.fitToView([dbIds[dbIds.length - 1]], targetModel);
-                                                            console.log(`Isolated and fit to view for model ${urn}:`, dbIds);
 
                                                             const tree = targetModel.getInstanceTree();
                                                             if (tree) {
@@ -567,7 +632,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                                                         }
                                                     });
 
-                                                    console.log('Geometry loaded, checking modelStructure:', modelStructure);
                                                     this.setupModelBrowser();
                                                 } else {
                                                     console.error('modelstructure 未初始化於 GEOMETRY_LOADED_EVENT');
@@ -577,11 +641,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
                                         this.loadedModels.forEach((model: any) => {
                                             model.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
-                                                console.log(`Object tree created for model ${model.getData().urn}, setting up Model Browser`);
+                                                console.log(`為模型 ${model.getData().urn} 創建物件樹，設置模型瀏覽器`);
                                                 this.setupModelBrowser();
                                             });
                                             model.addEventListener(Autodesk.Viewing.OBJECT_TREE_UNAVAILABLE_EVENT, () => {
-                                                console.warn(`Object tree unavailable for model ${model.getData().urn}`);
+                                                console.warn(`模型 ${model.getData().urn} 的物件樹不可用`);
                                             });
                                         });
                                     }
@@ -603,9 +667,128 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         });
     }
 
+    loadAggregatedView(data: any[]): void {
+        const container = this.viewerContainer.nativeElement;
+        this.viewer = new Autodesk.Viewing.AggregatedView();
+
+        const options = {
+            env: 'Local',
+            useConsolidation: true,
+            language: this.lang,
+            isAEC: true
+        };
+
+        try {
+            Autodesk.Viewing.Initializer(options, () => {
+                this.viewer.init(container, options).then(() => {
+                    const bubbleNodes: any[] = [];
+                    let loadedCount = 0;
+
+                    data.forEach((d) => {
+                        let svf = d.svf.replace(/\\/g, '/');
+                        const node = {
+                            type: 'geometry',
+                            svf: svf,
+                            urn: d.urn
+                        };
+                        bubbleNodes.push(node);
+                        loadedCount++;
+                        if (loadedCount === data.length) {
+                            this.viewer.setNodes(bubbleNodes);
+                            this.isViewerInitialized = true;
+                            this.loadedModels = this.viewer.viewer.getAllModels();
+                            console.log('已載入模型:', this.loadedModels);
+
+                            this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
+                                this.addAggregatedButton();
+                            });
+
+                            this.viewer.viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
+                                const selection = this.viewer.viewer.getSelection();
+                                if (selection.length > 0) {
+                                    const dbId = selection[0];
+                                    const model = this.viewer.viewer.model || this.loadedModels.find((m: any) => {
+                                        const tree = m.getInstanceTree();
+                                        return tree && tree.nodeAccess.getIndex(dbId) !== -1;
+                                    }) || this.viewer;
+                                    this.emitNodeProperties(dbId, model);
+                                } else {
+                                    console.log('沒有選中任何物件');
+                                }
+                            });
+
+                            this.viewer.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+                                this.loadedModels = this.viewer.viewer.getAllModels();
+                                console.log('已載入模型:', this.loadedModels);
+
+                                if (this.dbids && this.dbids.length > 0) {
+                                    const modelStructure = this.viewer.viewer.modelstructure;
+                                    if (modelStructure) {
+                                        console.log('模型結構面板已開啟:', modelStructure);
+
+                                        this.dbids.forEach((entry: any) => {
+                                            const urn = entry.urn;
+                                            const dbIds = entry.dbid;
+
+                                            const targetModel = this.loadedModels.find((model: any) => {
+                                                return model.getData().urn === urn;
+                                            });
+
+                                            if (targetModel) {
+                                                this.viewer.viewer.isolate(dbIds, targetModel);
+                                                this.viewer.viewer.fitToView([dbIds[dbIds.length - 1]], targetModel);
+                                                console.log(`為模型 ${urn} 隔離並適配視圖:`, dbIds);
+
+                                                const tree = targetModel.getInstanceTree();
+                                                if (tree) {
+                                                    dbIds.forEach((dbid: number) => {
+                                                        const nodePath = this.getNodePath(tree, dbid);
+                                                        if (nodePath) {
+                                                            this.expandNodePathInTree(tree, nodePath, modelStructure, targetModel);
+                                                        }
+                                                    });
+                                                } else {
+                                                    console.error(`無法從模型 ${urn} 中獲取 InstanceTree`);
+                                                }
+                                            } else {
+                                                console.error(`未找到 URN 為 ${urn} 的模型`);
+                                            }
+                                        });
+
+                                        console.log('幾何圖形已載入，檢查 modelStructure:', modelStructure);
+                                        this.setupModelBrowser();
+                                    } else {
+                                        console.error('modelstructure 未初始化於 GEOMETRY_LOADED_EVENT');
+                                    }
+                                }
+                            });
+
+                            this.loadedModels.forEach((model: any) => {
+                                model.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
+                                    console.log(`為模型 ${model.getData().urn} 創建物件樹，設置模型瀏覽器`);
+                                    this.setupModelBrowser();
+                                });
+                                model.addEventListener(Autodesk.Viewing.OBJECT_TREE_UNAVAILABLE_EVENT, () => {
+                                    console.warn(`模型 ${model.getData().urn} 的物件樹不可用`);
+                                });
+                            });
+                        }
+                    });
+
+                    this.viewer.viewer.impl.invalidate(true);
+                    this.viewer.viewer.setGhosting(false);
+                }).catch((err: any) => {
+                    console.error('AggregatedView 初始化失敗:', err);
+                });
+            });
+        } catch (e) {
+            console.error('Viewer 初始化錯誤:', e);
+        }
+    }
+
     private addAggregatedButton(): void {
         if (!this.viewer.viewer.toolbar) {
-            console.error('Viewer toolbar 尚未準備好');
+            console.error('Viewer 工具列尚未準備好');
             return;
         }
 
@@ -616,10 +799,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             </svg>
         `;
         searchButton.addClass('bmms-button');
-        searchButton.setToolTip('Search Object');
+        searchButton.setToolTip('搜尋物件');
         searchButton.onClick = () => {
             if (this.searchPanel == null) {
-                this.searchPanel = new SearchPanel(this.viewer.viewer, this.viewer.viewer.container, 'searchModel', 'Search Model');
+                this.searchPanel = new SearchPanel(this.viewer.viewer, this.viewer.viewer.container, 'searchModel', '搜尋模型');
             }
             this.searchPanel.setVisible(!this.searchPanel.isVisible());
         };
@@ -631,10 +814,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             </svg>
         `;
         downloadButton.addClass('bmms-button');
-        downloadButton.setToolTip('Download Database');
+        downloadButton.setToolTip('下載資料庫');
         downloadButton.onClick = () => {
             if (this.downloadPanel == null) {
-                this.downloadPanel = new DownloadPanel(this.viewer.viewer, this.viewer.viewer.container, 'downloadPanel', 'Download Database');
+                this.downloadPanel = new DownloadPanel(this.viewer.viewer, this.viewer.viewer.container, 'downloadPanel', '下載資料庫');
             }
             this.downloadPanel.setVisible(!this.downloadPanel.isVisible());
         };
@@ -667,7 +850,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             </svg>
         `;
         exportButton.addClass('bmms-button');
-        exportButton.setToolTip('Export XLSX');
+        exportButton.setToolTip('匯出 XLSX');
         const fileName = "metadata";
         exportButton.onClick = () => {
             ApsXLS.downloadXLSX(fileName.replace(/\./g, '') + ".xlsx", (completed: boolean, message: string) => {
@@ -697,7 +880,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         let currentDbId = dbid;
 
         if (typeof tree.getNodeParentId !== 'function') {
-            console.error('Tree 缺少 getNodeParentId 方法:', tree);
+            console.error('樹缺少 getNodeParentId 方法:', tree);
             return null;
         }
 
