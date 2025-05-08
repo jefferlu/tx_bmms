@@ -63,7 +63,7 @@ services:
             - postgresql_data:/bitnami/postgresql
             - ./backend/media-root/backups:/backups # 備份目錄
         ports:
-            - 5433:5432
+            - 5439:5432
 
     elfinder:
         build: elfinder
