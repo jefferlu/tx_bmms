@@ -283,18 +283,27 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     onReadCriteria() {
         this.selectedObjects = [];
         this.bimCriteria.isRead = false;
-        if (![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
-            // Load page with bimCriteria.request
-            this.selectedRegions = this.bimCriteria.regions;
-            this.selectedSpaces = this.bimCriteria.spaces;
-            this.selectedSystems = this.bimCriteria.systems;
+        
+        this._processFunctionsService.getCriteria()
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((user: any) => {
+                this.bimCriteria = user.bim_criteria;
 
-            const page = this.bimCriteria.page || 1;
-            this.first = (page - 1) * this.rowsPerPage; // 計算 first
-            this.loadPage(page);
-        }
+                // Check if bimCriteria has request
+                if (this.bimCriteria && Object.keys(this.bimCriteria).length > 0 &&
+                    ![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
+                    // Load page with bimCriteria.request
+                    this.selectedRegions = this.bimCriteria.regions;
+                    this.selectedSpaces = this.bimCriteria.spaces;
+                    this.selectedSystems = this.bimCriteria.systems;
 
-        this._changeDetectorRef.markForCheck();
+                    const page = this.bimCriteria.page || 1;
+                    this.first = (page - 1) * this.rowsPerPage; // 計算 first
+                    this.loadPage(page);
+                }
+
+                this._changeDetectorRef.markForCheck();
+            });
     }
 
     updateCriteria() {
