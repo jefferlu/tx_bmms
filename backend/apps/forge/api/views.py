@@ -314,7 +314,7 @@ class BimUpdateCategoriesView(APIView):
         return Response(response_data, status=status_code)
 
 
-class BimConditionTreeViewSet(viewsets.ReadOnlyModelViewSet):
+class BimConditionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.BimConditionSerializer
     # Preload all active conditions and their categories
     queryset = models.BimCondition.objects.filter(is_active=True).order_by('order').prefetch_related(
@@ -329,7 +329,7 @@ class BimConditionTreeViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class BimRegionViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = serializers.BimRegionTreeSerializer
+    serializer_class = serializers.BimRegionSerializer
     queryset = models.BimRegion.objects.all().select_related('zone', 'bim_model')
 
     def list(self, request, *args, **kwargs):
@@ -455,7 +455,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         filters = Q()
         hierarchy_dbids = []
         valid_bim_models = set()
-        category_bim_models = set()
 
         # 處理 regions
         if regions:
@@ -499,13 +498,11 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 batch_size = 5
                 for i in range(0, len(dbids), batch_size):
                     batch_dbids = dbids[i:i + batch_size]
-                    # 檢查快取
                     cache_key = f"hierarchy_{bim_model}_{hashlib.md5(str(sorted(batch_dbids)).encode()).hexdigest()}"
                     cached_dbids = cache.get(cache_key)
                     if cached_dbids:
                         hierarchy_dbids.extend(cached_dbids)
                         continue
-                    # 使用遞迴 CTE 查詢層次（限制 5 層）
                     with connection.cursor() as cursor:
                         cursor.execute("""
                             WITH RECURSIVE hierarchy AS (
@@ -533,7 +530,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         hierarchy_dbids.extend(new_dbids)
                         cache.set(cache_key, new_dbids, timeout=3600)
 
-            # 使用 set 去重
             hierarchy_dbids = list(set(hierarchy_dbids))
             if hierarchy_dbids:
                 filters &= Q(dbid__in=hierarchy_dbids)
@@ -559,14 +555,8 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         "categories": f"元素必須是物件，收到：{item}",
                         "code": "invalid_category_item"
                     })
-                bim_model = item.get('bim_model')
                 display_name = item.get('display_name')
                 value = item.get('value')
-                if not isinstance(bim_model, int):
-                    raise ValidationError({
-                        "bim_model": f"必須是整數，收到：{bim_model}",
-                        "code": "invalid_bim_model"
-                    })
                 if not isinstance(display_name, str) or not display_name.strip():
                     raise ValidationError({
                         "display_name": f"必須是非空字串，收到：{display_name}",
@@ -577,15 +567,8 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         "value": f"必須是非空字串，收到：{value}",
                         "code": "invalid_value"
                     })
-                category_bim_models.add(bim_model)
-                if not models.BimModel.objects.filter(id=bim_model).exists():
-                    raise ValidationError({
-                        "bim_model": f"無效的 bim_model：{bim_model}",
-                        "code": "invalid_bim_model_id"
-                    })
-                # 為每個 category 生成獨立的 Q 條件
+                # 不檢查 bim_model，僅基於 display_name 和 value 構建條件
                 value_filters |= (
-                    Q(bim_model_id=bim_model) &
                     Q(display_name=display_name) &
                     Q(value=value)
                 )
@@ -625,7 +608,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             'bim_model__name',
             'bim_model__version',
             'bim_model__urn'
-        ).order_by('dbid')
+        ).order_by('bim_model', 'dbid')
 
         # 快取結果
         results = list(queryset)

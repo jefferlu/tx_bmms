@@ -60,7 +60,7 @@ class RefreshObtainView(TokenRefreshView):
     serializer_class = serializers.RefreshObtainSerializer
 
 
-class UpdateBimCriteriaView(APIView):
+class UpdateUserCriteriaView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request):

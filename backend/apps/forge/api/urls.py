@@ -14,7 +14,7 @@ class OptionalSlashRouter(DefaultRouter):
 
 
 router = OptionalSlashRouter()
-router.register(r'bim-conditions', views.BimConditionTreeViewSet)
+router.register(r'bim-conditions', views.BimConditionViewSet)
 router.register(r'bim-regions', views.BimRegionViewSet)
 router.register(r'bim-model', views.BimModelViewSet)
 router.register(r'bim-object', views.BimObjectViewSet, basename='bim-object')
@@ -28,7 +28,7 @@ urlpatterns = [
     re_path(r'^bim-data-import/?$', views.BimDataImportView.as_view(), name='bim-data-import'),
     re_path(r'^bim-data-reload/?$', views.BimDataReloadView.as_view(), name='bim-data-reload'),
     re_path(r'^bim-update-categories/?$', views.BimUpdateCategoriesView.as_view(), name='bim-update-categories'),
-    re_path(r"^bim-criteria/?$", core_views.UpdateBimCriteriaView.as_view(), name="update-bim-criteria"),
+    re_path(r"^user-criteria/?$", core_views.UpdateUserCriteriaView.as_view(), name="update-user-criteria"),
 
     path('', include(router.urls)),
 ]

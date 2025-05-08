@@ -85,6 +85,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 const systemNode = res.data.conditions.find(item => item.label === 'system');
                 this.systems = systemNode?.children ?? [];
 
+                console.log('systems-->',this.systems)
+
                 this._changeDetectorRef.markForCheck();
             },
             error: (e) => console.error('Error loading data:', e)
@@ -156,7 +158,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.selectedObjects = [];        
+        this.selectedObjects = [];
         this.nodeInfo = null;
 
         this.loadPage(1)
@@ -168,7 +170,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
         // 處理 regions
         const regionsMap = {};
-        
+
         this.selectedRegions.forEach((region) => {
             // 統一處理 data 為陣列
             const data = Array.isArray(region.data) ? region.data : [region.data];
@@ -207,21 +209,21 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             ...(this.keyword && { fuzzy_keyword: this.keyword }),
         };
 
+        console.log('request-->', this.request)
         const cacheKey = JSON.stringify(this.request);
         if (this._cache.has(cacheKey)) {
-            
+
             this.objects = this._cache.get(cacheKey);
             this.updateCriteria();
-            console.log('check---->2',this.bimCriteria?.objects?.length ,this.bimCriteria.isRead)
+
             if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
-                console.log('check---->2.1')
                 this.selectedObjects = this.bimCriteria.objects;
                 this.bimCriteria.isRead = true;
             }
             this._changeDetectorRef.markForCheck();
             return;
         }
-       
+
         this.isLoading = true;
         this._processFunctionsService.getData(this.request)
             .pipe(
@@ -233,7 +235,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             )
             .subscribe({
                 next: (res) => {
-                    
+
                     if (res && res.count >= 0 && res.results) {
                         this.objects = { count: res.count, results: res.results };
                         this._cache.set(cacheKey, this.objects);
@@ -251,9 +253,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     // else
                     //     this.selectedObjects = validObjects;
                     // debugger;
-                    
+
                     if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
-                        console.log('check---->2.1')
                         this.selectedObjects = this.bimCriteria.objects;
                         this.bimCriteria.isRead = true;
                     }
@@ -300,7 +301,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
             const page = this.bimCriteria.page || 1;
             this.first = (page - 1) * this.rowsPerPage; // 計算 first
-            console.log('check---->')
             this.loadPage(page);
         }
 

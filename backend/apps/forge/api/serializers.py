@@ -15,7 +15,7 @@ class LevelSerializer(serializers.Serializer):
     data = serializers.ListField(child=ModelSerializer())
 
 
-class BimRegionTreeSerializer(serializers.Serializer):
+class BimRegionSerializer(serializers.Serializer):
     key = serializers.CharField()
     label = serializers.CharField()
     code = serializers.CharField()
@@ -61,7 +61,8 @@ class BimConditionSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'display_name', 'value',  'categories', 'children']
 
     def get_categories(self, obj):
-        categories = obj.bim_categories.filter(is_active=True).order_by('value').distinct('display_name', 'value')
+        categories = obj.bim_categories.order_by('value').distinct('display_name', 'value')
+        print('categories-->',categories)
         return BimCategorySerializer(categories, many=True).data
 
     def get_children(self, obj):

@@ -67,10 +67,8 @@ export class BimManagementComponent implements OnInit, OnDestroy {
         this._route.data.subscribe({
             next: (res) => {
                 res.data = res.data.map(r => { return { ...r, status: 'complete' }; });
-                this.data = res.data;
-                console.log(this.data)
-                this._changeDetectorRef.markForCheck();
-                console.log('Data loaded:', this.data);
+                this.data = res.data;                
+                this._changeDetectorRef.markForCheck();                
             },
             error: (e) => {
                 console.error('Error loading data:', e);
