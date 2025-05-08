@@ -101,7 +101,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 // Check if bimCriteria has request
                 // [this.selectedRegions, this.selectedSpaces, this.selectedSystems].every(arr => arr.length === 0)
 
-                if (![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
+                if (this.bimCriteria && ![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
                     // Load page with bimCriteria.request
                     this.selectedRegions = this.bimCriteria.regions;
                     this.selectedSpaces = this.bimCriteria.spaces;
