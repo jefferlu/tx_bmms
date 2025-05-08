@@ -156,10 +156,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.selectedObjects = [];
-        if (this.bimCriteria?.objects) {
-            this.bimCriteria.objects = [];
-        }
+        this.selectedObjects = [];        
         this.nodeInfo = null;
 
         this.loadPage(1)
@@ -171,7 +168,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
         // 處理 regions
         const regionsMap = {};
-
+        
         this.selectedRegions.forEach((region) => {
             // 統一處理 data 為陣列
             const data = Array.isArray(region.data) ? region.data : [region.data];
@@ -212,12 +209,19 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
         const cacheKey = JSON.stringify(this.request);
         if (this._cache.has(cacheKey)) {
+            
             this.objects = this._cache.get(cacheKey);
             this.updateCriteria();
+            console.log('check---->2',this.bimCriteria?.objects?.length ,this.bimCriteria.isRead)
+            if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
+                console.log('check---->2.1')
+                this.selectedObjects = this.bimCriteria.objects;
+                this.bimCriteria.isRead = true;
+            }
             this._changeDetectorRef.markForCheck();
             return;
         }
-
+       
         this.isLoading = true;
         this._processFunctionsService.getData(this.request)
             .pipe(
@@ -229,6 +233,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             )
             .subscribe({
                 next: (res) => {
+                    
                     if (res && res.count >= 0 && res.results) {
                         this.objects = { count: res.count, results: res.results };
                         this._cache.set(cacheKey, this.objects);
@@ -246,7 +251,9 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     // else
                     //     this.selectedObjects = validObjects;
                     // debugger;
+                    
                     if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
+                        console.log('check---->2.1')
                         this.selectedObjects = this.bimCriteria.objects;
                         this.bimCriteria.isRead = true;
                     }
@@ -280,6 +287,24 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     console.error('Error saving BIM criteria:', error);
                 }
             });
+    }
+
+    onReadCriteria() {
+        this.selectedObjects = [];
+        this.bimCriteria.isRead = false;
+        if (![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
+            // Load page with bimCriteria.request
+            this.selectedRegions = this.bimCriteria.regions;
+            this.selectedSpaces = this.bimCriteria.spaces;
+            this.selectedSystems = this.bimCriteria.systems;
+
+            const page = this.bimCriteria.page || 1;
+            this.first = (page - 1) * this.rowsPerPage; // 計算 first
+            console.log('check---->')
+            this.loadPage(page);
+        }
+
+        this._changeDetectorRef.markForCheck();
     }
 
     updateCriteria() {

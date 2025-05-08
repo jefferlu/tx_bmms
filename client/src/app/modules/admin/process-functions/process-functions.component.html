@@ -55,7 +55,7 @@
                             <span>{{t('save-criteria')}}</span>
                         </span>
                     </button>
-                    <button mat-menu-item>
+                    <button mat-menu-item (click)="onReadCriteria()">
                         <span class="flex items-center">
                             <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
                             <span>{{t('read-criteria')}}</span>
