@@ -3,9 +3,8 @@ import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog } from '@angular/material/dialog';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { Table, TableModule, TableLazyLoadEvent } from 'primeng/table';
+import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { TreeSelectModule } from 'primeng/treeselect';
 import { ToastService } from 'app/layout/common/toast/toast.service';
@@ -13,11 +12,8 @@ import { ApsViewerComponent } from "../../../layout/common/aps-viewer/aps-viewer
 import { ProcessFunctionsService } from './process-functions.service';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 import { MatMenuModule } from '@angular/material/menu';
 import { NgTemplateOutlet } from '@angular/common';
-import { property } from 'lodash';
-import { UserService } from 'app/core/user/user.service';
 
 @Component({
     selector: 'app-process-functions',
@@ -68,13 +64,11 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         private _route: ActivatedRoute,
         private _changeDetectorRef: ChangeDetectorRef,
         private _translocoService: TranslocoService,
-        private _userService: UserService,
         private _toastService: ToastService,
         private _processFunctionsService: ProcessFunctionsService
     ) { }
 
     ngOnInit(): void {
-
         this._route.data.subscribe({
             next: (res: any) => {
                 this.regions = res.data.regions;
@@ -85,23 +79,20 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 const systemNode = res.data.conditions.find(item => item.label === 'system');
                 this.systems = systemNode?.children ?? [];
 
-                console.log('systems-->',this.systems)
-
                 this._changeDetectorRef.markForCheck();
             },
             error: (e) => console.error('Error loading data:', e)
         });
 
         // Get user info
-        this._userService.user$
+        this._processFunctionsService.getCriteria()
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((user: any) => {
                 this.bimCriteria = user.bim_criteria;
 
                 // Check if bimCriteria has request
-                // [this.selectedRegions, this.selectedSpaces, this.selectedSystems].every(arr => arr.length === 0)
-
-                if (this.bimCriteria && ![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
+                if (this.bimCriteria && Object.keys(this.bimCriteria).length > 0 &&
+                    ![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
                     // Load page with bimCriteria.request
                     this.selectedRegions = this.bimCriteria.regions;
                     this.selectedSpaces = this.bimCriteria.spaces;
@@ -209,7 +200,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             ...(this.keyword && { fuzzy_keyword: this.keyword }),
         };
 
-        console.log('request-->', this.request)
         const cacheKey = JSON.stringify(this.request);
         if (this._cache.has(cacheKey)) {
 

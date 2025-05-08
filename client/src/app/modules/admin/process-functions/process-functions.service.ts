@@ -22,8 +22,14 @@ export class ProcessFunctionsService {
         );
     }
 
+    getCriteria(): Observable<any> {
+        return this._appService.get('forge/user-criteria').pipe(
+            tap((response: any) => { })
+        );
+    }
+
     updateCriteria(bimCriteria): Observable<any> {
-        return this._appService.put('forge/bim-criteria', '', bimCriteria).pipe(
+        return this._appService.put('forge/user-criteria', '', bimCriteria).pipe(
             tap((response: any) => { })
         );
     }

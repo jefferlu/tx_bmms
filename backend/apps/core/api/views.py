@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 
-from rest_framework import viewsets, mixins, status, exceptions
+from rest_framework import viewsets, generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
@@ -60,19 +60,18 @@ class RefreshObtainView(TokenRefreshView):
     serializer_class = serializers.RefreshObtainSerializer
 
 
-class UpdateUserCriteriaView(APIView):
+class UserCriteriaView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = serializers.UserProfileSerializer
 
-    def put(self, request):
+    def get_object(self):
         try:
-            user_profile = request.user.user_profile
-            serializer = serializers.UserProfileSerializer(user_profile, data={'bim_criteria': request.data}, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=400)
+            return models.UserProfile.objects.select_related('user', 'company').get(user=self.request.user)
         except models.UserProfile.DoesNotExist:
-            return Response({"error": "UserProfile does not exist"}, status=404)
+            self.fail("UserProfile does not exist")
+
+    def perform_update(self, serializer):
+        serializer.save(bim_criteria=self.request.data)
 
 
 @extend_schema(
