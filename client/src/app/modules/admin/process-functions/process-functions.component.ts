@@ -8,12 +8,12 @@ import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { TreeSelectModule } from 'primeng/treeselect';
 import { ToastService } from 'app/layout/common/toast/toast.service';
-import { ApsViewerComponent } from "../../../layout/common/aps-viewer/aps-viewer.component";
 import { ProcessFunctionsService } from './process-functions.service';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
 import { NgTemplateOutlet } from '@angular/common';
+import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 
 @Component({
     selector: 'app-process-functions',
@@ -109,18 +109,12 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     onNodeSelect(event: any, tag: string) {
-        const node = event.node;
-        if (node.children && node.children.length > 0) {
-            switch (tag) {
-                case 'region': this.selectedRegions = []; break;
-                case 'space': this.selectedSpaces = []; break;
-                case 'system': this.selectedSystems = []; break;
-            }
-        }
+        // 重置相關狀態
         this.request = {};
         this.selectedObjects = [];
         this.objects = { count: 0, results: [] };
         this.nodeInfo = null;
+        this._changeDetectorRef.markForCheck();
     }
 
     onRowSelect(event: any): void {
@@ -283,7 +277,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     onReadCriteria() {
         this.selectedObjects = [];
         this.bimCriteria.isRead = false;
-        
+
         this._processFunctionsService.getCriteria()
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((user: any) => {
@@ -395,6 +389,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     bim_model: category.bim_model,
                     display_name: category.display_name,
                     icon: '', // 為 category 節點設置圖標
+                    selectable: true, // 葉節點可選
+                    expanded: false // 初始收起
                 }));
 
             // 遞歸處理所有子節點
@@ -408,7 +404,9 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 key: firstItem.id.toString(), // 使用第一個節點的 id 作為 key
                 label: name, // 使用 name 作為 label
                 children: [...categoryChildren, ...originalChildren], // 合併 categories 和子節點
-                icon: categoryChildren.length > 0 || originalChildren.length > 0 ? 'pi pi-fw pi-folder' : 'pi pi-fw pi-file'
+                icon: categoryChildren.length > 0 || originalChildren.length > 0 ? 'pi pi-fw pi-folder' : 'pi pi-fw pi-file',
+                selectable: false, // 父節點不可選
+                expanded: false // 初始收起
             };
         });
     }

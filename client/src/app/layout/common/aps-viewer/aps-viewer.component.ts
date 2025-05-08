@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, EventEmitter, Inject, Input, OnCh
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { AppService } from 'app/app.service';
 import { environment } from 'environments/environment';
-import { ToastService } from '../toast/toast.service';
+import { ToastService } from '../../common/toast/toast.service';
 import { TranslocoService } from '@jsverse/transloco';
 import { debounce } from 'lodash';
 

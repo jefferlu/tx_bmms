@@ -10,9 +10,9 @@ import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { MatDialog } from '@angular/material/dialog';
-import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component';
 import { ToastService } from 'app/layout/common/toast/toast.service';
+import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 
 
 @Component({

@@ -3,18 +3,13 @@
     <div class="flex w-full p-2 border-b">
         <div class="flex w-full flex-col sm:flex-row gap-4">
             <!-- 區域 -->
-            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedRegions" [options]="regions"
-                placeholder="區域" (onNodeSelect)="onNodeSelect($event,'region')" (onNodeUnselect)="onNodeSelect($event,'region')">
-                <ng-template pTemplate="option" let-node>
-                    <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
-                        {{ node.label }}
-                    </div>
-                </ng-template>
+            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedRegions"
+                [options]="regions" placeholder="區域" (onNodeSelect)="onNodeSelect($event,'region')" (onNodeUnselect)="onNodeSelect($event,'region')">
             </p-treeselect>
 
             <!-- 空間 -->
-            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedSpaces" [options]="spaces"
-                placeholder="空間" (onNodeSelect)="onNodeSelect($event,'space')" (onNodeUnselect)="onNodeSelect($event,'space')">
+            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedSpaces"
+                [options]="spaces" placeholder="空間" (onNodeSelect)="onNodeSelect($event,'space')" (onNodeUnselect)="onNodeSelect($event,'space')">
                 <ng-template pTemplate="option" let-node>
                     <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
                         {{ node.label }}
@@ -23,8 +18,8 @@
             </p-treeselect>
 
             <!-- 系統 -->
-            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [(ngModel)]="selectedSystems" [options]="systems"
-                placeholder="系統" (onNodeSelect)="onNodeSelect($event,'system')" (onNodeUnselect)="onNodeSelect($event,'system')">
+            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedSystems"
+                [options]="systems" placeholder="系統" (onNodeSelect)="onNodeSelect($event,'system')" (onNodeUnselect)="onNodeSelect($event,'system')">
                 <ng-template pTemplate="option" let-node>
                     <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
                         {{ node.label }}
