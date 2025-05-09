@@ -33,7 +33,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     private isViewerInitialized = false;
     private selectedNodeProperties: any[] = [];
     private isLocalMode: boolean = false;
-    private loadedBubbleNodes: any[] = []; // 新增：追蹤已載入的 bubbleNodes
+    private loadedBubbleNodes: any[] = [];
 
     private debouncedLoadViewer = debounce(() => {
         this.processDataAndLoadViewer();
@@ -58,10 +58,15 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             const newData = changes['data'].currentValue;
             const oldData = changes['data'].previousValue;
 
+            if (!Array.isArray(newData)) {
+                console.warn('Input data must be an array for AggregatedView');
+                return;
+            }
+
             const isDataChanged = !oldData || JSON.stringify(this.extractKeyData(newData)) !== JSON.stringify(this.extractKeyData(oldData));
 
             if (isDataChanged) {
-                if (this.isViewerInitialized && Array.isArray(newData)) {
+                if (this.isViewerInitialized) {
                     this.updateViewer(newData);
                 } else {
                     if (this.isViewerInitialized) {
@@ -74,8 +79,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     ngAfterViewInit(): void {
-        if (this.data) {
+        if (this.data && Array.isArray(this.data)) {
             this.processDataAndLoadViewer();
+        } else {
+            console.warn('Input data must be an array for AggregatedView');
         }
     }
 
@@ -83,7 +90,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         if (Array.isArray(data)) {
             return data.map(item => ({ urn: item.urn, dbid: item.dbid }));
         }
-        return { urn: data.urn, dbid: data.dbid };
+        return [];
     }
 
     private processDataAndLoadViewer(): void {
@@ -101,16 +108,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             )
             : null;
 
-        if (Array.isArray(this.data)) {
-            this.isLocalMode = this.data.some(item => item.svf);
-            if (this.isLocalMode) {
-                this.loadAggregatedView(this.data);
-            } else {
-                this.loadAggregatedView_oss(this.data);
-            }
+        this.isLocalMode = this.data.some(item => item.svf);
+        if (this.isLocalMode) {
+            this.loadAggregatedView(this.data);
         } else {
-            this.isLocalMode = !!this.data.svf;
-            this.loadGuiViewer3D(this.data);
+            this.loadAggregatedView_oss(this.data);
         }
     }
 
@@ -199,6 +201,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         // 更新 loadedBubbleNodes 和 loadedModels
                         this.loadedBubbleNodes = allBubbleNodes;
                         this.loadedModels = this.viewer.viewer.getAllModels();
+                        console.log('Loaded models:', this.loadedModels.map((model: any) => model.getData().urn));
+
                         results.forEach((result) => {
                             const urn = result.urn;
                             const dbIds = this.dbids.find(entry => entry.urn === urn)?.dbid || [];
@@ -218,71 +222,95 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                             }
                         });
 
-                        // 統一適配視圖
-                        if (allDbIds.length > 0) {
-                            const uniqueModels = [...new Set(allDbIds.map(item => item.model))];
-                            const dbIds = allDbIds.map(item => item.dbId);
-                            try {
-                                if (uniqueModels.length === 1) {
-                                    this.viewer.viewer.fitToView(dbIds, uniqueModels[0]);
-                                } else {
-                                    const validModels = uniqueModels.filter(model => model && model.getData && model.getInstanceTree);
-                                    if (validModels.length > 0) {
-                                        this.viewer.viewer.fitToView(dbIds, validModels);
-                                    }
-                                }
-                            } catch (err) {
-                                console.error('fitToView 失敗:', err);
-                                this._toastService.open({ message: '無法適配視圖' });
-                                uniqueModels.forEach(model => {
-                                    const modelDbIds = allDbIds.filter(item => item.model === model).map(item => item.dbId);
-                                    if (modelDbIds.length > 0) {
-                                        try {
-                                            this.viewer.viewer.fitToView(modelDbIds, model);
-                                        } catch (e) {
-                                            console.error(`模型 ${model.getData().urn} 的 fitToView 失敗:`, e);
-                                        }
-                                    }
-                                });
-                            }
-                        }
+                        // 等待所有模型的物件樹載入完成
+                        this.waitForObjectTrees(newData);
                     }).catch((err) => {
                         console.error('載入新模型失敗:', err);
                         this._toastService.open({ message: '無法載入部分模型' });
                     });
                 });
-            } else if (allDbIds.length > 0) {
+            } else if (newData.length > 0) {
                 // 僅更新現有模型的視圖
-                const uniqueModels = [...new Set(allDbIds.map(item => item.model))];
-                const dbIds = allDbIds.map(item => item.dbId);
-                try {
-                    if (uniqueModels.length === 1) {
-                        this.viewer.viewer.fitToView(dbIds, uniqueModels[0]);
-                    } else {
-                        const validModels = uniqueModels.filter(model => model && model.getData && model.getInstanceTree);
-                        if (validModels.length > 0) {
-                            this.viewer.viewer.fitToView(dbIds, validModels);
-                        }
-                    }
-                } catch (err) {
-                    console.error('fitToView 失敗:', err);
-                    this._toastService.open({ message: '無法適配視圖' });
-                    uniqueModels.forEach(model => {
-                        const modelDbIds = allDbIds.filter(item => item.model === model).map(item => item.dbId);
-                        if (modelDbIds.length > 0) {
-                            try {
-                                this.viewer.viewer.fitToView(modelDbIds, model);
-                            } catch (e) {
-                                console.error(`模型 ${model.getData().urn} 的 fitToView 失敗:`, e);
-                            }
-                        }
-                    });
-                }
+                this.waitForObjectTrees(newData);
             }
         }).catch((err) => {
             console.error('載入新模型文件失敗:', err);
             this._toastService.open({ message: err.message || '無法載入新模型文件' });
         });
+    }
+
+    private waitForObjectTrees(data: any[]): void {
+        let loadedModelCount = 0;
+        const totalModels = this.loadedModels.length;
+
+        if (totalModels === 0) {
+            console.warn('沒有已載入的模型');
+            this._toastService.open({ message: '無法聚焦視圖：無模型' });
+            return;
+        }
+
+        const onObjectTreeCreated = (model: any) => {
+            loadedModelCount++;
+            if (loadedModelCount === totalModels) {
+                console.log('所有模型的物件樹已載入，執行 fitToLastModel');
+                this.fitToLastModel(data);
+            }
+        };
+
+        this.loadedModels.forEach((model: any) => {
+            const tree = model.getInstanceTree();
+            if (tree) {
+                // 物件樹已存在，直接計數
+                onObjectTreeCreated(model);
+            } else {
+                // 監聽物件樹創建事件
+                model.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
+                    onObjectTreeCreated(model);
+                });
+                model.addEventListener(Autodesk.Viewing.OBJECT_TREE_UNAVAILABLE_EVENT, () => {
+                    console.warn(`模型 ${model.getData().urn} 的物件樹不可用`);
+                    loadedModelCount++;
+                    if (loadedModelCount === totalModels) {
+                        console.log('所有模型的物件樹處理完成，執行 fitToLastModel');
+                        this.fitToLastModel(data);
+                    }
+                });
+            }
+        });
+    }
+
+    private fitToLastModel(data: any[]): void {
+        // 獲取最後一個模型數據
+        const lastModelData = data[data.length - 1];
+        if (!lastModelData || !lastModelData.urn || !lastModelData.dbid) {
+            console.warn('最後一個模型數據無效或缺少 urn/dbid');
+            this._toastService.open({ message: '無法聚焦視圖：無有效模型數據' });
+            return;
+        }
+
+        // 查找對應的模型
+        const targetModel = this.loadedModels.find((model: any) => model.getData().urn === lastModelData.urn);
+        if (!targetModel || typeof targetModel.getData !== 'function' || !targetModel.getInstanceTree()) {
+            console.warn(`未找到 URN 為 ${lastModelData.urn} 的有效模型`, this.loadedModels.map((model: any) => model.getData().urn));
+            this._toastService.open({ message: '無法聚焦視圖：模型無效或尚未載入' });
+            return;
+        }
+
+        // 確保 dbid 是陣列並獲取有效 dbid
+        const dbIds = Array.isArray(lastModelData.dbid) ? lastModelData.dbid : [lastModelData.dbid];
+        if (dbIds.length === 0) {
+            console.warn(`模型 ${lastModelData.urn} 的 dbid 為空`);
+            this._toastService.open({ message: '無法聚焦視圖：無有效 dbid' });
+            return;
+        }
+
+        try {
+            console.log(`聚焦模型 ${lastModelData.urn} 的 dbIds:`, dbIds);
+            this.viewer.viewer.fitToView(dbIds, targetModel);
+        } catch (err) {
+            console.error(`模型 ${lastModelData.urn} 的 fitToView 失敗:`, err);
+            this._toastService.open({ message: '無法聚焦視圖' });
+        }
     }
 
     private cleanupViewer(): void {
@@ -312,7 +340,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             this.viewerContainer.nativeElement.innerHTML = '';
         }
         this.isViewerInitialized = false;
-        this.loadedBubbleNodes = []; // 重置已載入的節點
+        this.loadedBubbleNodes = [];
     }
 
     private emitNodeProperties(dbId: number, model: any): void {
@@ -370,116 +398,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 }
             });
         }
-    }
-
-    loadGuiViewer3D(data: any): void {
-        const container = this.viewerContainer.nativeElement;
-        this.viewer = new Autodesk.Viewing.GuiViewer3D(container);
-
-        let svf = data.svf.replace(/\\/g, '/');
-        const options = {
-            env: 'Local',
-            useConsolidation: true,
-            document: `${svf}`,
-            language: this.lang,
-            isAEC: true
-        };
-
-        try {
-            Autodesk.Viewing.Initializer(options, () => {
-                this.viewer.start(options.document, options, () => {
-                    this.viewer.impl.invalidate(true);
-                    this.viewer.setGhosting(false);
-                    this.isViewerInitialized = true;
-
-                    this.viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
-                        const selection = this.viewer.getSelection();
-                        if (selection.length > 0) {
-                            const dbId = selection[0];
-                            this.emitNodeProperties(dbId, this.viewer);
-                        }
-                    });
-
-                    this.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
-                        this.addGuiButton();
-                    });
-
-                    this.viewer.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
-                        this.setupModelBrowser();
-                    });
-
-                    this.viewer.addEventListener(Autodesk.Viewing.OBJECT_TREE_UNAVAILABLE_EVENT, () => {});
-                    this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
-                        if (this.viewer.viewer.modelstructure) {
-                            this.setupModelBrowser();
-                        }
-                    });
-                }, (errorCode: number, errorMsg: string) => {
-                    console.error('Viewer 啟動失敗:', errorMsg);
-                });
-            });
-        } catch (e) {
-            console.error('Viewer 初始化錯誤:', e);
-        }
-    }
-
-    loadGuiViewer3D_oss(data: any): void {
-        this._appService.getToken().subscribe((aps: any) => {
-            const container = this.viewerContainer.nativeElement;
-            this.viewer = new Autodesk.Viewing.GuiViewer3D(container);
-
-            const options = {
-                env: 'AutodeskProduction',
-                api: 'derivativeV2',
-                language: this.lang,
-                getAccessToken: (callback: any) => {
-                    const token = aps.access_token;
-                    const expiresIn = 3600;
-                    callback(token, expiresIn);
-                }
-            };
-
-            try {
-                Autodesk.Viewing.Initializer(options, () => {
-                    this.viewer.start();
-
-                    this.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
-                        this.addGuiButton();
-                    });
-
-                    this.viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
-                        const selection = this.viewer.getSelection();
-                        if (selection.length > 0) {
-                            const dbId = selection[0];
-                            this.emitNodeProperties(dbId, this.viewer);
-                        }
-                    });
-
-                    this.viewer.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
-                        this.setupModelBrowser();
-                    });
-
-                    this.viewer.addEventListener(Autodesk.Viewing.OBJECT_TREE_UNAVAILABLE_EVENT, () => {});
-                    this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
-                        if (this.viewer.viewer.modelstructure) {
-                            this.setupModelBrowser();
-                        }
-                    });
-
-                    const documentId = `urn:${data.urn}`;
-                    Autodesk.Viewing.Document.load(documentId, (doc: any) => {
-                        const viewables = doc.getRoot().search({ type: 'geometry' });
-                        if (viewables.length > 0) {
-                            this.viewer.loadDocumentNode(doc, viewables[0]).then(() => {
-                                this.isViewerInitialized = true;
-                            }).catch((err: any) => {});
-                        }
-                    }, (errorCode: number, errorMsg: string) => {});
-                });
-            } catch (e) {
-                console.error('Viewer 初始化錯誤:', e);
-            }
-        });
     }
 
     private addGuiButton(): void {
@@ -574,10 +492,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         });
 
         Promise.all(promises).then((viewableNodes) => {
+            console.log('Viewable nodes:', viewableNodes.map(node => node.data.urn));
             this.viewer.setNodes(viewableNodes).then(() => {
-                this.loadedBubbleNodes = viewableNodes; // 更新已載入的節點
+                this.loadedBubbleNodes = viewableNodes;
                 this.loadedModels = this.viewer.viewer.getAllModels();
-                console.log('已載入模型:', this.loadedModels);
+                console.log('Loaded models:', this.loadedModels.map((model: any) => model.getData().urn));
 
                 this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
                     this.addAggregatedButton();
@@ -632,49 +551,14 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                                 }
                             });
 
-                            if (allDbIds.length > 0) {
-                                const uniqueModels = [...new Set(allDbIds.map(item => item.model))];
-                                const dbIds = allDbIds.map(item => item.dbId);
-                                try {
-                                    if (uniqueModels.length === 1) {
-                                        this.viewer.viewer.fitToView(dbIds, uniqueModels[0]);
-                                    } else {
-                                        const validModels = uniqueModels.filter(model => model && model.getData && model.getInstanceTree);
-                                        if (validModels.length > 0) {
-                                            this.viewer.viewer.fitToView(dbIds, validModels);
-                                        }
-                                    }
-                                } catch (err) {
-                                    console.error('fitToView 失敗:', err);
-                                    this._toastService.open({ message: '無法適配視圖' });
-                                    uniqueModels.forEach(model => {
-                                        const modelDbIds = allDbIds.filter(item => item.model === model).map(item => item.dbId);
-                                        if (modelDbIds.length > 0) {
-                                            try {
-                                                this.viewer.viewer.fitToView(modelDbIds, model);
-                                            } catch (e) {
-                                                console.error(`模型 ${model.getData().urn} 的 fitToView 失敗:`, e);
-                                            }
-                                        }
-                                    });
-                                }
-                            }
+                            // 等待所有模型的物件樹載入完成
+                            this.waitForObjectTrees(data);
 
                             this.setupModelBrowser();
                         } else {
                             console.error('modelstructure 未初始化於 GEOMETRY_LOADED_EVENT');
                         }
                     }
-                });
-
-                this.loadedModels.forEach((model: any) => {
-                    model.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
-                        console.log(`為模型 ${model.getData().urn} 創建物件樹，設置模型瀏覽器`);
-                        this.setupModelBrowser();
-                    });
-                    model.addEventListener(Autodesk.Viewing.OBJECT_TREE_UNAVAILABLE_EVENT, () => {
-                        console.warn(`模型 ${model.getData().urn} 的物件樹不可用`);
-                    });
                 });
 
                 this.viewer.viewer.impl.invalidate(true);
@@ -717,10 +601,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         loadedCount++;
                         if (loadedCount === data.length) {
                             this.viewer.setNodes(bubbleNodes);
-                            this.loadedBubbleNodes = bubbleNodes; // 更新已載入的節點
+                            this.loadedBubbleNodes = bubbleNodes;
                             this.isViewerInitialized = true;
                             this.loadedModels = this.viewer.viewer.getAllModels();
-                            console.log('已載入模型:', this.loadedModels);
+                            console.log('Loaded models:', this.loadedModels.map((model: any) => model.getData().urn));
 
                             this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
                                 this.addAggregatedButton();
@@ -749,6 +633,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                                     if (modelStructure) {
                                         console.log('模型結構面板已開啟:', modelStructure);
 
+                                        const allDbIds: { dbId: number, model: any }[] = [];
+
                                         this.dbids.forEach((entry: any) => {
                                             const urn = entry.urn;
                                             const dbIds = entry.dbid;
@@ -759,7 +645,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
                                             if (targetModel) {
                                                 this.viewer.viewer.isolate(dbIds, targetModel);
-                                                this.viewer.viewer.fitToView([dbIds[dbIds.length - 1]], targetModel);
                                                 console.log(`為模型 ${urn} 隔離並適配視圖:`, dbIds);
 
                                                 const tree = targetModel.getInstanceTree();
@@ -769,6 +654,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                                                         if (nodePath) {
                                                             this.expandNodePathInTree(tree, nodePath, modelStructure, targetModel);
                                                         }
+                                                        allDbIds.push({ dbId: dbid, model: targetModel });
                                                     });
                                                 } else {
                                                     console.error(`無法從模型 ${urn} 中獲取 InstanceTree`);
@@ -778,6 +664,9 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                                             }
                                         });
 
+                                        // 等待所有模型的物件樹載入完成
+                                        this.waitForObjectTrees(data);
+
                                         console.log('幾何圖形已載入，檢查 modelStructure:', modelStructure);
                                         this.setupModelBrowser();
                                     } else {
@@ -786,20 +675,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                                 }
                             });
 
-                            this.loadedModels.forEach((model: any) => {
-                                model.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
-                                    console.log(`為模型 ${model.getData().urn} 創建物件樹，設置模型瀏覽器`);
-                                    this.setupModelBrowser();
-                                });
-                                model.addEventListener(Autodesk.Viewing.OBJECT_TREE_UNAVAILABLE_EVENT, () => {
-                                    console.warn(`模型 ${model.getData().urn} 的物件樹不可用`);
-                                });
-                            });
+                            this.viewer.viewer.impl.invalidate(true);
+                            this.viewer.viewer.setGhosting(false);
                         }
                     });
-
-                    this.viewer.viewer.impl.invalidate(true);
-                    this.viewer.viewer.setGhosting(false);
                 }).catch((err: any) => {
                     console.error('AggregatedView 初始化失敗:', err);
                 });
