@@ -71,8 +71,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this._route.data.subscribe({
             next: (res: any) => {
-                this.regions = res.data.regions;
-
+                this.regions = this.transformRegions(res.data.regions);
                 res.data.conditions = this._transformData(res.data.conditions);
                 const spaceNode = res.data.conditions.find(item => item.label === 'space');
                 this.spaces = spaceNode?.children ?? [];
@@ -108,20 +107,38 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     }
 
-    onNodeSelect(event: any, tag: string) {
+    onNodeSelect() {
         // 重置相關狀態
         this.request = {};
         this.selectedObjects = [];
         this.objects = { count: 0, results: [] };
         this.nodeInfo = null;
+
         this._changeDetectorRef.markForCheck();
     }
+
+    onClear(tag: string) {
+
+        this.request = {};
+        this.selectedObjects = [];
+        this.objects = { count: 0, results: [] };
+        this.nodeInfo = null;
+
+        switch (tag) {
+            case 'region': this.selectedRegions = []; break;
+            case 'space': this.selectedSpaces = []; break;
+            case 'system': this.selectedSystems = []; break;
+        }
+    }
+
 
     onRowSelect(event: any): void {
         this.selectedObjects = [...this.selectedObjects, event.data];
         if (this.selectedObjects.length === 0) this.nodeInfo = null;
         this._changeDetectorRef.markForCheck();
     }
+
+
 
     onRowUnselect(event: any): void {
         this.selectedObjects = this.selectedObjects.filter(item => item.id !== event.data.id);
@@ -361,6 +378,23 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         }));
     }
 
+    private transformRegions(data: any[]): any[] {
+        return data.map(item => {
+            const hasChildren = item.children && item.children.length > 0;
+            const children = hasChildren ? this.transformRegions(item.children) : [];
+
+            return {
+                key: item.key,
+                label: item.label,
+                code: item.code,
+                data: item.data,
+                children,
+                icon: hasChildren ? 'pi pi-fw pi-folder' : 'pi pi-fw pi-file',
+                selectable: hasChildren ? false : true
+            };
+        });
+    }
+
     private _transformData(data: any[]): any[] {
         // 按 name 分組節點
         const groupedNodes: { [name: string]: any[] } = {};
@@ -390,7 +424,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     display_name: category.display_name,
                     icon: '', // 為 category 節點設置圖標
                     selectable: true, // 葉節點可選
-                    expanded: false // 初始收起
                 }));
 
             // 遞歸處理所有子節點
@@ -406,7 +439,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 children: [...categoryChildren, ...originalChildren], // 合併 categories 和子節點
                 icon: categoryChildren.length > 0 || originalChildren.length > 0 ? 'pi pi-fw pi-folder' : 'pi pi-fw pi-file',
                 selectable: false, // 父節點不可選
-                expanded: false // 初始收起
             };
         });
     }
