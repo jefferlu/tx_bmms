@@ -239,7 +239,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         raise ValueError(f"BimModel with id={bim_model_id} not found.")
 
     # Step 1: Fetch BimCondition conditions
-    conditions = models.BimCondition.objects.filter(is_active=True).values('id', 'display_name', 'value')
+    conditions = models.BimCondition.objects.all().values('id', 'display_name', 'value')
     if not conditions:
         send_progress('error', "No active BimCondition found.")
         raise Exception("No active BimCondition found.")
@@ -360,7 +360,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
             level = value_parts[3]
 
             try:
-                zone = models.ZoneCode.objects.get(code=zone_code, is_active=True)
+                zone = models.ZoneCode.objects.get(code=zone_code)
             except models.ZoneCode.DoesNotExist:
                 missing_zones.add(zone_code)
                 logger.warning(f"Active ZoneCode '{zone_code}' not found for value: {row.value} in file '{file_name}'")
