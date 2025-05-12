@@ -178,7 +178,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                     if (res.type == HttpEventType.UploadProgress) {
                         let progress = Math.round(100 * (res.loaded / res.total));
                         file.status = "uploading"
-                        file.message = progress === 100 ? 'Saving file...' : `${progress} %`;
+                        file.message = progress === 100 ? 'Saving file...' : `Uploading: ${progress}%`;
                         this._changeDetectorRef.markForCheck();
                     }
                 },

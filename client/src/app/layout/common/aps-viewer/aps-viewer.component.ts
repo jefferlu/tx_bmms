@@ -466,6 +466,44 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         });
     }
 
+    loadAggregatedView(data: any[]): void {
+        this._appService.getToken().subscribe((aps: any) => {
+            const container = this.viewerContainer.nativeElement;
+            this.viewer = this.viewer || new Autodesk.Viewing.AggregatedView();
+
+            const options = {
+                env: 'Local',
+                useConsolidation: true,
+                language: this.lang,
+                isAEC: true,
+                getAccessToken: (callback: any) => {
+                    const token = aps.access_token;
+                    const expiresIn = 3600;
+                    callback(token, expiresIn);
+                }
+            };
+
+            try {
+                Autodesk.Viewing.Initializer(options, () => {
+                    if (!this.isViewerInitialized) {
+                        this.viewer.init(container, options).then(() => {
+                            this.isViewerInitialized = true;
+                            this.loadModels(data);
+                        }).catch((err: any) => {
+                            console.error('AggregatedView 初始化失敗:', err);
+                            this._toastService.open({ message: '無法初始化 AggregatedView' });
+                        });
+                    } else {
+                        this.loadModels(data);
+                    }
+                });
+            } catch (e) {
+                console.error('Viewer 初始化錯誤:', e);
+                this._toastService.open({ message: 'Viewer 初始化失敗' });
+            }
+        });
+    }
+
     private loadModels(data: any[]): void {
         const urnSet = new Set<string>();
         const promises: Promise<any>[] = [];
@@ -473,26 +511,32 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         data.forEach((d) => {
             if (d.urn && !urnSet.has(d.urn)) {
                 urnSet.add(d.urn);
-                const documentId = `urn:${d.urn}`;
-                promises.push(
-                    new Promise((resolve, reject) => {
-                        Autodesk.Viewing.Document.load(documentId, (doc: any) => {
-                            const viewables = doc.getRoot().search({ type: 'geometry' });
-                            if (viewables.length > 0) {
-                                resolve(viewables[0]);
-                            } else {
-                                reject(new Error(`未找到 URN ${d.urn} 的 geometry 節點`));
-                            }
-                        }, (errorCode: number, errorMsg: string) => {
-                            reject(new Error(`無法載入文件 ${d.urn}: ${errorMsg}`));
-                        });
-                    })
-                );
+                if (this.isLocalMode) {
+                    const svf = d.svf.replace(/\\/g, '/');
+                    const node = { type: 'geometry', svf: svf, urn: d.urn };
+                    promises.push(Promise.resolve(node));
+                } else {
+                    const documentId = `urn:${d.urn}`;
+                    promises.push(
+                        new Promise((resolve, reject) => {
+                            Autodesk.Viewing.Document.load(documentId, (doc: any) => {
+                                const viewables = doc.getRoot().search({ type: 'geometry' });
+                                if (viewables.length > 0) {
+                                    resolve(viewables[0]);
+                                } else {
+                                    reject(new Error(`未找到 URN ${d.urn} 的 geometry 節點`));
+                                }
+                            }, (errorCode: number, errorMsg: string) => {
+                                reject(new Error(`無法載入文件 ${d.urn}: ${errorMsg}`));
+                            });
+                        })
+                    );
+                }
             }
         });
 
         Promise.all(promises).then((viewableNodes) => {
-            console.log('Viewable nodes:', viewableNodes.map(node => node.data.urn));
+            console.log('Viewable nodes:', viewableNodes.map(node => node.data ? node.data.urn : node.urn));
             this.viewer.setNodes(viewableNodes).then(() => {
                 this.loadedBubbleNodes = viewableNodes;
                 this.loadedModels = this.viewer.viewer.getAllModels();
@@ -571,121 +615,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             console.error('載入 viewable 節點失敗:', err);
             this._toastService.open({ message: err.message || '無法載入模型文件' });
         });
-    }
-
-    loadAggregatedView(data: any[]): void {
-        const container = this.viewerContainer.nativeElement;
-        this.viewer = new Autodesk.Viewing.AggregatedView();
-
-        const options = {
-            env: 'Local',
-            useConsolidation: true,
-            language: this.lang,
-            isAEC: true
-        };
-
-        try {
-            Autodesk.Viewing.Initializer(options, () => {
-                this.viewer.init(container, options).then(() => {
-                    const bubbleNodes: any[] = [];
-                    let loadedCount = 0;
-
-                    data.forEach((d) => {
-                        let svf = d.svf.replace(/\\/g, '/');
-                        const node = {
-                            type: 'geometry',
-                            svf: svf,
-                            urn: d.urn
-                        };
-                        bubbleNodes.push(node);
-                        loadedCount++;
-                        if (loadedCount === data.length) {
-                            this.viewer.setNodes(bubbleNodes);
-                            this.loadedBubbleNodes = bubbleNodes;
-                            this.isViewerInitialized = true;
-                            this.loadedModels = this.viewer.viewer.getAllModels();
-                            console.log('Loaded models:', this.loadedModels.map((model: any) => model.getData().urn));
-
-                            this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
-                                this.addAggregatedButton();
-                            });
-
-                            this.viewer.viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
-                                const selection = this.viewer.viewer.getSelection();
-                                if (selection.length > 0) {
-                                    const dbId = selection[0];
-                                    const model = this.viewer.viewer.model || this.loadedModels.find((m: any) => {
-                                        const tree = m.getInstanceTree();
-                                        return tree && tree.nodeAccess.getIndex(dbId) !== -1;
-                                    }) || this.viewer;
-                                    this.emitNodeProperties(dbId, model);
-                                } else {
-                                    console.log('沒有選中任何物件');
-                                }
-                            });
-
-                            this.viewer.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
-                                this.loadedModels = this.viewer.viewer.getAllModels();
-                                console.log('已載入模型:', this.loadedModels);
-
-                                if (this.dbids && this.dbids.length > 0) {
-                                    const modelStructure = this.viewer.viewer.modelstructure;
-                                    if (modelStructure) {
-                                        console.log('模型結構面板已開啟:', modelStructure);
-
-                                        const allDbIds: { dbId: number, model: any }[] = [];
-
-                                        this.dbids.forEach((entry: any) => {
-                                            const urn = entry.urn;
-                                            const dbIds = entry.dbid;
-
-                                            const targetModel = this.loadedModels.find((model: any) => {
-                                                return model.getData().urn === urn;
-                                            });
-
-                                            if (targetModel) {
-                                                this.viewer.viewer.isolate(dbIds, targetModel);
-                                                console.log(`為模型 ${urn} 隔離並適配視圖:`, dbIds);
-
-                                                const tree = targetModel.getInstanceTree();
-                                                if (tree) {
-                                                    dbIds.forEach((dbid: number) => {
-                                                        const nodePath = this.getNodePath(tree, dbid);
-                                                        if (nodePath) {
-                                                            this.expandNodePathInTree(tree, nodePath, modelStructure, targetModel);
-                                                        }
-                                                        allDbIds.push({ dbId: dbid, model: targetModel });
-                                                    });
-                                                } else {
-                                                    console.error(`無法從模型 ${urn} 中獲取 InstanceTree`);
-                                                }
-                                            } else {
-                                                console.error(`未找到 URN 為 ${urn} 的模型`);
-                                            }
-                                        });
-
-                                        // 等待所有模型的物件樹載入完成
-                                        this.waitForObjectTrees(data);
-
-                                        console.log('幾何圖形已載入，檢查 modelStructure:', modelStructure);
-                                        this.setupModelBrowser();
-                                    } else {
-                                        console.error('modelstructure 未初始化於 GEOMETRY_LOADED_EVENT');
-                                    }
-                                }
-                            });
-
-                            this.viewer.viewer.impl.invalidate(true);
-                            this.viewer.viewer.setGhosting(false);
-                        }
-                    });
-                }).catch((err: any) => {
-                    console.error('AggregatedView 初始化失敗:', err);
-                });
-            });
-        } catch (e) {
-            console.error('Viewer 初始化錯誤:', e);
-        }
     }
 
     private addAggregatedButton(): void {
