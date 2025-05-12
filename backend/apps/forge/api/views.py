@@ -16,7 +16,7 @@ from django.db import connection
 from django.contrib.postgres.aggregates import ArrayAgg, JSONBAgg
 from django.db.models.functions import JSONObject
 from django.core.cache import cache
-
+from django.conf import settings
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -282,20 +282,24 @@ class BimUpdateCategoriesView(APIView):
         errors = []
 
         for file_name in filenames:
-            # 直接使用 BimModel，不依賴 BimConversion
             try:
                 bim_model = models.BimModel.objects.get(name=file_name)
             except models.BimModel.DoesNotExist:
                 errors.append(f"No BimModel found for file_name '{file_name}'.")
                 continue
 
-            sqlite_path = f"media-root/database/{file_name}.db"
-            if not os.path.exists(sqlite_path):
-                errors.append(f"SQLite file not found at: {sqlite_path}")
+            if not bim_model.sqlite_path:
+                errors.append(f"SQLite path not set for BimModel '{file_name}'.")
                 continue
 
-            # 提交 Celery 任務，使用 bim_model.id
-            bim_update_categories.delay(sqlite_path, bim_model.id, file_name, 'update_category_group')
+            # 使用 settings.MEDIA_ROOT 和 bim_model.sqlite_path 檢查檔案
+            absolute_sqlite_path = os.path.join(settings.MEDIA_ROOT, bim_model.sqlite_path).replace(os.sep, '/')
+            if not os.path.exists(absolute_sqlite_path):
+                errors.append(f"SQLite file not found at: {absolute_sqlite_path}")
+                continue
+
+            # 提交 Celery 任務，使用 bim_model.sqlite_path（相對路徑）
+            bim_update_categories.delay(bim_model.sqlite_path, bim_model.id, file_name, 'update_category_group')
             processed_files.append({
                 "file_name": file_name,
                 "version": bim_model.version

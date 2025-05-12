@@ -5,6 +5,7 @@ import re
 import sqlite3
 import pandas as pd
 
+from django.conf import settings
 from collections import Counter
 
 from django.db import transaction
@@ -60,7 +61,8 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         # Upload or reload file
         if not is_reload:
             send_progress('upload-object', 'Uploading file to Autodesk OSS...')
-            object_data = bucket.upload_object(bucket_key, f'media-root/uploads/{file_name}', file_name)
+            upload_path = os.path.join(settings.MEDIA_ROOT, "uploads", file_name).replace(os.sep, '/')
+            object_data = bucket.upload_object(bucket_key, upload_path, file_name)
             urn = get_aps_urn(object_data['objectId'])
         else:
             send_progress('reload-object', 'Reloading existing object from bucket...')
@@ -121,19 +123,42 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     # Download SVF
     send_progress('download-svf', 'Downloading SVF to server...')
     svf_reader = SVFReader(urn, token, "US")
-    download_dir = f"media-root/svf/{file_name}"
-    os.makedirs(download_dir, exist_ok=True)
+    svf_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name).replace(os.sep, '/')
+    os.makedirs(svf_dir, exist_ok=True)
     manifests = svf_reader.read_svf_manifest_items()
     if manifests:
-        svf_reader.download(download_dir, manifests[0], send_progress)
+        svf_reader.download(svf_dir, manifests[0], send_progress)
         send_progress('download-svf', 'SVF download completed.')
     else:
         raise Exception("No manifest items found for download.")
 
+    # Find the .svf file in svf_dir or its subdirectories
+    svf_name = None
+    svf_files = []
+    for root, _, files in os.walk(svf_dir):
+        for file in files:
+            if file.endswith('.svf'):
+                absolute_svf_path = os.path.join(root, file)
+                relative_svf_path = os.path.relpath(absolute_svf_path, settings.MEDIA_ROOT).replace(os.sep, '/')
+                svf_files.append(relative_svf_path)
+    if svf_files:
+        svf_name = svf_files[0]
+        if len(svf_files) > 1:
+            logger.warning(f"Multiple .svf files found in {svf_dir}: {svf_files}. Using {svf_name}.")
+    else:
+        send_progress('error', f"No .svf file found in {svf_dir}.")
+        raise Exception(f"No .svf file found in {svf_dir}.")
+
     # Download SQLite
     send_progress('download-sqlite', 'Downloading SQLite to server...')
     db = DbReader(urn, token, object_data['objectKey'])
-    sqlite_path = db.db_path
+    absolute_sqlite_path = db.db_path
+    # Convert absolute path to relative path based on MEDIA_ROOT
+    try:
+        sqlite_path = os.path.relpath(absolute_sqlite_path, settings.MEDIA_ROOT).replace(os.sep, '/')
+    except ValueError as e:
+        send_progress('error', f"SQLite path {absolute_sqlite_path} is not within MEDIA_ROOT.")
+        raise ValueError(f"SQLite path {absolute_sqlite_path} is not within MEDIA_ROOT: {str(e)}")
     send_progress('download-sqlite', 'SQLite download completed.')
 
     # Create or update BimModel
@@ -141,8 +166,6 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     with transaction.atomic():
         if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
             raise ValueError(f"Invalid file_name format: {file_name}. (Expected XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX)")
-
-        # parts = file_name.split('-')
 
         if is_reload:
             try:
@@ -158,12 +181,15 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
             if not created:
                 bim_model.urn = urn
                 bim_model.version += 1
-                bim_model.save()
+            # Set svf_path and sqlite_path as relative paths
+            bim_model.svf_path = svf_name
+            bim_model.sqlite_path = sqlite_path
+            bim_model.save()
             send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) updated.')
 
         # Process categories, regions, hierarchies, and objects
         result = _process_categories_and_objects(
-            sqlite_path=sqlite_path,
+            sqlite_path=os.path.join(settings.MEDIA_ROOT, sqlite_path).replace(os.sep, '/'),
             bim_model_id=bim_model.id,
             file_name=file_name,
             send_progress=send_progress
@@ -179,7 +205,7 @@ def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send
     Update BIM categories, regions, hierarchies, and objects from SQLite.
 
     Args:
-        sqlite_path (str): Path to SQLite database.
+        sqlite_path (str): Path to SQLite database (relative to MEDIA_ROOT).
         bim_model_id (int): ID of the BimModel.
         file_name (str): Name of the file.
         group_name (str): Channels group name for progress updates.
@@ -205,7 +231,7 @@ def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send
 
     try:
         result = _process_categories_and_objects(
-            sqlite_path=sqlite_path,
+            sqlite_path=os.path.join(settings.MEDIA_ROOT, sqlite_path).replace(os.sep, '/'),
             bim_model_id=bim_model_id,
             file_name=file_name,
             send_progress=send_progress
@@ -225,7 +251,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
     Process categories, regions, hierarchies, and objects from SQLite database.
 
     Args:
-        sqlite_path (str): Path to SQLite database.
+        sqlite_path (str): Absolute path to SQLite database.
         bim_model_id (int): ID of the BimModel.
         file_name (str): Name of the file.
         send_progress (callable): Function to send progress updates.
@@ -352,7 +378,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         for row in df_bim_regions.itertuples():
             current_bim_region += 1
             value_parts = row.value.split('-')
-            if len(value_parts) < 4:    # 與file_name不同，此row.value找出的名稱是記錄在sqlite資料庫中的資料
+            if len(value_parts) < 4:
                 logger.warning(f"Skipping invalid value format in file '{file_name}': {row.value}")
                 continue
 
@@ -393,9 +419,8 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                 send_progress('process-bimregion', f'Created {i + len(batch)} of {len(new_bim_regions)} BimRegion records.')
         send_progress('process-bimregion', f'Created {len(new_bim_regions)} BimRegion records.')
 
-
     # Step 3.6: Update BimObjectHierarchy
-    new_hierarchies = []  # Initialize new_hierarchies to avoid UnboundLocalError
+    new_hierarchies = []
     existing_hierarchies = models.BimObjectHierarchy.objects.filter(bim_model_id=bim_model_id)
     if not existing_hierarchies.exists() or bim_model.version != bim_model.last_processed_version:
         send_progress('extract-bimobjecthierarchy', 'Extracting BimObjectHierarchy from SQLite...')
@@ -421,13 +446,13 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
             # Delete existing hierarchy records
             deleted_count = models.BimObjectHierarchy.objects.filter(bim_model_id=bim_model_id).delete()[0]
             send_progress('cleanup-bimobjecthierarchy',
-                        f'Deleted {deleted_count} BimObjectHierarchy records for bim_model_id={bim_model_id}.')
+                          f'Deleted {deleted_count} BimObjectHierarchy records for bim_model_id={bim_model_id}.')
 
             # Create new hierarchy records
             for row in df_hierarchy.itertuples():
                 try:
                     entity_id = row.entity_id
-                    parent_id = int(row.related_id)  # related_id is the parent
+                    parent_id = int(row.related_id)
                     new_hierarchies.append(
                         models.BimObjectHierarchy(
                             bim_model_id=bim_model_id,
@@ -445,7 +470,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                     batch = new_hierarchies[i:i + batch_size]
                     models.BimObjectHierarchy.objects.bulk_create(batch)
                     send_progress('process-bimobjecthierarchy',
-                                f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
+                                  f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
             else:
                 logger.warning(f"No valid BimObjectHierarchy records found for bim_model_id={bim_model_id}")
 
