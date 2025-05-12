@@ -17,8 +17,9 @@ class ZoneCode(models.Model):
 
 class BimModel(models.Model):
     name = models.CharField(max_length=255)
-    urn = models.CharField(max_length=255)
+    urn = models.CharField(max_length=255)    
     version = models.IntegerField()
+    svf_path = models.CharField(max_length=255, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_processed_version = models.IntegerField(null=True, blank=True)
