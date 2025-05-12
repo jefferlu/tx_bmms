@@ -1,7 +1,7 @@
 services:
     client:
         build: client
-        container_name: client
+        container_name: bmms_client
         restart: always
         networks:
             - internal_network
@@ -16,7 +16,7 @@ services:
 
     backend:
         build: backend
-        container_name: backend
+        container_name: bmms_backend
         restart: always
         entrypoint: ./entrypoint.sh
         networks:
@@ -41,7 +41,7 @@ services:
 
     redis:
         image: redis:latest
-        container_name: redis
+        container_name: bmms_redis
         restart: always
         networks:
             - internal_network
@@ -50,7 +50,7 @@ services:
 
     postgres:
         image: bitnami/postgresql:latest
-        container_name: postgres
+        container_name: bmms_postgres
         restart: always
         networks:
             - internal_network
