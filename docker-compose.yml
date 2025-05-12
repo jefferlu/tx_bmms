@@ -67,7 +67,7 @@ services:
 
     elfinder:
         build: elfinder
-        container_name: elfinder
+        container_name: bmms_elfinder
         restart: always
         networks:
             - internal_network
