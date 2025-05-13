@@ -25,6 +25,7 @@ channels-redis = "*"
 django-admin-interface = "*"
 cryptography = "*"
 docker = "*"
+flower = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"
