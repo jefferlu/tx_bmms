@@ -1,5 +1,5 @@
 # Angular app Dockerfile
-FROM node:22-alpine AS build
+FROM node:22 AS build
 
 WORKDIR /app
 

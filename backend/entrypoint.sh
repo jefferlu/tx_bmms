@@ -20,7 +20,7 @@ python manage.py migrate --noinput
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-# 建立超級用戶 (初使需要的管理者權限，可選步驟）
+# 建立超級用戶 (初始需要的管理者權限，此步驟為optionals）
 echo "Creating superuser..."
 python manage.py shell -c "from django.contrib.auth import get_user_model; \
 User = get_user_model()
@@ -28,8 +28,8 @@ if not User.objects.filter(email='admin@example.com').exists(): \
     User.objects.create_superuser('admin@example.com', '123')"
 
 # 啟動 Celery Worker
-echo "Starting Celery Worker..."
-celery -A tx_bmms worker --loglevel=info &  # 使用&將其放到背景
+# echo "Starting Celery Worker..."
+# celery -A tx_bmms worker --loglevel=info &  # 使用&將其放到背景
 # celery -A tx_bmms worker --pool=solo --loglevel=info # for windows os
 
 # 啟動 Daphne

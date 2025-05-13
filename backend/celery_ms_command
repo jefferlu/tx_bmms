@@ -1,5 +1,6 @@
 celery -A tx_bmms worker --pool=solo --loglevel=info
 
+celery -A tx_bmms flower
 
 # tasklist | findstr celery
 # taskkill /F  /PID  24772
