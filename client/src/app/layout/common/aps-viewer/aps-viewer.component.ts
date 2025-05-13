@@ -108,7 +108,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             )
             : null;
 
-        this.isLocalMode = this.data.some(item => item.svf);
+        this.isLocalMode = this.data.some(item => item.svf_path);
         if (this.isLocalMode) {
             this.loadAggregatedView(this.data);
         } else {
@@ -169,22 +169,54 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             const urn = entry.urn;
             if (!urnSet.has(urn)) {
                 const dataItem = newData.find(item => item.urn === urn);
-                if (dataItem && !this.isLocalMode) {
-                    const documentId = `urn:${dataItem.urn}`;
-                    newModelPromises.push(
-                        new Promise((resolve, reject) => {
-                            Autodesk.Viewing.Document.load(documentId, (doc) => {
-                                const viewables = doc.getRoot().search({ type: 'geometry' });
-                                if (viewables.length > 0) {
-                                    resolve({ viewable: viewables[0], urn });
-                                } else {
-                                    reject(new Error(`未找到 URN ${urn} 的 geometry 節點`));
-                                }
-                            }, (errorCode, errorMsg) => {
-                                reject(new Error(`無法載入文件 ${urn}: ${errorMsg}`));
-                            });
-                        })
-                    );
+                if (dataItem) {
+                    if (this.isLocalMode) {
+                        // 本地模式：動態生成 SVF 路徑
+                        let svf = dataItem.svf_path?.replace(/\\/g, '/');
+                        if (!svf || !svf.endsWith('.svf')) {
+                            newModelPromises.push(Promise.reject(new Error(`無效的 SVF 文件路徑: ${svf}`)));
+                            return;
+                        }
+                        // 於環境拼接路徑
+                        if (env.host) {
+                            // Development: 使用絕對 URL
+                            svf = `${env.host}${svf.startsWith('/') ? '' : '/'}${svf}`;
+                        } else {
+                            // Production: 使用相對路徑，確保以 / 開頭
+                            svf = svf.startsWith('/') ? svf : `/${svf}`;
+                        }
+                        newModelPromises.push(
+                            new Promise((resolve, reject) => {
+                                Autodesk.Viewing.Document.load(svf, (doc) => {
+                                    const viewables = doc.getRoot().search({ type: 'geometry' });
+                                    if (viewables.length > 0) {
+                                        resolve({ viewable: viewables[0], urn });
+                                    } else {
+                                        reject(new Error(`無法生成 URN ${urn} 的 geometry 節點`));
+                                    }
+                                }, (errorCode, errorMsg) => {
+                                    reject(new Error(`無法載入本地 SVF 文件 ${svf}: ${errorMsg}`));
+                                });
+                            })
+                        );
+                    } else {
+                        // OSS 模式：從 Autodesk OSS 載入文件
+                        const documentId = `urn:${dataItem.urn}`;
+                        newModelPromises.push(
+                            new Promise((resolve, reject) => {
+                                Autodesk.Viewing.Document.load(documentId, (doc) => {
+                                    const viewables = doc.getRoot().search({ type: 'geometry' });
+                                    if (viewables.length > 0) {
+                                        resolve({ viewable: viewables[0], urn });
+                                    } else {
+                                        reject(new Error(`未找到 URN ${urn} 的 geometry 節點`));
+                                    }
+                                }, (errorCode, errorMsg) => {
+                                    reject(new Error(`無法載入文件 ${urn}: ${errorMsg}`));
+                                });
+                            })
+                        );
+                    }
                 }
             }
         });
@@ -400,35 +432,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         }
     }
 
-    private addGuiButton(): void {
-        if (!this.viewer.toolbar) {
-            console.error('Viewer 工具列尚未準備好');
-            return;
-        }
-
-        const button = new Autodesk.Viewing.UI.Button('customButton');
-        const img = document.createElement('img');
-        img.src = 'assets/aps/svg/search.svg';
-        img.style.width = '24px';
-        img.style.height = '24px';
-        button.container.appendChild(img);
-        button.container.style.display = 'flex';
-        button.container.style.alignItems = 'center';
-        button.container.style.justifyContent = 'center';
-        button.setToolTip('搜尋物件');
-
-        button.onClick = () => {
-            if (this.searchPanel == null) {
-                this.searchPanel = new SearchPanel(this.viewer, this.viewer.container, 'customButton', '搜尋模型');
-            }
-            this.searchPanel.setVisible(!this.searchPanel.isVisible());
-        };
-
-        const subToolbar = new Autodesk.Viewing.UI.ControlGroup('customToolbar');
-        subToolbar.addControl(button);
-        this.viewer.toolbar.addControl(subToolbar);
-    }
-
     loadAggregatedView_oss(data: any[]): void {
         this._appService.getToken().subscribe((aps: any) => {
             const container = this.viewerContainer.nativeElement;
@@ -512,10 +515,36 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             if (d.urn && !urnSet.has(d.urn)) {
                 urnSet.add(d.urn);
                 if (this.isLocalMode) {
-                    const svf = d.svf.replace(/\\/g, '/');
-                    const node = { type: 'geometry', svf: svf, urn: d.urn };
-                    promises.push(Promise.resolve(node));
+                    // 本地模式：動態生成 SVF 路徑
+                    let svf = d.svf_path?.replace(/\\/g, '/');
+                    if (!svf || !svf.endsWith('.svf')) {
+                        promises.push(Promise.reject(new Error(`無效的 SVF 文件路徑: ${svf}`)));
+                        return;
+                    }
+                    // 根據環境拼接路徑
+                    if (env.host) {
+                        // Development: 使用絕對 URL
+                        svf = `${env.host}${svf.startsWith('/') ? '' : '/'}${svf}`;
+                    } else {
+                        // Production: 使用相對路徑，確保以 / 開頭
+                        svf = svf.startsWith('/') ? svf : `/${svf}`;
+                    }
+                    promises.push(
+                        new Promise((resolve, reject) => {
+                            Autodesk.Viewing.Document.load(svf, (doc: any) => {
+                                const viewables = doc.getRoot().search({ type: 'geometry' });
+                                if (viewables.length > 0) {
+                                    resolve(viewables[0]);
+                                } else {
+                                    reject(new Error(`無法生成 URN ${d.urn} 的 geometry 節點`));
+                                }
+                            }, (errorCode: number, errorMsg: string) => {
+                                reject(new Error(`無法載入本地 SVF 文件 ${svf}: ${errorMsg}`));
+                            });
+                        })
+                    );
                 } else {
+                    // OSS 模式：從 Autodesk OSS 載入文件
                     const documentId = `urn:${d.urn}`;
                     promises.push(
                         new Promise((resolve, reject) => {
@@ -542,10 +571,12 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 this.loadedModels = this.viewer.viewer.getAllModels();
                 console.log('Loaded models:', this.loadedModels.map((model: any) => model.getData().urn));
 
+                // 添加工具列按鈕
                 this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
                     this.addAggregatedButton();
                 });
 
+                // 處理選擇事件
                 this.viewer.viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
                     const selection = this.viewer.viewer.getSelection();
                     if (selection.length > 0) {
@@ -560,6 +591,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     }
                 });
 
+                // 處理幾何圖形載入事件
                 this.viewer.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
                     this.loadedModels = this.viewer.viewer.getAllModels();
                     console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
@@ -598,6 +630,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                             // 等待所有模型的物件樹載入完成
                             this.waitForObjectTrees(data);
 
+                            // 設置模型瀏覽器
                             this.setupModelBrowser();
                         } else {
                             console.error('modelstructure 未初始化於 GEOMETRY_LOADED_EVENT');
@@ -605,6 +638,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     }
                 });
 
+                // 強制重繪 Viewer
                 this.viewer.viewer.impl.invalidate(true);
                 this.viewer.viewer.setGhosting(false);
             }).catch((err: any) => {

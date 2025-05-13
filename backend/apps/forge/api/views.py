@@ -281,7 +281,7 @@ class BimUpdateCategoriesView(APIView):
         processed_files = []
         errors = []
 
-        for file_name in filenames:
+        for file_name in filenames:            
             try:
                 bim_model = models.BimModel.objects.get(name=file_name)
             except models.BimModel.DoesNotExist:
@@ -292,13 +292,12 @@ class BimUpdateCategoriesView(APIView):
                 errors.append(f"SQLite path not set for BimModel '{file_name}'.")
                 continue
 
-            # 使用 settings.MEDIA_ROOT 和 bim_model.sqlite_path 檢查檔案
-            absolute_sqlite_path = os.path.join(settings.MEDIA_ROOT, bim_model.sqlite_path).replace(os.sep, '/')
-            if not os.path.exists(absolute_sqlite_path):
-                errors.append(f"SQLite file not found at: {absolute_sqlite_path}")
+            # 使用絕對路徑檢查檔案
+            if not os.path.exists(bim_model.sqlite_path):
+                errors.append(f"SQLite file not found at: {bim_model.sqlite_path}")
                 continue
 
-            # 提交 Celery 任務，使用 bim_model.sqlite_path（相對路徑）
+            # 提交 Celery 任務，使用絕對路徑
             bim_update_categories.delay(bim_model.sqlite_path, bim_model.id, file_name, 'update_category_group')
             processed_files.append({
                 "file_name": file_name,
@@ -323,7 +322,7 @@ class BimConditionViewSet(viewsets.ReadOnlyModelViewSet):
     # Preload all active conditions and their categories
     queryset = models.BimCondition.objects.filter(is_active=True).order_by('order').prefetch_related(
         'bim_categories',
-        Prefetch('children', queryset=models.BimCondition.objects.filter(is_active=True).order_by('order'))
+        Prefetch('children', queryset=models.BimCondition.objects.all().order_by('order'))
     )
 
     def list(self, request, *args, **kwargs):
@@ -611,7 +610,9 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             'display_name',
             'bim_model__name',
             'bim_model__version',
-            'bim_model__urn'
+            'bim_model__urn',
+            'bim_model__svf_path',
+            'bim_model__sqlite_path'
         ).order_by('bim_model', 'dbid')
 
         # 快取結果

@@ -40,7 +40,7 @@ class BimModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.BimModel
-        fields = ['id', 'tender', 'name', 'urn', 'version', 'created_at', 'updated_at']
+        fields = ['id', 'tender', 'name', 'urn', 'svf_path', 'sqlite_path', 'version', 'created_at', 'updated_at']
 
     def get_tender(self, obj):
         return get_tender_name(obj.name)
@@ -62,7 +62,6 @@ class BimConditionSerializer(serializers.ModelSerializer):
 
     def get_categories(self, obj):
         categories = obj.bim_categories.order_by('value').distinct('display_name', 'value')
-        print('categories-->',categories)
         return BimCategorySerializer(categories, many=True).data
 
     def get_children(self, obj):
@@ -86,6 +85,8 @@ class BimObjectSerializer(serializers.Serializer):
     name = serializers.CharField(source='bim_model__name')
     version = serializers.IntegerField(source='bim_model__version')
     urn = serializers.CharField(source='bim_model__urn')
+    svf_path = serializers.CharField(source='bim_model__svf_path', allow_null=True, default=None)
+    sqlite_path = serializers.CharField(source='bim_model__sqlite_path', allow_null=True, default=None)
 
     class Meta:
-        fields = ['id', 'dbid', 'value', 'display_name', 'name', 'version', 'urn']
+        fields = ['id', 'dbid', 'value', 'display_name', 'name', 'version', 'urn', 'svf_path', 'sqlite_path']
