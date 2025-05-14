@@ -243,7 +243,7 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / 'static-root'
 
-MEDIA_URL = '/backend-media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media-root'
 
 # Default primary key field type

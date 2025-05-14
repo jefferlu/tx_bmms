@@ -60,7 +60,7 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         # Upload or reload file
         if not is_reload:
             send_progress('upload-object', 'Uploading file to Autodesk OSS...')
-            upload_path = os.path.join(settings.MEDIA_ROOT, "Uploads", file_name).replace(os.sep, '/')
+            upload_path = os.path.join(settings.MEDIA_ROOT, "uploads", file_name).replace(os.sep, '/')
             object_data = bucket.upload_object(bucket_key, upload_path, file_name)
             urn = get_aps_urn(object_data['objectId'])
         else:
@@ -139,7 +139,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
                 absolute_svf_path = os.path.join(root, file).replace(os.sep, '/')
                 svf_files.append(absolute_svf_path)
     if svf_files:
-        svf_name = svf_files[0]
+        svf_name = f"svf/{file_name}/0/0.svf".replace(os.sep, '/')
         if len(svf_files) > 1:
             logger.warning(f"Multiple .svf files found in {svf_dir}: {svf_files}. Using {svf_name}.")
     else:
@@ -150,6 +150,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     send_progress('download-sqlite', 'Downloading SQLite to server...')
     db = DbReader(urn, token, object_data['objectKey'])
     absolute_sqlite_path = db.db_path.replace(os.sep, '/')
+    sqlite_path = f"database/{file_name}.db".replace(os.sep, '/')
     send_progress('download-sqlite', 'SQLite download completed.')
 
     # Create or update BimModel
@@ -172,9 +173,9 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
             if not created:
                 bim_model.urn = urn
                 bim_model.version += 1
-            # Set svf_path and sqlite_path as absolute paths
+            # Set svf_path and sqlite_path as relative paths
             bim_model.svf_path = svf_name
-            bim_model.sqlite_path = absolute_sqlite_path
+            bim_model.sqlite_path = sqlite_path
             bim_model.save()
             send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) updated.')
 
@@ -195,7 +196,7 @@ def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send
     Update BIM categories, regions, hierarchies, and objects from SQLite.
 
     Args:
-        sqlite_path (str): Absolute path to SQLite database.
+        sqlite_path (str): Relative path to SQLite database (e.g., 'database/...db').
         bim_model_id (int): ID of the BimModel.
         file_name (str): Name of the file.
         group_name (str): Channels group name for progress updates.
@@ -220,8 +221,10 @@ def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send
     start_time = time.time()
 
     try:
+        # Convert relative sqlite_path to absolute path for file access
+        absolute_sqlite_path = os.path.join(settings.MEDIA_ROOT, sqlite_path).replace(os.sep, '/')
         result = _process_categories_and_objects(
-            sqlite_path=sqlite_path,
+            sqlite_path=absolute_sqlite_path,
             bim_model_id=bim_model_id,
             file_name=file_name,
             send_progress=send_progress

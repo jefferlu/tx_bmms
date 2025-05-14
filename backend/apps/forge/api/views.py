@@ -217,7 +217,7 @@ class BimDataImportView(APIView):
 
         # 執行 Celery 任務
         bim_data_import.delay(client_id, client_secret, bucket_key, file_name, 'progress_group')
-
+    
         # 記錄操作
         ip_address = request.META.get('REMOTE_ADDR')
         log_user_activity(self.request.user, '模型匯入', f'匯入{file_name}', 'SUCCESS', ip_address)
