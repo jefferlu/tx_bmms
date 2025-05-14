@@ -5,7 +5,7 @@
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.4
 
--- Started on 2025-05-15 01:23:01
+-- Started on 2025-05-15 01:27:19
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -5066,7 +5066,7 @@ COPY public.core_translation (id, key, value, locale_id) FROM stdin;
 COPY public.core_userprofile (id, company_id, user_id, bim_criteria) FROM stdin;
 2	1	1	{}
 3	1	3	{}
-1	1	2	{"page": 1, "spaces": [], "objects": [], "regions": [], "systems": [{"key": "13723", "label": "電氣設備", "bim_model": 74, "parentLabel": "電氣設備", "display_name": "Name"}]}
+1	1	2	\N
 \.
 
 
@@ -5283,6 +5283,7 @@ COPY public.django_admin_log (id, action_time, object_id, object_repr, action_fl
 204	2025-05-14 17:21:45.143664+00	27	ACS 門禁	2	[{"changed": {"fields": ["Order"]}}]	26	2
 205	2025-05-14 17:21:57.490843+00	26	CCTV 監控	2	[{"changed": {"fields": ["Order"]}}]	26	2
 206	2025-05-14 17:22:16.683252+00	26	CCTV 監控(門禁)	2	[{"changed": {"fields": ["Name"]}}]	26	2
+207	2025-05-14 17:27:04.447899+00	1	admin@example.com - 桃園機場公司	2	[{"changed": {"fields": ["Bim criteria"]}}]	15	2
 \.
 
 
@@ -10189,7 +10190,7 @@ SELECT pg_catalog.setval('public.core_userprofile_id_seq', 3, true);
 -- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.django_admin_log_id_seq', 206, true);
+SELECT pg_catalog.setval('public.django_admin_log_id_seq', 207, true);
 
 
 --
@@ -11414,7 +11415,7 @@ REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2025-05-15 01:23:02
+-- Completed on 2025-05-15 01:27:20
 
 --
 -- PostgreSQL database dump complete
