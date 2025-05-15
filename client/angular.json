@@ -17,7 +17,10 @@
                 "build": {
                     "builder": "@angular-devkit/build-angular:application",
                     "options": {
-                        "outputPath": "dist/client",
+                        "outputPath": {
+                            "base": "dist/client",
+                            "media": "assets"
+                        },
                         "index": "src/index.html",
                         "browser": "src/main.ts",
                         "polyfills": [
@@ -43,8 +46,8 @@
                             "src/@gts/styles/main.scss",
                             "src/styles/styles.scss",
                             "src/styles/tailwind.scss",
-                            "node_modules/ngx-spinner/animations/ball-clip-rotate.css",   
-                            "node_modules/primeicons/primeicons.css",                         
+                            "node_modules/ngx-spinner/animations/ball-clip-rotate.css",
+                            "node_modules/primeicons/primeicons.css",
                             "src/assets/jqueryui/jquery-ui.min.css",
                             "src/assets/elfinder/css/elfinder.min.css",
                             "src/assets/elfinder/css/theme.css"
