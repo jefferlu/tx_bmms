@@ -39,19 +39,20 @@ def send_progress(status, message, task=None, file=None):
 @shared_task(bind=True)
 def backup_database(self):
     """備份資料庫並透過 WebSocket 傳送即時進度訊息"""
-    backup_dir = "/backups"
+    backup_dir = "backups"
     timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    backup_file = f"{backup_dir}/{timestamp}.bak"
+    host_backup_path = os.path.join(settings.MEDIA_ROOT, backup_dir)
+    os.makedirs(host_backup_path, exist_ok=True)
+    container_backup_file = f"/backups/{timestamp}.bak"
 
     db_name = settings.DATABASES["default"]["NAME"]
     db_user = settings.DATABASES["default"]["USER"]
     db_password = settings.DATABASES["default"].get("PASSWORD", "")
 
-    # 初始化 Docker 客戶端
     send_progress("starting", "Initializing backup task...", task=self)
     try:
         client = docker.from_env()
-        container = client.containers.get("postgres")
+        container = client.containers.get("bmms_postgres")
     except docker.errors.NotFound:
         send_progress("error", "Container not found", task=self)
         raise Exception("Container not found")
@@ -59,12 +60,36 @@ def backup_database(self):
         send_progress("error", f"Initialization failed: {str(e)}", task=self)
         raise Exception(f"Unable to initialize Docker client: {str(e)}")
 
-    # 開始備份
-    command = f"pg_dump -U {db_user} -F c -f {backup_file} -d {db_name} --verbose"
+    try:
+        exec_id = client.api.exec_create(
+            container.id,
+            ["/bin/sh", "-c", "mkdir -p /backups && chmod -R 777 /backups"],
+            user="root",
+            stdout=True,
+            stderr=True
+        )
+        output = client.api.exec_start(exec_id, stream=True)
+        error_output = []
+        for line in output:
+            decoded_line = line.decode('utf-8').strip()
+            if decoded_line:
+                error_output.append(decoded_line)
+                logger.error(f"Directory setup output: {decoded_line}")
+        exec_result = client.api.exec_inspect(exec_id)
+        if exec_result['ExitCode'] != 0:
+            error_msg = "Failed to create or set permissions for backup directory"
+            if error_output:
+                error_msg += f": {', '.join(error_output)}"
+            send_progress("error", error_msg, task=self)
+            raise Exception(error_msg)
+    except Exception as e:
+        send_progress("error", f"Failed to prepare backup directory: {str(e)}", task=self)
+        raise
+
+    command = f"pg_dump -U {db_user} -F c -f {container_backup_file} -d {db_name} --verbose"
     send_progress("running", "Starting database backup...", task=self)
 
     try:
-        # 使用 exec_create 和 exec_start 獲取流式輸出
         exec_id = client.api.exec_create(
             container.id,
             command,
@@ -74,14 +99,14 @@ def backup_database(self):
         )
         output = client.api.exec_start(exec_id, stream=True)
 
-        # 逐行讀取輸出並發送進度
         for line in output:
             decoded_line = line.decode('utf-8').strip()
-            if decoded_line:  # Ensure empty lines are not sent
+            if decoded_line:
                 send_progress("running", f"Backup progress: {decoded_line}", task=self)
                 logger.info(f"Backup progress: {decoded_line}")
+                if "error" in decoded_line.lower():
+                    logger.error(f"pg_dump error: {decoded_line}")
 
-        # Check execution result
         exec_result = client.api.exec_inspect(exec_id)
         if exec_result['ExitCode'] != 0:
             send_progress("error", "Backup failed, check logs for details", task=self)
@@ -122,7 +147,7 @@ def restore_database(self):
     send_progress("running", "Initializing restore task...", task=self)
     try:
         client = docker.from_env()
-        container = client.containers.get("postgres")
+        container = client.containers.get("bmms_postgres")
     except docker.errors.NotFound:
         send_progress("error", "Container not found", task=self)
         raise Exception("Container not found")
