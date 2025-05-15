@@ -12,7 +12,7 @@ declare const DownloadPanel: any;
 declare const ApsXLS: any;
 
 const env = environment;
-const MEDIA_URL = '/media/';
+const MEDIA_URL = 'media/';
 
 @Component({
     selector: 'aps-viewer',
