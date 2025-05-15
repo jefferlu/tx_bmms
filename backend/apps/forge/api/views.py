@@ -217,7 +217,7 @@ class BimDataImportView(APIView):
 
         # 執行 Celery 任務
         bim_data_import.delay(client_id, client_secret, bucket_key, file_name, 'progress_group')
-    
+
         # 記錄操作
         ip_address = request.META.get('REMOTE_ADDR')
         log_user_activity(self.request.user, '模型匯入', f'匯入{file_name}', 'SUCCESS', ip_address)
@@ -281,7 +281,7 @@ class BimUpdateCategoriesView(APIView):
         processed_files = []
         errors = []
 
-        for file_name in filenames:            
+        for file_name in filenames:
             try:
                 bim_model = models.BimModel.objects.get(name=file_name)
             except models.BimModel.DoesNotExist:
@@ -292,13 +292,16 @@ class BimUpdateCategoriesView(APIView):
                 errors.append(f"SQLite path not set for BimModel '{file_name}'.")
                 continue
 
+            # 將 sqlite_path 與 MEDIA_ROOT 結合，形成絕對路徑
+            absolute_sqlite_path = os.path.join(settings.MEDIA_ROOT, bim_model.sqlite_path)
+
             # 使用絕對路徑檢查檔案
-            if not os.path.exists(bim_model.sqlite_path):
-                errors.append(f"SQLite file not found at: {bim_model.sqlite_path}")
+            if not os.path.exists(absolute_sqlite_path):
+                errors.append(f"SQLite file not found at: {absolute_sqlite_path}")
                 continue
 
             # 提交 Celery 任務，使用絕對路徑
-            bim_update_categories.delay(bim_model.sqlite_path, bim_model.id, file_name, 'update_category_group')
+            bim_update_categories.delay(absolute_sqlite_path, bim_model.id, file_name, 'update_category_group')
             processed_files.append({
                 "file_name": file_name,
                 "version": bim_model.version
