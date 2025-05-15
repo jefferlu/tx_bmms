@@ -38,7 +38,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     private latestDbIds: number[] = [];
     private latestUrn: string | null = null;
 
-    private isLocalMode: boolean = true;
+    private isLocalMode: boolean = false;
 
     constructor(
         @Optional() @Inject(MAT_DIALOG_DATA) public dialogData: any,
@@ -98,8 +98,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     ngAfterViewInit(): void {
         if (this.dialogData) {
             this.processDataAndLoadViewer();
-        } else {
-            console.warn('Input data must be an array for AggregatedView');
         }
     }
 
@@ -168,81 +166,71 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     private fitToLastModel(data: any[]): void {
-        if (!data || data.length === 0) {
-            console.warn('無有效數據可處理', data);
-            return;
-        }
-    
-        const modelStructure = this.viewer.viewer.modelstructure;
-        if (!modelStructure) {
-            console.error('modelstructure 未初始化，無法展開物件樹');
-            return;
-        }
-    
-        // 按 urn 合併所有 dbIds，僅處理有 dbid 的 entry
-        const dbIdsByUrn = data.reduce((acc, entry) => {
-            if (entry.urn && entry.dbid !== undefined) {
+        if (data && data.length > 0) {
+            const modelStructure = this.viewer.viewer.modelstructure;
+            if (!modelStructure) {
+                console.error('modelstructure 未初始化，無法展開物件樹');
+                return;
+            }
+
+            // 按 urn 合併所有 dbIds
+            const dbIdsByUrn = data.reduce((acc, entry) => {
                 const urn = entry.urn;
-                const dbIds = Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid];
+                const dbIds = entry.dbid !== undefined
+                    ? (Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid])
+                    : [1]; // 無 dbid 時設置為根節點
                 if (!acc[urn]) {
                     acc[urn] = [];
                 }
-                acc[urn] = [...new Set([...acc[urn], ...dbIds.filter(id => id !== undefined && id !== null)])];
-            }
-            return acc;
-        }, {});
-    
-        // 隔離每個 urn 的所有 dbIds
-        Object.entries(dbIdsByUrn).forEach(([urn, dbIds]) => {
-            const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
-            if (targetModel) {
-                this.viewer.viewer.isolate(dbIds, targetModel);
-                console.log(`為模型 ${urn} 隔離 dbIds:`, dbIds);
-            } else {
-                console.warn(`未找到 URN 為 ${urn} 的模型`);
-            }
-        });
-    
-        // 展開物件樹，僅處理有 dbid 的 entry
-        data.forEach((entry) => {
-            if (entry.urn && entry.dbid !== undefined) {
+                acc[urn] = [...new Set([...acc[urn], ...dbIds])]; // 去重 dbIds
+                return acc;
+            }, {});
+
+            // 隔離每個 urn 的所有 dbIds
+            Object.entries(dbIdsByUrn).forEach(([urn, dbIds]) => {
+                const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
+                if (targetModel) {
+                    this.viewer.viewer.isolate(dbIds, targetModel);
+                    console.log(`為模型 ${urn} 隔離 dbIds:`, dbIds);
+                } else {
+                    console.warn(`未找到 URN 為 ${urn} 的模型`);
+                }
+            });
+
+            // 展開物件樹
+            data.forEach((entry) => {
                 const urn = entry.urn;
                 const dbIds = Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid];
                 const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
                 if (targetModel) {
                     const tree = targetModel.getInstanceTree();
                     if (tree) {
-                        dbIds
-                            .filter(id => id !== undefined && id !== null)
-                            .forEach((dbid: number) => {
+                        dbIds.forEach((dbid: number) => {
+                            if (dbid) {
                                 const nodePath = this.getNodePath(tree, dbid);
                                 if (nodePath) {
                                     this.expandNodePathInTree(tree, nodePath, modelStructure, targetModel);
                                 }
-                            });
+                            }
+                        });
                     } else {
                         console.error(`無法從模型 ${urn} 中獲取 InstanceTree`);
                     }
                 }
-            }
-        });
-    
-        // 聚焦最新 dbid 或整個模型
-        if (this.latestUrn) {
-            const targetModel = this.loadedModels.find((model: any) => model.getData().urn === this.latestUrn);
-            if (targetModel) {
-                if (this.latestDbIds.length > 0) {
+            });
+
+            // 聚焦最新 dbid
+            if (this.latestUrn && this.latestDbIds.length > 0) {
+                const targetModel = this.loadedModels.find((model: any) => model.getData().urn === this.latestUrn);
+                if (targetModel) {
                     console.log(`聚焦模型 ${this.latestUrn}，dbIds: ${this.latestDbIds}`);
                     this.viewer.viewer.fitToView(this.latestDbIds, targetModel);
                 } else {
-                    console.log(`無最新 dbIds，聚焦整個模型 ${this.latestUrn}`);
-                    this.viewer.viewer.fitToView([], targetModel);
+                    console.warn(`未找到 URN 為 ${this.latestUrn} 的模型進行聚焦`);
                 }
             } else {
-                console.warn(`未找到 URN 為 ${this.latestUrn} 的模型進行聚焦`);
+                console.warn('無最新 dbIds 或 urn，無法聚焦');
             }
-        } else {
-            console.warn('無最新 urn，無法聚焦');
         }
     }
 
@@ -409,29 +397,34 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             return;
         }
 
-        // 生成模型載入條目，僅包含 urn
-        // 輸出結構：[{ urn: string }]
-        const modelEntries = data.some(item => item.urn)
+        // 生成模型載入條目，包含 urn 和 dbid（無 dbid 時設置為 [1]）
+        const dbids = data.some(item => item.urn)
             ? Object.values(
                 data.reduce((acc, item) => {
                     if (item.urn) {
-                        acc[item.urn] = { urn: item.urn };
+                        if (!acc[item.urn]) {
+                            acc[item.urn] = { urn: item.urn, dbid: [] };
+                        }
+                        const itemDbids = item.dbid !== undefined
+                            ? (Array.isArray(item.dbid) ? item.dbid : [item.dbid])
+                            : [1]; // 無 dbid 時設置為根節點
+                        acc[item.urn].dbid = [...new Set([...acc[item.urn].dbid, ...itemDbids])];
                     }
                     return acc;
                 }, {})
             )
             : null;
 
-        if (!modelEntries || modelEntries.length === 0) {
-            console.warn('無有效 URN 可載入模型', data);
-            this._toastService.open({ message: '無有效模型數據可載入' });
+        if (!dbids || dbids.length === 0) {
+            console.warn('無有效數據可載入', data);
+            this._toastService.open({ message: '無有效數據可載入' });
             return;
         }
 
         const loadPromises: Promise<any>[] = [];
         const urnSet = new Set(this.loadedModels.map((model) => model.getData().urn));
 
-        modelEntries.forEach((entry: any) => {
+        dbids.forEach((entry: any) => {
             const urn = entry.urn;
             if (!urnSet.has(urn)) {
                 const dataItem = data.find(item => item.urn === urn);
@@ -481,34 +474,20 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             }
         });
 
-        // 無新模型需載入，直接處理現有模型
         if (loadPromises.length === 0 && data) {
-            if (!this.dialogData) {
-                // 非 dialog 模式，執行正常 dbid 相關操作
-                this.handleModelLoading(data);
-            } else {
-                // dialog 模式，僅聚焦最新模型，無 dbid 操作
-                this.focusToLatestModel(data);
-            }
+            this.fitToLastModel(data);
+            this.handleModelLoading(data);
             return;
         }
 
-        // 載入新模型，更新模型狀態
         Promise.all(loadPromises).then((results) => {
             if (this.isLocalMode) {
                 const newModels = results.map(result => result.model);
                 this.loadedModels = [...this.loadedModels, ...newModels];
                 console.log('更新後的本地模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
                 this.loadedModels = this.viewer.viewer.getAllModels();
-                if (!this.dialogData) {
-                    // 非 dialog 模式，執行正常 dbid 相關操作
-                    this.handleModelLoading(data);
-                } else {
-                    // dialog 模式，僅聚焦最新模型，無 dbid 操作
-                    this.focusToLatestModel(data);
-                }
+                this.handleModelLoading(data);
             } else {
-                // OSS 模式，假設 viewer 已配置權杖管理
                 const newBubbleNodes = results.map(result => result.viewable);
                 const allBubbleNodes = [...this.loadedBubbleNodes, ...newBubbleNodes];
                 console.log('準備設置 OSS 節點:', allBubbleNodes.map(node => ({
@@ -519,13 +498,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     this.loadedBubbleNodes = allBubbleNodes;
                     this.loadedModels = this.viewer.viewer.getAllModels();
                     console.log('更新後的 OSS 模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
-                    if (!this.dialogData) {
-                        // 非 dialog 模式，執行正常 dbid 相關操作
-                        this.handleModelLoading(data);
-                    } else {
-                        // dialog 模式，僅聚焦最新模型，無 dbid 操作
-                        this.focusToLatestModel(data);
-                    }
+                    this.handleModelLoading(data);
                 }).catch((err) => {
                     console.error('設置 OSS 模型失敗:', err);
                     this._toastService.open({ message: '無法設置 OSS 模型' });
@@ -535,25 +508,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             console.error('載入模型失敗:', err);
             this._toastService.open({ message: err.message || '無法載入模型文件' });
         });
-    }
-
-    // 新增方法：dialog 模式下聚焦最新模型，無 dbid 操作
-    private focusToLatestModel(data: any[]): void {
-        if (data && data.length > 0) {
-            const latestEntry = data[data.length - 1];
-            const latestUrn = latestEntry.urn;
-            if (latestUrn) {
-                const targetModel = this.loadedModels.find((model: any) => model.getData().urn === latestUrn);
-                if (targetModel) {
-                    console.log(`dialog 模式：聚焦整個模型 ${latestUrn}`);
-                    this.viewer.viewer.fitToView([], targetModel);
-                } else {
-                    console.warn(`dialog 模式：未找到 URN 為 ${latestUrn} 的模型進行聚焦`);
-                }
-            } else {
-                console.warn('dialog 模式：無有效 URN 可聚焦');
-            }
-        }
     }
 
     private handleModelLoading(data: any[]): void {
