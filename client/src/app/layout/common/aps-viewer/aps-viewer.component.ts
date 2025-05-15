@@ -38,7 +38,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     private latestDbIds: number[] = [];
     private latestUrn: string | null = null;
 
-    private isLocalMode: boolean = false;
+    private isLocalMode: boolean = true;
 
     constructor(
         @Optional() @Inject(MAT_DIALOG_DATA) public dialogData: any,
@@ -172,6 +172,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 console.error('modelstructure 未初始化，無法展開物件樹');
                 return;
             }
+
+            if (this.dialogData) return;
 
             // 按 urn 合併所有 dbIds
             const dbIdsByUrn = data.reduce((acc, entry) => {
@@ -342,6 +344,13 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     if (!this.isViewerInitialized) {
                         this.viewer.init(container, options).then(() => {
                             this.isViewerInitialized = true;
+                            this.viewer.viewer.impl.invalidate(true);
+                            this.viewer.viewer.setGhosting(false);
+
+                            this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
+                                this.addAggregatedButton();
+                            });
+
                             this.loadModels(data);
                         }).catch((err: any) => {
                             console.error('AggregatedView 初始化失敗:', err);
@@ -374,6 +383,13 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 if (!this.isViewerInitialized) {
                     this.viewer.init(container, options).then(() => {
                         this.isViewerInitialized = true;
+                        this.viewer.viewer.impl.invalidate(true);
+                        this.viewer.viewer.setGhosting(false);
+
+                        this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
+                            this.addAggregatedButton();
+                        });
+
                         this.loadModels(data);
                     }).catch((err: any) => {
                         console.error('AggregatedView 初始化失敗:', err);
@@ -511,10 +527,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     private handleModelLoading(data: any[]): void {
-        this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
-            this.addAggregatedButton();
-        });
-
         this.viewer.viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
             const selection = this.viewer.viewer.getSelection();
             if (selection.length > 0) {
@@ -543,9 +555,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 }
             }
         });
-
-        this.viewer.viewer.impl.invalidate(true);
-        this.viewer.viewer.setGhosting(false);
     }
 
     private addAggregatedButton(): void {
