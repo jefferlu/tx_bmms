@@ -175,16 +175,34 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 return;
             }
 
-            // 隔離所有 data 中的 dbid
-            data.forEach((entry) => {
+            // 按 urn 合併所有 dbIds
+            const dbIdsByUrn = data.reduce((acc, entry) => {
                 const urn = entry.urn;
                 const dbIds = Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid];
+                if (!acc[urn]) {
+                    acc[urn] = [];
+                }
+                acc[urn] = [...new Set([...acc[urn], ...dbIds])]; // 去重 dbIds
+                return acc;
+            }, {});
 
+            // 隔離每個 urn 的所有 dbIds
+            Object.entries(dbIdsByUrn).forEach(([urn, dbIds]) => {
                 const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
                 if (targetModel) {
                     this.viewer.viewer.isolate(dbIds, targetModel);
                     console.log(`為模型 ${urn} 隔離 dbIds:`, dbIds);
+                } else {
+                    console.warn(`未找到 URN 為 ${urn} 的模型`);
+                }
+            });
 
+            // 展開物件樹
+            data.forEach((entry) => {
+                const urn = entry.urn;
+                const dbIds = Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid];
+                const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
+                if (targetModel) {
                     const tree = targetModel.getInstanceTree();
                     if (tree) {
                         dbIds.forEach((dbid: number) => {
@@ -196,8 +214,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     } else {
                         console.error(`無法從模型 ${urn} 中獲取 InstanceTree`);
                     }
-                } else {
-                    console.warn(`未找到 URN 為 ${urn} 的模型`);
                 }
             });
 
