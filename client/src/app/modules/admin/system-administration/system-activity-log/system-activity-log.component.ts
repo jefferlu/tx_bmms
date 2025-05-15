@@ -27,7 +27,7 @@ export class SystemActivityLogComponent {
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
     data: any;
-    container: string = 'client';
+    container: string = 'bmms_client';
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -36,7 +36,7 @@ export class SystemActivityLogComponent {
 
     ngOnInit(): void {
         // Get groups data
-        this._systemActivityLogService.getData('client', { lines: LINES })
+        this._systemActivityLogService.getData(this.container, { lines: LINES })
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((data: any) => {
                 this.data = data;

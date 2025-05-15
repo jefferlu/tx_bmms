@@ -1,7 +1,7 @@
 <div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full">
     <div class="flex flex-auto flex-col h-full bg-white dark:bg-gray-900" *transloco="let t">
         <!-- Header -->
-        <div class="flex flex-row items-center justify-between px-6 py-6 md:px-8">
+        <div class="flex flex-row items-center justify-between px-6 py-6 md:pl-8">
             <!-- Title -->
             <div class="text-3xl font-extrabold leading-none tracking-tight">
                 {{t('system-activity-log')}}
@@ -22,28 +22,34 @@
 
             <div class="flex flex-wrap gap-4 pb-4">
                 <div class="flex items-center">
-                    <p-radiobutton name="client" value="client" [(ngModel)]="container" inputId="client" (click)="onClick('client')" />
+                    <p-radiobutton name="bmms_client" value="bmms_client" [(ngModel)]="container" inputId="client" (click)="onClick('bmms_client')" />
                     <label for="client" class="ml-2 hover:cursor-pointer">Client</label>
                 </div>
 
                 <div class="flex items-center">
-                    <p-radiobutton name="backend" value="backend" [(ngModel)]="container" inputId="backend" (click)="onClick('backend')" />
+                    <p-radiobutton name="bmms_backend" value="bmms_backend" [(ngModel)]="container" inputId="backend" (click)="onClick('bmms_backend')" />
                     <label for="backend" class="ml-2 hover:cursor-pointer">Backend</label>
                 </div>
 
                 <div class="flex items-center">
-                    <p-radiobutton name="postgres" value="postgres" [(ngModel)]="container" inputId="postgres" (click)="onClick('postgres')" />
+                    <p-radiobutton name="bmms_postgres" value="bmms_postgres" [(ngModel)]="container" inputId="postgres" (click)="onClick('bmms_postgres')" />
                     <label for="postgres" class="ml-2 hover:cursor-pointer">Postgres</label>
                 </div>
+
                 <div class="flex items-center">
-                    <p-radiobutton name="redis" value="redis" [(ngModel)]="container" inputId="redis" (click)="onClick('redis')" />
+                    <p-radiobutton name="bmms_celery" value="bmms_celery" [(ngModel)]="container" inputId="celery" (click)="onClick('bmms_celery')" />
+                    <label for="celery" class="ml-2 hover:cursor-pointer">Tasks</label>
+                </div>
+
+                <div class="flex items-center">
+                    <p-radiobutton name="bmms_redis" value="bmms_redis" [(ngModel)]="container" inputId="redis" (click)="onClick('bmms_redis')" />
                     <label for="redis" class="ml-2 hover:cursor-pointer">Redis</label>
                 </div>
             </div>
         </div>
 
         <!-- Content -->
-        <div class="flex h-full overflow-y-auto px-6 pb-6 md:px-8">
+        <div class="flex h-full overflow-y-auto pl-6 pb-6 md:pl-8">
 
             <div class="flex flex-auto flex-col">
 
