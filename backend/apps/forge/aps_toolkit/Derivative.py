@@ -61,7 +61,9 @@ class Derivative:
                             "3d"
                         ],
                         "advanced": {
-                            "generateMasterViews": generate_master_views
+                            # "generateMasterViews": generate_master_views
+                            "generateMasterViews": True,
+                            "generateEdgeGeometry": True
                         }
                     }
                 ]
