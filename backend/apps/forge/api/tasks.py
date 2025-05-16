@@ -456,13 +456,13 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                     logger.warning(f"Skipping invalid related_id for entity_id={row.entity_id}, value={row.related_id}")
                     continue
 
-            if new_hierarchies:
-                batch_size = 10000
-                for i in range(0, len(new_hierarchies), batch_size):
-                    batch = new_hierarchies[i:i + batch_size]
-                    models.BimObjectHierarchy.objects.bulk_create(batch)
-                    send_progress('process-bimobjecthierarchy',
-                                  f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
+            # if new_hierarchies:
+            #     batch_size = 10000
+            #     for i in range(0, len(new_hierarchies), batch_size):
+            #         batch = new_hierarchies[i:i + batch_size]
+            #         models.BimObjectHierarchy.objects.bulk_create(batch)
+            #         send_progress('process-bimobjecthierarchy',
+            #                       f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
             else:
                 logger.warning(f"No valid BimObjectHierarchy records found for bim_model_id={bim_model_id}")
 

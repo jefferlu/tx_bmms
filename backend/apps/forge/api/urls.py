@@ -29,6 +29,7 @@ urlpatterns = [
     re_path(r'^bim-data-reload/?$', views.BimDataReloadView.as_view(), name='bim-data-reload'),
     re_path(r'^bim-update-categories/?$', views.BimUpdateCategoriesView.as_view(), name='bim-update-categories'),
     re_path(r"^user-criteria/?$", core_views.UserCriteriaView.as_view(), name="update-user-criteria"),
+    re_path(r"^bim-version-download/?$", views.BimVersionDownloadView.as_view(), name='bim-version-download'),
 
     path('', include(router.urls)),
 ]
