@@ -346,6 +346,9 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                             this.isViewerInitialized = true;
                             this.viewer.viewer.impl.invalidate(true);
                             this.viewer.viewer.setGhosting(false);
+                            this.viewer.viewer.setDisplayEdges(true);
+                            this.viewer.viewer.setQualityLevel(true, true);
+                            this.viewer.viewer.prefs.set('reverseMouseWheel', false);
 
                             this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
                                 this.addAggregatedButton();
@@ -383,8 +386,13 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 if (!this.isViewerInitialized) {
                     this.viewer.init(container, options).then(() => {
                         this.isViewerInitialized = true;
-                        this.viewer.viewer.impl.invalidate(true);
+
                         this.viewer.viewer.setGhosting(false);
+                        this.viewer.viewer.setDisplayEdges(true);
+                        this.viewer.viewer.setQualityLevel(true, true);
+                        this.viewer.viewer.setReverseZoomDirection(true); // 確保方向一致
+                        
+                        this.viewer.viewer.impl.invalidate(true);
 
                         this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
                             this.addAggregatedButton();
@@ -541,7 +549,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             }
         });
 
-        this.viewer.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+        this.viewer.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {           
             this.loadedModels = this.viewer.viewer.getAllModels();
             console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
 
