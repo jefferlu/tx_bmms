@@ -99,6 +99,90 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         if (this.dialogData) {
             this.processDataAndLoadViewer();
         }
+
+        // this.unitTest()
+
+    }
+
+    private unitTest() {
+        // GuiViewer3D()
+        const container = this.viewerContainer.nativeElement;
+        const svfPaths = ['assets/aps/svf/model1/0.svf', 'assets/aps/svf/model2/0.svf', 'assets/aps/svf/model3/0.svf'];
+        let svf = 'assets/aps/svf/model4/output.svf';
+
+        const options = {
+            env: 'Local',
+            useConsolidation: true,
+            document: `${svf}`,
+            language: 'en',
+            extensions: ['Autodesk.AEC.Minimap3DExtension'],
+            isAEC: true,
+        };
+
+        this.viewer = new Autodesk.Viewing.GuiViewer3D(container, { antialiasing: true });
+
+        Autodesk.Viewing.Initializer(options, () => {
+            Autodesk.Viewing.Private.InitParametersSetting.alpha = true;
+
+            this.viewer.start();
+            svfPaths.forEach((svfPath, index) => {
+                options['globalOffset'] = { x: index * 10, y: 0, z: 0 };
+                this.viewer.loadModel(svfPath, {
+                    isAEC: true,
+                    globalOffset: { x: index * 10, y: 0, z: 0 }
+                }, (model) => {
+                    console.log(`Model ${index + 1} loaded`);
+                    this.viewer.addEventListener(Autodesk.Viewing.NAVIGATION_MODE_CHANGED_EVENT, (event) => {
+                        const mode = event.mode; // 當前導航模式
+                        const minimapExtensionName = 'Autodesk.AEC.Minimap3DExtension';
+
+                        // if (mode === 'first-person') {
+                            // 進入第一人稱模式：載入並顯示小地圖
+                            this.viewer.loadExtension(minimapExtensionName)
+                                .then((extension) => {
+                                    console.log('Minimap extension loaded');
+                                    extension.changeMinimapVisibility(true); // 確保小地圖顯示
+                                })
+                                .catch((error) => {
+                                    console.error('Failed to load Minimap extension:', error);
+                                });
+                        // } else {
+                        //     // 退出第一人稱模式：隱藏或卸載小地圖
+                        //     this.viewer.getExtension(minimapExtensionName, (extension) => {
+                        //         if (extension) {
+                        //             extension.hide(); // 隱藏小地圖
+                        //             // 可選：完全卸載擴展以釋放資源
+                        //             // this.viewer.unloadExtension(minimapExtensionName);
+                        //         }
+                        //     });
+                        // }
+                    });
+                }, (err) => console.error(`Model ${index + 1} load error:`, err));
+            });
+
+            // const startedCode = this.viewer.start(options.document, options, () => {
+            //     this.viewer.impl.invalidate(true);
+            //     this.viewer.setGhosting(false);
+
+
+
+            //     this.viewer.addEventListener(Autodesk.Viewing.NAVIGATION_MODE_CHANGED_EVENT, (event) => {
+            //         const mode = event.mode; // 當前導航模式
+            //         const minimapExtensionName = 'Autodesk.AEC.Minimap3DExtension';
+            //         const aecData = this.viewer.model.getDocumentNode().getAecModelData();
+            //         console.log('AEC Data:', aecData);
+            //         this.viewer.loadExtension(minimapExtensionName)
+            //             .then((extension) => {
+            //                 console.log('Minimap extension loaded');
+
+            //                 // extension.changeMinimapVisibility(true); // 確保小地圖顯示
+            //             })
+            //             .catch((error) => {
+            //                 console.error('Failed to load Minimap extension:', error);
+            //             });
+            //     });
+            // });
+        });
     }
 
     private extractKeyData(data: any): any {
@@ -166,8 +250,9 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     private fitToLastModel(data: any[]): void {
+        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
         if (data && data.length > 0) {
-            const modelStructure = this.viewer.viewer.modelstructure;
+            const modelStructure = viewer.modelstructure;
             if (!modelStructure) {
                 console.error('modelstructure 未初始化，無法展開物件樹');
                 return;
@@ -192,7 +277,40 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             Object.entries(dbIdsByUrn).forEach(([urn, dbIds]) => {
                 const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
                 if (targetModel) {
-                    this.viewer.viewer.isolate(dbIds, targetModel);
+                    viewer.isolate(dbIds, targetModel);
+                    // 獲取節點的邊界框
+                    viewer.model.getBoundingBox(dbIds, (box: any) => {
+                        // 計算中心點
+                        const center = new viewer.impl.Vector3(
+                            (box.min.x + box.max.x) / 2,
+                            (box.min.y + box.max.y) / 2,
+                            (box.min.z + box.max.z) / 2
+                        );
+
+                        // 計算邊界框大小並放大距離
+                        const size = Math.max(
+                            box.max.x - box.min.x,
+                            box.max.y - box.min.y,
+                            box.max.z - box.min.z
+                        );
+                        const distance = size * 2; // 攝影機距離中心點的距離
+
+                        // 獲取攝影機
+                        const camera = viewer.impl.camera;
+
+                        // 設置攝影機位置
+                        camera.position.copy(center.clone().add(new viewer.impl.Vector3(0, 0, distance)));
+
+                        // 設置攝影機目標點
+                        camera.lookAt(center);
+
+                        // 調整視場 (FOV) 以增加縮放靈活性
+                        camera.fov = 75; // 可根據需要調整
+                        camera.updateProjectionMatrix();
+
+                        // 更新渲染
+                        viewer.impl.invalidate(true);
+                    });
                     console.log(`為模型 ${urn} 隔離 dbIds:`, dbIds);
                 } else {
                     console.warn(`未找到 URN 為 ${urn} 的模型`);
@@ -226,7 +344,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 const targetModel = this.loadedModels.find((model: any) => model.getData().urn === this.latestUrn);
                 if (targetModel) {
                     console.log(`聚焦模型 ${this.latestUrn}，dbIds: ${this.latestDbIds}`);
-                    this.viewer.viewer.fitToView(this.latestDbIds, targetModel);
+                    viewer.fitToView(this.latestDbIds, targetModel);
                 } else {
                     console.warn(`未找到 URN 為 ${this.latestUrn} 的模型進行聚焦`);
                 }
@@ -256,7 +374,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 }
                 this.viewer = null;
             } catch (e) {
-                this._toastService.open({ message: '無法清理 Viewer' });
+                // this._toastService.open({ message: '無法清理 Viewer' });
             }
         }
         if (this.viewerContainer) {
@@ -267,7 +385,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     private emitNodeProperties(dbId: number, model: any): void {
-        this.viewer.viewer.getProperties(dbId, (result) => {
+        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+        viewer.getProperties(dbId, (result) => {
             const filteredProperties = result.properties.filter((prop: any) => prop.displayName.startsWith('COBie'));
             const name = result.name ||
                 filteredProperties.find((prop: any) => prop.displayName === 'COBie.Space.Name')?.displayValue ||
@@ -290,9 +409,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     private expandNodePathInTree(tree: any, nodePath: any, modelStructure: any, model: any) {
+        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
         if (modelStructure) {
             nodePath.forEach((dbId: number) => {
-                this.viewer.viewer.select([dbId], model);
+                viewer.select([dbId], model);
                 this.emitNodeProperties(dbId, model);
             });
         } else {
@@ -301,14 +421,15 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     private setupModelBrowser(): void {
-        const modelStructure = this.viewer.viewer.modelstructure;
+        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+        const modelStructure = viewer.modelstructure;
         if (modelStructure) {
             modelStructure.container.addEventListener('mouseup', (event: any) => {
                 const target = event.target.closest('[lmv-nodeid]');
                 const dbId = target ? parseInt(target.getAttribute('lmv-nodeid'), 10) : null;
                 const modelId = target ? target.closest('[lmv-modelid]')?.getAttribute('lmv-modelid') : null;
 
-                let model = this.viewer.viewer.model || this.viewer.viewer;
+                let model = viewer.model || viewer;
                 if (modelId && this.loadedModels) {
                     model = this.loadedModels.find((m: any) => m.id === parseInt(modelId, 10)) || model;
                 }
@@ -316,7 +437,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 if (dbId && !isNaN(dbId)) {
                     const tree = model.getInstanceTree();
                     if (tree && tree.nodeAccess.getIndex(dbId) !== -1) {
-                        this.viewer.viewer.select([dbId], model);
+                        viewer.select([dbId], model);
                     }
                 }
             });
@@ -346,9 +467,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                             this.isViewerInitialized = true;
                             this.viewer.viewer.impl.invalidate(true);
                             this.viewer.viewer.setGhosting(false);
-                            this.viewer.viewer.setDisplayEdges(true);
-                            this.viewer.viewer.setQualityLevel(true, true);
-                            this.viewer.viewer.prefs.set('reverseMouseWheel', false);
 
                             this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
                                 this.addAggregatedButton();
@@ -372,7 +490,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
     loadAggregatedView(data: any[]): void {
         const container = this.viewerContainer.nativeElement;
-        this.viewer = this.viewer || new Autodesk.Viewing.AggregatedView();
+        // this.viewer = this.viewer || new Autodesk.Viewing.AggregatedView();
+        this.viewer = this.viewer || new Autodesk.Viewing.GuiViewer3D(container, { antialiasing: true });
 
         const options = {
             env: 'Local',
@@ -384,25 +503,51 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         try {
             Autodesk.Viewing.Initializer(options, () => {
                 if (!this.isViewerInitialized) {
-                    this.viewer.init(container, options).then(() => {
-                        this.isViewerInitialized = true;
+                    this.viewer.start();
 
-                        this.viewer.viewer.setGhosting(false);
-                        this.viewer.viewer.setDisplayEdges(true);
-                        this.viewer.viewer.setQualityLevel(true, true);
-                        this.viewer.viewer.setReverseZoomDirection(true); // 確保方向一致
-                        
-                        this.viewer.viewer.impl.invalidate(true);
+                    this.isViewerInitialized = true;
+                    this.viewer.setGhosting(false);
 
-                        this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
-                            this.addAggregatedButton();
-                        });
+                    this.viewer.setActiveNavigationTool('first-person');
 
-                        this.loadModels(data);
-                    }).catch((err: any) => {
-                        console.error('AggregatedView 初始化失敗:', err);
-                        this._toastService.open({ message: '無法初始化 AggregatedView' });
+                    // this.viewer.setDisplayEdges(true);
+                    // this.viewer.setQualityLevel(true, true);
+                    // this.viewer.setReverseZoomDirection(true); // 確保方向一致
+
+                    // this.viewer.viewer.navigation.setNavigationLock(false); // 解除導航鎖定
+                    // this.viewer.viewer.navigation.setNavigateNearGeometry(false); // 禁用碰撞檢測
+
+                    this.viewer.impl.invalidate(true);
+
+                    this.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
+                        this.addAggregatedButton();
                     });
+
+                    // this.viewer.addEventListener(Autodesk.Viewing.NAVIGATION_MODE_CHANGED_EVENT, (event) => {
+                    //     const mode = event.mode; // 當前導航模式
+                    //     const minimapExtensionName = 'Autodesk.AEC.Minimap3DExtension';
+
+                    //     this.viewer.loadExtension(minimapExtensionName)
+                    //         .then((extension) => {
+                    //             console.log('Minimap extension loaded');
+                    //             extension.changeMinimapVisibility(true); // 確保小地圖顯示
+                    //         })
+                    //         .catch((error) => {
+                    //             console.error('Failed to load Minimap extension:', error);
+                    //         });
+                    // });
+
+                    this.viewer.loadExtension("Autodesk.Viewing.Minimap").then((minimap) => {
+                        console.log("Minimap loaded");
+                        minimap.createMinimap({
+                            container: document.getElementById("minimap-container"), // 確保有容器
+                            width: 200,
+                            height: 200
+                        });
+                    });
+
+                    this.loadModels(data);
+
                 } else {
                     this.loadModels(data);
                 }
@@ -414,7 +559,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     private loadModels(data: any[]): void {
-        const guiViewer = this.viewer.viewer;
+        const guiViewer = this.viewer;
         if (!guiViewer) {
             console.error('GuiViewer3D 尚未準備好');
             this._toastService.open({ message: 'GuiViewer3D 未初始化' });
@@ -461,7 +606,14 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         const svfPath = dataItem.svf_path.replace(/\\/g, '/');
                         const documentId = `${env.host}${MEDIA_URL}${svfPath}`;
 
-                        const loadOptions = { urn: urn };
+                        const loadOptions = {
+                            urn: urn,
+                            isAEC: true,
+                            applyRefPoint: true,
+                            skipHiddenFragments: false,
+                            extensions: ['Autodesk.DocumentBrowser', 'ToolbarExtension'],
+                            loaderExtensions: { svf: 'Autodesk.MemoryLimited' }
+                        };
 
                         loadPromises.push(
                             new Promise((resolve, reject) => {
@@ -509,7 +661,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 const newModels = results.map(result => result.model);
                 this.loadedModels = [...this.loadedModels, ...newModels];
                 console.log('更新後的本地模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
-                this.loadedModels = this.viewer.viewer.getAllModels();
+                this.loadedModels = this.viewer.getAllModels();
                 this.handleModelLoading(data);
             } else {
                 const newBubbleNodes = results.map(result => result.viewable);
@@ -535,26 +687,27 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     private handleModelLoading(data: any[]): void {
-        this.viewer.viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
-            const selection = this.viewer.viewer.getSelection();
+        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+        viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
+            const selection = viewer.getSelection();
             if (selection.length > 0) {
                 const dbId = selection[0];
-                const model = this.viewer.viewer.model || this.loadedModels.find((m: any) => {
+                const model = viewer.model || this.loadedModels.find((m: any) => {
                     const tree = m.getInstanceTree();
                     return tree && tree.nodeAccess.getIndex(dbId) !== -1;
-                }) || this.viewer.viewer;
+                }) || viewer;
                 this.emitNodeProperties(dbId, model);
             } else {
                 console.log('沒有選中任何物件');
             }
         });
 
-        this.viewer.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {           
-            this.loadedModels = this.viewer.viewer.getAllModels();
+        viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+            this.loadedModels = viewer.getAllModels();
             console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
 
             if (data && data.length > 0) {
-                const modelStructure = this.viewer.viewer.modelstructure;
+                const modelStructure = viewer.modelstructure;
                 if (modelStructure) {
                     this.waitForObjectTrees(data);
                     this.setupModelBrowser();
@@ -566,7 +719,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     private addAggregatedButton(): void {
-        if (!this.viewer.viewer.toolbar) {
+        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+        if (!viewer.toolbar) {
             console.error('Viewer 工具列尚未準備好');
             return;
         }
@@ -581,7 +735,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         searchButton.setToolTip('搜尋物件');
         searchButton.onClick = () => {
             if (this.searchPanel == null) {
-                this.searchPanel = new SearchPanel(this.viewer.viewer, this.viewer.viewer.container, 'searchModel', '搜尋模型');
+                this.searchPanel = new SearchPanel(viewer, viewer.container, 'searchModel', '搜尋模型');
             }
             this.searchPanel.setVisible(!this.searchPanel.isVisible());
         };
@@ -596,7 +750,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         downloadButton.setToolTip('下載資料庫');
         downloadButton.onClick = () => {
             if (this.downloadPanel == null) {
-                this.downloadPanel = new DownloadPanel(this.viewer.viewer, this.viewer.viewer.container, 'downloadPanel', '下載資料庫');
+                this.downloadPanel = new DownloadPanel(viewer, viewer.container, 'downloadPanel', '下載資料庫');
             }
             this.downloadPanel.setVisible(!this.downloadPanel.isVisible());
         };
@@ -620,7 +774,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         subToolbar.addControl(searchButton);
         subToolbar.addControl(downloadButton);
         subToolbar.addControl(exportButton);
-        this.viewer.viewer.toolbar.addControl(subToolbar);
+        viewer.toolbar.addControl(subToolbar);
     }
 
     private getViewerLanguage(lang: string): string {

@@ -105,24 +105,24 @@ services:
         volumes:
             - media_files:/app/media-files
 
-    flower:
-        build: backend
-        container_name: bmms_flower
-        restart: always
-        networks:
-            - internal_network
-        command: >
-            celery -A tx_bmms flower --port=5555 --broker=redis://bmms_redis:6379/0 --persistent=True --db=/app/flower.db
-        environment:
-            - DEBUG=FALSE
-            - TZ=Asia/Taipei
-        depends_on:
-            - redis
-            - celery
-        ports:
-            - "5555:5555"
-        volumes:
-            - flower_data:/app
+    # flower:
+    #     build: backend
+    #     container_name: bmms_flower
+    #     restart: always
+    #     networks:
+    #         - internal_network
+    #     command: >
+    #         celery -A tx_bmms flower --port=5555 --broker=redis://bmms_redis:6379/0 --persistent=True --db=/app/flower.db
+    #     environment:
+    #         - DEBUG=FALSE
+    #         - TZ=Asia/Taipei
+    #     depends_on:
+    #         - redis
+    #         - celery
+    #     ports:
+    #         - "5555:5555"
+    #     volumes:
+    #         - flower_data:/app
 
 volumes:
     static_data:
