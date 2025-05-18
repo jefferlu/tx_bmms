@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, EventEmitter, Inject, Input, OnCh
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { AppService } from 'app/app.service';
 import { environment } from 'environments/environment';
-import { ToastService } from '../../common/toast/toast.service';
+import { ToastService } from '../toast/toast.service';
 import { TranslocoService } from '@jsverse/transloco';
 import { debounce } from 'lodash';
 
@@ -101,88 +101,99 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         }
 
         // this.unitTest()
-
     }
 
     private unitTest() {
-        // GuiViewer3D()
-        const container = this.viewerContainer.nativeElement;
-        const svfPaths = ['assets/aps/svf/model1/0.svf', 'assets/aps/svf/model2/0.svf', 'assets/aps/svf/model3/0.svf'];
-        let svf = 'assets/aps/svf/model4/output.svf';
 
+        // const svfPaths = ['assets/aps/svf/model1/0.svf', 'assets/aps/svf/model2/0.svf', 'assets/aps/svf/model3/0.svf'];
+        const svfPaths = ['assets/aps/svf/model4/output.svf'];
+        const svf = 'assets/aps/svf/model4/output.svf';
+
+        /* loadGuiViewer3D */
+        const container = this.viewerContainer.nativeElement;
         const options = {
             env: 'Local',
             useConsolidation: true,
             document: `${svf}`,
             language: 'en',
-            extensions: ['Autodesk.AEC.Minimap3DExtension'],
+            extensions: ['Autodesk.AEC.Minimap3DExtension', 'Autodesk.AEC.ModelData'],
             isAEC: true,
         };
 
-        this.viewer = new Autodesk.Viewing.GuiViewer3D(container, { antialiasing: true });
+        this.viewer = new Autodesk.Viewing.GuiViewer3D(container, {
+            antialiasing: true,
+            extensions: [
+                "Autodesk.AEC.LevelsExtension",
+                "Autodesk.AEC.Minimap3DExtension"
+            ]
+        });
 
         Autodesk.Viewing.Initializer(options, () => {
             Autodesk.Viewing.Private.InitParametersSetting.alpha = true;
 
-            this.viewer.start();
-            svfPaths.forEach((svfPath, index) => {
-                options['globalOffset'] = { x: index * 10, y: 0, z: 0 };
-                this.viewer.loadModel(svfPath, {
-                    isAEC: true,
-                    globalOffset: { x: index * 10, y: 0, z: 0 }
-                }, (model) => {
-                    console.log(`Model ${index + 1} loaded`);
-                    this.viewer.addEventListener(Autodesk.Viewing.NAVIGATION_MODE_CHANGED_EVENT, (event) => {
-                        const mode = event.mode; // 當前導航模式
-                        const minimapExtensionName = 'Autodesk.AEC.Minimap3DExtension';
+            /* single */
+            const startedCode = this.viewer.start(options.document, options, () => {
+                this.viewer.impl.invalidate(true);
+                this.viewer.setGhosting(false);
 
-                        // if (mode === 'first-person') {
-                            // 進入第一人稱模式：載入並顯示小地圖
-                            this.viewer.loadExtension(minimapExtensionName)
-                                .then((extension) => {
-                                    console.log('Minimap extension loaded');
-                                    extension.changeMinimapVisibility(true); // 確保小地圖顯示
-                                })
-                                .catch((error) => {
-                                    console.error('Failed to load Minimap extension:', error);
-                                });
-                        // } else {
-                        //     // 退出第一人稱模式：隱藏或卸載小地圖
-                        //     this.viewer.getExtension(minimapExtensionName, (extension) => {
-                        //         if (extension) {
-                        //             extension.hide(); // 隱藏小地圖
-                        //             // 可選：完全卸載擴展以釋放資源
-                        //             // this.viewer.unloadExtension(minimapExtensionName);
-                        //         }
-                        //     });
-                        // }
-                    });
-                }, (err) => console.error(`Model ${index + 1} load error:`, err));
+                // 等待 Viewer 初始化完成               
+                this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+                    this.loadedModels = this.viewer.getAllModels();
+                    console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
+                });
             });
 
-            // const startedCode = this.viewer.start(options.document, options, () => {
-            //     this.viewer.impl.invalidate(true);
-            //     this.viewer.setGhosting(false);
-
-
-
-            //     this.viewer.addEventListener(Autodesk.Viewing.NAVIGATION_MODE_CHANGED_EVENT, (event) => {
-            //         const mode = event.mode; // 當前導航模式
-            //         const minimapExtensionName = 'Autodesk.AEC.Minimap3DExtension';
-            //         const aecData = this.viewer.model.getDocumentNode().getAecModelData();
-            //         console.log('AEC Data:', aecData);
-            //         this.viewer.loadExtension(minimapExtensionName)
-            //             .then((extension) => {
-            //                 console.log('Minimap extension loaded');
-
-            //                 // extension.changeMinimapVisibility(true); // 確保小地圖顯示
-            //             })
-            //             .catch((error) => {
-            //                 console.error('Failed to load Minimap extension:', error);
-            //             });
-            //     });
+            /*  multiple */
+            // this.viewer.start();
+            // svfPaths.forEach((svfPath, index) => {
+            //     this.viewer.loadModel(svfPath, {
+            //         isAEC: true,
+            //     }, (model) => {
+            //         console.log(`Model ${index + 1} loaded`);
+            //     }, (err) => console.error(`Model ${index + 1} load error:`, err));
             // });
         });
+
+        /* loadGuiViewer3D_oss */
+        // this._appService.getToken().subscribe((aps: any) => {
+        //     const container = this.viewerContainer.nativeElement;
+        //     this.viewer = new Autodesk.Viewing.GuiViewer3D(container);
+
+        //     const options = {
+        //         env: 'AutodeskProduction', // Autodesk 伺服器
+        //         api: 'derivativeV2',
+        //         language: this.lang,
+        //         isAEC: true,
+        //         getAccessToken: (callback) => {
+        //             const token = aps.access_token;
+        //             const expiresIn = 3600;
+        //             callback(token, expiresIn);
+        //         }
+        //     };
+
+        //     Autodesk.Viewing.Initializer(options, () => {
+
+        //         this.viewer.start(); // 初始化並啟動 Viewer
+
+        //         // 監聽 TOOLBAR_CREATED_EVENT
+        //         this.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
+        //             console.log('Toolbar 已創建，加入按鈕');
+        //             // this.addCustomButton();
+        //         });
+
+        //         const urn = "dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3NfMjUwMzI2MTYyOTM3L1QzLVRQMTYtWFhYLVhYLVhYWC1NMy1YWC0wMDAwMS5ud2Q";
+        //         const documentId = `urn:${urn}`; // 必須是 `urn:` 開頭
+        //         Autodesk.Viewing.Document.load(documentId, (doc) => {
+        //             const viewables = doc.getRoot().search({ type: 'geometry' });
+
+        //             if (viewables.length > 0) {
+        //                 this.viewer.loadDocumentNode(doc, viewables[0]); // 載入模型
+        //             }
+        //         }, (errorCode, errorMsg) => {
+        //             console.error('載入模型失敗', errorMsg);
+        //         });
+        //     });
+        // });
     }
 
     private extractKeyData(data: any): any {
@@ -278,39 +289,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
                 if (targetModel) {
                     viewer.isolate(dbIds, targetModel);
-                    // 獲取節點的邊界框
-                    viewer.model.getBoundingBox(dbIds, (box: any) => {
-                        // 計算中心點
-                        const center = new viewer.impl.Vector3(
-                            (box.min.x + box.max.x) / 2,
-                            (box.min.y + box.max.y) / 2,
-                            (box.min.z + box.max.z) / 2
-                        );
-
-                        // 計算邊界框大小並放大距離
-                        const size = Math.max(
-                            box.max.x - box.min.x,
-                            box.max.y - box.min.y,
-                            box.max.z - box.min.z
-                        );
-                        const distance = size * 2; // 攝影機距離中心點的距離
-
-                        // 獲取攝影機
-                        const camera = viewer.impl.camera;
-
-                        // 設置攝影機位置
-                        camera.position.copy(center.clone().add(new viewer.impl.Vector3(0, 0, distance)));
-
-                        // 設置攝影機目標點
-                        camera.lookAt(center);
-
-                        // 調整視場 (FOV) 以增加縮放靈活性
-                        camera.fov = 75; // 可根據需要調整
-                        camera.updateProjectionMatrix();
-
-                        // 更新渲染
-                        viewer.impl.invalidate(true);
-                    });
                     console.log(`為模型 ${urn} 隔離 dbIds:`, dbIds);
                 } else {
                     console.warn(`未找到 URN 為 ${urn} 的模型`);
@@ -492,6 +470,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         const container = this.viewerContainer.nativeElement;
         // this.viewer = this.viewer || new Autodesk.Viewing.AggregatedView();
         this.viewer = this.viewer || new Autodesk.Viewing.GuiViewer3D(container, { antialiasing: true });
+        // this.viewer = this.viewer || new Autodesk.Viewing.GuiViewer3D(container, { antialiasing: true, extensions: ["Autodesk.AEC.LevelsExtension", "Autodesk.AEC.Minimap3DExtension"] });
 
         const options = {
             env: 'Local',
@@ -514,36 +493,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     // this.viewer.setQualityLevel(true, true);
                     // this.viewer.setReverseZoomDirection(true); // 確保方向一致
 
-                    // this.viewer.viewer.navigation.setNavigationLock(false); // 解除導航鎖定
-                    // this.viewer.viewer.navigation.setNavigateNearGeometry(false); // 禁用碰撞檢測
-
                     this.viewer.impl.invalidate(true);
 
                     this.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
                         this.addAggregatedButton();
-                    });
-
-                    // this.viewer.addEventListener(Autodesk.Viewing.NAVIGATION_MODE_CHANGED_EVENT, (event) => {
-                    //     const mode = event.mode; // 當前導航模式
-                    //     const minimapExtensionName = 'Autodesk.AEC.Minimap3DExtension';
-
-                    //     this.viewer.loadExtension(minimapExtensionName)
-                    //         .then((extension) => {
-                    //             console.log('Minimap extension loaded');
-                    //             extension.changeMinimapVisibility(true); // 確保小地圖顯示
-                    //         })
-                    //         .catch((error) => {
-                    //             console.error('Failed to load Minimap extension:', error);
-                    //         });
-                    // });
-
-                    this.viewer.loadExtension("Autodesk.Viewing.Minimap").then((minimap) => {
-                        console.log("Minimap loaded");
-                        minimap.createMinimap({
-                            container: document.getElementById("minimap-container"), // 確保有容器
-                            width: 200,
-                            height: 200
-                        });
                     });
 
                     this.loadModels(data);
@@ -609,10 +562,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         const loadOptions = {
                             urn: urn,
                             isAEC: true,
-                            applyRefPoint: true,
-                            skipHiddenFragments: false,
-                            extensions: ['Autodesk.DocumentBrowser', 'ToolbarExtension'],
-                            loaderExtensions: { svf: 'Autodesk.MemoryLimited' }
+                            globalOffset: { x: 0, y: 0, z: 0 }
                         };
 
                         loadPromises.push(
