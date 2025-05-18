@@ -38,7 +38,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     private latestDbIds: number[] = [];
     private latestUrn: string | null = null;
 
-    private isLocalMode: boolean = false;
+    private isLocalMode: boolean = true;
 
     constructor(
         @Optional() @Inject(MAT_DIALOG_DATA) public dialogData: any,

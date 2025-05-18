@@ -21,6 +21,7 @@ from .. import models
 
 logger = get_task_logger(__name__)
 
+
 @shared_task
 def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name, is_reload=False):
     """
@@ -60,7 +61,8 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         # Upload or reload file
         if not is_reload:
             send_progress('upload-object', 'Uploading file to Autodesk OSS...')
-            upload_path = os.path.join(settings.MEDIA_ROOT, "uploads", file_name).replace(os.sep, '/')
+            folder = os.path.splitext(file_name)[0]
+            upload_path = os.path.join(settings.MEDIA_ROOT, "uploads", folder, file_name).replace(os.sep, '/')
             object_data = bucket.upload_object(bucket_key, upload_path, file_name)
             urn = get_aps_urn(object_data['objectId'])
         else:
@@ -82,6 +84,7 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         send_progress('error', str(e))
         elapsed_time = time.time() - start_time
         return {"status": f"BIM data import failed: {str(e)}", "file": file_name, "elapsed_time": elapsed_time}
+
 
 def process_translation(urn, token, file_name, object_data, send_progress, is_reload):
     """
@@ -190,6 +193,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
 
     return result
 
+
 @shared_task
 def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send_progress=None):
     """
@@ -237,6 +241,7 @@ def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send
         send_progress('error', f"Error updating BIM data: {str(e)}")
         elapsed_time = time.time() - start_time
         return {"error": f"Error updating BIM data: {str(e)}", "elapsed_time": elapsed_time}
+
 
 def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_progress):
     """
