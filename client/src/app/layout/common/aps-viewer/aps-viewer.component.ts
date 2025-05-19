@@ -106,8 +106,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     private unitTest() {
 
         // const svfPaths = ['assets/aps/svf/model1/0.svf', 'assets/aps/svf/model2/0.svf', 'assets/aps/svf/model3/0.svf'];
-        const svfPaths = ['assets/aps/svf/model4/output.svf'];
-        const svf = 'assets/aps/svf/model4/output.svf';
+        const svfPaths = ['assets/aps/svf/model1/0/0.svf','assets/aps/svf/model2/0/0.svf'];
+        const svf = 'assets/aps/svf/model1/0/0.svf';
 
         /* loadGuiViewer3D */
         const container = this.viewerContainer.nativeElement;
@@ -132,26 +132,26 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             Autodesk.Viewing.Private.InitParametersSetting.alpha = true;
 
             /* single */
-            const startedCode = this.viewer.start(options.document, options, () => {
-                this.viewer.impl.invalidate(true);
-                this.viewer.setGhosting(false);
+            // const startedCode = this.viewer.start(options.document, options, () => {
+            //     this.viewer.impl.invalidate(true);
+            //     this.viewer.setGhosting(false);
 
-                // 等待 Viewer 初始化完成               
-                this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
-                    this.loadedModels = this.viewer.getAllModels();
-                    console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
-                });
-            });
+            //     // 等待 Viewer 初始化完成               
+            //     this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+            //         this.loadedModels = this.viewer.getAllModels();
+            //         console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
+            //     });
+            // });
 
             /*  multiple */
-            // this.viewer.start();
-            // svfPaths.forEach((svfPath, index) => {
-            //     this.viewer.loadModel(svfPath, {
-            //         isAEC: true,
-            //     }, (model) => {
-            //         console.log(`Model ${index + 1} loaded`);
-            //     }, (err) => console.error(`Model ${index + 1} load error:`, err));
-            // });
+            this.viewer.start();
+            svfPaths.forEach((svfPath, index) => {
+                this.viewer.loadModel(svfPath, {
+                    isAEC: true,
+                }, (model) => {
+                    console.log(`Model ${index + 1} loaded`);
+                }, (err) => console.error(`Model ${index + 1} load error:`, err));
+            });
         });
 
         /* loadGuiViewer3D_oss */
@@ -562,7 +562,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         const loadOptions = {
                             urn: urn,
                             isAEC: true,
-                            globalOffset: { x: 0, y: 0, z: 0 }
+                            // globalOffset: { x: 0, y: 0, z: 0 }
                         };
 
                         loadPromises.push(
