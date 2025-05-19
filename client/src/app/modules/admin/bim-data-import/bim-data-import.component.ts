@@ -137,17 +137,15 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
             this._bimDataImport(file);
         }
         else {
-            const title = this._translocoService.translate('confirm-action');
-            const message = this._translocoService.translate('re-translate-confirm');
-            const deleteLabel = this._translocoService.translate('confirm');
-            const cancelLabel = this._translocoService.translate('cancel');
-
 
             let dialogRef = this._gtsConfirmationService.open({
-                title: title,
-                message: message,
+                title: this._translocoService.translate('confirm-action'),
+                message: this._translocoService.translate('re-translate-confirm'),
                 icon: { color: 'primary' },
-                actions: { confirm: { label: deleteLabel }, cancel: { label: cancelLabel } }
+                actions: {
+                    confirm: { label: this._translocoService.translate('confirm') },
+                    cancel: { label: this._translocoService.translate('cancel') }
+                }
 
             });
 
@@ -219,17 +217,14 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
             this._changeDetectorRef.markForCheck();
         }
         else {
-            const title = this._translocoService.translate('confirm-action');
-            const message = this._translocoService.translate('delete-confirm');
-            const deleteLabel = this._translocoService.translate('delete');
-            const cancelLabel = this._translocoService.translate('cancel');
-
-
             let dialogRef = this._gtsConfirmationService.open({
-                title: title,
-                message: message,
+                title: this._translocoService.translate('confirm-action'),
+                message: this._translocoService.translate('delete-confirm'),
                 icon: { color: 'warn' },
-                actions: { confirm: { label: deleteLabel }, cancel: { label: cancelLabel } }
+                actions: {
+                    confirm: { label: this._translocoService.translate('delete') },
+                    cancel: { label: this._translocoService.translate('cancel') }
+                }
 
             });
 

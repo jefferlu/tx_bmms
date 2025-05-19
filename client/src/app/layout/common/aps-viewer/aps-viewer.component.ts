@@ -37,7 +37,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     private loadedBubbleNodes: any[] = [];
     private latestDbIds: number[] = [];
     private latestUrn: string | null = null;
-
+    private isUniTest: boolean = false;
+    
     private isLocalMode: boolean = true;
 
     constructor(
@@ -55,37 +56,39 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['data'] && changes['data'].currentValue) {
-            const newData = changes['data'].currentValue;
-            const oldData = changes['data'].previousValue;
+        if (!this.isUniTest) {
+            if (changes['data'] && changes['data'].currentValue) {
+                const newData = changes['data'].currentValue;
+                const oldData = changes['data'].previousValue;
 
-            if (!Array.isArray(newData)) {
-                console.warn('Input data must be an array for AggregatedView');
-                return;
-            }
+                if (!Array.isArray(newData)) {
+                    console.warn('Input data must be an array for AggregatedView');
+                    return;
+                }
 
-            // 設置最新 dbid（newData 總是只新增一筆）
-            if (newData.length > 0) {
-                const latestEntry = newData[newData.length - 1];
-                this.latestUrn = latestEntry.urn;
-                this.latestDbIds = Array.isArray(latestEntry.dbid) ? latestEntry.dbid : [latestEntry.dbid];
-                console.log(`最新 dbIds: ${this.latestDbIds}, urn: ${this.latestUrn}`);
-            } else {
-                this.latestUrn = null;
-                this.latestDbIds = [];
-                console.warn('newData 為空，無法設置最新 dbIds');
-            }
-
-            const isDataChanged = !oldData || JSON.stringify(this.extractKeyData(newData)) !== JSON.stringify(this.extractKeyData(oldData));
-
-            if (isDataChanged) {
-                if (this.isViewerInitialized) {
-                    this.loadModels(newData);
+                // 設置最新 dbid（newData 總是只新增一筆）
+                if (newData.length > 0) {
+                    const latestEntry = newData[newData.length - 1];
+                    this.latestUrn = latestEntry.urn;
+                    this.latestDbIds = Array.isArray(latestEntry.dbid) ? latestEntry.dbid : [latestEntry.dbid];
+                    console.log(`最新 dbIds: ${this.latestDbIds}, urn: ${this.latestUrn}`);
                 } else {
+                    this.latestUrn = null;
+                    this.latestDbIds = [];
+                    console.warn('newData 為空，無法設置最新 dbIds');
+                }
+
+                const isDataChanged = !oldData || JSON.stringify(this.extractKeyData(newData)) !== JSON.stringify(this.extractKeyData(oldData));
+
+                if (isDataChanged) {
                     if (this.isViewerInitialized) {
-                        this.cleanupViewer();
+                        this.loadModels(newData);
+                    } else {
+                        if (this.isViewerInitialized) {
+                            this.cleanupViewer();
+                        }
+                        this.debouncedLoadViewer();
                     }
-                    this.debouncedLoadViewer();
                 }
             }
         }
@@ -100,13 +103,15 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             this.processDataAndLoadViewer();
         }
 
-        // this.unitTest()
+        if (this.isUniTest) {
+            this.unitTest();
+        }
     }
 
     private unitTest() {
 
         // const svfPaths = ['assets/aps/svf/model1/0.svf', 'assets/aps/svf/model2/0.svf', 'assets/aps/svf/model3/0.svf'];
-        const svfPaths = ['assets/aps/svf/model1/0/0.svf','assets/aps/svf/model2/0/0.svf'];
+        const svfPaths = ['assets/aps/svf/model1/0/0.svf', 'assets/aps/svf/model2/0/0.svf'];
         const svf = 'assets/aps/svf/model1/0/0.svf';
 
         /* loadGuiViewer3D */
@@ -132,26 +137,26 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             Autodesk.Viewing.Private.InitParametersSetting.alpha = true;
 
             /* single */
-            // const startedCode = this.viewer.start(options.document, options, () => {
-            //     this.viewer.impl.invalidate(true);
-            //     this.viewer.setGhosting(false);
+            const startedCode = this.viewer.start(options.document, options, () => {
+                this.viewer.impl.invalidate(true);
+                this.viewer.setGhosting(false);
 
-            //     // 等待 Viewer 初始化完成               
-            //     this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
-            //         this.loadedModels = this.viewer.getAllModels();
-            //         console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
-            //     });
-            // });
+                // 等待 Viewer 初始化完成               
+                this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+                    this.loadedModels = this.viewer.getAllModels();
+                    console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
+                });
+            });
 
             /*  multiple */
-            this.viewer.start();
-            svfPaths.forEach((svfPath, index) => {
-                this.viewer.loadModel(svfPath, {
-                    isAEC: true,
-                }, (model) => {
-                    console.log(`Model ${index + 1} loaded`);
-                }, (err) => console.error(`Model ${index + 1} load error:`, err));
-            });
+            // this.viewer.start();
+            // svfPaths.forEach((svfPath, index) => {
+            //     this.viewer.loadModel(svfPath, {
+            //         isAEC: true,
+            //     }, (model) => {
+            //         console.log(`Model ${index + 1} loaded`);
+            //     }, (err) => console.error(`Model ${index + 1} load error:`, err));
+            // });
         });
 
         /* loadGuiViewer3D_oss */

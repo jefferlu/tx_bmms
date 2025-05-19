@@ -12,14 +12,14 @@
                     <button mat-flat-button (click)="onClickAggregated()">
                         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:rectangle-group'"></mat-icon>
                         <span class="ml-2">{{t('bim-aggregated')}}</span>
-                    </button>                  
+                    </button>
                 </div>
             </div>
 
             <!-- Content -->
-            <div class="flex h-full overflow-y-auto bg-card rounded-md">                
+            <div class="flex h-full overflow-y-auto bg-card rounded-md">
                 <p-table class="w-full" [value]="data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [size]="'small'"
-                    rowGroupMode="subheader" groupRowsBy="tender" [(selection)]="selectedItems">
+                    rowGroupMode="subheader" groupRowsBy="tender" [(selection)]="selectedItems" [loading]="isLoading">
 
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
