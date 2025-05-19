@@ -35,7 +35,8 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         private _changeDetectorRef: ChangeDetectorRef,
         private _translocoService: TranslocoService,
         private _toastService: ToastService,
-        private _matDialog: MatDialog
+        private _matDialog: MatDialog,
+        private _bimModelViewerService: BimModelViewerService
     ) { }
 
     ngOnInit(): void {
@@ -84,7 +85,9 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         })
     }
 
-    onDownloadCsv(): void {
+    onDownloadCsv(fileName: string): void {
+        console.log('ondownloadcsv()', fileName);
+        this._bimModelViewerService.downloadCsv(fileName);
 
     }
 

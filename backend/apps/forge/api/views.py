@@ -1,10 +1,12 @@
 import os
+import io
 import re
 import json
 import sqlite3
 import pandas as pd
 import hashlib
 import shutil
+import logging
 
 from pathlib import Path
 from collections import defaultdict
@@ -12,7 +14,7 @@ from collections import defaultdict
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.db.models import Subquery, OuterRef, Prefetch, Q
-from django.http import FileResponse
+from django.http import FileResponse, StreamingHttpResponse
 
 
 from django.db import connection
@@ -44,6 +46,9 @@ from apps.core.services import log_user_activity
 
 from . import serializers
 from .. import models
+
+# 設定日誌記錄器
+logger = logging.getLogger(__name__)
 
 # CLIENT_ID = '94MGPGEtqunCJS6XyZAAnztSSIrtfOLsVWQEkLNQ7uracrAC'
 # CLIENT_SECRET = 'G5tBYHoxe9xbpsisxGo5kBZOCPwEFCCuXIYr8kms28SSRuuVAHR0G766A3RKFQXy'
@@ -731,5 +736,107 @@ class BimVersionDownloadView(APIView):
         except Exception as e:
             return Response(
                 {"error": f"下載檔案時發生錯誤：{str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = models.BimObject.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        try:
+            file_name = self.request.query_params.get('file_name', None)
+
+            # 如果未提供 file_name，返回錯誤訊息
+            if not file_name:
+                return Response(
+                    {"error": "請提供 file_name 查詢參數"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # 構建 CSV 檔案名稱：去掉副檔名後串接 .csv
+            csv_filename = f"{os.path.splitext(file_name)[0]}.csv"
+
+            # 構建查詢：先找出符合 file_name 的 BimModel IDs
+            bim_model_ids = models.BimModel.objects.filter(
+                name__icontains=file_name
+            ).values_list('id', flat=True)
+
+            # 檢查是否有匹配的 BimModel
+            if not bim_model_ids:
+                return Response(
+                    {"message": "沒有找到匹配 file_name 的 BimModel"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # 查詢 BimObject，確保 display_name 包含 COBie，並按 dbid 排序
+            queryset = models.BimObject.objects.filter(
+                display_name__icontains='COBie',
+                bim_model_id__in=bim_model_ids
+            ).order_by('dbid', 'display_name')
+
+            # 檢查是否有匹配的 BimObject
+            if not queryset.exists():
+                # 返回空的 CSV 檔案
+                buffer = io.BytesIO()
+                buffer.write('dbid,display_name,value\n'.encode('utf-8-sig'))
+                buffer.seek(0)
+                return FileResponse(
+                    buffer,
+                    as_attachment=True,
+                    filename=csv_filename,
+                    content_type='text/csv'
+                )
+
+            # 選擇需要的欄位，減少記憶體使用
+            queryset = queryset.select_related('bim_model').values(
+                'dbid', 'display_name', 'value'
+            )
+
+            # 分塊生成 CSV
+            buffer = io.BytesIO()
+            first_chunk = True
+            chunk_size = 10000
+            chunk_data = []
+            for record in queryset:  # 直接迭代 queryset，避免 iterator() 的單筆問題
+                chunk_data.append(record)
+                if len(chunk_data) >= chunk_size:
+                    # 處理一批資料
+                    df = pd.DataFrame.from_records(chunk_data)
+                    df.columns = ['dbid', 'display_name', 'value']
+                    if first_chunk:
+                        df.to_csv(buffer, index=False, encoding='utf-8-sig')
+                        first_chunk = False
+                    else:
+                        df.to_csv(buffer, index=False, encoding='utf-8-sig', header=False)
+                    chunk_data = []  # 清空 chunk
+
+            # 處理剩餘的資料（如果有）
+            if chunk_data:
+                df = pd.DataFrame.from_records(chunk_data)
+                df.columns = ['dbid', 'display_name', 'value']
+                if first_chunk:
+                    df.to_csv(buffer, index=False, encoding='utf-8-sig')
+                else:
+                    df.to_csv(buffer, index=False, encoding='utf-8-sig', header=False)
+
+            # 如果沒有資料（例如所有 chunk 為空），返回空 CSV
+            if first_chunk:
+                buffer.write('dbid,display_name,value\n'.encode('utf-8-sig'))
+            print('check-->')
+            buffer.seek(0)
+            return FileResponse(
+                buffer,
+                as_attachment=True,
+                filename=csv_filename,
+                content_type='text/csv'
+            )
+
+        except Exception as e:
+            # 記錄錯誤日誌
+            logger.error(f"Error generating CSV: {str(e)}", exc_info=True)
+            # 返回錯誤訊息給前端
+            return Response(
+                {"error": "伺服器內部錯誤，請聯繫管理員"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

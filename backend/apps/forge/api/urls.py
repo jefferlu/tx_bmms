@@ -6,6 +6,7 @@ from rest_framework.routers import DefaultRouter
 from . import views
 from apps.core.api import views as core_views
 
+
 class OptionalSlashRouter(DefaultRouter):
 
     def __init__(self, *args, **kwargs):
@@ -18,6 +19,7 @@ router.register(r'bim-conditions', views.BimConditionViewSet)
 router.register(r'bim-regions', views.BimRegionViewSet)
 router.register(r'bim-model', views.BimModelViewSet)
 router.register(r'bim-object', views.BimObjectViewSet, basename='bim-object')
+router.register(r'bim-cobie-objects', views.BimCobieObjectViewSet)
 
 urlpatterns = [
     re_path(r'^auth/?$', views.AuthView.as_view(), name='auth'),

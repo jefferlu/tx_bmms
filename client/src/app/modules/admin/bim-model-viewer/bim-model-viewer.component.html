@@ -57,7 +57,7 @@
                             <td>{{ item.created_at | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
                             <td>{{item.uploader?.username }}</td>
                             <td class="text-center">
-                                <button class="cursor-pointer" (click)="onDownloadCsv()">
+                                <button class="cursor-pointer" (click)="onDownloadCsv(item.name)">
                                     <mat-icon class="mt-1" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
                                 </button>
                             </td>
