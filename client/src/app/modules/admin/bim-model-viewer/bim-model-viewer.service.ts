@@ -22,4 +22,13 @@ export class BimModelViewerService {
             { responseType: 'blob' }
         );
     }
+
+    downloadBim(fileName: string, version: string = null) {
+        const request: any = { file_name: encodeURIComponent(fileName) };
+        if (version) request.version = version;
+        return this._appService.get('forge/bim-original-file-download',
+            request,
+            { responseType: 'blob' }
+        );
+    }
 }

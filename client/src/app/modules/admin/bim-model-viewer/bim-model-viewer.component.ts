@@ -137,8 +137,106 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         });
     }
 
-    onDownloadBim(): void {
+    onDownloadBim(fileName: string, version: string = null): void {
+        let dialogRef = this._gtsConfirmationService.open({
+            title: this._translocoService.translate('confirm-action'),
+            message: this._translocoService.translate('download-original-model'),
+            icon: { color: 'primary' },
+            actions: {
+                confirm: { label: this._translocoService.translate('confirm') },
+                cancel: { label: this._translocoService.translate('cancel') }
+            }
 
+        });
+
+        dialogRef.afterClosed().subscribe(res => {
+
+            if (res === 'confirmed') {
+                this.isLoading = true;
+                this._changeDetectorRef.markForCheck();
+                this._bimModelViewerService.downloadBim(fileName, version).subscribe({
+                    next: (blob: Blob) => {
+                        // 創建 Blob 並生成臨時 URL
+                        const binFilename = version && version.trim() !== ''
+                            ? `${fileName.split('.')[0]}_${version}.${fileName.split('.')[1]}`
+                            : fileName;
+                        const downloadUrl = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = downloadUrl;
+                        link.download = binFilename; // 檔案名稱，與 API 的 filename 一致
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(downloadUrl); // 清理臨時 URL
+                        this.isLoading = false;
+                        this._changeDetectorRef.markForCheck();
+                    },
+                    error: (error) => {
+                        // 處理錯誤（例如 HTTP 400, 404, 500）
+                        this.isLoading = false;
+                        this._changeDetectorRef.markForCheck();
+                        error.error.text().then((errorMessage: string) => {
+                            const errorJson = JSON.parse(errorMessage);
+                            this._toastService.open({ message: errorJson.error || errorJson.message || '下載失敗，請稍後再試' });
+                        }).catch(() => {
+                            alert('下載失敗，請聯繫管理員');
+                            this._toastService.open({ message: '下載失敗，請聯繫管理員' });
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    revertToLastVersion(fileName: string): void {
+        let dialogRef = this._gtsConfirmationService.open({
+            title: this._translocoService.translate('confirm-action'),
+            message: this._translocoService.translate('restore-previous-backup'),
+            icon: { color: 'primary' },
+            actions: {
+                confirm: { label: this._translocoService.translate('confirm') },
+                cancel: { label: this._translocoService.translate('cancel') }
+            }
+
+        });
+
+        dialogRef.afterClosed().subscribe(res => {
+
+            if (res === 'confirmed') {
+                // this.isLoading = true;
+                // this._changeDetectorRef.markForCheck();
+                // this._bimModelViewerService.downloadBim(fileName, version).subscribe({
+                //     next: (blob: Blob) => {
+                //         // 創建 Blob 並生成臨時 URL
+                //         const binFilename = version && version.trim() !== ''
+                //             ? `${fileName.split('.')[0]}_${version}.${fileName.split('.')[1]}`
+                //             : fileName;
+                //         const downloadUrl = window.URL.createObjectURL(blob);
+                //         const link = document.createElement('a');
+                //         link.href = downloadUrl;
+                //         link.download = binFilename; // 檔案名稱，與 API 的 filename 一致
+                //         document.body.appendChild(link);
+                //         link.click();
+                //         document.body.removeChild(link);
+                //         window.URL.revokeObjectURL(downloadUrl); // 清理臨時 URL
+                //         this.isLoading = false;
+                //         this._changeDetectorRef.markForCheck();
+                //     },
+                //     error: (error) => {
+                //         // 處理錯誤（例如 HTTP 400, 404, 500）
+                //         this.isLoading = false;
+                //         this._changeDetectorRef.markForCheck();
+                //         error.error.text().then((errorMessage: string) => {
+                //             const errorJson = JSON.parse(errorMessage);
+                //             this._toastService.open({ message: errorJson.error || errorJson.message || '下載失敗，請稍後再試' });
+                //         }).catch(() => {
+                //             alert('下載失敗，請聯繫管理員');
+                //             this._toastService.open({ message: '下載失敗，請聯繫管理員' });
+                //         });
+                //     }
+                // });
+            }
+        });
     }
 
     private checkTenderConsistency(data: any[]): boolean {

@@ -62,13 +62,13 @@
                                 </button>
                             </td>
                             <td class="text-center">
-                                <button (click)="onDownloadBim()">
+                                <button (click)="onDownloadBim(item.name)">
                                     <mat-icon class="mt-1" [svgIcon]="'heroicons_outline:document'"></mat-icon>
                                 </button>
                             </td>
                             <td class="text-center">{{item.version}}</td>
                             <td class="text-center">
-                                <button mat-icon-button matSuffix (click)="onSearch()">
+                                <button mat-icon-button matSuffix (click)="revertToLastVersion()">
                                     <mat-icon [svgIcon]="'mat_outline:history'"></mat-icon>
                                 </button>
                             </td>

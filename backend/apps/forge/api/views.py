@@ -1,3 +1,4 @@
+from rest_framework import status
 import os
 import io
 import re
@@ -15,7 +16,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.db.models import Subquery, OuterRef, Prefetch, Q
 from django.http import FileResponse, StreamingHttpResponse
-
+from django.utils.encoding import smart_str
 
 from django.db import connection
 from django.contrib.postgres.aggregates import ArrayAgg, JSONBAgg
@@ -241,8 +242,10 @@ class BimDataImportView(APIView):
             current_version = bim_model.version if bim_model else 0
 
             if default_storage.exists(storage_file_path):
-                # 建立檔案目錄和版本目錄
-                os.makedirs(ver_dir, exist_ok=True)
+                # 刪除並重新建立版本目錄(只保留前一版)
+                if os.path.exists(ver_dir):
+                    shutil.rmtree(ver_dir)
+                os.makedirs(ver_dir)
 
                 # 將現有檔案移至 ver 目錄並以版本號命名
                 versioned_file_name = f"{file_base_name}_{current_version}.{file_extension}" if file_extension else f"{file_base_name}_{current_version}"
@@ -678,8 +681,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         log_user_activity(self.request.user, '圖資檢索', log_message, 'SUCCESS', ip_address)
         return response
 
-
-class BimVersionDownloadView(APIView):
     def get(self, request, *args, **kwargs):
         # 取得請求參數
         file_name = request.query_params.get('file_name')
@@ -838,5 +839,91 @@ class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelView
             # 返回錯誤訊息給前端
             return Response(
                 {"error": "伺服器內部錯誤，請聯繫管理員"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class BimOriginalFileDownloadView(APIView):
+    """
+    下載 media-root/uploads 目錄下的 BIM 檔案
+    前端需傳入 file_name 參數，例如 T3-TP01-XXX-XX-XXX-M3-XX-00001.nwd
+    - 若提供 version 參數，則下載版本檔案：media-root/uploads/{file_name_without_extension}/ver/{file_name_without_extension}_{version}.nwd
+    - 若未提供 version 參數，則下載原始檔案：media-root/uploads/{file_name_without_extension}/{file_name}
+    """
+
+    def get(self, request, *args, **kwargs):
+        # 從查詢參數獲取 file_name 和 version
+        file_name = request.query_params.get('file_name')
+        version = request.query_params.get('version')
+
+        # 驗證 file_name
+        if not file_name:
+            return Response(
+                {"error": "請提供 file_name 參數"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 檢查檔案名稱格式
+        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}\..+$', file_name):
+            return Response(
+                {"error": f"無效的檔案名稱格式：'{file_name}'。預期格式：XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX.副檔名"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 提取檔案主名稱和副檔名
+        file_base_name = file_name.rsplit('.', 1)[0] if '.' in file_name else file_name
+        file_extension = file_name.rsplit('.', 1)[1] if '.' in file_name else ''
+
+        # 構建檔案路徑
+        base_path = 'Uploads'
+        if version:
+            # 驗證版本號是否為正整數
+            try:
+                version = int(version)
+                if version <= 0:
+                    raise ValueError
+            except ValueError:
+                return Response(
+                    {"error": "版本號必須為正整數"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # 版本檔案路徑
+            ver_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name, 'ver')
+            versioned_file_name = f"{file_base_name}_{version}.{file_extension}" if file_extension else f"{file_base_name}_{version}"
+            file_path = os.path.join(ver_dir, versioned_file_name)
+            storage_file_path = os.path.join(base_path, file_base_name, 'ver', versioned_file_name)
+        else:
+            # 原始檔案路徑
+            file_path = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name, file_name)
+            storage_file_path = os.path.join(base_path, file_base_name, file_name)
+
+        # 統一路徑分隔符為當前系統的分隔符
+        file_path = os.path.normpath(file_path)
+        media_root = os.path.normpath(str(settings.MEDIA_ROOT))
+
+        # 防止路徑遍歷攻擊
+        if '..' in os.path.normpath(file_name) or not file_path.startswith(media_root):
+            return Response(
+                {"error": "無效的檔案路徑"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 檢查檔案是否存在
+        if not default_storage.exists(storage_file_path):
+            error_msg = f"版本 {version} 的檔案 '{file_name}' 不存在" if version else f"檔案 '{file_name}' 不存在"
+            return Response(
+                {"error": error_msg},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            # 開啟檔案並回傳 FileResponse
+            file = default_storage.open(storage_file_path, 'rb')
+            response = FileResponse(file, as_attachment=True, filename=smart_str(file_name))
+            return response
+        except Exception as e:
+            return Response(
+                {"error": f"下載檔案時發生錯誤：{str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
