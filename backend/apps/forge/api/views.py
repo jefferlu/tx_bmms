@@ -228,9 +228,9 @@ class BimDataImportView(APIView):
         base_path = 'uploads'
         # 檔案儲存目錄：uploads/{file_base_name}/
         file_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name).replace(os.sep, '/')
-        # 檔案完整路徑：Uploads/{file_base_name}/{file_name}
+        # 檔案完整路徑：uploads/{file_base_name}/{file_name}
         file_path = os.path.join(file_dir, file_name).replace(os.sep, '/')
-        # 版本目錄：Uploads/{file_base_name}/ver
+        # 版本目錄：uploads/{file_base_name}/ver
         ver_dir = os.path.join(file_dir, 'ver').replace(os.sep, '/')
         # default_storage 的相對路徑
         storage_file_path = f'{base_path}/{file_base_name}/{file_name}'
@@ -716,7 +716,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         file_extension = file_name.rsplit('.', 1)[1] if '.' in file_name else ''
 
         # 構建版本檔案路徑
-        base_path = 'Uploads'
+        base_path = 'uploads'
         ver_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name, 'ver').replace(os.sep, '/')
         versioned_file_name = f"{file_base_name}_{version}.{file_extension}" if file_extension else f"{file_base_name}_{version}"
         versioned_file_path = os.path.join(ver_dir, versioned_file_name).replace(os.sep, '/')
@@ -875,7 +875,7 @@ class BimOriginalFileDownloadView(APIView):
         file_extension = file_name.rsplit('.', 1)[1] if '.' in file_name else ''
 
         # 構建檔案路徑
-        base_path = 'Uploads'
+        base_path = 'uploads'
         if version:
             # 驗證版本號是否為正整數
             try:
