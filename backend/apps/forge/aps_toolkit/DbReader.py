@@ -50,7 +50,7 @@ class DbReader:
                 break
         url = f"{self.host}/modelderivative/v2/designdata/{self.urn}/manifest/{self.path}"
         response = requests.get(url, headers=headers)
-        temp_path = os.path.join(Path(__file__).parent.parent.parent.parent, "media-root/database")
+        temp_path = os.path.join(Path(__file__).parent.parent.parent.parent, "media-root/sqlite")
         extension = self.path.split(".")[-1]
 
         # file_name = self.urn if objectKey == '' else Path(objectKey).stem

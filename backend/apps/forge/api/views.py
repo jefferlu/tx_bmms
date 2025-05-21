@@ -1,4 +1,3 @@
-from rest_framework import status
 import os
 import io
 import re
@@ -224,36 +223,44 @@ class BimDataImportView(APIView):
         file_base_name = file_name.rsplit('.', 1)[0] if '.' in file_name else file_name
         file_extension = file_name.rsplit('.', 1)[1] if '.' in file_name else ''
 
+        # 從 BimModel 取得版本號
+        try:
+            bim_model = models.BimModel.objects.get(name=file_name)
+            version = bim_model.version + 1  # 新版本遞增
+        except models.BimModel.DoesNotExist:
+            version = 1  # 新檔案預設版本為 1
+
         # 定義基本路徑
         base_path = 'uploads'
-        # 檔案儲存目錄：uploads/{file_base_name}/
-        file_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name).replace(os.sep, '/')
-        # 檔案完整路徑：uploads/{file_base_name}/{file_name}
-        file_path = os.path.join(file_dir, file_name).replace(os.sep, '/')
-        # 版本目錄：uploads/{file_base_name}/ver
-        ver_dir = os.path.join(file_dir, 'ver').replace(os.sep, '/')
+        # 檔案儲存目錄：Uploads/{file_base_name}/ver_{version}/
+        file_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name, f"ver_{version}").replace(os.sep, '/')
         # default_storage 的相對路徑
-        storage_file_path = f'{base_path}/{file_base_name}/{file_name}'
+        storage_file_path = f'{base_path}/{file_base_name}/ver_{version}/{file_name}'
+
+        # 清理舊版本的 uploads 目錄（僅保留前一版）
+        uploads_base_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name).replace(os.sep, '/')
+        if version > 2:
+            for v in range(1, version - 1):  # 僅保留 version - 1
+                old_ver_dir = os.path.join(uploads_base_dir, f"ver_{v}").replace(os.sep, '/')
+                if os.path.exists(old_ver_dir):
+                    try:
+                        shutil.rmtree(old_ver_dir)
+                        logger.info(f"Removed old uploads directory: {old_ver_dir}")
+                    except Exception as e:
+                        logger.warning(f"Failed to remove old uploads directory {old_ver_dir}: {str(e)}")
 
         # 檢查檔案是否存在並處理版本控制
         try:
-            # 從 BimModel 取得當前版本
-            bim_model = models.BimModel.objects.filter(name=file_name).first()
-            current_version = bim_model.version if bim_model else 0
-
-            if default_storage.exists(storage_file_path):
-                # 刪除並重新建立版本目錄(只保留前一版)
-                if os.path.exists(ver_dir):
-                    shutil.rmtree(ver_dir)
-                os.makedirs(ver_dir)
-
-                # 將現有檔案移至 ver 目錄並以版本號命名
-                versioned_file_name = f"{file_base_name}_{current_version}.{file_extension}" if file_extension else f"{file_base_name}_{current_version}"
-                versioned_file_path = os.path.join(ver_dir, versioned_file_name).replace(os.sep, '/')
-                shutil.move(file_path, versioned_file_path)
-
             # 確保檔案目錄存在
             os.makedirs(file_dir, exist_ok=True)
+
+            # 清除目標版本中的同名檔案（避免流水號）
+            if default_storage.exists(storage_file_path):
+                try:
+                    default_storage.delete(storage_file_path)
+                    logger.info(f"Removed existing file at {storage_file_path} to avoid duplicates")
+                except Exception as e:
+                    logger.warning(f"Failed to remove existing file at {storage_file_path}: {str(e)}")
 
             # 以原始名稱儲存新檔案
             default_storage.save(storage_file_path, ContentFile(file.read()))
@@ -847,8 +854,8 @@ class BimOriginalFileDownloadView(APIView):
     """
     下載 media-root/uploads 目錄下的 BIM 檔案
     前端需傳入 file_name 參數，例如 T3-TP01-XXX-XX-XXX-M3-XX-00001.nwd
-    - 若提供 version 參數，則下載版本檔案：media-root/uploads/{file_name_without_extension}/ver/{file_name_without_extension}_{version}.nwd
-    - 若未提供 version 參數，則下載原始檔案：media-root/uploads/{file_name_without_extension}/{file_name}
+    - 若提供 version 參數，則下載版本檔案：media-root/uploads/{file_name_without_extension}/ver_{version}/{file_name}
+    - 若未提供 version 參數，則下載最新版本檔案：media-root/uploads/{file_name_without_extension}/ver_{version}/{file_name}
     """
 
     def get(self, request, *args, **kwargs):
@@ -875,7 +882,7 @@ class BimOriginalFileDownloadView(APIView):
         file_extension = file_name.rsplit('.', 1)[1] if '.' in file_name else ''
 
         # 構建檔案路徑
-        base_path = 'uploads'
+        base_path = 'uploads'  # 保持小寫，與 BimDataImportView 一致
         if version:
             # 驗證版本號是否為正整數
             try:
@@ -887,16 +894,20 @@ class BimOriginalFileDownloadView(APIView):
                     {"error": "版本號必須為正整數"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-
-            # 版本檔案路徑
-            ver_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name, 'ver')
-            versioned_file_name = f"{file_base_name}_{version}.{file_extension}" if file_extension else f"{file_base_name}_{version}"
-            file_path = os.path.join(ver_dir, versioned_file_name)
-            storage_file_path = os.path.join(base_path, file_base_name, 'ver', versioned_file_name)
         else:
-            # 原始檔案路徑
-            file_path = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name, file_name)
-            storage_file_path = os.path.join(base_path, file_base_name, file_name)
+            # 未提供 version，查詢最新版本
+            try:
+                bim_model = models.BimModel.objects.get(name=file_name)
+                version = bim_model.version
+            except models.BimModel.DoesNotExist:
+                return Response(
+                    {"error": f"BimModel with name '{file_name}' not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+        # 檔案路徑：uploads/{file_base_name}/ver_{version}/{file_name}
+        storage_file_path = os.path.join(base_path, file_base_name, f"ver_{version}", file_name).replace(os.sep, '/')
+        file_path = os.path.join(settings.MEDIA_ROOT, storage_file_path).replace(os.sep, '/')
 
         # 統一路徑分隔符為當前系統的分隔符
         file_path = os.path.normpath(file_path)
@@ -911,7 +922,7 @@ class BimOriginalFileDownloadView(APIView):
 
         # 檢查檔案是否存在
         if not default_storage.exists(storage_file_path):
-            error_msg = f"版本 {version} 的檔案 '{file_name}' 不存在" if version else f"檔案 '{file_name}' 不存在"
+            error_msg = f"版本 {version} 的檔案 '{file_name}' 不存在"
             return Response(
                 {"error": error_msg},
                 status=status.HTTP_404_NOT_FOUND

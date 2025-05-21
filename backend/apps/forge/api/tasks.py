@@ -4,6 +4,7 @@ import json
 import re
 import sqlite3
 import pandas as pd
+import shutil
 
 from django.conf import settings
 from collections import Counter
@@ -61,8 +62,19 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         # Upload or reload file
         if not is_reload:
             send_progress('upload-object', 'Uploading file to Autodesk OSS...')
-            folder = os.path.splitext(file_name)[0]
-            upload_path = os.path.join(settings.MEDIA_ROOT, "uploads", folder, file_name).replace(os.sep, '/')
+            # 提取檔案主名稱（無副檔名）
+            file_base_name = file_name.rsplit('.', 1)[0] if '.' in file_name else file_name
+            # 從 BimModel 取得版本號
+            try:
+                bim_model = models.BimModel.objects.get(name=file_name)
+                version = bim_model.version + 1  # 新版本遞增
+            except models.BimModel.DoesNotExist:
+                version = 1  # 新檔案預設版本為 1
+
+            # 構建上傳路徑：uploads/{file_base_name}/ver_{version}/{file_name}
+            upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads", file_base_name, f"ver_{version}").replace(os.sep, '/')
+            upload_path = os.path.join(upload_dir, file_name).replace(os.sep, '/')
+            os.makedirs(upload_dir, exist_ok=True)  # 確保目錄存在
             object_data = bucket.upload_object(bucket_key, upload_path, file_name)
             urn = get_aps_urn(object_data['objectId'])
         else:
@@ -93,7 +105,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     Args:
         urn (str): URN of the object.
         token (str): Autodesk Forge authentication token.
-        file_name (str): Name of the file.
+        file_name (str): Name of the file (e.g., 'T3-TP16-XXX-XX-XXX-M3-XX-00001.nwd').
         object_data (dict): Object data from Autodesk OSS.
         send_progress (callable): Function to send progress updates.
         is_reload (bool): Whether to reload an existing object.
@@ -101,6 +113,16 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     Returns:
         dict: Processing results (categories, zones, hierarchies, objects).
     """
+    # 從 BimModel 取得版本號
+    try:
+        bim_model = models.BimModel.objects.get(name=file_name)
+        # 如果是重新載入，使用現有版本號；否則遞增版本號
+        version = bim_model.version if is_reload else bim_model.version + 1
+    except models.BimModel.DoesNotExist:
+        if is_reload:
+            raise ValueError(f"BimModel with name '{file_name}' not found during reload.")
+        version = 1  # 新檔案預設版本為 1
+
     # Trigger translation job
     send_progress('translate-job', 'Triggering translation job...')
     derivative = Derivative(urn, token)
@@ -123,9 +145,22 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
 
     # Download SVF
     send_progress('download-svf', 'Downloading SVF to server...')
-    svf_reader = SVFReader(urn, token, "US")
-    svf_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name).replace(os.sep, '/')
+    # 清理舊版本的 SVF 目錄（僅保留前一版）
+    svf_base_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name).replace(os.sep, '/')
+    if version > 2 and not is_reload:
+        for v in range(1, version - 1):  # 僅保留 version - 1
+            old_ver_dir = os.path.join(svf_base_dir, f"ver_{v}").replace(os.sep, '/')
+            if os.path.exists(old_ver_dir):
+                try:
+                    shutil.rmtree(old_ver_dir)
+                    send_progress('cleanup-svf', f'Removed old SVF directory: {old_ver_dir}')
+                except Exception as e:
+                    logger.warning(f"Failed to remove old SVF directory {old_ver_dir}: {str(e)}")
+
+    # 構建新的 SVF 儲存路徑：svf/{file_name}/ver_{version}/
+    svf_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name, f"ver_{version}").replace(os.sep, '/')
     os.makedirs(svf_dir, exist_ok=True)
+    svf_reader = SVFReader(urn, token, "US")
     manifests = svf_reader.read_svf_manifest_items()
     if manifests:
         svf_reader.download(svf_dir, manifests[0], send_progress)
@@ -142,7 +177,9 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
                 absolute_svf_path = os.path.join(root, file).replace(os.sep, '/')
                 svf_files.append(absolute_svf_path)
     if svf_files:
-        svf_name = f"svf/{file_name}/0/0.svf".replace(os.sep, '/')
+        # 選擇第一個 .svf 檔案並轉換為相對路徑
+        selected_svf_path = svf_files[0]
+        svf_name = os.path.relpath(selected_svf_path, settings.MEDIA_ROOT).replace(os.sep, '/')
         if len(svf_files) > 1:
             logger.warning(f"Multiple .svf files found in {svf_dir}: {svf_files}. Using {svf_name}.")
     else:
@@ -153,8 +190,40 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     send_progress('download-sqlite', 'Downloading SQLite to server...')
     db = DbReader(urn, token, object_data['objectKey'])
     absolute_sqlite_path = db.db_path.replace(os.sep, '/')
-    sqlite_path = f"database/{file_name}.db".replace(os.sep, '/')
-    send_progress('download-sqlite', 'SQLite download completed.')
+    
+    # 檢查 SQLite 檔案是否存在
+    if not os.path.exists(absolute_sqlite_path):
+        send_progress('error', f"SQLite file not found at {absolute_sqlite_path}")
+        raise Exception(f"SQLite file not found at {absolute_sqlite_path}")
+
+    # 清理舊版本的 SQLite 目錄（僅保留前一版）
+    sqlite_base_dir = os.path.join(settings.MEDIA_ROOT, "sqlite", file_name).replace(os.sep, '/')
+    if version > 2 and not is_reload:
+        for v in range(1, version - 1):  # 僅保留 version - 1
+            old_ver_dir = os.path.join(sqlite_base_dir, f"ver_{v}").replace(os.sep, '/')
+            if os.path.exists(old_ver_dir):
+                try:
+                    shutil.rmtree(old_ver_dir)
+                    send_progress('cleanup-sqlite', f'Removed old SQLite directory: {old_ver_dir}')
+                except Exception as e:
+                    logger.warning(f"Failed to remove old SQLite directory {old_ver_dir}: {str(e)}")
+
+    # 構建新的 SQLite 儲存路徑：sqlite/{file_name}/ver_{version}/{file_name}.db
+    sqlite_dir = os.path.join(settings.MEDIA_ROOT, "sqlite", file_name, f"ver_{version}").replace(os.sep, '/')
+    os.makedirs(sqlite_dir, exist_ok=True)
+    new_sqlite_path = os.path.join(sqlite_dir, f"{file_name}.db").replace(os.sep, '/')
+    
+    # 移動 SQLite 檔案到版本化目錄
+    try:
+        shutil.move(absolute_sqlite_path, new_sqlite_path)
+        send_progress('download-sqlite', 'SQLite download and moved to versioned directory.')
+    except Exception as e:
+        send_progress('error', f"Failed to move SQLite file to {new_sqlite_path}: {str(e)}")
+        raise Exception(f"Failed to move SQLite file: {str(e)}")
+
+    # 更新 sqlite_path 為相對路徑
+    sqlite_path = f"sqlite/{file_name}/ver_{version}/{file_name}.db".replace(os.sep, '/')
+    send_progress('download-sqlite', 'SQLite processing completed.')
 
     # Create or update BimModel
     send_progress('process-model-conversion', 'Creating or updating BimModel...')
@@ -176,23 +245,26 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
             if not created:
                 bim_model.urn = urn
                 bim_model.version += 1
-            # Set svf_path and sqlite_path as relative paths
+            # 更新 svf_path 和 sqlite_path 為相對路徑
             bim_model.svf_path = svf_name
             bim_model.sqlite_path = sqlite_path
             bim_model.save()
             send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) updated.')
 
         # Process categories, regions, hierarchies, and objects
-        result = _process_categories_and_objects(
-            sqlite_path=absolute_sqlite_path,
-            bim_model_id=bim_model.id,
-            file_name=file_name,
-            send_progress=send_progress
-        )
-        send_progress('complete', f'BIM data import completed (v{bim_model.version}).')
+        try:
+            result = _process_categories_and_objects(
+                sqlite_path=new_sqlite_path,  # 使用移動後的絕對路徑
+                bim_model_id=bim_model.id,
+                file_name=file_name,
+                send_progress=send_progress
+            )
+            send_progress('complete', f'BIM data import completed (v{bim_model.version}).')
+        except Exception as e:
+            send_progress('error', f"Failed to process categories and objects: {str(e)}")
+            raise
 
     return result
-
 
 @shared_task
 def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send_progress=None):
