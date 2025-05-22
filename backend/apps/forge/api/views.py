@@ -17,7 +17,7 @@ from django.db.models import Subquery, OuterRef, Prefetch, Q
 from django.http import FileResponse, StreamingHttpResponse
 from django.utils.encoding import smart_str
 
-from django.db import connection,transaction
+from django.db import connection, transaction
 from django.contrib.postgres.aggregates import ArrayAgg, JSONBAgg
 from django.db.models.functions import JSONObject
 from django.core.cache import cache
@@ -292,7 +292,7 @@ class BimDataRevertView(APIView):
             async_to_sync(channel_layer.group_send)(
                 'progress_group',
                 {
-                    'type': 'progress.message',
+                    'type': 'update_category_group',
                     'name': file_name,
                     'status': status,
                     'message': message
@@ -366,22 +366,20 @@ class BimDataRevertView(APIView):
             if not svf_files:
                 send_progress('error', f"No .svf file found in {new_svf_dir}.")
                 return Response({"error": f"新版本 (v{new_version}) 的 SVF 檔案缺失"}, status=status.HTTP_400_BAD_REQUEST)
-            
+
             selected_svf_path = svf_files[0]
             new_svf_path = os.path.relpath(selected_svf_path, settings.MEDIA_ROOT).replace(os.sep, '/')
             if len(svf_files) > 1:
                 logger.warning(f"Multiple .svf files found in {new_svf_dir}: {svf_files}. Using {new_svf_path}.")
 
-            # 複製前一版的關聯資料
-            send_progress('revert-data', f"Copying database records to v{new_version}...")
-            # try:
-            #     for region in BimRegion.objects.filter(bim_model=bim_model, version=target_version):
-            #         region.pk = None
-            #         region.version = new_version
-            #         region.save()
-            # except Exception as e:
-            #     logger.error(f"Failed to copy database records for {file_name} to v{new_version}: {str(e)}")
-            #     return Response({"error": f"複製資料庫記錄時發生錯誤：{str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # 重新轉換前一版的關聯資料
+            send_progress('revert-data', f"Updating database records for v{new_version}...")
+            try:
+                bim_update_categories.delay(os.path.join(settings.MEDIA_ROOT, new_sqlite_path).replace(
+                    os.sep, '/'), bim_model.id, file_name, "update_category_group")
+            except Exception as e:
+                logger.error(f"Failed to update database records for {file_name} to v{new_version}: {str(e)}")
+                return Response({"error": f"更新資料庫記錄時發生錯誤：{str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             # 執行檔案清理邏輯
             send_progress('revert-cleanup', f"Cleaning up old versions for v{new_version}...")
@@ -423,11 +421,13 @@ class BimDataRevertView(APIView):
 
             # 記錄操作
             ip_address = request.META.get('REMOTE_ADDR')
-            log_user_activity(self.request.user, '模型回覆', f'回覆 {file_name} 到 v{target_version} (儲存為 v{new_version})', 'SUCCESS', ip_address)
+            log_user_activity(self.request.user, '模型回覆',
+                              f'回覆 {file_name} 到 v{target_version} (儲存為 v{new_version})', 'SUCCESS', ip_address)
             send_progress('complete', f"Successfully reverted {file_name} to v{target_version} (saved as v{new_version})")
 
         return Response({"message": f"成功回覆檔案 '{file_name}' 到版本 v{target_version} (儲存為 v{new_version})"}, status=status.HTTP_200_OK)
-    
+
+
 @extend_schema(
     summary="BIM data reload",
     description="Endpoint to import BIM data",
