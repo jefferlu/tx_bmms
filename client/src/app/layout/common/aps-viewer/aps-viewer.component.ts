@@ -573,12 +573,12 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         loadPromises.push(
                             new Promise((resolve, reject) => {
                                 guiViewer.loadModel(documentId, loadOptions, (model) => {
-                                    console.log(`本地模型載入成功: ${urn}`);
+                                    console.log(`本地模型載入成功: ${documentId}`);
                                     model.getData().urn = urn;
                                     resolve({ model, urn });
                                 }, (errorCode, errorMsg) => {
-                                    console.error(`無法載入本地模型 ${urn}: ${errorMsg}`);
-                                    reject(new Error(`無法載入本地模型 ${urn}: ${errorMsg}`));
+                                    console.error(`無法載入本地模型 ${documentId}: ${errorMsg}`);
+                                    reject(new Error(`無法載入本地模型 ${documentId}: ${errorMsg}`));
                                 });
                             })
                         );
