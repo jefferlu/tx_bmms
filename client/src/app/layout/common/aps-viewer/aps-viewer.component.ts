@@ -458,7 +458,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                             this.loadModels(data);
                         }).catch((err: any) => {
                             console.error('AggregatedView 初始化失敗:', err);
-                            this._toastService.open({ message: '無法初始化 AggregatedView' });
+                            // this._toastService.open({ message: '無法初始化 AggregatedView' });
                         });
                     } else {
                         this.loadModels(data);
@@ -466,7 +466,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 });
             } catch (e) {
                 console.error('Viewer 初始化錯誤:', e);
-                this._toastService.open({ message: 'Viewer 初始化失敗' });
+                // this._toastService.open({ message: 'Viewer 初始化失敗' });
             }
         });
     }
@@ -512,7 +512,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             });
         } catch (e) {
             console.error('Viewer 初始化錯誤:', e);
-            this._toastService.open({ message: 'Viewer 初始化失敗' });
+            // this._toastService.open({ message: 'Viewer 初始化失敗' });
         }
     }
 
@@ -520,7 +520,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         const guiViewer = this.viewer;
         if (!guiViewer) {
             console.error('GuiViewer3D 尚未準備好');
-            this._toastService.open({ message: 'GuiViewer3D 未初始化' });
+            // this._toastService.open({ message: 'GuiViewer3D 未初始化' });
             return;
         }
 
@@ -544,7 +544,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
         if (!dbids || dbids.length === 0) {
             console.warn('無有效數據可載入', data);
-            this._toastService.open({ message: '無有效數據可載入' });
+            // this._toastService.open({ message: '無有效數據可載入' });
             return;
         }
 
@@ -632,12 +632,12 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     this.handleModelLoading(data);
                 }).catch((err) => {
                     console.error('設置 OSS 模型失敗:', err);
-                    this._toastService.open({ message: '無法設置 OSS 模型' });
+                    // this._toastService.open({ message: '無法設置 OSS 模型' });
                 });
             }
         }).catch((err) => {
             console.error('載入模型失敗:', err);
-            this._toastService.open({ message: err.message || '無法載入模型文件' });
+            // this._toastService.open({ message: err.message || '無法載入模型文件' });
         });
     }
 
