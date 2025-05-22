@@ -62,8 +62,7 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         # Upload or reload file
         if not is_reload:
             send_progress('upload-object', 'Uploading file to Autodesk OSS...')
-            # 提取檔案主名稱（無副檔名）
-            file_base_name = file_name.rsplit('.', 1)[0] if '.' in file_name else file_name
+
             # 從 BimModel 取得版本號
             try:
                 bim_model = models.BimModel.objects.get(name=file_name)
@@ -71,8 +70,8 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
             except models.BimModel.DoesNotExist:
                 version = 1  # 新檔案預設版本為 1
 
-            # 構建上傳路徑：uploads/{file_base_name}/ver_{version}/{file_name}
-            upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads", file_base_name, f"ver_{version}").replace(os.sep, '/')
+            # 構建上傳路徑：uploads/{file_name}/ver_{version}/{file_name}
+            upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads", file_name, f"ver_{version}").replace(os.sep, '/')
             upload_path = os.path.join(upload_dir, file_name).replace(os.sep, '/')
             os.makedirs(upload_dir, exist_ok=True)  # 確保目錄存在
             object_data = bucket.upload_object(bucket_key, upload_path, file_name)
@@ -96,7 +95,6 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         send_progress('error', str(e))
         elapsed_time = time.time() - start_time
         return {"status": f"BIM data import failed: {str(e)}", "file": file_name, "elapsed_time": elapsed_time}
-
 
 def process_translation(urn, token, file_name, object_data, send_progress, is_reload):
     """

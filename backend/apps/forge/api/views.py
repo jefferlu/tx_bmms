@@ -17,7 +17,7 @@ from django.db.models import Subquery, OuterRef, Prefetch, Q
 from django.http import FileResponse, StreamingHttpResponse
 from django.utils.encoding import smart_str
 
-from django.db import connection
+from django.db import connection,transaction
 from django.contrib.postgres.aggregates import ArrayAgg, JSONBAgg
 from django.db.models.functions import JSONObject
 from django.core.cache import cache
@@ -219,26 +219,20 @@ class BimDataImportView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # 提取檔案主名稱（無副檔名）
-        file_base_name = file_name.rsplit('.', 1)[0] if '.' in file_name else file_name
-        file_extension = file_name.rsplit('.', 1)[1] if '.' in file_name else ''
-
         # 從 BimModel 取得版本號
-        try:
-            bim_model = models.BimModel.objects.get(name=file_name)
-            version = bim_model.version + 1  # 新版本遞增
-        except models.BimModel.DoesNotExist:
-            version = 1  # 新檔案預設版本為 1
+        with transaction.atomic():
+            bim_model = models.BimModel.objects.select_for_update().filter(name=file_name).first()
+            version = bim_model.version + 1 if bim_model else 1
 
         # 定義基本路徑
         base_path = 'uploads'
-        # 檔案儲存目錄：Uploads/{file_base_name}/ver_{version}/
-        file_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name, f"ver_{version}").replace(os.sep, '/')
+        # 檔案儲存目錄：Uploads/{file_name}/ver_{version}/
+        file_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_name, f"ver_{version}").replace(os.sep, '/')
         # default_storage 的相對路徑
-        storage_file_path = f'{base_path}/{file_base_name}/ver_{version}/{file_name}'
+        storage_file_path = f'{base_path}/{file_name}/ver_{version}/{file_name}'
 
         # 清理舊版本的 uploads 目錄（僅保留前一版）
-        uploads_base_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name).replace(os.sep, '/')
+        uploads_base_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_name).replace(os.sep, '/')
         if version > 2:
             for v in range(1, version - 1):  # 僅保留 version - 1
                 old_ver_dir = os.path.join(uploads_base_dir, f"ver_{v}").replace(os.sep, '/')
@@ -279,6 +273,161 @@ class BimDataImportView(APIView):
         return Response({"message": f"檔案 '{file_name}' 正在處理中。"}, status=status.HTTP_200_OK)
 
 
+class BimDataRevertView(APIView):
+    def post(self, request, *args, **kwargs):
+        file_name = request.data.get('file_name')
+        if not file_name:
+            return Response({"error": "未提供檔案名稱"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 檢查檔案名稱格式
+        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
+            return Response(
+                {"error": f"無效的檔案名稱格式：'{file_name}'。預期格式：XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 定義進度通知函數
+        def send_progress(status, message):
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                'progress_group',
+                {
+                    'type': 'progress.message',
+                    'name': file_name,
+                    'status': status,
+                    'message': message
+                }
+            )
+
+        # 使用資料庫鎖定取得 BimModel
+        with transaction.atomic():
+            bim_model = models.BimModel.objects.select_for_update().filter(name=file_name).first()
+            if not bim_model:
+                return Response({"error": f"未找到檔案 '{file_name}' 的 BimModel"}, status=status.HTTP_404_NOT_FOUND)
+
+            current_version = bim_model.version
+            if current_version <= 1:
+                return Response({"error": "已是第一版，無法回覆前一版"}, status=status.HTTP_400_BAD_REQUEST)
+
+            target_version = current_version - 1
+            new_version = current_version + 1
+
+            # 檢查前一版檔案是否存在
+            uploads_path = f"uploads/{file_name}/ver_{target_version}/{file_name}"
+            svf_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name, f"ver_{target_version}").replace(os.sep, '/')
+            sqlite_path = f"sqlite/{file_name}/ver_{target_version}/{file_name}.db"
+
+            if not default_storage.exists(uploads_path):
+                return Response({"error": f"前一版 (v{target_version}) 的上傳檔案缺失"}, status=status.HTTP_400_BAD_REQUEST)
+            if not os.path.exists(svf_dir):
+                return Response({"error": f"前一版 (v{target_version}) 的 SVF 目錄缺失"}, status=status.HTTP_400_BAD_REQUEST)
+            if not default_storage.exists(sqlite_path):
+                return Response({"error": f"前一版 (v{target_version}) 的 SQLite 檔案缺失"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 定義新版本的路徑
+            new_uploads_dir = os.path.join(settings.MEDIA_ROOT, "uploads", file_name, f"ver_{new_version}").replace(os.sep, '/')
+            new_svf_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name, f"ver_{new_version}").replace(os.sep, '/')
+            new_sqlite_dir = os.path.join(settings.MEDIA_ROOT, "sqlite", file_name, f"ver_{new_version}").replace(os.sep, '/')
+            new_sqlite_path = f"sqlite/{file_name}/ver_{new_version}/{file_name}.db"
+            new_uploads_path = f"uploads/{file_name}/ver_{new_version}/{file_name}"
+
+            # 複製前一版檔案到新版本
+            send_progress('revert-copy', f"Copying files to new version v{new_version}...")
+            try:
+                os.makedirs(new_uploads_dir, exist_ok=True)
+                shutil.copy2(
+                    os.path.join(settings.MEDIA_ROOT, uploads_path).replace(os.sep, '/'),
+                    os.path.join(new_uploads_dir, file_name).replace(os.sep, '/')
+                )
+                logger.info(f"Copied uploads from {uploads_path} to {new_uploads_path}")
+
+                if os.path.exists(new_svf_dir):
+                    shutil.rmtree(new_svf_dir)
+                shutil.copytree(svf_dir, new_svf_dir)
+                logger.info(f"Copied svf from {svf_dir} to {new_svf_dir}")
+
+                os.makedirs(new_sqlite_dir, exist_ok=True)
+                shutil.copy2(
+                    os.path.join(settings.MEDIA_ROOT, sqlite_path).replace(os.sep, '/'),
+                    os.path.join(new_sqlite_dir, f"{file_name}.db").replace(os.sep, '/')
+                )
+                logger.info(f"Copied sqlite from {sqlite_path} to {new_sqlite_path}")
+            except Exception as e:
+                logger.error(f"Failed to copy files for {file_name} to v{new_version}: {str(e)}")
+                return Response({"error": f"複製檔案到新版本時發生錯誤：{str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # 尋找新版本的 .svf 檔案
+            svf_files = []
+            for root, _, files in os.walk(new_svf_dir):
+                for file in files:
+                    if file.endswith('.svf'):
+                        absolute_svf_path = os.path.join(root, file).replace(os.sep, '/')
+                        svf_files.append(absolute_svf_path)
+            if not svf_files:
+                send_progress('error', f"No .svf file found in {new_svf_dir}.")
+                return Response({"error": f"新版本 (v{new_version}) 的 SVF 檔案缺失"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            selected_svf_path = svf_files[0]
+            new_svf_path = os.path.relpath(selected_svf_path, settings.MEDIA_ROOT).replace(os.sep, '/')
+            if len(svf_files) > 1:
+                logger.warning(f"Multiple .svf files found in {new_svf_dir}: {svf_files}. Using {new_svf_path}.")
+
+            # 複製前一版的關聯資料
+            send_progress('revert-data', f"Copying database records to v{new_version}...")
+            # try:
+            #     for region in BimRegion.objects.filter(bim_model=bim_model, version=target_version):
+            #         region.pk = None
+            #         region.version = new_version
+            #         region.save()
+            # except Exception as e:
+            #     logger.error(f"Failed to copy database records for {file_name} to v{new_version}: {str(e)}")
+            #     return Response({"error": f"複製資料庫記錄時發生錯誤：{str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # 執行檔案清理邏輯
+            send_progress('revert-cleanup', f"Cleaning up old versions for v{new_version}...")
+            uploads_base_dir = os.path.join(settings.MEDIA_ROOT, "uploads", file_name).replace(os.sep, '/')
+            svf_base_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name).replace(os.sep, '/')
+            sqlite_base_dir = os.path.join(settings.MEDIA_ROOT, "sqlite", file_name).replace(os.sep, '/')
+
+            if new_version > 2:
+                for v in range(1, new_version - 1):
+                    old_uploads_dir = os.path.join(uploads_base_dir, f"ver_{v}").replace(os.sep, '/')
+                    if os.path.exists(old_uploads_dir):
+                        try:
+                            shutil.rmtree(old_uploads_dir)
+                            logger.info(f"Removed old uploads directory: {old_uploads_dir}")
+                        except Exception as e:
+                            logger.warning(f"Failed to remove old uploads directory {old_uploads_dir}: {str(e)}")
+
+                    old_svf_dir = os.path.join(svf_base_dir, f"ver_{v}").replace(os.sep, '/')
+                    if os.path.exists(old_svf_dir):
+                        try:
+                            shutil.rmtree(old_svf_dir)
+                            logger.info(f"Removed old svf directory: {old_svf_dir}")
+                        except Exception as e:
+                            logger.warning(f"Failed to remove old svf directory {old_svf_dir}: {str(e)}")
+
+                    old_sqlite_dir = os.path.join(sqlite_base_dir, f"ver_{v}").replace(os.sep, '/')
+                    if os.path.exists(old_sqlite_dir):
+                        try:
+                            shutil.rmtree(old_sqlite_dir)
+                            logger.info(f"Removed old sqlite directory: {old_sqlite_dir}")
+                        except Exception as e:
+                            logger.warning(f"Failed to remove old sqlite directory {old_sqlite_dir}: {str(e)}")
+
+            # 更新 BimModel
+            bim_model.version = new_version
+            bim_model.svf_path = new_svf_path
+            bim_model.sqlite_path = new_sqlite_path
+            bim_model.save()
+
+            # 記錄操作
+            ip_address = request.META.get('REMOTE_ADDR')
+            log_user_activity(self.request.user, '模型回覆', f'回覆 {file_name} 到 v{target_version} (儲存為 v{new_version})', 'SUCCESS', ip_address)
+            send_progress('complete', f"Successfully reverted {file_name} to v{target_version} (saved as v{new_version})")
+
+        return Response({"message": f"成功回覆檔案 '{file_name}' 到版本 v{target_version} (儲存為 v{new_version})"}, status=status.HTTP_200_OK)
+    
 @extend_schema(
     summary="BIM data reload",
     description="Endpoint to import BIM data",
@@ -293,7 +442,7 @@ class BimDataReloadView(APIView):
         if not file_name:
             return Response({"error": "No filename provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-         # 檢查檔案格式
+        # 檢查檔案格式
         file_name = file_name
         if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
             return Response(
@@ -905,8 +1054,8 @@ class BimOriginalFileDownloadView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-        # 檔案路徑：uploads/{file_base_name}/ver_{version}/{file_name}
-        storage_file_path = os.path.join(base_path, file_base_name, f"ver_{version}", file_name).replace(os.sep, '/')
+        # 檔案路徑：uploads/{file_name}/ver_{version}/{file_name}
+        storage_file_path = os.path.join(base_path, file_name, f"ver_{version}", file_name).replace(os.sep, '/')
         file_path = os.path.join(settings.MEDIA_ROOT, storage_file_path).replace(os.sep, '/')
 
         # 統一路徑分隔符為當前系統的分隔符
