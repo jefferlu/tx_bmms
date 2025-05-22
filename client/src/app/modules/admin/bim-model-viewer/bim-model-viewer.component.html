@@ -25,6 +25,7 @@
                         <tr class="border-b-2">
                             <th class="w-20"></th>
                             <th class="min-w-20 py-4">{{t('file-label')}}</th>
+                            <th class="text-center">{{t('version')}}</th>
                             <th>{{t('upload-time')}}</th>
                             <th>{{t('uploader')}}</th>
                             <th class="text-center">{{t('download-cobie-csv')}}</th>
@@ -36,7 +37,7 @@
 
                     <ng-template #groupheader let-item let-index="rowIndex" let-expanded="expanded">
                         <tr>
-                            <td colspan="8">
+                            <td colspan="9">
                                 <span class="flex items-center">
                                     <button pButton pRipple [pRowToggler]="item" text rounded plain class="mr-2 w-8 h-8 text-default bg-transparent"
                                         [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
@@ -54,6 +55,7 @@
                                 <p-tableCheckbox [value]="item" />
                             </td>
                             <td>{{ item.name }}</td>
+                            <td class="text-center">{{item.version}}</td>
                             <td>{{ item.created_at | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
                             <td>{{item.uploader?.username }}</td>
                             <td class="text-center">
@@ -66,7 +68,7 @@
                                     <mat-icon class="mt-1" [svgIcon]="'heroicons_outline:document'"></mat-icon>
                                 </button>
                             </td>
-                            <td class="text-center">{{item.version}}</td>
+                            <td class="text-center">{{item.version-1}}</td>
                             <td class="text-center">
                                 <button mat-icon-button matSuffix (click)="revertToLastVersion()">
                                     <mat-icon [svgIcon]="'mat_outline:history'"></mat-icon>
