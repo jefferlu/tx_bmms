@@ -265,7 +265,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     return result
 
 @shared_task
-def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send_progress=None):
+def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, group_type):
     """
     Update BIM categories, regions, hierarchies, and objects from SQLite.
 
@@ -279,18 +279,17 @@ def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, send
     Returns:
         dict: Processing results or error details.
     """
-    def default_send_progress(status, message):
+    def send_progress(status, message):
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             group_name,
             {
-                'type': 'update.category',
+                'type': group_type,
                 'name': file_name,
                 'status': status,
                 'message': message
             }
         )
-    send_progress = send_progress or default_send_progress
 
     start_time = time.time()
 
@@ -531,19 +530,19 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                     logger.warning(f"Skipping invalid related_id for entity_id={row.entity_id}, value={row.related_id}")
                     continue
 
-            # if new_hierarchies:
-            #     batch_size = 10000
-            #     for i in range(0, len(new_hierarchies), batch_size):
-            #         batch = new_hierarchies[i:i + batch_size]
-            #         models.BimObjectHierarchy.objects.bulk_create(batch)
-            #         send_progress('process-bimobjecthierarchy',
-            #                       f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
+            if new_hierarchies:
+                batch_size = 10000
+                for i in range(0, len(new_hierarchies), batch_size):
+                    batch = new_hierarchies[i:i + batch_size]
+                    models.BimObjectHierarchy.objects.bulk_create(batch)
+                    send_progress('process-bimobjecthierarchy',
+                                  f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
             else:
                 logger.warning(f"No valid BimObjectHierarchy records found for bim_model_id={bim_model_id}")
 
             # Update last_processed_version after processing
-            bim_model.last_processed_version = bim_model.version
-            bim_model.save()
+            # bim_model.last_processed_version = bim_model.version
+            # bim_model.save()
     else:
         send_progress('process-bimobjecthierarchy', 'BimObjectHierarchy data is up-to-date, no update needed.')
 

@@ -286,19 +286,6 @@ class BimDataRevertView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # 定義進度通知函數
-        def send_progress(status, message):
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                'progress_group',
-                {
-                    'type': 'update_category_group',
-                    'name': file_name,
-                    'status': status,
-                    'message': message
-                }
-            )
-
         # 使用資料庫鎖定取得 BimModel
         with transaction.atomic():
             bim_model = models.BimModel.objects.select_for_update().filter(name=file_name).first()
@@ -332,7 +319,6 @@ class BimDataRevertView(APIView):
             new_uploads_path = f"uploads/{file_name}/ver_{new_version}/{file_name}"
 
             # 複製前一版檔案到新版本
-            send_progress('revert-copy', f"Copying files to new version v{new_version}...")
             try:
                 os.makedirs(new_uploads_dir, exist_ok=True)
                 shutil.copy2(
@@ -364,7 +350,6 @@ class BimDataRevertView(APIView):
                         absolute_svf_path = os.path.join(root, file).replace(os.sep, '/')
                         svf_files.append(absolute_svf_path)
             if not svf_files:
-                send_progress('error', f"No .svf file found in {new_svf_dir}.")
                 return Response({"error": f"新版本 (v{new_version}) 的 SVF 檔案缺失"}, status=status.HTTP_400_BAD_REQUEST)
 
             selected_svf_path = svf_files[0]
@@ -373,16 +358,11 @@ class BimDataRevertView(APIView):
                 logger.warning(f"Multiple .svf files found in {new_svf_dir}: {svf_files}. Using {new_svf_path}.")
 
             # 重新轉換前一版的關聯資料
-            send_progress('revert-data', f"Updating database records for v{new_version}...")
-            try:
-                bim_update_categories.delay(os.path.join(settings.MEDIA_ROOT, new_sqlite_path).replace(
-                    os.sep, '/'), bim_model.id, file_name, "update_category_group")
-            except Exception as e:
-                logger.error(f"Failed to update database records for {file_name} to v{new_version}: {str(e)}")
-                return Response({"error": f"更新資料庫記錄時發生錯誤：{str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            absolute_sqlite_path = os.path.join(settings.MEDIA_ROOT, new_sqlite_path).replace(os.sep, '/')
+            bim_update_categories.delay(absolute_sqlite_path, bim_model.id, file_name, 'update_category_group', 'update.category')
+            
 
             # 執行檔案清理邏輯
-            send_progress('revert-cleanup', f"Cleaning up old versions for v{new_version}...")
             uploads_base_dir = os.path.join(settings.MEDIA_ROOT, "uploads", file_name).replace(os.sep, '/')
             svf_base_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name).replace(os.sep, '/')
             sqlite_base_dir = os.path.join(settings.MEDIA_ROOT, "sqlite", file_name).replace(os.sep, '/')
@@ -423,7 +403,6 @@ class BimDataRevertView(APIView):
             ip_address = request.META.get('REMOTE_ADDR')
             log_user_activity(self.request.user, '模型回覆',
                               f'回覆 {file_name} 到 v{target_version} (儲存為 v{new_version})', 'SUCCESS', ip_address)
-            send_progress('complete', f"Successfully reverted {file_name} to v{target_version} (saved as v{new_version})")
 
         return Response({"message": f"成功回覆檔案 '{file_name}' 到版本 v{target_version} (儲存為 v{new_version})"}, status=status.HTTP_200_OK)
 
@@ -503,7 +482,7 @@ class BimUpdateCategoriesView(APIView):
                 continue
 
             # 提交 Celery 任務，使用絕對路徑
-            bim_update_categories.delay(absolute_sqlite_path, bim_model.id, file_name, 'update_category_group')
+            bim_update_categories.delay(absolute_sqlite_path, bim_model.id, file_name, 'update_category_group', 'update.category')
             processed_files.append({
                 "file_name": file_name,
                 "version": bim_model.version

@@ -14,6 +14,8 @@ import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component'
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { GtsConfirmationService } from '@gts/services/confirmation';
+import { WebsocketService } from 'app/core/services/websocket/websocket.service';
+import { Subject, Subscription } from 'rxjs';
 
 
 @Component({
@@ -28,6 +30,9 @@ import { GtsConfirmationService } from '@gts/services/confirmation';
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {
 
+    private _subscription: Subscription = new Subscription();
+    private _unsubscribeAll: Subject<any> = new Subject<any>();
+
     data: any;
     selectedItems!: any;
     isLoading: boolean = false;
@@ -39,10 +44,38 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         private _toastService: ToastService,
         private _matDialog: MatDialog,
         private _gtsConfirmationService: GtsConfirmationService,
-        private _bimModelViewerService: BimModelViewerService
+        private _bimModelViewerService: BimModelViewerService,
+        private _websocketService: WebsocketService
     ) { }
 
     ngOnInit(): void {
+        // Subscribe webSocket message
+        this._websocketService.connect('update-category');
+        this._subscription.add(
+            this._websocketService.onMessage('update-category').subscribe({
+                next: (res) => {
+                    console.log(res)
+                    res.name = decodeURIComponent(res.name);
+
+                    // 根據 WebSocket 訊息更新檔案列表中的檔案
+                    this.data = this.data.map(d => {
+                        if (d.name === res.name) {
+                            return {
+                                ...d,
+                                status: res.status,
+                                message: res.message
+                            };
+                        }
+                        return d;
+                    });
+
+                    this._changeDetectorRef.markForCheck();
+                },
+                error: (err) => console.error('WebSocket error:', err),
+                complete: () => console.log('WebSocket connection closed.'),
+            })
+        );
+
         this._route.data.subscribe({
             next: (res) => {
                 this.data = res.data;
