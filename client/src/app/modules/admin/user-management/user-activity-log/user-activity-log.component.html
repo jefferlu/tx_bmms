@@ -30,7 +30,7 @@
                 <!-- <p-table class="w-full" [value]="data?.results" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" selectionMode="single"
                     [metaKeySelection]="true" (onRowSelect)="onOpenDrawer($event)"> -->
                 <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="this.data?.count" [scrollable]="true" scrollHeight="flex"
-                    selectionMode="single" [pageLinks]="1" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [first]="first"
+                    selectionMode="single" [pageLinks]="5" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [first]="first"
                     [paginator]="true" [lazy]="true" [lazyLoadOnInit]="false" [loading]="isLoading" [selection]="selectedObjects"
                     (onLazyLoad)="onPageChange($event)">
                     <ng-template pTemplate="header">
