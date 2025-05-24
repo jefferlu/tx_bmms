@@ -25,12 +25,12 @@
                         <tr class="border-b-2">
                             <th class="w-20"></th>
                             <th class="min-w-20 py-4">{{t('file-label')}}</th>
-                            <th class="text-center">{{t('version')}}</th>
+                            <th class="text-center w-40">{{t('version')}}</th>
                             <th>{{t('upload-time')}}</th>
                             <th>{{t('uploader')}}</th>
-                            <th class="text-center">{{t('download-cobie-csv')}}</th>
-                            <th class="text-center">{{t('download-bim-source')}}</th>
-                            <th class="text-center">{{t('previous-backup-version')}}</th>
+                            <th class="text-center w-40">{{t('download-cobie-csv')}}</th>
+                            <th class="text-center w-40">{{t('download-bim-source')}}</th>
+                            <th class="text-center w-40">{{t('previous-backup-version')}}</th>
                             <th class="text-center">{{t('restore-previous-version')}}</th>
                         </tr>
                     </ng-template>
@@ -52,27 +52,34 @@
                     <ng-template #expandedrow let-item>
                         <tr class="hover:bg-hover">
                             <td class="pl-12">
+                                @if(!item.status||item.status==='complete'){
                                 <p-tableCheckbox [value]="item" />
+                                }
                             </td>
                             <td>{{ item.name }}</td>
                             <td class="text-center">{{item.version}}</td>
                             <td>{{ item.created_at | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
                             <td>{{item.uploader?.username }}</td>
                             <td class="text-center">
-                                <button class="cursor-pointer" (click)="onDownloadCsv(item.name)">
-                                    <mat-icon class="mt-1" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
+                                <button mat-icon-button matSuffix (click)="onDownloadCsv(item.name)" [disabled]="item.status&&item.status!=='complete'">
+                                    <mat-icon [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
                                 </button>
                             </td>
                             <td class="text-center">
-                                <button (click)="onDownloadBim(item.name)">
-                                    <mat-icon class="mt-1" [svgIcon]="'heroicons_outline:document'"></mat-icon>
+                                <button mat-icon-button matSuffix (click)="onDownloadBim(item.name)" [disabled]="item.status&&item.status!=='complete'">
+                                    <mat-icon [svgIcon]="'heroicons_outline:document'"></mat-icon>
                                 </button>
                             </td>
                             <td class="text-center">{{item.version-1}}</td>
-                            <td class="text-center">
-                                <button mat-icon-button matSuffix (click)="revertToLastVersion()">
+                            <td class="text-center" [ngClass]="{'min-w-100':item.status&&item.status!=='complete'}">
+                                @if(!item.status||item.status==='complete'){
+                                <button mat-icon-button matSuffix (click)="onBimDataRevert(item)">
                                     <mat-icon [svgIcon]="'mat_outline:history'"></mat-icon>
                                 </button>
+                                }
+                                @else {
+                                <span class="text-sm">{{item.message}}</span>
+                                }
                             </td>
                         </tr>
                     </ng-template>

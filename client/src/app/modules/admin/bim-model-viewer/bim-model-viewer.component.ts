@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -15,7 +15,7 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { WebsocketService } from 'app/core/services/websocket/websocket.service';
-import { Subject, Subscription } from 'rxjs';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 
 
 @Component({
@@ -25,7 +25,7 @@ import { Subject, Subscription } from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule,
-        MatIconModule, MatButtonModule, MatInputModule
+        MatIconModule, MatButtonModule, MatInputModule, NgClass
     ]
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {
@@ -54,18 +54,30 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         this._subscription.add(
             this._websocketService.onMessage('update-category').subscribe({
                 next: (res) => {
-                    console.log(res)
+                    // console.log(res)
+                    // this.isLoading = true;
+                    // this._changeDetectorRef.markForCheck();
+
                     res.name = decodeURIComponent(res.name);
 
                     // 根據 WebSocket 訊息更新檔案列表中的檔案
                     this.data = this.data.map(d => {
                         if (d.name === res.name) {
+                            if (res.status === 'complete') d.version += 1;
                             return {
                                 ...d,
                                 status: res.status,
                                 message: res.message
                             };
                         }
+
+                        if (res.status === 'complete') {
+                            console.log('complete')
+                            d.version += 1;
+                            // this.isLoading = false;
+                            this._changeDetectorRef.markForCheck();
+                        }
+
                         return d;
                     });
 
@@ -221,7 +233,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         });
     }
 
-    revertToLastVersion(fileName: string): void {
+    onBimDataRevert(item: any): void {
         let dialogRef = this._gtsConfirmationService.open({
             title: this._translocoService.translate('confirm-action'),
             message: this._translocoService.translate('restore-previous-backup'),
@@ -234,40 +246,13 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         });
 
         dialogRef.afterClosed().subscribe(res => {
-
             if (res === 'confirmed') {
-                // this.isLoading = true;
-                // this._changeDetectorRef.markForCheck();
-                // this._bimModelViewerService.downloadBim(fileName, version).subscribe({
-                //     next: (blob: Blob) => {
-                //         // 創建 Blob 並生成臨時 URL
-                //         const binFilename = version && version.trim() !== ''
-                //             ? `${fileName.split('.')[0]}_${version}.${fileName.split('.')[1]}`
-                //             : fileName;
-                //         const downloadUrl = window.URL.createObjectURL(blob);
-                //         const link = document.createElement('a');
-                //         link.href = downloadUrl;
-                //         link.download = binFilename; // 檔案名稱，與 API 的 filename 一致
-                //         document.body.appendChild(link);
-                //         link.click();
-                //         document.body.removeChild(link);
-                //         window.URL.revokeObjectURL(downloadUrl); // 清理臨時 URL
-                //         this.isLoading = false;
-                //         this._changeDetectorRef.markForCheck();
-                //     },
-                //     error: (error) => {
-                //         // 處理錯誤（例如 HTTP 400, 404, 500）
-                //         this.isLoading = false;
-                //         this._changeDetectorRef.markForCheck();
-                //         error.error.text().then((errorMessage: string) => {
-                //             const errorJson = JSON.parse(errorMessage);
-                //             this._toastService.open({ message: errorJson.error || errorJson.message || '下載失敗，請稍後再試' });
-                //         }).catch(() => {
-                //             alert('下載失敗，請聯繫管理員');
-                //             this._toastService.open({ message: '下載失敗，請聯繫管理員' });
-                //         });
-                //     }
-                // });
+                this._bimModelViewerService.bimDataRevert(item.name, item.version)
+                    .pipe(takeUntil(this._unsubscribeAll))
+                    .subscribe({
+                        next: (res) => { },
+                        error: (err) => { }
+                    });
             }
         });
     }
@@ -277,5 +262,10 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         return tenders.every(tender => tender === tenders[0]);
     }
 
-    ngOnDestroy(): void { }
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
+        this._subscription.unsubscribe();
+        this._websocketService.close('update-category');
+    }
 }

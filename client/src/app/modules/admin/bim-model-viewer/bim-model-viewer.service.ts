@@ -31,4 +31,10 @@ export class BimModelViewerService {
             { responseType: 'blob' }
         );
     }
+
+    bimDataRevert(fileName: string, version: string = null) {
+        const request: any = { file_name: encodeURIComponent(fileName) };
+        if (version) request.version = version;
+        return this._appService.post('forge/bim-data-revert', request);
+    }
 }

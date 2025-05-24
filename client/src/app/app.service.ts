@@ -144,28 +144,28 @@ export class AppService {
     }
 
     private _handleError(error: HttpErrorResponse) {
-
-        // 帳號密碼錯誤發生HTTP_401_UNAUTHORIZED由登入頁面另外處置
-        if (error.status === 401)
+        // HTTP 401 由登入頁面處理
+        if (error.status === 401) {
             return;
+        }
 
-        let messages = [];
+        const messages: string[] = [];
         const errorCode = error.error?.code;
 
         if (error.error instanceof ErrorEvent) {
-            // 用戶端網路等相關錯誤
+            // 用戶端網路相關錯誤
             messages.push(`An error occurred: ${error.error.message}`);
         } else {
-
-            // 後端有定義之error code轉換對應之多語系
+            // 處理後端定義的錯誤碼並轉換為多語系訊息
             if (errorCode) {
                 messages.push(this._translocoService.translate(errorCode));
-                // messages.push(error.url)
             }
-
-            // Server-side error
-            else if (error.status === 400 && error.error) {
-                // 處理驗證錯誤，遍歷所有的欄位錯誤
+            // 處理 error.error 為物件且包含 error 欄位的情況
+            else if (error.error?.error && typeof error.error.error === 'string') {
+                messages.push(error.error.error);
+            }
+            // 處理 HTTP 400 驗證錯誤
+            else if (error.status === 400 && error.error && typeof error.error === 'object') {
                 for (const key in error.error) {
                     if (error.error.hasOwnProperty(key)) {
                         const fieldErrors = error.error[key];
@@ -173,28 +173,37 @@ export class AppService {
                             fieldErrors.forEach((err: string) => {
                                 messages.push(`${key}: ${err}`);
                             });
+                        } else if (typeof fieldErrors === 'string') {
+                            messages.push(`${key}: ${fieldErrors}`);
                         }
                     }
                 }
-            } else {
-                // 其他未知類型的錯誤處理
+            }
+            // 其他未知錯誤
+            else {
                 messages.push(error.message || 'An unexpected error occurred.');
             }
-
-            const dialogRef = this._gtsConfirmationService.open({
-                icon: { color: 'warn' },
-                title: this._translocoService.translate('messages'),
-                message: messages.join(' | '),
-                actions: { confirm: { label: 'Done', }, cancel: { show: false } }
-            });
-
-            dialogRef.afterClosed().subscribe(result => {
-                // 您沒有權限操作任何系統功能
-                if (result === 'confirmed' && errorCode === 'no-navigation-permission') {
-                    location.reload();
-                }
-            });
         }
+
+        // 如果沒有錯誤訊息，設置預設訊息
+        if (messages.length === 0) {
+            messages.push('An unexpected error occurred.');
+        }
+
+        // 顯示錯誤對話框
+        const dialogRef = this._gtsConfirmationService.open({
+            icon: { color: 'warn' },
+            title: this._translocoService.translate('messages'),
+            message: messages.join(' | '),
+            actions: { confirm: { label: 'Done' }, cancel: { show: false } }
+        });
+
+        // 處理特定錯誤碼的後續操作
+        dialogRef.afterClosed().subscribe(result => {
+            if (result === 'confirmed' && errorCode === 'no-navigation-permission') {
+                location.reload();
+            }
+        });
     }
 
     // 暫時使用OSS, 需取得token

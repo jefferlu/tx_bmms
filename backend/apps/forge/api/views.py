@@ -287,122 +287,122 @@ class BimDataRevertView(APIView):
             )
 
         # 使用資料庫鎖定取得 BimModel
-        with transaction.atomic():
-            bim_model = models.BimModel.objects.select_for_update().filter(name=file_name).first()
-            if not bim_model:
-                return Response({"error": f"未找到檔案 '{file_name}' 的 BimModel"}, status=status.HTTP_404_NOT_FOUND)
+        bim_model = models.BimModel.objects.filter(name=file_name).first()
+        if not bim_model:
+            return Response({"error": f"未找到檔案 '{file_name}' 的 BimModel"}, status=status.HTTP_404_NOT_FOUND)
 
-            current_version = bim_model.version
-            if current_version <= 1:
-                return Response({"error": "已是第一版，無法回覆前一版"}, status=status.HTTP_400_BAD_REQUEST)
+        current_version = bim_model.version
+        if current_version <= 1:
+            return Response({"error": "已是第一版，無法回覆前一版"}, status=status.HTTP_400_BAD_REQUEST)
 
-            target_version = current_version - 1
-            new_version = current_version + 1
+        target_version = current_version - 1
+        new_version = current_version + 1
 
-            # 檢查前一版檔案是否存在
-            uploads_path = f"uploads/{file_name}/ver_{target_version}/{file_name}"
-            svf_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name, f"ver_{target_version}").replace(os.sep, '/')
-            sqlite_path = f"sqlite/{file_name}/ver_{target_version}/{file_name}.db"
+        # 檢查前一版檔案是否存在
+        uploads_path = f"uploads/{file_name}/ver_{target_version}/{file_name}"
+        svf_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name, f"ver_{target_version}").replace(os.sep, '/')
+        sqlite_path = f"sqlite/{file_name}/ver_{target_version}/{file_name}.db"
 
-            if not default_storage.exists(uploads_path):
-                return Response({"error": f"前一版 (v{target_version}) 的上傳檔案缺失"}, status=status.HTTP_400_BAD_REQUEST)
-            if not os.path.exists(svf_dir):
-                return Response({"error": f"前一版 (v{target_version}) 的 SVF 目錄缺失"}, status=status.HTTP_400_BAD_REQUEST)
-            if not default_storage.exists(sqlite_path):
-                return Response({"error": f"前一版 (v{target_version}) 的 SQLite 檔案缺失"}, status=status.HTTP_400_BAD_REQUEST)
+        if not default_storage.exists(uploads_path):
+            return Response({"error": f"前一版 (v{target_version}) 的上傳檔案缺失"}, status=status.HTTP_400_BAD_REQUEST)
+        if not os.path.exists(svf_dir):
+            return Response({"error": f"前一版 (v{target_version}) 的 SVF 目錄缺失"}, status=status.HTTP_400_BAD_REQUEST)
+        if not default_storage.exists(sqlite_path):
+            return Response({"error": f"前一版 (v{target_version}) 的 SQLite 檔案缺失"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # 定義新版本的路徑
-            new_uploads_dir = os.path.join(settings.MEDIA_ROOT, "uploads", file_name, f"ver_{new_version}").replace(os.sep, '/')
-            new_svf_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name, f"ver_{new_version}").replace(os.sep, '/')
-            new_sqlite_dir = os.path.join(settings.MEDIA_ROOT, "sqlite", file_name, f"ver_{new_version}").replace(os.sep, '/')
-            new_sqlite_path = f"sqlite/{file_name}/ver_{new_version}/{file_name}.db"
-            new_uploads_path = f"uploads/{file_name}/ver_{new_version}/{file_name}"
+        # 定義新版本的路徑
+        new_uploads_dir = os.path.join(settings.MEDIA_ROOT, "uploads", file_name, f"ver_{new_version}").replace(os.sep, '/')
+        new_svf_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name, f"ver_{new_version}").replace(os.sep, '/')
+        new_sqlite_dir = os.path.join(settings.MEDIA_ROOT, "sqlite", file_name, f"ver_{new_version}").replace(os.sep, '/')
+        new_sqlite_path = f"sqlite/{file_name}/ver_{new_version}/{file_name}.db"
+        new_uploads_path = f"uploads/{file_name}/ver_{new_version}/{file_name}"
 
-            # 複製前一版檔案到新版本
-            try:
-                os.makedirs(new_uploads_dir, exist_ok=True)
-                shutil.copy2(
-                    os.path.join(settings.MEDIA_ROOT, uploads_path).replace(os.sep, '/'),
-                    os.path.join(new_uploads_dir, file_name).replace(os.sep, '/')
-                )
-                logger.info(f"Copied uploads from {uploads_path} to {new_uploads_path}")
+        # 複製前一版檔案到新版本
+        try:
+            os.makedirs(new_uploads_dir, exist_ok=True)
+            shutil.copy2(
+                os.path.join(settings.MEDIA_ROOT, uploads_path).replace(os.sep, '/'),
+                os.path.join(new_uploads_dir, file_name).replace(os.sep, '/')
+            )
+            logger.info(f"Copied uploads from {uploads_path} to {new_uploads_path}")
 
-                if os.path.exists(new_svf_dir):
-                    shutil.rmtree(new_svf_dir)
-                shutil.copytree(svf_dir, new_svf_dir)
-                logger.info(f"Copied svf from {svf_dir} to {new_svf_dir}")
+            if os.path.exists(new_svf_dir):
+                shutil.rmtree(new_svf_dir)
+            shutil.copytree(svf_dir, new_svf_dir)
+            logger.info(f"Copied svf from {svf_dir} to {new_svf_dir}")
 
-                os.makedirs(new_sqlite_dir, exist_ok=True)
-                shutil.copy2(
-                    os.path.join(settings.MEDIA_ROOT, sqlite_path).replace(os.sep, '/'),
-                    os.path.join(new_sqlite_dir, f"{file_name}.db").replace(os.sep, '/')
-                )
-                logger.info(f"Copied sqlite from {sqlite_path} to {new_sqlite_path}")
-            except Exception as e:
-                logger.error(f"Failed to copy files for {file_name} to v{new_version}: {str(e)}")
-                return Response({"error": f"複製檔案到新版本時發生錯誤：{str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            os.makedirs(new_sqlite_dir, exist_ok=True)
+            shutil.copy2(
+                os.path.join(settings.MEDIA_ROOT, sqlite_path).replace(os.sep, '/'),
+                os.path.join(new_sqlite_dir, f"{file_name}.db").replace(os.sep, '/')
+            )
+            logger.info(f"Copied sqlite from {sqlite_path} to {new_sqlite_path}")
+        except Exception as e:
+            logger.error(f"Failed to copy files for {file_name} to v{new_version}: {str(e)}")
+            return Response({"error": f"複製檔案到新版本時發生錯誤：{str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            # 尋找新版本的 .svf 檔案
-            svf_files = []
-            for root, _, files in os.walk(new_svf_dir):
-                for file in files:
-                    if file.endswith('.svf'):
-                        absolute_svf_path = os.path.join(root, file).replace(os.sep, '/')
-                        svf_files.append(absolute_svf_path)
-            if not svf_files:
-                return Response({"error": f"新版本 (v{new_version}) 的 SVF 檔案缺失"}, status=status.HTTP_400_BAD_REQUEST)
+        # 尋找新版本的 .svf 檔案
+        svf_files = []
+        for root, _, files in os.walk(new_svf_dir):
+            for file in files:
+                if file.endswith('.svf'):
+                    absolute_svf_path = os.path.join(root, file).replace(os.sep, '/')
+                    svf_files.append(absolute_svf_path)
+        if not svf_files:
+            return Response({"error": f"新版本 (v{new_version}) 的 SVF 檔案缺失"}, status=status.HTTP_400_BAD_REQUEST)
 
-            selected_svf_path = svf_files[0]
-            new_svf_path = os.path.relpath(selected_svf_path, settings.MEDIA_ROOT).replace(os.sep, '/')
-            if len(svf_files) > 1:
-                logger.warning(f"Multiple .svf files found in {new_svf_dir}: {svf_files}. Using {new_svf_path}.")
+        selected_svf_path = svf_files[0]
+        new_svf_path = os.path.relpath(selected_svf_path, settings.MEDIA_ROOT).replace(os.sep, '/')
+        if len(svf_files) > 1:
+            logger.warning(f"Multiple .svf files found in {new_svf_dir}: {svf_files}. Using {new_svf_path}.")
 
-            # 重新轉換前一版的關聯資料
-            absolute_sqlite_path = os.path.join(settings.MEDIA_ROOT, new_sqlite_path).replace(os.sep, '/')
-            bim_update_categories.delay(absolute_sqlite_path, bim_model.id, file_name, 'update_category_group', 'update.category')
-            
+        # 更新 BimModel
+        bim_model.version = new_version
+        bim_model.svf_path = new_svf_path
+        bim_model.sqlite_path = new_sqlite_path
+        bim_model.save()
 
-            # 執行檔案清理邏輯
-            uploads_base_dir = os.path.join(settings.MEDIA_ROOT, "uploads", file_name).replace(os.sep, '/')
-            svf_base_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name).replace(os.sep, '/')
-            sqlite_base_dir = os.path.join(settings.MEDIA_ROOT, "sqlite", file_name).replace(os.sep, '/')
+        # 重新轉換前一版的關聯資料
+        absolute_sqlite_path = os.path.join(settings.MEDIA_ROOT, new_sqlite_path).replace(os.sep, '/')
+        bim_update_categories.delay(absolute_sqlite_path, bim_model.id, file_name, 'update_category_group', 'update.category')
+        
 
-            if new_version > 2:
-                for v in range(1, new_version - 1):
-                    old_uploads_dir = os.path.join(uploads_base_dir, f"ver_{v}").replace(os.sep, '/')
-                    if os.path.exists(old_uploads_dir):
-                        try:
-                            shutil.rmtree(old_uploads_dir)
-                            logger.info(f"Removed old uploads directory: {old_uploads_dir}")
-                        except Exception as e:
-                            logger.warning(f"Failed to remove old uploads directory {old_uploads_dir}: {str(e)}")
+        # 執行檔案清理邏輯
+        uploads_base_dir = os.path.join(settings.MEDIA_ROOT, "uploads", file_name).replace(os.sep, '/')
+        svf_base_dir = os.path.join(settings.MEDIA_ROOT, "svf", file_name).replace(os.sep, '/')
+        sqlite_base_dir = os.path.join(settings.MEDIA_ROOT, "sqlite", file_name).replace(os.sep, '/')
 
-                    old_svf_dir = os.path.join(svf_base_dir, f"ver_{v}").replace(os.sep, '/')
-                    if os.path.exists(old_svf_dir):
-                        try:
-                            shutil.rmtree(old_svf_dir)
-                            logger.info(f"Removed old svf directory: {old_svf_dir}")
-                        except Exception as e:
-                            logger.warning(f"Failed to remove old svf directory {old_svf_dir}: {str(e)}")
+        if new_version > 2:
+            for v in range(1, new_version - 1):
+                old_uploads_dir = os.path.join(uploads_base_dir, f"ver_{v}").replace(os.sep, '/')
+                if os.path.exists(old_uploads_dir):
+                    try:
+                        shutil.rmtree(old_uploads_dir)
+                        logger.info(f"Removed old uploads directory: {old_uploads_dir}")
+                    except Exception as e:
+                        logger.warning(f"Failed to remove old uploads directory {old_uploads_dir}: {str(e)}")
 
-                    old_sqlite_dir = os.path.join(sqlite_base_dir, f"ver_{v}").replace(os.sep, '/')
-                    if os.path.exists(old_sqlite_dir):
-                        try:
-                            shutil.rmtree(old_sqlite_dir)
-                            logger.info(f"Removed old sqlite directory: {old_sqlite_dir}")
-                        except Exception as e:
-                            logger.warning(f"Failed to remove old sqlite directory {old_sqlite_dir}: {str(e)}")
+                old_svf_dir = os.path.join(svf_base_dir, f"ver_{v}").replace(os.sep, '/')
+                if os.path.exists(old_svf_dir):
+                    try:
+                        shutil.rmtree(old_svf_dir)
+                        logger.info(f"Removed old svf directory: {old_svf_dir}")
+                    except Exception as e:
+                        logger.warning(f"Failed to remove old svf directory {old_svf_dir}: {str(e)}")
 
-            # 更新 BimModel
-            bim_model.version = new_version
-            bim_model.svf_path = new_svf_path
-            bim_model.sqlite_path = new_sqlite_path
-            bim_model.save()
+                old_sqlite_dir = os.path.join(sqlite_base_dir, f"ver_{v}").replace(os.sep, '/')
+                if os.path.exists(old_sqlite_dir):
+                    try:
+                        shutil.rmtree(old_sqlite_dir)
+                        logger.info(f"Removed old sqlite directory: {old_sqlite_dir}")
+                    except Exception as e:
+                        logger.warning(f"Failed to remove old sqlite directory {old_sqlite_dir}: {str(e)}")
 
-            # 記錄操作
-            ip_address = request.META.get('REMOTE_ADDR')
-            log_user_activity(self.request.user, '模型回覆',
-                              f'回覆 {file_name} 到 v{target_version} (儲存為 v{new_version})', 'SUCCESS', ip_address)
+        
+        # 記錄操作
+        ip_address = request.META.get('REMOTE_ADDR')
+        log_user_activity(self.request.user, '模型回覆',
+                            f'回覆 {file_name} 到 v{target_version} (儲存為 v{new_version})', 'SUCCESS', ip_address)
 
         return Response({"message": f"成功回覆檔案 '{file_name}' 到版本 v{target_version} (儲存為 v{new_version})"}, status=status.HTTP_200_OK)
 
