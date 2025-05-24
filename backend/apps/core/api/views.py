@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.exceptions import NotFound
+from rest_framework.pagination import PageNumberPagination
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -398,10 +399,17 @@ class ApsCredentialsViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
             raise
 
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'size'
+    max_page_size = 100
+
+
 class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    permission_classes = ()
-    queryset = models.LogUserActivity.objects.all()
+    permission_classes = []
+    queryset = models.LogUserActivity.objects.all().order_by('-timestamp')  # 按 timestamp 降序
     serializer_class = serializers.LogUserActivitySerializer
+    pagination_class = StandardResultsSetPagination
 
 
 class DockerLogsView(APIView):

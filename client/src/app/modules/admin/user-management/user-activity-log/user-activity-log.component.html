@@ -1,7 +1,7 @@
 <div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full" *transloco="let t">
     <div class="mx-auto flex w-full h-full flex-wrap p-6">
         <div class="flex flex-auto flex-col h-full sm:col-span-2 lg:col-span-3">
-            
+
             <!-- Header -->
             <div class="flex flex-row items-center justify-between pt-6 pb-2">
                 <!-- Title -->
@@ -26,9 +26,13 @@
 
             <!-- Content -->
             <div class="flex h-full overflow-y-auto bg-card rounded-md">
-                @if(data){
-                <p-table class="w-full" [value]="data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" selectionMode="single"
-                    [metaKeySelection]="true" (onRowSelect)="onOpenDrawer($event)">
+                @if(data?.count>0){
+                <!-- <p-table class="w-full" [value]="data?.results" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" selectionMode="single"
+                    [metaKeySelection]="true" (onRowSelect)="onOpenDrawer($event)"> -->
+                <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="this.data?.count" [scrollable]="true" scrollHeight="flex"
+                    selectionMode="single" [pageLinks]="1" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [first]="first"
+                    [paginator]="true" [lazy]="true" [lazyLoadOnInit]="false" [loading]="isLoading" [selection]="selectedObjects"
+                    (onLazyLoad)="onPageChange($event)">
                     <ng-template pTemplate="header">
                         <tr>
                             <th class="pl-8 py-4">{{t('account')}}</th>
@@ -57,7 +61,7 @@
                 <div class="flex flex-auto flex-col items-center justify-center text-secondary mb-10">
                     <mat-icon class="icon-size-16" [svgIcon]="'heroicons_outline:exclamation-circle'"></mat-icon>
                     <div class="mt-4 text-xl font-semibold tracking-tight">
-                        {{t('no-data-found')}}
+                        {{t('no-data-found')}} {{data?.count}}
                     </div>
                 </div>
                 }
