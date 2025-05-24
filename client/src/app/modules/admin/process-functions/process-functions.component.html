@@ -79,7 +79,9 @@
                                 <td class="pl-8">
                                     <p-tableCheckbox [value]="item" />
                                 </td>
-                                <td>{{ item.value }} ({{ item.dbid }})</td>
+                                <td>{{ item.value }} ({{ item.dbid }}) <br/>
+                                    <span class="text-sm">{{item.name}}</span>
+                                </td>
                             </tr>
                         </ng-template>
                         <ng-template pTemplate="emptymessage">
