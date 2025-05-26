@@ -83,14 +83,14 @@ class DbReader:
         signed_url_endpoint = f"{self.host}/modelderivative/v2/designdata/{urn}/manifest/{derivative_urn}/signedcookies"
         response = requests.get(signed_url_endpoint, headers=headers)
         if response.status_code != 200:
-            self.send_progress("error", f"Failed to fetch download URL: {response.status_code} - {response.content.decode()}")
-            raise Exception(f"Failed to fetch download URL: {response.status_code} - {response.content.decode()}")
+            self.send_progress("error", f"Failed to fetch SQLite download URL: {response.status_code} - {response.content.decode()}")
+            raise Exception(f"Failed to fetch SQLite download URL: {response.status_code} - {response.content.decode()}")
 
         signed_url_data = response.json()
         download_url = signed_url_data.get("url")
         if not download_url:
-            self.send_progress("error", "Download URL not found")
-            raise Exception("Download URL not found")
+            self.send_progress("error", "Download SQLite URL not found")
+            raise Exception("Download SQLite URL not found")
 
         # 從標頭中提取 Cookie
         cookies = {}
@@ -103,19 +103,19 @@ class DbReader:
                     cookies[key_value[0]] = key_value[1]
 
         if not cookies:
-            self.send_progress("error", "Signed cookies not found")
-            raise Exception("Signed cookies not found")
+            self.send_progress("error", "Signed SQLite cookies not found")
+            raise Exception("Signed SQLite cookies not found")
 
         # 步驟 2: 使用 HEAD 請求獲取檔案大小
         response = requests.head(download_url, cookies=cookies)
         if response.status_code != 200:
-            self.send_progress("error", f"Failed to fetch file info: {response.status_code} - {response.content.decode()}")
-            raise Exception(f"Failed to fetch file info: {response.status_code} - {response.content.decode()}")
+            self.send_progress("error", f"Failed to fetch SQLite file info: {response.status_code} - {response.content.decode()}")
+            raise Exception(f"Failed to fetch SQLite file info: {response.status_code} - {response.content.decode()}")
 
         total_size = int(response.headers.get('Content-Length', 0))
         if total_size == 0:
-            self.send_progress("error", "Failed to fetch file size")
-            raise Exception("Failed to fetch file size")
+            self.send_progress("error", "Failed to fetch SQLite file size")
+            raise Exception("Failed to fetch SQLite file size")
 
         # 步驟 3: 分塊下載並傳送進度訊息
         downloaded_size = 0
@@ -127,17 +127,17 @@ class DbReader:
                 response = requests.get(download_url, headers=range_header, cookies=cookies, stream=True)
                 if response.status_code not in [200, 206]:
                     self.send_progress(
-                        "error", f"Chunk download failed: {response.status_code} - {response.content.decode()}")
-                    raise Exception(f"Chunk download failed: {response.status_code} - {response.content.decode()}")
+                        "error", f"Chunk download SQLite failed: {response.status_code} - {response.content.decode()}")
+                    raise Exception(f"Chunk download SQLite failed: {response.status_code} - {response.content.decode()}")
 
                 file.write(response.content)
                 downloaded_size += len(response.content)
 
                 # 傳送 WebSocket 進度訊息
                 progress_percent = (downloaded_size / total_size) * 100
-                self.send_progress("progress", f"Download database: {progress_percent:.2f}%")
+                self.send_progress("progress", f"Download SQLite database: {progress_percent:.2f}%")
 
-        self.send_progress("success", f"Database downloaded succeed.")
+        self.send_progress("success", f"Download SQLite database completed.")
 
     def execute_query(self, query: str):
         conn = sqlite3.connect(self.db_path)
