@@ -5,9 +5,9 @@ import { environment } from 'environments/environment';
 import { ToastService } from '../toast/toast.service';
 import { TranslocoService } from '@jsverse/transloco';
 import { debounce } from 'lodash';
+import { SearchPanel } from './buttons/search-panel';
 
 declare const Autodesk: any;
-declare const SearchPanel: any;
 declare const DownloadPanel: any;
 declare const ApsXLS: any;
 
@@ -28,7 +28,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     @Output() nodeProperties = new EventEmitter<any>();
 
     viewer: any;
-    searchPanel: any;
+    searchPanel: SearchPanel | null = null;
     downloadPanel: any;
     loadedModels: any[] = [];
     lang: string;
@@ -38,7 +38,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     private latestDbIds: number[] = [];
     private latestUrn: string | null = null;
     private isUniTest: boolean = false;
-    
+
     private isLocalMode: boolean = true;
 
     constructor(
@@ -365,6 +365,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         }
         this.isViewerInitialized = false;
         this.loadedBubbleNodes = [];
+        this.searchPanel?.uninitialize(); // 清理 searchPanel
+        this.searchPanel = null;
     }
 
     private emitNodeProperties(dbId: number, model: any): void {
@@ -516,9 +518,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         }
     }
 
-    private loadModels(data: any[]): void {
-        const guiViewer = this.viewer;
-        if (!guiViewer) {
+    private loadModels(data: any[]): void {        
+        if (!this.viewer) {
             console.error('GuiViewer3D 尚未準備好');
             // this._toastService.open({ message: 'GuiViewer3D 未初始化' });
             return;
@@ -572,7 +573,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
                         loadPromises.push(
                             new Promise((resolve, reject) => {
-                                guiViewer.loadModel(documentId, loadOptions, (model) => {
+                                this.viewer.loadModel(documentId, loadOptions, (model) => {
                                     console.log(`本地模型載入成功: ${documentId}`);
                                     model.getData().urn = urn;
                                     resolve({ model, urn });
