@@ -70,7 +70,7 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
         this.searchField.type = 'text';
         this.searchField.id = 'search-field';
         this.searchField.placeholder = '輸入 dbId 或屬性值...';
-        this.searchField.className = 'border rounded px-2 py-2 text-base w-40'; // Tailwind: 邊框、圓角、內距、文字大小、寬度
+        this.searchField.className = 'border rounded px-2 py-1 text-base w-40'; // Tailwind: 邊框、圓角、內距、文字大小、寬度
         inputContainer.appendChild(this.searchField);
 
         // 創建搜尋按鈕
