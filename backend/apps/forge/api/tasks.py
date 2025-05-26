@@ -96,6 +96,7 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         elapsed_time = time.time() - start_time
         return {"status": f"BIM data import failed: {str(e)}", "file": file_name, "elapsed_time": elapsed_time}
 
+
 def process_translation(urn, token, file_name, object_data, send_progress, is_reload):
     """
     Process translation job, download SVF and SQLite, and update BimModel data.
@@ -186,9 +187,9 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
 
     # Download SQLite
     send_progress('download-sqlite', 'Downloading SQLite to server...')
-    db = DbReader(urn, token, object_data['objectKey'])
+    db = DbReader(urn, token, object_data['objectKey'], send_progress)
     absolute_sqlite_path = db.db_path.replace(os.sep, '/')
-    
+
     # 檢查 SQLite 檔案是否存在
     if not os.path.exists(absolute_sqlite_path):
         send_progress('error', f"SQLite file not found at {absolute_sqlite_path}")
@@ -210,7 +211,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     sqlite_dir = os.path.join(settings.MEDIA_ROOT, "sqlite", file_name, f"ver_{version}").replace(os.sep, '/')
     os.makedirs(sqlite_dir, exist_ok=True)
     new_sqlite_path = os.path.join(sqlite_dir, f"{file_name}.db").replace(os.sep, '/')
-    
+
     # 移動 SQLite 檔案到版本化目錄
     try:
         shutil.move(absolute_sqlite_path, new_sqlite_path)
@@ -263,6 +264,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
             raise
 
     return result
+
 
 @shared_task
 def bim_update_categories(sqlite_path, bim_model_id, file_name, group_name, group_type):
