@@ -686,6 +686,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             return;
         }
 
+        const searchTitle = this._translocoService.translate('search-model');
         const searchButton = new Autodesk.Viewing.UI.Button('search-model');
         const searchImg = document.createElement('img');
         searchImg.src = 'assets/aps/svg/search.svg';
@@ -693,14 +694,15 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         searchImg.style.height = '24px';
         searchButton.container.appendChild(searchImg);
         searchButton.addClass('bmms-button');
-        searchButton.setToolTip('搜尋物件');
+        searchButton.setToolTip(searchTitle);
         searchButton.onClick = () => {
             if (this.searchPanel == null) {
-                this.searchPanel = new SearchPanel(viewer, viewer.container, 'searchModel', '搜尋模型');
+                this.searchPanel = new SearchPanel(viewer, viewer.container, 'searchModel', searchTitle, this._injector);
             }
             this.searchPanel.setVisible(!this.searchPanel.isVisible());
         };
 
+        const downloadTitle = this._translocoService.translate('download-sqlite');
         const downloadButton = new Autodesk.Viewing.UI.Button('download-database');
         const downloadImg = document.createElement('img');
         downloadImg.src = 'assets/aps/svg/download-database.svg';
@@ -711,11 +713,12 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         downloadButton.setToolTip('下載資料庫');
         downloadButton.onClick = () => {
             if (this.downloadSqlite == null) {
-                this.downloadSqlite = new DownloadSqlite(viewer, viewer.container, 'exportPanel', '匯出 Sqlite', this._injector);
+                this.downloadSqlite = new DownloadSqlite(viewer, viewer.container, 'exportPanel', downloadTitle, this._injector);
             }
             this.downloadSqlite.setVisible(!this.downloadSqlite.isVisible());
         };
 
+        const exportTitle = this._translocoService.translate('export-excel');
         const exportButton = new Autodesk.Viewing.UI.Button('export-xlsx');
         const exportImg = document.createElement('img');
         exportImg.src = 'assets/aps/svg/export-xlsx.svg';
@@ -727,7 +730,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         const fileName = "metadata";
         exportButton.onClick = () => {
             if (this.downloadExcel == null) {
-                this.downloadExcel = new DownloadExcel(viewer, viewer.container, 'exportPanel', '匯出 CSV', this._injector);
+                this.downloadExcel = new DownloadExcel(viewer, viewer.container, 'exportPanel', exportTitle, this._injector);
             }
             this.downloadExcel.setVisible(!this.downloadExcel.isVisible());
         };

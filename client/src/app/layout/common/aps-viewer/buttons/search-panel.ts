@@ -1,6 +1,11 @@
+import { Injector } from "@angular/core";
+import { TranslocoService } from "@jsverse/transloco";
+
 declare const Autodesk: any;
 
 export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
+    private _translocoService: TranslocoService;
+
     private viewer: any;
     private searchField: HTMLInputElement;
     private searchButton: HTMLButtonElement;
@@ -8,8 +13,12 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
     private propertyRadio: HTMLInputElement;
     private resultsDiv: HTMLDivElement;
 
-    constructor(viewer: any, container: HTMLElement, id: string, title: string, options?: any) {
-        super(container, id, title, options);
+    
+    constructor(viewer: any, container: HTMLElement, id: string, title: string, injector: Injector) {
+        super(container, id, title);
+
+        this._translocoService = injector.get(TranslocoService);
+
         this.viewer = viewer;
 
         // 設置面板樣式
@@ -77,7 +86,7 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
         this.searchButton = document.createElement('button');
         this.searchButton.type = 'button';
         this.searchButton.id = 'btn-search';
-        this.searchButton.innerText = 'Search';
+        this.searchButton.innerText = this._translocoService.translate('search');
         this.searchButton.className = 'bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 text-sm'; // Tailwind: 藍色背景、白色文字、內距、圓角、hover 效果
         inputContainer.appendChild(this.searchButton);
 
@@ -224,7 +233,7 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
         return path;
     }
 
-    private expandNodePathInTree(tree: any, nodePath: any, modelStructure: any, model: any) {       
+    private expandNodePathInTree(tree: any, nodePath: any, modelStructure: any, model: any) {
         if (modelStructure) {
             nodePath.forEach((dbId: number) => {
                 this.viewer.select([dbId], model);
