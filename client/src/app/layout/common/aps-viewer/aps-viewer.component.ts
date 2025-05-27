@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Inject, Input, OnChanges, OnDestroy, OnInit, Optional, Output, SimpleChanges, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Inject, Injector, Input, OnChanges, OnDestroy, OnInit, Optional, Output, SimpleChanges, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { AppService } from 'app/app.service';
 import { environment } from 'environments/environment';
@@ -6,9 +6,10 @@ import { ToastService } from '../toast/toast.service';
 import { TranslocoService } from '@jsverse/transloco';
 import { debounce } from 'lodash';
 import { SearchPanel } from './buttons/search-panel';
+import { DownloadExcel } from './buttons/download-excel';
+import { DownloadSqlite } from './buttons/download-sqlite';
 
 declare const Autodesk: any;
-declare const DownloadPanel: any;
 declare const ApsXLS: any;
 
 const env = environment;
@@ -29,9 +30,12 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
     viewer: any;
     searchPanel: SearchPanel | null = null;
-    downloadPanel: any;
+    downloadExcel: DownloadExcel | null = null;
+    downloadSqlite: DownloadSqlite | null = null;
+
     loadedModels: any[] = [];
     lang: string;
+
     private isViewerInitialized = false;
     private selectedNodeProperties: any[] = [];
     private loadedBubbleNodes: any[] = [];
@@ -46,7 +50,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         @Optional() public dialogRef: MatDialogRef<ApsViewerComponent>,
         private _toastService: ToastService,
         private _translocoService: TranslocoService,
-        private _appService: AppService
+        private _appService: AppService,
+        private _injector: Injector
     ) { }
 
     ngOnInit(): void {
@@ -518,7 +523,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         }
     }
 
-    private loadModels(data: any[]): void {        
+    private loadModels(data: any[]): void {
         if (!this.viewer) {
             console.error('GuiViewer3D 尚未準備好');
             // this._toastService.open({ message: 'GuiViewer3D 未初始化' });
@@ -705,10 +710,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         downloadButton.addClass('bmms-button');
         downloadButton.setToolTip('下載資料庫');
         downloadButton.onClick = () => {
-            if (this.downloadPanel == null) {
-                this.downloadPanel = new DownloadPanel(viewer, viewer.container, 'downloadPanel', '下載資料庫');
+            if (this.downloadSqlite == null) {
+                this.downloadSqlite = new DownloadSqlite(viewer, viewer.container, 'exportPanel', '匯出 Sqlite', this._injector);
             }
-            this.downloadPanel.setVisible(!this.downloadPanel.isVisible());
+            this.downloadSqlite.setVisible(!this.downloadSqlite.isVisible());
         };
 
         const exportButton = new Autodesk.Viewing.UI.Button('export-xlsx');
@@ -721,9 +726,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         exportButton.setToolTip('匯出 XLSX');
         const fileName = "metadata";
         exportButton.onClick = () => {
-            ApsXLS.downloadXLSX(fileName.replace(/\./g, '') + ".xlsx", (completed: boolean, message: string) => {
-                this._toastService.open({ message: message });
-            });
+            if (this.downloadExcel == null) {
+                this.downloadExcel = new DownloadExcel(viewer, viewer.container, 'exportPanel', '匯出 CSV', this._injector);
+            }
+            this.downloadExcel.setVisible(!this.downloadExcel.isVisible());
         };
 
         const subToolbar = new Autodesk.Viewing.UI.ControlGroup('bmms-toolbar');
