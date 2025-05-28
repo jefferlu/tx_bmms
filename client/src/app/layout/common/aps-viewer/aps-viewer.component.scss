@@ -1,7 +1,7 @@
-.adsk-viewing-viewer {
-  @apply rounded-lg;
-}
-
 .bmms-button {
   @apply flex items-center justify-center;
+}
+
+#filename-select option {
+    @apply text-slate-900;
 }

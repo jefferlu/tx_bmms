@@ -624,6 +624,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 console.log('更新後的本地模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
                 this.loadedModels = this.viewer.getAllModels();
                 this.handleModelLoading(data);
+
+                // 處理forge viewer buttons
+                if (this.downloadExcel) this.downloadExcel.refreshOptions();
+                if (this.downloadSqlite) this.downloadSqlite.refreshOptions();
+
             } else {
                 const newBubbleNodes = results.map(result => result.viewable);
                 const allBubbleNodes = [...this.loadedBubbleNodes, ...newBubbleNodes];
@@ -636,6 +641,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     this.loadedModels = this.viewer.viewer.getAllModels();
                     console.log('更新後的 OSS 模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
                     this.handleModelLoading(data);
+
+                    // 處理forge viewer buttons
+                    if (this.downloadExcel) this.downloadExcel.refreshOptions();
+                    if (this.downloadSqlite) this.downloadSqlite.refreshOptions();
+
                 }).catch((err) => {
                     console.error('設置 OSS 模型失敗:', err);
                     // this._toastService.open({ message: '無法設置 OSS 模型' });

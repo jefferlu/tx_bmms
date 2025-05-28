@@ -1,12 +1,14 @@
 import { inject, Injector } from "@angular/core";
 import { ApsViewerService } from "../aps-viewer.service";
 import { TranslocoService } from "@jsverse/transloco";
+import { ToastService } from "../../toast/toast.service";
 
 declare const Autodesk: any;
 
 export class DownloadPanel extends Autodesk.Viewing.UI.DockingPanel {
     private _apsViewerService: ApsViewerService;
     private _translocoService: TranslocoService;
+    private _toastService: ToastService;
 
     private viewer: any;
     private filenameSelect: HTMLSelectElement;
@@ -20,6 +22,7 @@ export class DownloadPanel extends Autodesk.Viewing.UI.DockingPanel {
 
         this._apsViewerService = injector.get(ApsViewerService);
         this._translocoService = injector.get(TranslocoService);
+        this._toastService = injector.get(ToastService);
 
         this.viewer = viewer;
         this.type = options.type || 'sqlite';
@@ -43,11 +46,11 @@ export class DownloadPanel extends Autodesk.Viewing.UI.DockingPanel {
         // 創建檔案名稱下拉選單
         this.filenameSelect = document.createElement('select');
         this.filenameSelect.id = 'filename-select';
-        this.filenameSelect.className = 'border rounded px-2 py-1 text-base w-40'; // Tailwind: 邊框、圓角、內距、文字大小、寬度
+        this.filenameSelect.className = 'border rounded px-2 py-1 text-sm bg-transparent'; // Tailwind: 邊框、圓角、內距、文字大小、寬度
         this.populateFilenameOptions();
         inputContainer.appendChild(this.filenameSelect);
 
-        // 創建下載按鈕
+        // 創建匯出/下載按鈕
         this.downloadButton = document.createElement('button');
         this.downloadButton.type = 'button';
         this.downloadButton.id = 'btn-download';
@@ -64,7 +67,7 @@ export class DownloadPanel extends Autodesk.Viewing.UI.DockingPanel {
         div.appendChild(this.statusDiv);
 
         // 綁定事件
-        this.downloadButton.addEventListener('click', () => this.initiateDownload());
+        this.downloadButton.addEventListener('click', () => this.download());
         this.filenameSelect.addEventListener('keyup', (event: any) => {
             if (event.key === 'Enter') {
                 this.downloadButton.click();
@@ -72,6 +75,61 @@ export class DownloadPanel extends Autodesk.Viewing.UI.DockingPanel {
         });
 
         this.container.appendChild(div);
+    }
+
+    private download(): void {
+        const fileName = this.filenameSelect.value;
+        if (this.type == 'csv') {
+            this._apsViewerService.downloadCsv(fileName).subscribe({
+                next: (blob: Blob) => {
+                    // 創建 Blob 並生成臨時 URL
+                    const csvFilename = `${fileName.split('.')[0]}.csv`;
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = csvFilename; // 檔案名稱，與 API 的 filename 一致
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(downloadUrl); // 清理臨時 URL
+                    this._toastService.open({ message: '匯出成功' });
+                },
+                error: (error) => {
+                    error.error.text().then((errorMessage: string) => {
+                        const errorJson = JSON.parse(errorMessage);
+                        this._toastService.open({ message: errorJson.error || errorJson.message || '匯出失敗，請稍後再試' });
+                    }).catch(() => {
+                        this._toastService.open({ message: '匯出失敗，請聯繫管理員' });
+                    });
+                }
+            });
+        }
+        else {
+            this._apsViewerService.downloadSqlite(fileName).subscribe({
+                next: (blob: Blob) => {
+                    // 創建 Blob 並生成臨時 URL
+                    const csvFilename = `${fileName.split('.')[0]}.db`;
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = csvFilename; // 檔案名稱，與 API 的 filename 一致
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(downloadUrl); // 清理臨時 URL
+                    this._toastService.open({ message: '下載成功' });
+                },
+                error: (error) => {
+                    // 處理錯誤（例如 HTTP 400, 404, 500）
+                    error.error.text().then((errorMessage: string) => {
+                        const errorJson = JSON.parse(errorMessage);
+                        this._toastService.open({ message: errorJson.error || errorJson.message || '下載失敗，請稍後再試' });
+                    }).catch(() => {
+                        this._toastService.open({ message: '下載失敗，請聯繫管理員' });
+                    });
+                }
+            });
+        }
     }
 
     private populateFilenameOptions(): void {
@@ -99,6 +157,7 @@ export class DownloadPanel extends Autodesk.Viewing.UI.DockingPanel {
             option.text = filename;
             this.filenameSelect.appendChild(option);
         });
+        this.filenameSelect.selectedIndex = 1;
     }
 
     private decodeUrn(urn: string): string {
@@ -119,5 +178,9 @@ export class DownloadPanel extends Autodesk.Viewing.UI.DockingPanel {
             console.error('解碼錯誤:', err);
             return '';
         }
+    }
+
+    public refreshOptions(): void {
+        this.populateFilenameOptions();
     }
 }

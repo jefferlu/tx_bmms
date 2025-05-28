@@ -32,6 +32,7 @@ urlpatterns = [
     re_path(r'^bim-update-categories/?$', views.BimUpdateCategoriesView.as_view(), name='bim-update-categories'),
     re_path(r"^user-criteria/?$", core_views.UserCriteriaView.as_view(), name="update-user-criteria"),    
     re_path(r"^bim-original-file-download/?$", views.BimOriginalFileDownloadView.as_view(), name='bim-original-file-download'),
+    re_path(r"^bim-sqlite-download/?$", views.BimSqliteDownloadView.as_view(), name='bim-sqlite-download'),
 
     path('', include(router.urls)),
 ]

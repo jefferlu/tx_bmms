@@ -15,10 +15,10 @@ export class ApsViewerService {
         );
     }
 
-    downloadBim(fileName: string, version: string = null) {
+    downloadSqlite(fileName: string, version: string = null) {
         const request: any = { file_name: encodeURIComponent(fileName) };
         if (version) request.version = version;
-        return this._appService.get('forge/bim-original-file-download',
+        return this._appService.get('forge/bim-sqlite-download',
             request,
             { responseType: 'blob' }
         );
