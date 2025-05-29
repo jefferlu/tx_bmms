@@ -976,6 +976,27 @@ class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelView
             )
 
 
+class BimDbidObjectDbidView(APIView):
+    def get(self, request, *args, **kwargs):
+        # 從 GET 請求參數獲取 model_name 和 value
+        model_name = request.query_params.get('model_name')
+        value = request.query_params.get('value')
+
+        # 基礎查詢集
+        queryset = models.BimObject.objects.all()
+
+        # 動態應用過濾條件
+        if model_name:
+            queryset = queryset.filter(bim_model__name=model_name)
+        if value:
+            queryset = queryset.filter(value=value)
+
+        # 提取不重複的 dbid 陣列
+        dbids = list(queryset.values_list('dbid', flat=True).distinct())
+
+        return Response({'dbids': dbids})
+
+
 class BimOriginalFileDownloadView(APIView):
     """
     下載 media-root/uploads 目錄下的 BIM 檔案
@@ -1070,7 +1091,7 @@ class BimSqliteDownloadView(APIView):
     - 若未提供 version 參數，則下載最新版本檔案：media-root/sqlite/{file_name_without_extension}/ver_{version}/{file_name}.db
     """
 
-    def get(self, request, *args, **kwargs):        
+    def get(self, request, *args, **kwargs):
         # 從查詢參數獲取 file_name 和 version
         file_name = request.query_params.get('file_name')
         version = request.query_params.get('version')
@@ -1116,7 +1137,6 @@ class BimSqliteDownloadView(APIView):
         # 檔案路徑：uploads/{file_name_without_extension}/ver_{version}/{file_name}.db
         storage_file_path = os.path.join(base_path, file_name, f"ver_{version}", f"{file_name}.db").replace(os.sep, '/')
         file_path = os.path.join(settings.MEDIA_ROOT, storage_file_path).replace(os.sep, '/')
-        
 
         # 統一路徑分隔符為當前系統的分隔符
         file_path = os.path.normpath(file_path)

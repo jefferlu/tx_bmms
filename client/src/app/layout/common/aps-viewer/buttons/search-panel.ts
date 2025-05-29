@@ -13,7 +13,7 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
     private propertyRadio: HTMLInputElement;
     private resultsDiv: HTMLDivElement;
 
-    
+
     constructor(viewer: any, container: HTMLElement, id: string, title: string, injector: Injector) {
         super(container, id, title);
 
@@ -114,16 +114,17 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
         this.resultsDiv.innerText = ''; // 清空結果顯示
 
         if (searchValue === '') {
-            this.viewer.fitToView();
             this.resultsDiv.innerText = '請輸入搜尋值';
             return;
         }
 
-        // 取得所有已載入的模型
+        // 取得所有模型
         const models = this.viewer.getAllModels?.() || [this.viewer.model];
+        let allMatchingDbIds: { dbId: number; model: any }[] = [];
+        let modelsProcessed = 0;
 
+        // 處理 dbId 搜尋（保持不變）
         if (this.dbIdRadio.checked) {
-            // dbId 搜尋
             const dbIds = searchValue
                 .split(',')
                 .map(value => parseInt(value.trim()))
@@ -134,16 +135,13 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
                 return;
             }
 
-            let found = false;
+            let foundDb = false;
             for (const model of models) {
-                const validDbIds = dbIds.filter(dbId => model.getData().instanceTree?.nodeAccess.dbIdToIndex[dbId] != null);
+                const validDbIds = dbIds.filter(dbId => model.getData().instanceTree?.nodeAccess()?.dbIdToIndex[dbId] != null);
                 if (validDbIds.length > 0) {
-                    // 隔離物件
+                    // 按模型隔離物件
                     this.viewer.isolate(validDbIds, model);
                     this.viewer.fitToView(validDbIds, model);
-
-                    // 獲取屬性
-                    // validDbIds.forEach(dbId => this.getProperty(dbId, model));
 
                     // 選取物件樹中的節點
                     const tree = model.getInstanceTree();
@@ -156,11 +154,11 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
                         });
                     }
 
-                    found = true;
+                    foundDb = true;
                 }
             }
 
-            if (!found) {
+            if (!foundDb) {
                 this.resultsDiv.innerText = `未找到 dbId: ${dbIds.join(', ')}`;
             } else {
                 this.resultsDiv.innerText = `已隔離並選取 dbId: ${dbIds.join(', ')}`;
@@ -168,36 +166,99 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
             return;
         }
 
-        // 一般屬性搜尋
-        this.viewer.search(searchValue, (dbIDs: number[]) => {
-            let anyIsolated = false;
-            for (const model of models) {
-                const modelDbIDs = dbIDs.filter(dbId => model.getInstanceTree()?.nodeAccess.dbIdToIndex[dbId] != null);
-                if (modelDbIDs.length > 0) {
-                    // 隔離物件
-                    this.viewer.isolate(modelDbIDs, model);
-                    this.viewer.fitToView(modelDbIDs, model);
+        // 屬性搜尋：遍歷每個模型的 dbIds
+        models.forEach(model => {
+            const propDb = model.getPropertyDb();
+            const instanceTree = model.getInstanceTree();
+            if (!instanceTree) {
+                modelsProcessed++;
+                if (modelsProcessed === models.length) {
+                    finalizeResults();
+                }
+                return;
+            }
+
+            // 獲取模型的所有 dbIds
+            const dbIds: number[] = [];
+            instanceTree.enumNodeChildren(instanceTree.getRootId(), (dbId: number) => {
+                dbIds.push(dbId);
+            }, true);
+
+            if (dbIds.length === 0) {
+                modelsProcessed++;
+                if (modelsProcessed === models.length) {
+                    finalizeResults();
+                }
+                return;
+            }
+
+            let dbIdsProcessed = 0;
+            dbIds.forEach(dbId => {
+                model.getProperties(dbId, (result: any) => {
+                    const properties = result.properties || [];
+                    const matches = properties.some((prop: any) => {
+                        const value = prop.displayValue?.toString().toLowerCase() || '';
+                        const name = prop.displayName?.toString().toLowerCase() || '';
+                        return value.includes(searchValue.toLowerCase()) || name.includes(searchValue.toLowerCase());
+                    });
+
+                    if (matches) {
+                        allMatchingDbIds.push({ dbId, model });
+                    }
+
+                    dbIdsProcessed++;
+                    if (dbIdsProcessed === dbIds.length) {
+                        modelsProcessed++;
+                        if (modelsProcessed === models.length) {
+                            finalizeResults();
+                        }
+                    }
+                }, (error: any) => {
+                    console.error(`無法獲取 dbId ${dbId} 的屬性:`, error);
+                    dbIdsProcessed++;
+                    if (dbIdsProcessed === dbIds.length) {
+                        modelsProcessed++;
+                        if (modelsProcessed === models.length) {
+                            finalizeResults();
+                        }
+                    }
+                });
+            });
+        });
+
+        // 處理搜尋結果
+        const finalizeResults = () => {
+            if (allMatchingDbIds.length > 0) {
+                // 按模型分組並隔離
+                const modelGroups = new Map();
+                allMatchingDbIds.forEach(({ dbId, model }) => {
+                    if (!modelGroups.has(model)) {
+                        modelGroups.set(model, []);
+                    }
+                    modelGroups.get(model).push(dbId);
+                });
+
+                modelGroups.forEach((dbIds, model) => {
+                    this.viewer.isolate(dbIds, model);
+                    this.viewer.fitToView(dbIds, model);
 
                     // 選取物件樹中的節點
-                    // const tree = model.getInstanceTree();
-                    // if (tree && this.viewer.modelstructure) {
-                    //     modelDbIDs.forEach(dbId => {
-                    //         const nodePath = this.getNodePath(tree, dbId);
-                    //         if (nodePath) {
-                    //             this.expandNodePathInTree(tree, nodePath, this.viewer.modelstructure, model);
-                    //         }
-                    //     });
-                    // }
+                    const tree = model.getInstanceTree();
+                    if (tree && this.viewer.modelstructure) {
+                        dbIds.forEach(dbId => {
+                            const nodePath = this.getNodePath(tree, dbId);
+                            if (nodePath) {
+                                this.expandNodePathInTree(tree, nodePath, this.viewer.modelstructure, model);
+                            }
+                        });
+                    }
+                });
 
-                    anyIsolated = true;
-                }
+                this.resultsDiv.innerText = `找到 ${allMatchingDbIds.length} 個匹配的物件，已隔離並選取`;
+            } else {
+                this.resultsDiv.innerText = `未找到匹配 "${searchValue}" 的物件`;
             }
-            this.resultsDiv.innerText = anyIsolated
-                ? `找到 ${dbIDs.length} 個匹配的物件，已隔離並選取`
-                : `未找到匹配 "${searchValue}" 的物件`;
-        }, (error: any) => {
-            this.resultsDiv.innerText = `搜尋錯誤: ${error}`;
-        });
+        };
     }
 
     private getProperty(dbId: number, model: any): void {
@@ -240,6 +301,26 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
             });
         } else {
             console.error('無法獲取 modelStructure');
+        }
+    }
+
+    private decodeUrn(urn: string): string {
+        // 去掉前綴
+        const base64Urn = urn.replace('urn:', '');
+
+        // Base64 URL-safe 轉標準 Base64
+        const standardBase64 = base64Urn.replace(/-/g, '+').replace(/_/g, '/');
+
+        // 補足字元數，使長度為 4 的倍數
+        const paddedBase64 = standardBase64.padEnd(standardBase64.length + (4 - standardBase64.length % 4) % 4, '=');
+
+        // 解碼
+        try {
+            const decoded = atob(paddedBase64);
+            return decoded;
+        } catch (err) {
+            console.error('解碼錯誤:', err);
+            return '';
         }
     }
 }

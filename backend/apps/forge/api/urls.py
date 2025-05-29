@@ -30,9 +30,10 @@ urlpatterns = [
     re_path(r'^bim-data-import/?$', views.BimDataImportView.as_view(), name='bim-data-import'),
     re_path(r'^bim-data-revert/?$', views.BimDataRevertView.as_view(), name='bim-data-reload'),
     re_path(r'^bim-update-categories/?$', views.BimUpdateCategoriesView.as_view(), name='bim-update-categories'),
-    re_path(r"^user-criteria/?$", core_views.UserCriteriaView.as_view(), name="update-user-criteria"),    
+    re_path(r"^user-criteria/?$", core_views.UserCriteriaView.as_view(), name="update-user-criteria"),
     re_path(r"^bim-original-file-download/?$", views.BimOriginalFileDownloadView.as_view(), name='bim-original-file-download'),
     re_path(r"^bim-sqlite-download/?$", views.BimSqliteDownloadView.as_view(), name='bim-sqlite-download'),
+    re_path(r"^bim-dbid-objects/?$", views.BimDbidObjectDbidView.as_view(), name='bim-dbid-objects'),
 
     path('', include(router.urls)),
 ]
