@@ -24,8 +24,8 @@ export class ApsViewerService {
         );
     }
 
-    getDbid(fileName: string, value: string) {
-        const request: any = { file_name: encodeURIComponent(fileName) };
+    getDbids(fileName: string, value: string) {
+        const request: any = { file_name: encodeURIComponent(fileName), value: value };
         return this._appService.get('forge/bim-dbid-objects', request);
     }
 }

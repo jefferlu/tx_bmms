@@ -1,10 +1,12 @@
 import { Injector } from "@angular/core";
 import { TranslocoService } from "@jsverse/transloco";
+import { ApsViewerService } from "../aps-viewer.service";
 
 declare const Autodesk: any;
 
 export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
     private _translocoService: TranslocoService;
+    private _apsViewerService: ApsViewerService;
 
     private viewer: any;
     private searchField: HTMLInputElement;
@@ -18,6 +20,7 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
         super(container, id, title);
 
         this._translocoService = injector.get(TranslocoService);
+        this._apsViewerService = injector.get(ApsViewerService);
 
         this.viewer = viewer;
 
@@ -110,7 +113,7 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
     }
 
     private searchItems(): void {
-        const searchValue = this.searchField.value.trim();
+        const searchValue = this.searchField.value.trim().toLowerCase();
         this.resultsDiv.innerText = ''; // 清空結果顯示
 
         if (searchValue === '') {
@@ -135,9 +138,9 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
                 return;
             }
 
-            let foundDb = false;
+            let found = false;
             for (const model of models) {
-                const validDbIds = dbIds.filter(dbId => model.getData().instanceTree?.nodeAccess()?.dbIdToIndex[dbId] != null);
+                const validDbIds = dbIds.filter(dbId => model.getData().instanceTree?.nodeAccess?.dbIdToIndex[dbId] != null);
                 if (validDbIds.length > 0) {
                     // 按模型隔離物件
                     this.viewer.isolate(validDbIds, model);
@@ -154,11 +157,11 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
                         });
                     }
 
-                    foundDb = true;
+                    found = true;
                 }
             }
 
-            if (!foundDb) {
+            if (!found) {
                 this.resultsDiv.innerText = `未找到 dbId: ${dbIds.join(', ')}`;
             } else {
                 this.resultsDiv.innerText = `已隔離並選取 dbId: ${dbIds.join(', ')}`;
@@ -166,63 +169,55 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
             return;
         }
 
-        // 屬性搜尋：遍歷每個模型的 dbIds
+        // 屬性搜尋：使用 API 查詢 dbIds
         models.forEach(model => {
-            const propDb = model.getPropertyDb();
-            const instanceTree = model.getInstanceTree();
-            if (!instanceTree) {
-                modelsProcessed++;
-                if (modelsProcessed === models.length) {
-                    finalizeResults();
-                }
-                return;
-            }
+            const urn = model.getData().urn || 'unknown';
+            const decoded = this.decodeUrn(urn);
+            const fileName = decoded.split('/').pop() || 'unknown';
 
-            // 獲取模型的所有 dbIds
-            const dbIds: number[] = [];
-            instanceTree.enumNodeChildren(instanceTree.getRootId(), (dbId: number) => {
-                dbIds.push(dbId);
-            }, true);
+            this._apsViewerService.getDbids(fileName, searchValue).subscribe({
+                next: (response: { dbids: number[] }) => {
+                    debugger
+                    // 處理 API 回傳的 dbIds
+                    const dbIds = response.dbids || [];
+                    const validDbIds = dbIds.filter(dbId => model.getData().instanceTree?.nodeAccess?.dbIdToIndex[dbId] != null);
 
-            if (dbIds.length === 0) {
-                modelsProcessed++;
-                if (modelsProcessed === models.length) {
-                    finalizeResults();
-                }
-                return;
-            }
-
-            let dbIdsProcessed = 0;
-            dbIds.forEach(dbId => {
-                model.getProperties(dbId, (result: any) => {
-                    const properties = result.properties || [];
-                    const matches = properties.some((prop: any) => {
-                        const value = prop.displayValue?.toString().toLowerCase() || '';
-                        const name = prop.displayName?.toString().toLowerCase() || '';
-                        return value.includes(searchValue.toLowerCase()) || name.includes(searchValue.toLowerCase());
+                    validDbIds.forEach(dbId => {
+                        allMatchingDbIds.push({ dbId, model });
                     });
 
-                    if (matches) {
-                        allMatchingDbIds.push({ dbId, model });
+                    modelsProcessed++;
+                    if (modelsProcessed === models.length) {
+                        finalizeResults();
+                    }
+                },
+                error: (error) => {
+                    // 處理 API 錯誤
+                    let errorMessage = '查詢 dbIds 失敗，請稍後再試';
+                    if (error.error instanceof Blob) {
+                        error.error.text().then((text: string) => {
+                            try {
+                                const errorJson = JSON.parse(text);
+                                errorMessage = errorJson.error || errorJson.message || errorMessage;
+                            } catch {
+                                // 非 JSON 錯誤
+                            }
+                            this._toastService.open({ message: errorMessage });
+                        }).catch(() => {
+                            this._toastService.open({ message: '查詢 dbIds 失敗，請聯繫管理員' });
+                        });
+                    } else if (error.error?.error || error.error?.message) {
+                        errorMessage = error.error.error || error.error.message;
+                        this._toastService.open({ message: errorMessage });
+                    } else {
+                        this._toastService.open({ message: errorMessage });
                     }
 
-                    dbIdsProcessed++;
-                    if (dbIdsProcessed === dbIds.length) {
-                        modelsProcessed++;
-                        if (modelsProcessed === models.length) {
-                            finalizeResults();
-                        }
+                    modelsProcessed++;
+                    if (modelsProcessed === models.length) {
+                        finalizeResults();
                     }
-                }, (error: any) => {
-                    console.error(`無法獲取 dbId ${dbId} 的屬性:`, error);
-                    dbIdsProcessed++;
-                    if (dbIdsProcessed === dbIds.length) {
-                        modelsProcessed++;
-                        if (modelsProcessed === models.length) {
-                            finalizeResults();
-                        }
-                    }
-                });
+                }
             });
         });
 
@@ -243,15 +238,15 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
                     this.viewer.fitToView(dbIds, model);
 
                     // 選取物件樹中的節點
-                    const tree = model.getInstanceTree();
-                    if (tree && this.viewer.modelstructure) {
-                        dbIds.forEach(dbId => {
-                            const nodePath = this.getNodePath(tree, dbId);
-                            if (nodePath) {
-                                this.expandNodePathInTree(tree, nodePath, this.viewer.modelstructure, model);
-                            }
-                        });
-                    }
+                    // const tree = model.getInstanceTree();
+                    // if (tree && this.viewer.modelstructure) {
+                    //     dbIds.forEach(dbId => {
+                    //         const nodePath = this.getNodePath(tree, dbId);
+                    //         if (nodePath) {
+                    //             this.expandNodePathInTree(tree, nodePath, this.viewer.modelstructure, model);
+                    //         }
+                    //     });
+                    // }
                 });
 
                 this.resultsDiv.innerText = `找到 ${allMatchingDbIds.length} 個匹配的物件，已隔離並選取`;
