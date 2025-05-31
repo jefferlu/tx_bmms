@@ -272,7 +272,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
     private fitToLastModel(data: any[]): void {
         const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
-        
         if (data && data.length > 0) {
             const modelStructure = viewer.modelstructure;
             if (!modelStructure) {

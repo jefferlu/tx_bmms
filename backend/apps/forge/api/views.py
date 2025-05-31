@@ -976,7 +976,7 @@ class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelView
             )
 
 
-class BimDbidObjectDbidView(APIView):
+class BimObjectDbidView(APIView):
     def get(self, request, *args, **kwargs):
         # 從 GET 請求參數獲取 model_name 和 value
         model_name = request.query_params.get('model_name')
