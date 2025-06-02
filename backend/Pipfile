@@ -17,7 +17,6 @@ channels = {extras = ["daphne"], version = "*"}
 django-mptt = "*"
 pyjwt = "*"
 gunicorn = "*"
-pandas = "*"
 requests = "*"
 celery = "*"
 redis = "*"
@@ -26,6 +25,9 @@ django-admin-interface = "*"
 cryptography = "*"
 docker = "*"
 flower = "*"
+pandas = "*"
+xlsxwriter = "*"
+openpyxl = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"

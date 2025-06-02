@@ -16,15 +16,14 @@
             </span>
         </button>
     </ng-container>
-    <button class="ml-2" mat-icon-button matSuffix>
-        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
-    </button>
-    <button class="ml-2" mat-icon-button matSuffix>
-        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:arrow-down-on-square-stack'"></mat-icon>
-    </button>
-    <button class="ml-2" mat-icon-button matSuffix>
-        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:arrow-up-on-square-stack'"></mat-icon>
-    </button>
+    <div class="flex w-full justify-between px-2">
+        <button mat-icon-button matSuffix (click)="onDownload()">
+            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-down-tray'"></mat-icon>
+        </button>
+        <button mat-icon-button matSuffix>
+            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-up-tray'"></mat-icon>
+        </button>
+    </div>
 </mat-menu>
 
 <!-- Flag image template -->

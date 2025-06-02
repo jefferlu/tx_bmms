@@ -1,13 +1,20 @@
 import os
 import docker
+import pandas as pd
+import logging
+
+from io import BytesIO
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.contrib.auth.models import Group, Permission
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+from django.http import FileResponse
+from django.core.files.uploadedfile import UploadedFile
 
 from rest_framework import viewsets, generics, status
 from rest_framework.views import APIView
@@ -15,6 +22,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.exceptions import NotFound
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import action
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -26,6 +34,9 @@ from .. import models
 from . import serializers
 from ..services import log_user_activity
 from .tasks import backup_database, restore_database
+
+# 設定日誌記錄器
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -372,12 +383,171 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     queryset = models.Translation.objects.all().order_by('id')
 
     def list(self, request):
-        lang = request.GET.get('lang', 'en').lower()  # 預設語言為 'en'
+        try:
+            lang = request.GET.get('lang', 'en').lower()
+            qs = models.Translation.objects.filter(locale__lang=lang, locale__is_active=True)
+            if not qs.exists():
+                return Response(
+                    {"message": f"沒有找到語言 {lang} 的翻譯資料"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            translations = {t.key: t.value for t in qs}
+            return Response(translations)
+        except Exception as e:
+            logger.error(f"Error retrieving translations for lang {lang}: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "伺服器內部錯誤，請聯繫管理員"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-        qs = models.Translation.objects.filter(locale__lang=lang)
-        translations = {t.key: t.value for t in qs}
+    @action(detail=False, methods=['get'])
+    def download_excel(self, request):
+        try:
+            locales = models.Locale.objects.filter(is_active=True).values_list('lang', flat=True)
+            if not locales:
+                return Response(
+                    {"message": "沒有找到任何活躍的語系"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
-        return Response(translations)
+            translations = models.Translation.objects.filter(locale__is_active=True).select_related('locale').order_by('key')
+            if not translations.exists():
+                buffer = BytesIO()
+                df = pd.DataFrame(columns=['no', 'key', 'value'] + list(locales))
+                with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                    df.to_excel(writer, index=False, sheet_name='Translations')
+                buffer.seek(0)
+                return FileResponse(
+                    buffer,
+                    as_attachment=True,
+                    filename='translations.xlsx',
+                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                )
+
+            data = {}
+            keys = set()
+            for t in translations:
+                key = t.key
+                lang = t.locale.lang
+                if key not in data:
+                    data[key] = {}
+                data[key][lang] = t.value
+                keys.add(key)
+
+            rows = []
+            for idx, key in enumerate(sorted(keys), start=1):
+                row = {'no': idx, 'key': key, 'value': key}
+                for lang in locales:
+                    row[lang] = data[key].get(lang, '')
+                rows.append(row)
+
+            df = pd.DataFrame(rows, columns=['no', 'key', 'value'] + list(locales))
+            buffer = BytesIO()
+            with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                df.to_excel(writer, index=False, sheet_name='Translations')
+                worksheet = writer.sheets['Translations']
+                for idx, col in enumerate(df.columns):
+                    max_len = max(df[col].astype(str).map(len).max(), len(col)) + 2
+                    worksheet.set_column(idx, idx, max_len)
+
+            buffer.seek(0)
+            return FileResponse(
+                buffer,
+                as_attachment=True,
+                filename='translations.xlsx',
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+        except Exception as e:
+            logger.error(f"Error generating Excel: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "伺服器內部錯誤，請聯繫管理員"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['post'], url_path='upload_excel')
+    def upload_excel(self, request):
+        try:
+            # 檢查是否有上傳檔案
+            if 'file' not in request.FILES:
+                return Response(
+                    {"error": "請提供 Excel 檔案"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            file: UploadedFile = request.FILES['file']
+            if not file.name.lower().endswith('.xlsx'):
+                return Response(
+                    {"error": "請上傳有效的 Excel 檔案（.xlsx）"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # 取得活躍語系
+            locales = set(models.Locale.objects.filter(is_active=True).values_list('lang', flat=True))
+            if not locales:
+                return Response(
+                    {"message": "沒有找到任何活躍的語系"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # 讀取 Excel
+            df = pd.read_excel(file, engine='openpyxl')
+            expected_columns = {'no', 'key', 'value'} | locales
+            if not set(df.columns).issuperset(expected_columns):
+                return Response(
+                    {"error": f"Excel 檔案格式錯誤，預期欄位：{', '.join(expected_columns)}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # 驗證並收集更新資料
+            updates = []
+            errors = []
+            existing_keys = set(models.Translation.objects.values_list('key', flat=True).distinct())
+            for _, row in df.iterrows():
+                key = str(row['key']).strip()
+                if key not in existing_keys:
+                    errors.append(f"鍵 {key} 不存在於資料庫")
+                    continue
+                for lang in locales:
+                    if lang in row and pd.notna(row[lang]):
+                        value = str(row[lang]).strip()
+                        updates.append({'key': key, 'lang': lang, 'value': value})
+
+            if errors:
+                return Response(
+                    {"error": "Excel 檔案包含無效資料", "details": errors},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # 更新資料庫
+            updated_count = 0
+            with transaction.atomic():
+                for update in updates:
+                    translation = models.Translation.objects.filter(
+                        key=update['key'],
+                        locale__lang=update['lang'],
+                        locale__is_active=True
+                    ).first()
+                    if translation:
+                        translation.value = update['value']
+                        translation.save()
+                        updated_count += 1
+
+            return Response(
+                {"message": f"成功更新 {updated_count} 筆翻譯資料"},
+                status=status.HTTP_200_OK
+            )
+
+        except pd.errors.EmptyDataError:
+            return Response(
+                {"error": "上傳的 Excel 檔案為空"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            logger.error(f"Error processing Excel upload: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "伺服器內部錯誤，請聯繫管理員"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class ApsCredentialsViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):

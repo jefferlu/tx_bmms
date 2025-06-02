@@ -173,7 +173,6 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
                             const errorJson = JSON.parse(errorMessage);
                             this._toastService.open({ message: errorJson.error || errorJson.message || '下載失敗，請稍後再試' });
                         }).catch(() => {
-                            alert('下載失敗，請聯繫管理員');
                             this._toastService.open({ message: '下載失敗，請聯繫管理員' });
                         });
                     }
@@ -224,7 +223,6 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
                             const errorJson = JSON.parse(errorMessage);
                             this._toastService.open({ message: errorJson.error || errorJson.message || '下載失敗，請稍後再試' });
                         }).catch(() => {
-                            alert('下載失敗，請聯繫管理員');
                             this._toastService.open({ message: '下載失敗，請聯繫管理員' });
                         });
                     }

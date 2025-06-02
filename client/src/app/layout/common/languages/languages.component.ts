@@ -4,9 +4,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { GtsNavigationItem, GtsNavigationService, GtsVerticalNavigationComponent } from '@gts/components/navigation';
+import { GtsConfirmationService } from '@gts/services/confirmation';
 import { AvailableLangs, Translation, TranslocoService } from '@jsverse/transloco';
 import { LocalStorageService } from 'app/core/services/local-storage/local-storage.service';
 import { firstValueFrom, take } from 'rxjs';
+import { ToastService } from '../toast/toast.service';
+import { LanguagesService } from './languages.service';
 
 @Component({
     selector: 'languages',
@@ -24,9 +27,12 @@ export class LanguagesComponent implements OnInit, OnDestroy {
      * Constructor
      */
     constructor(
-        private _gtsNavigationService: GtsNavigationService,
         private _translocoService: TranslocoService,
-        private _localStorageService: LocalStorageService
+        private _localStorageService: LocalStorageService,
+        private _gtsNavigationService: GtsNavigationService,
+        private _gtsConfirmationService: GtsConfirmationService,
+        private _toastService: ToastService,
+        private _languagesService: LanguagesService
     ) {
     }
 
@@ -48,7 +54,55 @@ export class LanguagesComponent implements OnInit, OnDestroy {
 
             // Update the navigation
             this._updateNavigation(activeLang);
-        });        
+        });
+    }
+
+    onDownload(): void {
+        let dialogRef = this._gtsConfirmationService.open({
+            title: this._translocoService.translate('confirm-action'),
+            message: this._translocoService.translate('download-original-model'),
+            icon: { color: 'primary' },
+            actions: {
+                confirm: { label: this._translocoService.translate('confirm') },
+                cancel: { label: this._translocoService.translate('cancel') }
+            }
+
+        });
+
+        dialogRef.afterClosed().subscribe(res => {
+
+            if (res === 'confirmed') {
+                this._languagesService.download().subscribe({
+                    next: (blob: Blob) => {
+                        // 創建 Blob 並生成臨時 URL
+                        const downloadUrl = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = downloadUrl;
+                        link.download = 'translations.xlsx'; // 固定檔案名稱
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(downloadUrl); // 清理臨時 URL
+                        this._toastService.open({
+                            message: this._translocoService.translate('download-success')
+                        });
+                    },
+                    error: (error) => {
+                        // 處理錯誤（例如 HTTP 400, 404, 500）
+                        error.error.text().then((errorMessage: string) => {
+                            const errorJson = JSON.parse(errorMessage);
+                            this._toastService.open({ message: errorJson.error || errorJson.message || '下載失敗，請稍後再試' });
+                        }).catch(() => {
+                            this._toastService.open({ message: '下載失敗，請聯繫管理員' });
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    onUpload() {
+
     }
 
     /**
@@ -116,13 +170,13 @@ export class LanguagesComponent implements OnInit, OnDestroy {
 
         // Recursive get the item and update its title
         this._translateNavigation(navigation, translations);
-        
+
         navComponent.refresh();
-        
+
     }
 
     private _translateNavigation(navigation: GtsNavigationItem[], translations: Translation) {
-        navigation.forEach(nav => {            
+        navigation.forEach(nav => {
             nav.title = translations[nav.title_locale] || nav.title_locale;
             nav.subtitle = translations[nav.subtitle_locale] || nav.subtitle_locale;
             if (nav.children) this._translateNavigation(nav.children, translations);

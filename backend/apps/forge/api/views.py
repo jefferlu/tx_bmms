@@ -957,7 +957,7 @@ class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelView
             # 如果沒有資料（例如所有 chunk 為空），返回空 CSV
             if first_chunk:
                 buffer.write('dbid,display_name,value\n'.encode('utf-8-sig'))
-            print('check-->')
+            
             buffer.seek(0)
             return FileResponse(
                 buffer,
