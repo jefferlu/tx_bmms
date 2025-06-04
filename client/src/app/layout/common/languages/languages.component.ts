@@ -1,5 +1,5 @@
 import { NgFor, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -20,6 +20,7 @@ import { LanguagesService } from './languages.service';
     imports: [MatButtonModule, MatMenuModule, NgTemplateOutlet, NgFor, MatIconModule,]
 })
 export class LanguagesComponent implements OnInit, OnDestroy {
+    @ViewChild('fileInput') fileInput!: ElementRef;
     availableLangs: AvailableLangs;
     activeLang: string;
 
@@ -57,10 +58,72 @@ export class LanguagesComponent implements OnInit, OnDestroy {
         });
     }
 
+    triggerFileInput(): void {
+        this.fileInput.nativeElement.click();
+    }
+
+    onFileSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) {
+            this._toastService.open({
+                message: this._translocoService.translate('no-file-selected')
+            });
+            return;
+        }
+
+        const file = input.files[0];
+        if (!file.name.toLowerCase().endsWith('.xlsx')) {
+            this._toastService.open({
+                message: this._translocoService.translate('invalid-file-format')
+            });
+            input.value = ''; // 清空輸入
+            return;
+        }
+
+
+        this._languagesService.upload(file).subscribe({
+            next: (response: any) => {
+                this._toastService.open({
+                    message: this._translocoService.translate('sync-translation-success', { count: response.count }) || response.message
+                });
+                input.value = ''; // 清空輸入
+            },
+            error: (error) => {
+                if (error.status === 0 || !error.error?.text) {
+                    this._toastService.open({
+                        message: this._translocoService.translate('upload-failed')
+                    });
+                    input.value = ''; // 清空輸入
+                    return;
+                }
+                error.error.text().then((errorMessage: string) => {
+                    let message: string;
+                    try {
+                        const errorJson = JSON.parse(errorMessage);
+                        message = errorJson.error || errorJson.message || this._translocoService.translate('upload-failed');
+                        if (errorJson.details) {
+                            message += `: ${errorJson.details.join(', ')}`;
+                        }
+                    } catch {
+                        message = this._translocoService.translate('upload-failed');
+                    }
+                    this._toastService.open({ message });
+                    input.value = ''; // 清空輸入
+                }).catch(() => {
+                    this._toastService.open({
+                        message: this._translocoService.translate('upload-failed')
+                    });
+                    input.value = ''; // 清空輸入
+                });
+            }
+        });
+
+    }
+
     onDownload(): void {
         let dialogRef = this._gtsConfirmationService.open({
             title: this._translocoService.translate('confirm-action'),
-            message: this._translocoService.translate('download-original-model'),
+            message: this._translocoService.translate('download-current-locale-file'),
             icon: { color: 'primary' },
             actions: {
                 confirm: { label: this._translocoService.translate('confirm') },

@@ -20,9 +20,13 @@
         <button mat-icon-button matSuffix (click)="onDownload()">
             <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-down-tray'"></mat-icon>
         </button>
-        <button mat-icon-button matSuffix>
-            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-up-tray'"></mat-icon>
-        </button>
+        <div>
+            <input #fileInput class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file" accept=".xlsx" [multiple]="false"
+                (change)="onFileSelected($event)">
+            <button mat-icon-button matSuffix (click)="triggerFileInput()">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-up-tray'"></mat-icon>
+            </button>
+        </div>
     </div>
 </mat-menu>
 

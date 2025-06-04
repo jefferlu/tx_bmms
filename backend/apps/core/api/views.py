@@ -413,7 +413,7 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
             translations = models.Translation.objects.filter(locale__is_active=True).select_related('locale').order_by('key')
             if not translations.exists():
                 buffer = BytesIO()
-                df = pd.DataFrame(columns=['no', 'key', 'value'] + list(locales))
+                df = pd.DataFrame(columns=['no', 'key'] + list(locales))
                 with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
                     df.to_excel(writer, index=False, sheet_name='Translations')
                 buffer.seek(0)
@@ -436,12 +436,12 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
 
             rows = []
             for idx, key in enumerate(sorted(keys), start=1):
-                row = {'no': idx, 'key': key, 'value': key}
+                row = {'no': idx, 'key': key}
                 for lang in locales:
                     row[lang] = data[key].get(lang, '')
                 rows.append(row)
 
-            df = pd.DataFrame(rows, columns=['no', 'key', 'value'] + list(locales))
+            df = pd.DataFrame(rows, columns=['no', 'key'] + list(locales))
             buffer = BytesIO()
             with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
                 df.to_excel(writer, index=False, sheet_name='Translations')
@@ -457,6 +457,12 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
                 filename='translations.xlsx',
                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
+        except ImportError as e:
+            logger.error(f"Missing required module: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "伺服器缺少必要模組，請聯繫管理員"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         except Exception as e:
             logger.error(f"Error generating Excel: {str(e)}", exc_info=True)
             return Response(
@@ -467,7 +473,6 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='upload_excel')
     def upload_excel(self, request):
         try:
-            # 檢查是否有上傳檔案
             if 'file' not in request.FILES:
                 return Response(
                     {"error": "請提供 Excel 檔案"},
@@ -481,36 +486,59 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # 取得活躍語系
-            locales = set(models.Locale.objects.filter(is_active=True).values_list('lang', flat=True))
-            if not locales:
+            locales = models.Locale.objects.filter(is_active=True)
+            if not locales.exists():
                 return Response(
                     {"message": "沒有找到任何活躍的語系"},
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            # 讀取 Excel
+            locale_map = {locale.lang: locale for locale in locales}
+            expected_columns = {'no', 'key'} | set(locale_map.keys())
             df = pd.read_excel(file, engine='openpyxl')
-            expected_columns = {'no', 'key', 'value'} | locales
             if not set(df.columns).issuperset(expected_columns):
                 return Response(
                     {"error": f"Excel 檔案格式錯誤，預期欄位：{', '.join(expected_columns)}"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # 驗證並收集更新資料
-            updates = []
+            # 驗證 key 非空且唯一
+            df['key'] = df['key'].astype(str).str.strip()
+            if df['key'].isnull().any() or df['key'].duplicated().any():
+                return Response(
+                    {"error": "Excel 檔案包含空鍵或重複鍵"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # 轉換為長格式（melt）以處理語系
+            id_vars = ['key']
+            value_vars = [col for col in df.columns if col in locale_map]
+            melted = pd.melt(
+                df,
+                id_vars=id_vars,
+                value_vars=value_vars,
+                var_name='lang',
+                value_name='value'
+            ).dropna(subset=['value'])
+
+            # 準備新記錄
+            new_translations = []
             errors = []
-            existing_keys = set(models.Translation.objects.values_list('key', flat=True).distinct())
-            for _, row in df.iterrows():
-                key = str(row['key']).strip()
-                if key not in existing_keys:
-                    errors.append(f"鍵 {key} 不存在於資料庫")
+            melted['value'] = melted['value'].astype(str).str.strip()
+            for _, row in melted.iterrows():
+                key = row['key']
+                lang = row['lang']
+                value = row['value']
+                if lang not in locale_map:
+                    errors.append(f"無效語系 {lang} 在鍵 {key}")
                     continue
-                for lang in locales:
-                    if lang in row and pd.notna(row[lang]):
-                        value = str(row[lang]).strip()
-                        updates.append({'key': key, 'lang': lang, 'value': value})
+                new_translations.append(
+                    models.Translation(
+                        locale=locale_map[lang],
+                        key=key,
+                        value=value
+                    )
+                )
 
             if errors:
                 return Response(
@@ -518,22 +546,13 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # 更新資料庫
-            updated_count = 0
+            # 刪除並創建
             with transaction.atomic():
-                for update in updates:
-                    translation = models.Translation.objects.filter(
-                        key=update['key'],
-                        locale__lang=update['lang'],
-                        locale__is_active=True
-                    ).first()
-                    if translation:
-                        translation.value = update['value']
-                        translation.save()
-                        updated_count += 1
+                models.Translation.objects.filter(locale__is_active=True).delete()
+                models.Translation.objects.bulk_create(new_translations, batch_size=1000)
 
             return Response(
-                {"message": f"成功更新 {updated_count} 筆翻譯資料"},
+                {"message": f"成功同步 {len(new_translations)} 筆翻譯資料", "count": len(new_translations)},
                 status=status.HTTP_200_OK
             )
 
@@ -541,6 +560,12 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
             return Response(
                 {"error": "上傳的 Excel 檔案為空"},
                 status=status.HTTP_400_BAD_REQUEST
+            )
+        except ImportError as e:
+            logger.error(f"Missing required module: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "伺服器缺少必要模組，請聯繫管理員"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         except Exception as e:
             logger.error(f"Error processing Excel upload: {str(e)}", exc_info=True)

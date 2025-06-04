@@ -79,6 +79,9 @@ class Translation(models.Model):
 
     class Meta:
         unique_together = ('key', 'locale',)
+        indexes = [
+            models.Index(fields=['key', 'locale_id']),  # 複合索引
+        ]
 
     def __str__(self):
         return f"{self.locale.lang} - {self.key}"

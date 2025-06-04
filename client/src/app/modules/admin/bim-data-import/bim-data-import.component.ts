@@ -75,7 +75,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
                 next: (res) => {
-                    console.log(res)
                     let data = this._calculateFileSize(res);
                     this.files = data;
                     this.isLoading = false;
