@@ -8,6 +8,11 @@ class ZoneCodeAdmin(admin.ModelAdmin):
     list_display = ('code', 'description',)
 
 
+@admin.register(models.RoleCode)
+class RoleCodeAdmin(admin.ModelAdmin):
+    list_display = ('code', 'description',)
+
+
 @admin.register(models.BimCondition)
 class BimConditionAdmin(MPTTModelAdmin):
     list_display = ('name', 'display_name', 'value', 'description', 'parent', 'order', 'is_active', )
@@ -26,7 +31,7 @@ class BimCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(models.BimRegion)
 class BimRegionAdmin(admin.ModelAdmin):
-    list_display = ('bim_model', 'zone',  'level', 'value', 'dbid',)
+    list_display = ('bim_model', 'zone', 'role', 'level', 'value', 'dbid',)
 
 
 @admin.register(models.BimModel)

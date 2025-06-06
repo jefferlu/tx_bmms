@@ -436,56 +436,76 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
     send_progress('extract-bimregion', f'Extracted {len(df_bim_regions)} BimRegion records.')
 
     with transaction.atomic():
-        deleted_count = models.BimRegion.objects.filter(bim_model_id=bim_model_id).delete()[0]
+        deleted_count = models.BimRegion.objects.filter(bim_model=bim_model).delete()[0]
         send_progress('cleanup-bimregion', f'Deleted {deleted_count} BimRegion records for bim_model_id={bim_model_id}.')
 
         new_bim_regions = []
         missing_zones = set()
+        missing_roles = set()
         total_bim_regions = len(df_bim_regions)
         current_bim_region = 0
+
         for row in df_bim_regions.itertuples():
             current_bim_region += 1
             value_parts = row.value.split('-')
-            if len(value_parts) < 4:
+            if len(value_parts) < 7:
                 logger.warning(f"Skipping invalid value format in file '{file_name}': {row.value}")
                 continue
 
-            zone_code = value_parts[2]
-            level = value_parts[3]
+            zone_code = value_parts[2] if value_parts[2] != 'XXX' else None
+            level = value_parts[3]  # 直接使用 value_parts[3]，包括 'XX'
+            role_code = value_parts[6] if value_parts[6] != 'XX' else None
 
-            try:
-                zone = models.ZoneCode.objects.get(code=zone_code)
-            except models.ZoneCode.DoesNotExist:
-                missing_zones.add(zone_code)
-                logger.warning(f"Active ZoneCode '{zone_code}' not found for value: {row.value} in file '{file_name}'")
-                continue
+            zone_obj = None
+            if zone_code:
+                try:
+                    zone_obj = models.ZoneCode.objects.get(code=zone_code)
+                except models.ZoneCode.DoesNotExist:
+                    missing_zones.add(zone_code)
+                    logger.warning(f"ZoneCode '{zone_code}' not found for value: {row.value} in file '{file_name}'")
+                    continue
+
+            role_obj = None
+            if role_code:
+                try:
+                    role_obj = models.RoleCode.objects.get(code=role_code)
+                except models.RoleCode.DoesNotExist:
+                    missing_roles.add(role_code)
+                    logger.warning(f"RoleCode '{role_code}' not found for value: {row.value} in file '{file_name}'")
+                    continue
 
             new_bim_regions.append(
                 models.BimRegion(
-                    bim_model_id=bim_model_id,
-                    zone=zone,
-                    level=level,
+                    bim_model=bim_model,
+                    dbid=row.dbid,
                     value=row.value,
-                    dbid=row.dbid
+                    zone=zone_obj,
+                    role=role_obj,
+                    level=level
                 )
             )
             send_progress('process-bimregion', f'Processing BimRegion {current_bim_region}/{total_bim_regions}')
 
         if missing_zones:
-            send_progress('warning', f"Missing active ZoneCode entries for file '{file_name}': {', '.join(missing_zones)}")
+            send_progress('warning', f"Missing ZoneCode entries for file '{file_name}': {', '.join(missing_zones)}")
+        if missing_roles:
+            send_progress('warning', f"Missing RoleCode entries for file '{file_name}': {', '.join(missing_roles)}")
 
         if not new_bim_regions:
             send_progress(
-                'error', f"No valid BimRegion records created for file '{file_name}'. Check ZoneCode table for active entries.")
+                'error', f"No valid BimRegion records created for file '{file_name}'. Check ZoneCode and RoleCode values.")
             logger.error(f"No valid BimRegion records created for file '{file_name}'.")
-
-        if new_bim_regions:
+        else:
             batch_size = 10000
             for i in range(0, len(new_bim_regions), batch_size):
                 batch = new_bim_regions[i:i + batch_size]
-                models.BimRegion.objects.bulk_create(batch)
-                send_progress('process-bimregion', f'Created {i + len(batch)} of {len(new_bim_regions)} BimRegion records.')
-        send_progress('process-bimregion', f'Created {len(new_bim_regions)} BimRegion records.')
+                try:
+                    models.BimRegion.objects.bulk_create(batch)
+                    send_progress('process-bimregion', f'Created {i + len(batch)} of {len(new_bim_regions)} BimRegion records.')
+                except Exception as e:
+                    logger.error(f"Failed to create BimRegion batch: {str(e)}")
+                    raise
+            send_progress('process-bimregion', f'Created {len(new_bim_regions)} BimRegion records.')
 
     # Step 3.6: Update BimObjectHierarchy
     new_hierarchies = []

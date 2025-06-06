@@ -15,9 +15,21 @@ class ZoneCode(models.Model):
         return f"{self.code} - {self.description}"
 
 
+class RoleCode(models.Model):
+    code = models.CharField(max_length=10, unique=True)
+    description = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = "forge_role_code"
+        indexes = [models.Index(fields=['code'])]
+
+    def __str__(self):
+        return f"{self.code} - {self.description}"
+
+
 class BimModel(models.Model):
     name = models.CharField(max_length=255)
-    urn = models.CharField(max_length=255)    
+    urn = models.CharField(max_length=255)
     version = models.IntegerField()
     svf_path = models.CharField(max_length=255, null=True, blank=True)
     sqlite_path = models.CharField(max_length=255, null=True, blank=True)
@@ -85,7 +97,8 @@ class BimCategory(models.Model):
 
 class BimRegion(models.Model):
     bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_regions')
-    zone = models.ForeignKey(ZoneCode, on_delete=models.RESTRICT, related_name='bim_regions')
+    zone = models.ForeignKey(ZoneCode, on_delete=models.RESTRICT,  null=True, blank=True, related_name='bim_regions')
+    role = models.ForeignKey(RoleCode, on_delete=models.RESTRICT, null=True, blank=True, related_name='bim_regions')
     level = models.CharField(max_length=50)
     value = models.CharField(max_length=255)
     dbid = models.IntegerField()
@@ -94,7 +107,7 @@ class BimRegion(models.Model):
         db_table = "forge_bim_region"
         verbose_name_plural = 'Bim regions'
         ordering = ["id"]
-        unique_together = ('bim_model', 'zone', 'level', 'dbid')
+        unique_together = ('bim_model', 'zone', 'role', 'level', 'dbid')
         indexes = [
             models.Index(fields=['bim_model']),
             models.Index(fields=['zone']),
