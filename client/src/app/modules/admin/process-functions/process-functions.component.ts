@@ -42,9 +42,12 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     request: any = {};
     selectedRegions: any = [];
-    selectedRole: any = [];
     selectedSpaces: any = [];
     selectedSystems: any = [];
+
+    selectedRegion: any | undefined;
+    selectedRole: any | undefined;
+    selectedLevel: any | undefined;
 
     keyword: string = '';
     selectedObjects: any[] = [];
@@ -58,7 +61,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     criteriaKeyword: string = '';
 
     nodeInfo: any;
-
 
     isLoading: boolean = false;
 
@@ -74,8 +76,9 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this._route.data.subscribe({
             next: (res: any) => {
                 // this.regions = this.transformRegions(res.data.regions);
-                this.regions = res.data.zones;
-
+                this.regions = res.data.regions;
+                
+                
                 res.data.conditions = this._transformData(res.data.conditions);
                 const spaceNode = res.data.conditions.find(item => item.label === 'space');
                 this.spaces = spaceNode?.children ?? [];
@@ -92,7 +95,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((user: any) => {
                 this.bimCriteria = user.bim_criteria;
-
+                console.log('bimCriteria', this.bimCriteria)
                 // Check if bimCriteria has request
                 if (this.bimCriteria && Object.keys(this.bimCriteria).length > 0 &&
                     ![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
@@ -111,42 +114,45 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     }
 
-    loadRoles() {
-        console.log('loadroles')
-    }
+    // onNodeSelect() {
+    //     // 重置相關狀態
+    //     this.request = {};
+    //     this.selectedObjects = [];
+    //     this.objects = { count: 0, results: [] };
+    //     this.nodeInfo = null;
 
-    onNodeSelect() {
-        // 重置相關狀態
-        this.request = {};
-        this.selectedObjects = [];
-        this.objects = { count: 0, results: [] };
-        this.nodeInfo = null;
+    //     this._changeDetectorRef.markForCheck();
+    // }
 
-        this._changeDetectorRef.markForCheck();
+    onChangeRegion() {
+        this.selectedRole = undefined;
     }
 
     onClear(tag: string) {
-
         this.request = {};
         this.selectedObjects = [];
         this.objects = { count: 0, results: [] };
         this.nodeInfo = null;
-
-        switch (tag) {
-            case 'region': this.selectedRegions = []; break;
-            case 'space': this.selectedSpaces = []; break;
-            case 'system': this.selectedSystems = []; break;
-        }
     }
 
+    // onClear(tag: string) {
+    //     this.request = {};
+    //     this.selectedObjects = [];
+    //     this.objects = { count: 0, results: [] };
+    //     this.nodeInfo = null;
+
+    //     switch (tag) {
+    //         case 'region': this.selectedRegions = []; break;
+    //         case 'space': this.selectedSpaces = []; break;
+    //         case 'system': this.selectedSystems = []; break;
+    //     }
+    // }
 
     onRowSelect(event: any): void {
         this.selectedObjects = [...this.selectedObjects, event.data];
         if (this.selectedObjects.length === 0) this.nodeInfo = null;
         this._changeDetectorRef.markForCheck();
     }
-
-
 
     onRowUnselect(event: any): void {
         this.selectedObjects = this.selectedObjects.filter(item => item.id !== event.data.id);
@@ -162,7 +168,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     onSearch(): void {
-        if ([this.selectedRegions, this.selectedSpaces, this.selectedSystems].every(arr => arr.length === 0) &&
+        // if ([this.selectedRegions, this.selectedSpaces, this.selectedSystems].every(arr => arr.length === 0) &&
+        //     this.keyword === '') {
+        //     this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-criteria')}.` });
+        //     return;
+        // }
+
+        if ([this.selectedRegion, this.selectedRole, this.selectedLevel].every(val => val == null) &&
             this.keyword === '') {
             this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-criteria')}.` });
             return;
@@ -171,7 +183,9 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.selectedObjects = [];
         this.nodeInfo = null;
 
-        this.loadPage(1)
+        console.log(this.selectedRegion, this.selectedRole, this.selectedLevel)
+
+        // this.loadPage(1)
     }
 
     loadPage(page?: number): void {

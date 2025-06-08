@@ -173,11 +173,10 @@ export class SearchPanel extends Autodesk.Viewing.UI.DockingPanel {
         models.forEach(model => {
             const urn = model.getData().urn || 'unknown';
             const decoded = this.decodeUrn(urn);
-            const fileName = decoded.split('/').pop() || 'unknown';
-
-            this._apsViewerService.getDbids(fileName, searchValue).subscribe({
-                next: (response: { dbids: number[] }) => {
-                    debugger
+            const modelName = decoded.split('/').pop() || 'unknown';
+            
+            this._apsViewerService.getDbids(modelName, searchValue).subscribe({
+                next: (response: { dbids: number[] }) => {                    
                     // 處理 API 回傳的 dbIds
                     const dbIds = response.dbids || [];
                     const validDbIds = dbIds.filter(dbId => model.getData().instanceTree?.nodeAccess?.dbIdToIndex[dbId] != null);

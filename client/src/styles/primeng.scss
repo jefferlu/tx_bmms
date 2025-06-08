@@ -74,11 +74,11 @@
 
 /* Select */
 .p-select {
-  @apply text-base text-default bg-transparent #{'!important'};
+  @apply text-base text-white dark:bg-card ;
   @apply border-gray-300 dark:border-slate-50;
 
   .p-select-overlay {
-    @apply text-base text-default bg-default #{'!important'};
+    @apply text-base text-default bg-card #{'!important'};
   }
 
   .p-select-option {
@@ -86,15 +86,15 @@
   }
 
   .p-select-option.p-select-option-selected.p-focus {
-    @apply text-inherit bg-gray-800;
+    @apply text-inherit bg-gray-700;
   }
 
   .p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus {
-    @apply text-inherit bg-gray-800;
+    @apply text-inherit bg-gray-700;
   }
 
   .p-select-option.p-select-option-selected {
-    @apply text-inherit bg-gray-800;
+    @apply text-inherit bg-gray-700;
   }
 
   .p-select-label {

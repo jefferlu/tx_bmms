@@ -3,11 +3,15 @@
     <div class="flex w-full p-2 border-b">
         <div class="flex w-full flex-col sm:flex-row gap-4">
             <!-- 區域 -->
-            <p-select class="md:w-80 w-full" [options]="regions" [(ngModel)]="selectedRegions" optionLabel="label" optionValue="value" placeholder="區域"
-                (onChange)="loadRoles()" />
+            <p-select class="md:w-80 w-full" [options]="regions" [(ngModel)]="selectedRegion" optionLabel="label" [checkmark]="true" [showClear]="true"
+                placeholder="選擇區域" (onChange)="onChangeRegion()"  (onClear)="onClear()" />
 
-            <!-- <p-dropdown [options]="regions" [(ngModel)]="selectedRegions" optionLabel="label" optionValue="value" placeholder="選擇區域"
-                (onChange)="loadRoles()"></p-dropdown> -->
+            <p-select class="md:w-80 w-full" [options]="selectedRegion?.children" [(ngModel)]="selectedRole" optionLabel="label" [checkmark]="true"
+                [showClear]="true" placeholder="選擇空間/系統" emptyMessage="無資料" (onClear)="onClear()" />
+
+            <p-select class="md:w-80 w-full" [options]="selectedRole?.children" [(ngModel)]="selectedLevel" optionLabel="label" [checkmark]="true"
+                [showClear]="true" placeholder="選擇樓層" emptyMessage="無資料" (onClear)="onClear()" />
+
             <!-- <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedRegions"
                 [options]="regions" placeholder="區域" (onNodeSelect)="onNodeSelect()" (onNodeUnselect)="onNodeSelect()"
                 (onClear)="onClear('region')">
