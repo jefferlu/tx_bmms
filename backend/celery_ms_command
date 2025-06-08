@@ -4,3 +4,5 @@ celery -A tx_bmms flower
 
 # tasklist | findstr celery
 # taskkill /F  /PID  24772
+
+# docker volume prune --all

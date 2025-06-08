@@ -213,7 +213,7 @@ class BimDataImportView(APIView):
 
         # 檢查檔案名稱格式
         file_name = file.name
-        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
+        if not re.match(r'^([^-\n]+-){7}[^-\n]+$', file_name):
             return Response(
                 {"error": f"無效的檔案名稱格式：'{file_name}'。預期格式：XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX"},
                 status=status.HTTP_400_BAD_REQUEST
@@ -280,7 +280,7 @@ class BimDataRevertView(APIView):
             return Response({"error": "未提供檔案名稱"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 檢查檔案名稱格式
-        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
+        if not re.match(r'^([^-\n]+-){7}[^-\n]+$', file_name):
             return Response(
                 {"error": f"無效的檔案名稱格式：'{file_name}'。預期格式：XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX"},
                 status=status.HTTP_400_BAD_REQUEST
@@ -421,7 +421,7 @@ class BimDataReloadView(APIView):
 
         # 檢查檔案格式
         file_name = file_name
-        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
+        if not re.match(r'^([^-\n]+-){7}[^-\n]+$', file_name):
             return Response(
                 {"error": f"Invalid file name format: '{file_name}'. Expected format: XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX"},
                 status=status.HTTP_400_BAD_REQUEST
@@ -827,7 +827,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             )
 
         # 檢查檔案名稱格式
-        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
+        if not re.match(r'^([^-\n]+-){7}[^-\n]+$', file_name):
             return Response(
                 {"error": f"無效的檔案名稱格式：'{file_name}'。預期格式：XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX"},
                 status=status.HTTP_400_BAD_REQUEST
@@ -1018,7 +1018,7 @@ class BimOriginalFileDownloadView(APIView):
             )
 
         # 檢查檔案名稱格式
-        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}\..+$', file_name):
+        if not re.match(r'^([^-\n]+-){7}[^-\n]+$', file_name):
             return Response(
                 {"error": f"無效的檔案名稱格式：'{file_name}'。預期格式：XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX.副檔名"},
                 status=status.HTTP_400_BAD_REQUEST
@@ -1104,7 +1104,7 @@ class BimSqliteDownloadView(APIView):
             )
 
         # 檢查檔案名稱格式
-        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}\..+$', file_name):
+        if not re.match(r'^([^-\n]+-){7}[^-\n]+$', file_name):
             return Response(
                 {"error": f"無效的檔案名稱格式：'{file_name}'。預期格式：XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX.副檔名"},
                 status=status.HTTP_400_BAD_REQUEST

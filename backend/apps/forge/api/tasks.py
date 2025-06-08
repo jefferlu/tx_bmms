@@ -227,7 +227,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
     # Create or update BimModel
     send_progress('process-model-conversion', 'Creating or updating BimModel...')
     with transaction.atomic():
-        if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
+        if not re.match(r'^([^-\n]+-){7}[^-\n]+$', file_name):
             raise ValueError(f"Invalid file_name format: {file_name}. (Expected XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX)")
 
         if is_reload:
@@ -414,7 +414,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
     # Step 3.5: Update BimRegion
     send_progress('extract-bimregion', 'Extracting BimRegion from SQLite...')
     parts = file_name.split('-')
-    if not re.match(r'^.{2}-.{4}-.{3}-.{2}-.{3}-.{2}-.{2}-.{5}', file_name):
+    if not re.match(r'^([^-\n]+-){7}[^-\n]+$', file_name):
         raise ValueError(f"Invalid file_name format for BimRegion: {file_name}. Expected format: XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX")
     prefix = f"{parts[0]}-{parts[1]}"
 
@@ -452,9 +452,9 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                 logger.warning(f"Skipping invalid value format in file '{file_name}': {row.value}")
                 continue
 
-            zone_code = value_parts[2] if value_parts[2] != 'XXX' else None
-            level = value_parts[3]  # 直接使用 value_parts[3]，包括 'XX'
-            role_code = value_parts[6] if value_parts[6] != 'XX' else None
+            zone_code = value_parts[2] 
+            level = value_parts[3]  
+            role_code = value_parts[6]
 
             zone_obj = None
             if zone_code:
