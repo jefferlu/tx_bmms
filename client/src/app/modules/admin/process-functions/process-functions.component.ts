@@ -35,17 +35,19 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     bimCriteria: any;
     regions: any;
+    roles: any;
     spaces: any;
     systems: any;
     objects: any = { count: 0, results: [] };
 
     request: any = {};
     selectedRegions: any = [];
+    selectedRole: any = [];
     selectedSpaces: any = [];
-    selectedSystems: any = []
+    selectedSystems: any = [];
+
     keyword: string = '';
     selectedObjects: any[] = [];
-
 
     first: number = 0;
     rowsPerPage: number = 100;
@@ -71,7 +73,9 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this._route.data.subscribe({
             next: (res: any) => {
-                this.regions = this.transformRegions(res.data.regions);
+                // this.regions = this.transformRegions(res.data.regions);
+                this.regions = res.data.zones;
+
                 res.data.conditions = this._transformData(res.data.conditions);
                 const spaceNode = res.data.conditions.find(item => item.label === 'space');
                 this.spaces = spaceNode?.children ?? [];
@@ -105,6 +109,10 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 this._changeDetectorRef.markForCheck();
             });
 
+    }
+
+    loadRoles() {
+        console.log('loadroles')
     }
 
     onNodeSelect() {

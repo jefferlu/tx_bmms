@@ -97,8 +97,8 @@ class BimCategory(models.Model):
 
 class BimRegion(models.Model):
     bim_model = models.ForeignKey(BimModel, on_delete=models.CASCADE, related_name='bim_regions')
-    zone = models.ForeignKey(ZoneCode, on_delete=models.RESTRICT,  null=True, blank=True, related_name='bim_regions')
-    role = models.ForeignKey(RoleCode, on_delete=models.RESTRICT, null=True, blank=True, related_name='bim_regions')
+    zone = models.ForeignKey(ZoneCode, on_delete=models.CASCADE,  null=True, blank=True, related_name='bim_regions')
+    role = models.ForeignKey(RoleCode, on_delete=models.CASCADE, null=True, blank=True, related_name='bim_regions')
     level = models.CharField(max_length=50)
     value = models.CharField(max_length=255)
     dbid = models.IntegerField()

@@ -16,6 +16,12 @@ export class ProcessFunctionsService {
         );
     }
 
+    getZones(): Observable<any> {
+        return this._appService.get('forge/bim-regions/zones').pipe(
+            tap((response: any) => { })
+        );
+    }
+
     getConditions(): Observable<any> {
         return this._appService.get('forge/bim-conditions').pipe(
             tap((response: any) => { })

@@ -3,13 +3,18 @@
     <div class="flex w-full p-2 border-b">
         <div class="flex w-full flex-col sm:flex-row gap-4">
             <!-- 區域 -->
-            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedRegions"
+            <p-select class="md:w-80 w-full" [options]="regions" [(ngModel)]="selectedRegions" optionLabel="label" optionValue="value" placeholder="區域"
+                (onChange)="loadRoles()" />
+
+            <!-- <p-dropdown [options]="regions" [(ngModel)]="selectedRegions" optionLabel="label" optionValue="value" placeholder="選擇區域"
+                (onChange)="loadRoles()"></p-dropdown> -->
+            <!-- <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedRegions"
                 [options]="regions" placeholder="區域" (onNodeSelect)="onNodeSelect()" (onNodeUnselect)="onNodeSelect()"
                 (onClear)="onClear('region')">
-            </p-treeselect>
+            </p-treeselect> -->
 
             <!-- 空間 -->
-            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedSpaces"
+            <!-- <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedSpaces"
                 [options]="spaces" placeholder="空間" (onNodeSelect)="onNodeSelect()" (onNodeUnselect)="onNodeSelect()"
                 (onClear)="onClear('space')">
                 <ng-template pTemplate="option" let-node>
@@ -17,10 +22,10 @@
                         {{ node.label }}
                     </div>
                 </ng-template>
-            </p-treeselect>
+            </p-treeselect> -->
 
             <!-- 系統 -->
-            <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedSystems"
+            <!-- <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedSystems"
                 [options]="systems" placeholder="系統" (onNodeSelect)="onNodeSelect()" (onNodeUnselect)="onNodeSelect()"
                 (onClear)="onClear('system')">
                 <ng-template pTemplate="option" let-node>
@@ -28,7 +33,7 @@
                         {{ node.label }}
                     </div>
                 </ng-template>
-            </p-treeselect>
+            </p-treeselect> -->
 
             <!-- 關鍵字查詢 -->
             <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
@@ -79,7 +84,7 @@
                                 <td class="pl-8">
                                     <p-tableCheckbox [value]="item" />
                                 </td>
-                                <td>{{ item.value }} ({{ item.dbid }}) <br/>
+                                <td>{{ item.value }} ({{ item.dbid }}) <br />
                                     <span class="text-sm text-slate-400">{{item.name}}</span>
                                 </td>
                             </tr>

@@ -32,6 +32,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import ValidationError
+from rest_framework.decorators import action
 
 from django_auto_prefetching import AutoPrefetchViewSetMixin
 
@@ -515,53 +516,108 @@ class BimConditionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class BimRegionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.BimRegionSerializer
-    queryset = models.BimRegion.objects.all().select_related('zone', 'bim_model')
+    queryset = models.BimRegion.objects.all().select_related('zone', 'role', 'bim_model')
 
+    # 樹狀結構:分區(zone)->空間/系統(role)->樓層(level)
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        # 查詢所有 BimRegion 記錄，不過濾 zone_code 或 level
+        queryset = self.get_queryset().order_by('zone__id', 'role__code', 'level')
 
-        # 按 zone_id 分組並構建樹狀結構
+        # 按 zone_id 分組
         zone_groups = {}
         for region in queryset:
             zone = region.zone
+            role = region.role
             zone_key = zone.id
+            role_key = region.role_id  # 使用 role_id，直接處理 null 值
+
+            # 初始化區域層
             if zone_key not in zone_groups:
                 zone_groups[zone_key] = {
-                    'key': zone.id,
                     'label': zone.description,
+                    'value': zone.id,
                     'code': zone.code,
-                    'levels': {}
+                    'children': {}
                 }
 
-            level = region.level
-            if level not in zone_groups[zone_key]['levels']:
-                zone_groups[zone_key]['levels'][level] = []
+            # 初始化角色層
+            if role_key not in zone_groups[zone_key]['children']:
+                zone_groups[zone_key]['children'][role_key] = {
+                    'label': role.description if role else '未知角色',
+                    'value': role.id if role else None,
+                    'code': role.code if role else 'UNKNOWN',
+                    'children': []
+                }
 
-            zone_groups[zone_key]['levels'][level].append({
-                'bim_model_id': region.bim_model_id,
-                'dbid': region.dbid
+            # 添加樓層
+            zone_groups[zone_key]['children'][role_key]['children'].append({
+                'label': region.level,
+                'value': region.level
             })
 
-        # 構建樹狀數據
+        # 構建三層結構
         tree_data = []
-        for zone_key, group in sorted(zone_groups.items(), key=lambda x: x[1]['code']):
-            levels_data = [
-                {
-                    'key': level,
-                    'label': level,
-                    'data': models
-                }
-                for level, models in sorted(group['levels'].items())
-            ]
-            tree_data.append({
-                'key': group['key'],
-                'label': group['label'],
-                'code': group['code'],
-                'children': levels_data
-            })
+        for zone_id in sorted(zone_groups.keys()):
+            zone_data = zone_groups[zone_id]
+            # 整理角色層
+            roles_data = []
+            for role_id in sorted(zone_groups[zone_id]['children'].keys(), key=lambda x: x or float('inf')):
+                role_data = zone_groups[zone_id]['children'][role_id]
+                # 移除重複樓層
+                unique_levels = {level['value']: level for level in role_data['children']}.values()
+                role_data['children'] = sorted(unique_levels, key=lambda x: x['value'])
+                roles_data.append(role_data)
+            zone_data['children'] = roles_data
+            tree_data.append(zone_data)
 
-        serializer = self.get_serializer(tree_data, many=True)
-        return Response(serializer.data)
+        return Response(tree_data)
+
+    #  樹狀結構:分區(zone)->樓層(level)
+    # def list(self, request, *args, **kwargs):
+    #     queryset = self.get_queryset()
+
+    #     # 按 zone_id 分組並構建樹狀結構
+    #     zone_groups = {}
+    #     for region in queryset:
+    #         zone = region.zone
+    #         zone_key = zone.id
+    #         if zone_key not in zone_groups:
+    #             zone_groups[zone_key] = {
+    #                 'key': zone.id,
+    #                 'label': zone.description,
+    #                 'code': zone.code,
+    #                 'levels': {}
+    #             }
+
+    #         level = region.level
+    #         if level not in zone_groups[zone_key]['levels']:
+    #             zone_groups[zone_key]['levels'][level] = []
+
+    #         zone_groups[zone_key]['levels'][level].append({
+    #             'bim_model_id': region.bim_model_id,
+    #             'dbid': region.dbid
+    #         })
+
+    #     # 構建樹狀數據
+    #     tree_data = []
+    #     for zone_key, group in sorted(zone_groups.items(), key=lambda x: x[1]['code']):
+    #         levels_data = [
+    #             {
+    #                 'key': level,
+    #                 'label': level,
+    #                 'data': models
+    #             }
+    #             for level, models in sorted(group['levels'].items())
+    #         ]
+    #         tree_data.append({
+    #             'key': group['key'],
+    #             'label': group['label'],
+    #             'code': group['code'],
+    #             'children': levels_data
+    #         })
+
+    #     serializer = self.get_serializer(tree_data, many=True)
+    #     return Response(serializer.data)
 
 
 class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
@@ -957,7 +1013,7 @@ class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelView
             # 如果沒有資料（例如所有 chunk 為空），返回空 CSV
             if first_chunk:
                 buffer.write('dbid,display_name,value\n'.encode('utf-8-sig'))
-            
+
             buffer.seek(0)
             return FileResponse(
                 buffer,
