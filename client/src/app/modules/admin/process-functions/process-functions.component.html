@@ -4,7 +4,7 @@
         <div class="flex w-full flex-col sm:flex-row gap-4">
             <!-- 區域 -->
             <p-select class="md:w-80 w-full" [options]="regions" [(ngModel)]="selectedRegion" optionLabel="label" [checkmark]="true" [showClear]="true"
-                placeholder="選擇區域" (onChange)="onChangeRegion()"  (onClear)="onClear()" />
+                placeholder="選擇區域" (onChange)="onChangeRegion()" (onClear)="onClear()" />
 
             <p-select class="md:w-80 w-full" [options]="selectedRegion?.children" [(ngModel)]="selectedRole" optionLabel="label" [checkmark]="true"
                 [showClear]="true" placeholder="選擇空間/系統" emptyMessage="無資料" (onClear)="onClear()" />
@@ -142,6 +142,13 @@
                     </div>
 
                     <div class="flex flex-col flex-1 overflow-y-auto">
+                        <!-- region -->
+                        @if(selectedRegion){
+                        <div class="flex mt-5 px-4" [attr.data-index]="index">
+                            <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
+                            <div>區域: {{ selectedRegion.label }}</div>
+                        </div>
+                        }
                         <!-- regions -->
                         @if (criteriaRegions && criteriaRegions.length > 0) {
                         @for (item of criteriaRegions; track item.name; let index = $index) {

@@ -77,8 +77,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             next: (res: any) => {
                 // this.regions = this.transformRegions(res.data.regions);
                 this.regions = res.data.regions;
-                
-                
+
+
                 res.data.conditions = this._transformData(res.data.conditions);
                 const spaceNode = res.data.conditions.find(item => item.label === 'space');
                 this.spaces = spaceNode?.children ?? [];
@@ -185,7 +185,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
         console.log(this.selectedRegion, this.selectedRole, this.selectedLevel)
 
-        // this.loadPage(1)
+        this.loadPage(1)
     }
 
     loadPage(page?: number): void {
@@ -193,26 +193,34 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.first = (page - 1) * this.rowsPerPage;
 
         // 處理 regions
-        const regionsMap = {};
+        // const regionsMap = {};
 
-        this.selectedRegions.forEach((region) => {
-            // 統一處理 data 為陣列
-            const data = Array.isArray(region.data) ? region.data : [region.data];
-            data.forEach((item) => {
-                const modelId = item.bim_model_id;
-                const dbid = item.dbid;
-                if (!regionsMap[modelId]) {
-                    regionsMap[modelId] = new Set();
-                }
-                regionsMap[modelId].add(dbid);
-            });
-        });
+        // this.selectedRegions.forEach((region) => {
+        //     // 統一處理 data 為陣列
+        //     const data = Array.isArray(region.data) ? region.data : [region.data];
+        //     data.forEach((item) => {
+        //         const modelId = item.bim_model_id;
+        //         const dbid = item.dbid;
+        //         if (!regionsMap[modelId]) {
+        //             regionsMap[modelId] = new Set();
+        //         }
+        //         regionsMap[modelId].add(dbid);
+        //     });
+        // });
 
-        // 轉換 regionsMap 為目標格式
-        const regions = Object.entries(regionsMap).map(([modelId, dbids]) => ({
-            bim_model: parseInt(modelId),
-            dbids: Array.from(dbids as any),
-        }));
+        // // 轉換 regionsMap 為目標格式
+        // const regions = Object.entries(regionsMap).map(([modelId, dbids]) => ({
+        //     bim_model: parseInt(modelId),
+        //     dbids: Array.from(dbids as any),
+        // }));
+
+        const regions = [
+            {
+                zone_id: this.selectedRegion.id,
+                role_id: this.selectedRole ? this.selectedRole.id : null,
+                level: this.selectedLevel ? this.selectedLevel.label : null
+            }
+        ];
 
         // 處理 category
         const categories = [
@@ -340,7 +348,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     updateCriteria() {
-        this.criteriaRegions = this.formatCriteria(this.selectedRegions);
+        this.criteriaRegions = this.formatCriteria(this.selectedRegion);
         this.criteriaSpaces = this.formatCriteria(this.selectedSpaces);
         this.criteriaSystems = this.formatCriteria(this.selectedSystems);
         this.criteriaKeyword = this.keyword;

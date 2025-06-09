@@ -721,9 +721,9 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                     "zone_id": f"必須是整數，收到：{zone_id}",
                     "code": "invalid_zone_id"
                 })
-            if not isinstance(role_id, int):
+            if role_id is not None and not isinstance(role_id, int):
                 raise ValidationError({
-                    "role_id": f"必須是整數，收到：{role_id}",
+                    "role_id": f"必須是整數或 null，收到：{role_id}",
                     "code": "invalid_role_id"
                 })
             if level is not None and not isinstance(level, str):
@@ -733,10 +733,9 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 })
 
             # 查詢 BimRegion
-            bim_region_qs = models.BimRegion.objects.filter(
-                zone_id=zone_id,
-                role_id=role_id
-            )
+            bim_region_qs = models.BimRegion.objects.filter(zone_id=zone_id)
+            if role_id is not None:
+                bim_region_qs = bim_region_qs.filter(role_id=role_id)
             if level is not None:
                 bim_region_qs = bim_region_qs.filter(level=level)
 
@@ -751,7 +750,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             for bim_region in bim_regions:
                 bim_model_id = bim_region['bim_model_id']
                 dbid = bim_region['dbid']
-                value = bim_region['value'].strip()  # 標準化 value（去除空格）
+                value = bim_region['value'].strip()  # 標準化 value
                 if not models.BimModel.objects.filter(id=bim_model_id).exists():
                     raise ValidationError({
                         "bim_model_id": f"無效的 bim_model_id：{bim_model_id}",
@@ -764,7 +763,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         # 定義查詢條件
         filters = Q()
         if not categories and not fuzzy_keyword:
-            # 僅 regions：使用 region_dbids, valid_bim_models 和 region_values 查詢 BimObject
+            # 僅 regions：使用 region_dbids, valid_bim_models 和 region_values 查詢
             if region_dbids and valid_bim_models and region_values:
                 filters &= Q(dbid__in=region_dbids) & Q(bim_model_id__in=valid_bim_models) & Q(
                     display_name="Name") & Q(value__in=region_values)
@@ -866,65 +865,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         log_message = f"查詢 {log_regions}{' ; ' if log_regions else ''}{log_cats}{' ; ' if log_cats else ''}{log_fuzzy}"
         log_user_activity(self.request.user, '圖資檢索', log_message, 'SUCCESS', ip_address)
         return response
-
-    def get(self, request, *args, **kwargs):
-        # 取得請求參數
-        file_name = request.query_params.get('file_name')
-        version = request.query_params.get('version')
-
-        # 驗證輸入
-        if not file_name or not version:
-            return Response(
-                {"error": "必須提供 file_name 和 version 參數"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 檢查檔案名稱格式
-        if not re.match(r'^([^-\n]+-){7}[^-\n]+$', file_name):
-            return Response(
-                {"error": f"無效的檔案名稱格式：'{file_name}'。預期格式：XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 檢查版本號是否為正整數
-        try:
-            version = int(version)
-            if version <= 0:
-                raise ValueError
-        except ValueError:
-            return Response(
-                {"error": "版本號必須為正整數"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 提取檔案主名稱和副檔名
-        file_base_name = file_name.rsplit('.', 1)[0] if '.' in file_name else file_name
-        file_extension = file_name.rsplit('.', 1)[1] if '.' in file_name else ''
-
-        # 構建版本檔案路徑
-        base_path = 'uploads'
-        ver_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name, 'ver').replace(os.sep, '/')
-        versioned_file_name = f"{file_base_name}_{version}.{file_extension}" if file_extension else f"{file_base_name}_{version}"
-        versioned_file_path = os.path.join(ver_dir, versioned_file_name).replace(os.sep, '/')
-        storage_versioned_file_path = f'{base_path}/{file_base_name}/ver/{versioned_file_name}'
-
-        # 檢查檔案是否存在
-        if not default_storage.exists(storage_versioned_file_path):
-            return Response(
-                {"error": f"版本 {version} 的檔案 '{file_name}' 不存在"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        try:
-            # 開啟檔案並回傳 FileResponse
-            file = default_storage.open(storage_versioned_file_path, 'rb')
-            response = FileResponse(file, as_attachment=True, filename=file_name)
-            return response
-        except Exception as e:
-            return Response(
-                {"error": f"下載檔案時發生錯誤：{str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
 
 
 class BimObjectViewSet_(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
