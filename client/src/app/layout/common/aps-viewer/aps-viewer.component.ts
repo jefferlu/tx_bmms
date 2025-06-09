@@ -40,6 +40,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     private selectedNodeProperties: any[] = [];
     private loadedBubbleNodes: any[] = [];
     private latestDbIds: number[] = [];
+    private allDbIdsByUrn: { [urn: string]: number[] } = {};
     private latestUrn: string | null = null;
     private isUniTest: boolean = false;
 
@@ -71,17 +72,18 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     return;
                 }
 
-                // 設置最新 dbid（newData 總是只新增一筆）
-                if (newData.length > 0) {
-                    const latestEntry = newData[newData.length - 1];
-                    this.latestUrn = latestEntry.urn;
-                    this.latestDbIds = Array.isArray(latestEntry.dbid) ? latestEntry.dbid : [latestEntry.dbid];
-                    console.log(`最新 dbIds: ${this.latestDbIds}, urn: ${this.latestUrn}`);
-                } else {
-                    this.latestUrn = null;
-                    this.latestDbIds = [];
-                    console.warn('newData 為空，無法設置最新 dbIds');
-                }
+                // 收集所有 urn 和 dbIds
+                this.allDbIdsByUrn = newData.reduce((acc, entry) => {
+                    const urn = entry.urn;
+                    const dbIds = Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid || 1];
+                    if (!acc[urn]) {
+                        acc[urn] = [];
+                    }
+                    acc[urn] = [...new Set([...acc[urn], ...dbIds])]; // 去重 dbIds
+                    return acc;
+                }, {});
+
+                console.log('所有 dbIds 按 urn 分組:', this.allDbIdsByUrn);
 
                 const isDataChanged = !oldData || JSON.stringify(this.extractKeyData(newData)) !== JSON.stringify(this.extractKeyData(oldData));
 
@@ -98,6 +100,45 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             }
         }
     }
+
+    // ngOnChanges(changes: SimpleChanges): void {
+    //     if (!this.isUniTest) {
+    //         if (changes['data'] && changes['data'].currentValue) {
+    //             const newData = changes['data'].currentValue;
+    //             const oldData = changes['data'].previousValue;
+
+    //             if (!Array.isArray(newData)) {
+    //                 console.warn('Input data must be an array for AggregatedView');
+    //                 return;
+    //             }
+
+    //             // 設置最新 dbid（newData 總是只新增一筆）
+    //             if (newData.length > 0) {
+    //                 const latestEntry = newData[newData.length - 1];
+    //                 this.latestUrn = latestEntry.urn;
+    //                 this.latestDbIds = Array.isArray(latestEntry.dbid) ? latestEntry.dbid : [latestEntry.dbid];
+    //                 console.log(`最新 dbIds: ${this.latestDbIds}, urn: ${this.latestUrn}`);
+    //             } else {
+    //                 this.latestUrn = null;
+    //                 this.latestDbIds = [];
+    //                 console.warn('newData 為空，無法設置最新 dbIds');
+    //             }
+
+    //             const isDataChanged = !oldData || JSON.stringify(this.extractKeyData(newData)) !== JSON.stringify(this.extractKeyData(oldData));
+
+    //             if (isDataChanged) {
+    //                 if (this.isViewerInitialized) {
+    //                     this.loadModels(newData);
+    //                 } else {
+    //                     if (this.isViewerInitialized) {
+    //                         this.cleanupViewer();
+    //                     }
+    //                     this.debouncedLoadViewer();
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     private debouncedLoadViewer = debounce(() => {
         this.processDataAndLoadViewer();
@@ -243,18 +284,16 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         const onObjectTreeCreated = (model: any) => {
             loadedModelCount++;
             if (loadedModelCount === totalModels) {
-                console.log('所有模型的物件樹已載入，執行 fitToLastModel');
-                this.fitToLastModel(data);
+                console.log('所有模型的物件樹已載入，執行 fitToAllModels');
+                this.fitToAllModels(data);
             }
         };
 
         this.loadedModels.forEach((model: any) => {
             const tree = model.getInstanceTree();
             if (tree) {
-                // 物件樹已存在，直接計數
                 onObjectTreeCreated(model);
             } else {
-                // 監聽物件樹創建事件
                 model.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
                     onObjectTreeCreated(model);
                 });
@@ -262,12 +301,135 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     console.warn(`模型 ${model.getData().urn} 的物件樹不可用`);
                     loadedModelCount++;
                     if (loadedModelCount === totalModels) {
-                        console.log('所有模型的物件樹處理完成，執行 fitToLastModel');
-                        this.fitToLastModel(data);
+                        console.log('所有模型的物件樹處理完成，執行 fitToAllModels');
+                        this.fitToAllModels(data);
                     }
                 });
             }
         });
+    }
+
+    // private waitForObjectTrees(data: any[]): void {
+    //     let loadedModelCount = 0;
+    //     const totalModels = this.loadedModels.length;
+
+    //     if (totalModels === 0) {
+    //         console.warn('沒有已載入的模型');
+    //         this._toastService.open({ message: '無法聚焦視圖：無模型' });
+    //         return;
+    //     }
+
+    //     const onObjectTreeCreated = (model: any) => {
+    //         loadedModelCount++;
+    //         if (loadedModelCount === totalModels) {
+    //             console.log('所有模型的物件樹已載入，執行 fitToLastModel');
+    //             this.fitToLastModel(data);
+    //         }
+    //     };
+
+    //     this.loadedModels.forEach((model: any) => {
+    //         const tree = model.getInstanceTree();
+    //         if (tree) {
+    //             // 物件樹已存在，直接計數
+    //             onObjectTreeCreated(model);
+    //         } else {
+    //             // 監聽物件樹創建事件
+    //             model.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
+    //                 onObjectTreeCreated(model);
+    //             });
+    //             model.addEventListener(Autodesk.Viewing.OBJECT_TREE_UNAVAILABLE_EVENT, () => {
+    //                 console.warn(`模型 ${model.getData().urn} 的物件樹不可用`);
+    //                 loadedModelCount++;
+    //                 if (loadedModelCount === totalModels) {
+    //                     console.log('所有模型的物件樹處理完成，執行 fitToLastModel');
+    //                     this.fitToLastModel(data);
+    //                 }
+    //             });
+    //         }
+    //     });
+    // }
+
+    private fitToAllModels(data: any[]): void {
+        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+        if (!data || data.length === 0) {
+            console.warn('無有效數據，無法聚焦視圖');
+            this._toastService.open({ message: '無有效數據可聚焦' });
+            return;
+        }
+
+        const modelStructure = viewer.modelstructure;
+        if (!modelStructure) {
+            console.error('modelstructure 未初始化，無法展開物件樹');
+            return;
+        }
+
+        // 隔離所有 urn 的 dbIds
+        Object.entries(this.allDbIdsByUrn).forEach(([urn, dbIds]) => {
+            const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
+            if (targetModel) {
+                viewer.isolate(dbIds, targetModel);
+                console.log(`為模型 ${urn} 隔離 dbIds:`, dbIds);
+            } else {
+                console.warn(`未找到 URN 為 ${urn} 的模型`);
+            }
+        });
+
+        // 展開物件樹並選擇所有 dbIds
+        data.forEach((entry) => {
+            const urn = entry.urn;
+            const dbIds = Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid || 1];
+            const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
+            if (targetModel) {
+                const tree = targetModel.getInstanceTree();
+                if (tree) {
+                    dbIds.forEach((dbId: number) => {
+                        if (dbId) {
+                            const nodePath = this.getNodePath(tree, dbId);
+                            if (nodePath) {
+                                this.expandNodePathInTree(tree, nodePath, modelStructure, targetModel);
+                            }
+                        }
+                    });
+                } else {
+                    console.error(`無法從模型 ${urn} 中獲取 InstanceTree`);
+                }
+            }
+        });
+
+        // 聚焦所有 dbIds
+        const allSelections: { model: any; dbIds: number[] }[] = [];
+        Object.entries(this.allDbIdsByUrn).forEach(([urn, dbIds]) => {
+            const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
+            if (targetModel) {
+                allSelections.push({ model: targetModel, dbIds });
+            }
+        });
+
+        // if (allSelections.length > 0) {
+        //     viewer.fitToView(allSelections);
+        //     console.log('聚焦所有模型的 dbIds:', allSelections);
+        // } else {
+        //     console.warn('無有效模型或 dbIds，無法聚焦');
+        //     viewer.fitToView(); // 無指定 dbIds 時，聚焦整個視圖
+        // }
+
+        // 如果 viewer.fitToView(allSelections) 失敗，則逐個模型調用 viewer.fitToView(dbIds, model)，確保相容性。
+        if (allSelections.length > 0) {
+            // 嘗試使用多模型 fitToView
+            try {
+                viewer.fitToView(allSelections);
+                console.log('聚焦所有模型的 dbIds:', allSelections);
+            } catch (e) {
+                console.warn('多模型 fitToView 失敗，逐個聚焦:', e);
+                // 逐個模型聚焦
+                allSelections.forEach(({ model, dbIds }) => {
+                    viewer.fitToView(dbIds, model);
+                });
+            }
+        } else {
+            console.warn('無有效模型或 dbIds，無法聚焦');
+            viewer.fitToView();
+        }
     }
 
     private fitToLastModel(data: any[]): void {
@@ -526,11 +688,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     private loadModels(data: any[]): void {
         if (!this.viewer) {
             console.error('GuiViewer3D 尚未準備好');
-            // this._toastService.open({ message: 'GuiViewer3D 未初始化' });
+            this._toastService.open({ message: 'GuiViewer3D 未初始化' });
             return;
         }
 
-        // 生成模型載入條目，包含 urn 和 dbid（無 dbid 時設置為 [1]）
+        // 生成模型載入條目，包含 urn 和 dbid
         const dbids = data.some(item => item.urn)
             ? Object.values(
                 data.reduce((acc, item) => {
@@ -540,7 +702,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         }
                         const itemDbids = item.dbid !== undefined
                             ? (Array.isArray(item.dbid) ? item.dbid : [item.dbid])
-                            : [1]; // 無 dbid 時設置為根節點
+                            : [1];
                         acc[item.urn].dbid = [...new Set([...acc[item.urn].dbid, ...itemDbids])];
                     }
                     return acc;
@@ -550,7 +712,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
         if (!dbids || dbids.length === 0) {
             console.warn('無有效數據可載入', data);
-            // this._toastService.open({ message: '無有效數據可載入' });
+            this._toastService.open({ message: '無有效數據可載入' });
             return;
         }
 
@@ -573,7 +735,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         const loadOptions = {
                             urn: urn,
                             isAEC: true,
-                            // globalOffset: { x: 0, y: 0, z: 0 }
                         };
 
                         loadPromises.push(
@@ -612,7 +773,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         });
 
         if (loadPromises.length === 0 && data) {
-            this.fitToLastModel(data);
             this.handleModelLoading(data);
             return;
         }
@@ -624,11 +784,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 console.log('更新後的本地模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
                 this.loadedModels = this.viewer.getAllModels();
                 this.handleModelLoading(data);
-
-                // 處理forge viewer buttons
-                if (this.downloadExcel) this.downloadExcel.refreshOptions();
-                if (this.downloadSqlite) this.downloadSqlite.refreshOptions();
-
             } else {
                 const newBubbleNodes = results.map(result => result.viewable);
                 const allBubbleNodes = [...this.loadedBubbleNodes, ...newBubbleNodes];
@@ -641,24 +796,154 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     this.loadedModels = this.viewer.viewer.getAllModels();
                     console.log('更新後的 OSS 模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
                     this.handleModelLoading(data);
-
-                    // 處理forge viewer buttons
-                    if (this.downloadExcel) this.downloadExcel.refreshOptions();
-                    if (this.downloadSqlite) this.downloadSqlite.refreshOptions();
-
                 }).catch((err) => {
                     console.error('設置 OSS 模型失敗:', err);
-                    // this._toastService.open({ message: '無法設置 OSS 模型' });
+                    this._toastService.open({ message: '無法設置 OSS 模型' });
                 });
             }
         }).catch((err) => {
             console.error('載入模型失敗:', err);
-            // this._toastService.open({ message: err.message || '無法載入模型文件' });
+            this._toastService.open({ message: err.message || '無法載入模型文件' });
         });
     }
 
+    // private loadModels(data: any[]): void {
+    //     if (!this.viewer) {
+    //         console.error('GuiViewer3D 尚未準備好');
+    //         // this._toastService.open({ message: 'GuiViewer3D 未初始化' });
+    //         return;
+    //     }
+
+    //     // 生成模型載入條目，包含 urn 和 dbid（無 dbid 時設置為 [1]）
+    //     const dbids = data.some(item => item.urn)
+    //         ? Object.values(
+    //             data.reduce((acc, item) => {
+    //                 if (item.urn) {
+    //                     if (!acc[item.urn]) {
+    //                         acc[item.urn] = { urn: item.urn, dbid: [] };
+    //                     }
+    //                     const itemDbids = item.dbid !== undefined
+    //                         ? (Array.isArray(item.dbid) ? item.dbid : [item.dbid])
+    //                         : [1]; // 無 dbid 時設置為根節點
+    //                     acc[item.urn].dbid = [...new Set([...acc[item.urn].dbid, ...itemDbids])];
+    //                 }
+    //                 return acc;
+    //             }, {})
+    //         )
+    //         : null;
+
+    //     if (!dbids || dbids.length === 0) {
+    //         console.warn('無有效數據可載入', data);
+    //         // this._toastService.open({ message: '無有效數據可載入' });
+    //         return;
+    //     }
+
+    //     const loadPromises: Promise<any>[] = [];
+    //     const urnSet = new Set(this.loadedModels.map((model) => model.getData().urn));
+
+    //     dbids.forEach((entry: any) => {
+    //         const urn = entry.urn;
+    //         if (!urnSet.has(urn)) {
+    //             const dataItem = data.find(item => item.urn === urn);
+    //             if (dataItem) {
+    //                 if (this.isLocalMode) {
+    //                     if (!dataItem.svf_path) {
+    //                         console.error(`缺少 svf_path 屬性，URN: ${urn}`);
+    //                         return;
+    //                     }
+    //                     const svfPath = dataItem.svf_path.replace(/\\/g, '/');
+    //                     const documentId = `${env.host}${MEDIA_URL}${svfPath}`;
+
+    //                     const loadOptions = {
+    //                         urn: urn,
+    //                         isAEC: true,
+    //                         // globalOffset: { x: 0, y: 0, z: 0 }
+    //                     };
+
+    //                     loadPromises.push(
+    //                         new Promise((resolve, reject) => {
+    //                             this.viewer.loadModel(documentId, loadOptions, (model) => {
+    //                                 console.log(`本地模型載入成功: ${documentId}`);
+    //                                 model.getData().urn = urn;
+    //                                 resolve({ model, urn });
+    //                             }, (errorCode, errorMsg) => {
+    //                                 console.error(`無法載入本地模型 ${documentId}: ${errorMsg}`);
+    //                                 reject(new Error(`無法載入本地模型 ${documentId}: ${errorMsg}`));
+    //                             });
+    //                         })
+    //                     );
+    //                 } else {
+    //                     const documentId = `urn:${dataItem.urn}`;
+    //                     loadPromises.push(
+    //                         new Promise((resolve, reject) => {
+    //                             Autodesk.Viewing.Document.load(documentId, (doc) => {
+    //                                 const viewables = doc.getRoot().search({ type: 'geometry' });
+    //                                 if (viewables.length > 0) {
+    //                                     console.log(`OSS viewable 節點載入成功: ${urn}`);
+    //                                     resolve({ viewable: viewables[0], urn });
+    //                                 } else {
+    //                                     reject(new Error(`未找到 URN ${urn} 的 geometry 節點`));
+    //                                 }
+    //                             }, (errorCode, errorMsg) => {
+    //                                 console.error(`無法載入 OSS 文件 ${urn}: ${errorMsg}`);
+    //                                 reject(new Error(`無法載入 OSS 文件 ${urn}: ${errorMsg}`));
+    //                             });
+    //                         })
+    //                     );
+    //                 }
+    //             }
+    //         }
+    //     });
+
+    //     if (loadPromises.length === 0 && data) {
+    //         this.fitToLastModel(data);
+    //         this.handleModelLoading(data);
+    //         return;
+    //     }
+
+    //     Promise.all(loadPromises).then((results) => {
+    //         if (this.isLocalMode) {
+    //             const newModels = results.map(result => result.model);
+    //             this.loadedModels = [...this.loadedModels, ...newModels];
+    //             console.log('更新後的本地模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
+    //             this.loadedModels = this.viewer.getAllModels();
+    //             this.handleModelLoading(data);
+
+    //             // 處理forge viewer buttons
+    //             if (this.downloadExcel) this.downloadExcel.refreshOptions();
+    //             if (this.downloadSqlite) this.downloadSqlite.refreshOptions();
+
+    //         } else {
+    //             const newBubbleNodes = results.map(result => result.viewable);
+    //             const allBubbleNodes = [...this.loadedBubbleNodes, ...newBubbleNodes];
+    //             console.log('準備設置 OSS 節點:', allBubbleNodes.map(node => ({
+    //                 urn: node.data?.urn || node.urn,
+    //                 hasIs3D: typeof node.is3D === 'function'
+    //             })));
+    //             this.viewer.setNodes(allBubbleNodes).then(() => {
+    //                 this.loadedBubbleNodes = allBubbleNodes;
+    //                 this.loadedModels = this.viewer.viewer.getAllModels();
+    //                 console.log('更新後的 OSS 模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
+    //                 this.handleModelLoading(data);
+
+    //                 // 處理forge viewer buttons
+    //                 if (this.downloadExcel) this.downloadExcel.refreshOptions();
+    //                 if (this.downloadSqlite) this.downloadSqlite.refreshOptions();
+
+    //             }).catch((err) => {
+    //                 console.error('設置 OSS 模型失敗:', err);
+    //                 // this._toastService.open({ message: '無法設置 OSS 模型' });
+    //             });
+    //         }
+    //     }).catch((err) => {
+    //         console.error('載入模型失敗:', err);
+    //         // this._toastService.open({ message: err.message || '無法載入模型文件' });
+    //     });
+    // }
+
     private handleModelLoading(data: any[]): void {
         const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+
         viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
             const selection = viewer.getSelection();
             if (selection.length > 0) {
@@ -673,11 +958,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             }
         });
 
-        viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
-            this.loadedModels = viewer.getAllModels();
-            console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
-
-            if (data && data.length > 0) {
+        const checkAllModelsLoaded = () => {
+            const allLoaded = this.loadedModels.every((model: any) => model.isLoadDone());
+            if (allLoaded) {
+                console.log('所有模型已完全載入，模型數量:', this.loadedModels.length);
                 const modelStructure = viewer.modelstructure;
                 if (modelStructure) {
                     this.waitForObjectTrees(data);
@@ -685,9 +969,53 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 } else {
                     console.error('modelstructure 未初始化於 GEOMETRY_LOADED_EVENT');
                 }
+            } else {
+                console.log('模型仍在載入中，等待 500ms 後重試');
+                setTimeout(checkAllModelsLoaded, 500);
             }
+        };
+
+        viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+            this.loadedModels = viewer.getAllModels();
+            console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
+            checkAllModelsLoaded();
         });
+
+        // 立即檢查一次，防止事件未觸發
+        checkAllModelsLoaded();
     }
+
+    // private handleModelLoading(data: any[]): void {
+    //     const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+    //     viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
+    //         const selection = viewer.getSelection();
+    //         if (selection.length > 0) {
+    //             const dbId = selection[0];
+    //             const model = viewer.model || this.loadedModels.find((m: any) => {
+    //                 const tree = m.getInstanceTree();
+    //                 return tree && tree.nodeAccess.getIndex(dbId) !== -1;
+    //             }) || viewer;
+    //             this.emitNodeProperties(dbId, model);
+    //         } else {
+    //             console.log('沒有選中任何物件');
+    //         }
+    //     });
+
+    //     viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+    //         this.loadedModels = viewer.getAllModels();
+    //         console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
+
+    //         if (data && data.length > 0) {
+    //             const modelStructure = viewer.modelstructure;
+    //             if (modelStructure) {
+    //                 this.waitForObjectTrees(data);
+    //                 this.setupModelBrowser();
+    //             } else {
+    //                 console.error('modelstructure 未初始化於 GEOMETRY_LOADED_EVENT');
+    //             }
+    //         }
+    //     });
+    // }
 
     private addAggregatedButton(): void {
         const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
