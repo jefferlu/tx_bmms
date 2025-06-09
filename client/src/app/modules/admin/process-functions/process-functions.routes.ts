@@ -12,6 +12,7 @@ export default [{
         data: () => forkJoin({
             regions: inject(ProcessFunctionsService).getRegions(),
             conditions: inject(ProcessFunctionsService).getConditions(),
+            suggestions: inject(ProcessFunctionsService).getSuggestions(),
         })
     }
 }] as Routes

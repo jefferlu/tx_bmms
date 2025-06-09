@@ -14,7 +14,7 @@ export class BimModelViewerService {
     }
 
     downloadCsv(fileName: string) {
-        return this._appService.get('forge/bim-cobie-objects',
+        return this._appService.get('forge/bim-cobie-objects/download_csv',
             { file_name: encodeURIComponent(fileName) },
             { responseType: 'blob' }
         );

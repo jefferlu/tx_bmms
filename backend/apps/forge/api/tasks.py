@@ -428,12 +428,16 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         JOIN _objects_val vals ON vals.id = eav.value_id
         WHERE attrs.display_name = 'Name' AND vals.value LIKE ?
     """
+    conn = sqlite3.connect(sqlite_path)
     try:
         df_bim_regions = pd.read_sql_query(region_query, conn, params=(f"{prefix}%",))
     except Exception as e:
         logger.error(f"Failed to extract BimRegion: {str(e)}")
         raise Exception(f"Failed to extract BimRegion from SQLite: {str(e)}")
     send_progress('extract-bimregion', f'Extracted {len(df_bim_regions)} BimRegion records.')
+
+    # 儲存 BimRegion 的 dbid 集合
+    bim_region_dbids = set(df_bim_regions['dbid'].tolist())
 
     with transaction.atomic():
         deleted_count = models.BimRegion.objects.filter(bim_model=bim_model).delete()[0]
@@ -452,8 +456,8 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                 logger.warning(f"Skipping invalid value format in file '{file_name}': {row.value}")
                 continue
 
-            zone_code = value_parts[2] 
-            level = value_parts[3]  
+            zone_code = value_parts[2]
+            level = value_parts[3]
             role_code = value_parts[6]
 
             zone_obj = None
@@ -507,68 +511,58 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                     raise
             send_progress('process-bimregion', f'Created {len(new_bim_regions)} BimRegion records.')
 
-    # Step 3.6: Update BimObjectHierarchy
+    # Step 3.6: Update BimObjectHierarchy and prepare root_dbid mapping
     new_hierarchies = []
-    existing_hierarchies = models.BimObjectHierarchy.objects.filter(bim_model_id=bim_model_id)
-    if not existing_hierarchies.exists() or bim_model.version != bim_model.last_processed_version:
-        send_progress('extract-bimobjecthierarchy', 'Extracting BimObjectHierarchy from SQLite...')
-        hierarchy_query = """
-            SELECT 
-                eav.entity_id AS entity_id,
-                CAST(vals.value AS INTEGER) AS related_id
-            FROM _objects_eav eav
-            JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
-            JOIN _objects_val vals ON vals.id = eav.value_id
-            WHERE attrs.category = '__parent__'            
-        """
-        try:
-            df_hierarchy = pd.read_sql_query(hierarchy_query, conn)
-            # Remove duplicates in pandas
-            df_hierarchy = df_hierarchy.drop_duplicates(subset=['entity_id', 'related_id'])
-        except Exception as e:
-            logger.error(f"Failed to extract BimObjectHierarchy: {str(e)}")
-            df_hierarchy = pd.DataFrame(columns=['entity_id', 'related_id'])
-        send_progress('extract-bimobjecthierarchy', f'Extracted {len(df_hierarchy)} BimObjectHierarchy records.')
+    hierarchy_dict = {}  # entity_id -> parent_id
+    send_progress('extract-bimobjecthierarchy', 'Extracting BimObjectHierarchy from SQLite...')
+    hierarchy_query = """
+        SELECT 
+            eav.entity_id AS entity_id,
+            CAST(vals.value AS INTEGER) AS related_id
+        FROM _objects_eav eav
+        JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
+        JOIN _objects_val vals ON vals.id = eav.value_id
+        WHERE attrs.category = '__parent__'            
+    """
+    try:
+        df_hierarchy = pd.read_sql_query(hierarchy_query, conn)
+        df_hierarchy = df_hierarchy.drop_duplicates(subset=['entity_id', 'related_id'])
+    except Exception as e:
+        logger.error(f"Failed to extract BimObjectHierarchy: {str(e)}")
+        df_hierarchy = pd.DataFrame(columns=['entity_id', 'related_id'])
+    send_progress('extract-bimobjecthierarchy', f'Extracted {len(df_hierarchy)} BimObjectHierarchy records.')
 
-        with transaction.atomic():
-            # Delete existing hierarchy records
-            deleted_count = models.BimObjectHierarchy.objects.filter(bim_model_id=bim_model_id).delete()[0]
-            send_progress('cleanup-bimobjecthierarchy',
-                          f'Deleted {deleted_count} BimObjectHierarchy records for bim_model_id={bim_model_id}.')
+    # 構建 hierarchy_dict
+    for row in df_hierarchy.itertuples():
+        hierarchy_dict[row.entity_id] = row.related_id
+        new_hierarchies.append(
+            models.BimObjectHierarchy(
+                bim_model_id=bim_model_id,
+                entity_id=row.entity_id,
+                parent_id=row.related_id
+            )
+        )
 
-            # Create new hierarchy records
-            for row in df_hierarchy.itertuples():
-                try:
-                    entity_id = row.entity_id
-                    parent_id = int(row.related_id)
-                    new_hierarchies.append(
-                        models.BimObjectHierarchy(
-                            bim_model_id=bim_model_id,
-                            entity_id=entity_id,
-                            parent_id=parent_id
-                        )
-                    )
-                except (ValueError, TypeError):
-                    logger.warning(f"Skipping invalid related_id for entity_id={row.entity_id}, value={row.related_id}")
-                    continue
+    # 計算每個 entity_id 的 root_dbid
+    root_dbid_mapping = {}
+    for entity_id in hierarchy_dict.keys():
+        root_dbid = find_root_dbid(entity_id, hierarchy_dict, bim_region_dbids)
+        root_dbid_mapping[entity_id] = root_dbid
 
-            if new_hierarchies:
-                batch_size = 10000
-                for i in range(0, len(new_hierarchies), batch_size):
-                    batch = new_hierarchies[i:i + batch_size]
-                    models.BimObjectHierarchy.objects.bulk_create(batch)
-                    send_progress('process-bimobjecthierarchy',
-                                  f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
-            else:
-                logger.warning(f"No valid BimObjectHierarchy records found for bim_model_id={bim_model_id}")
+    with transaction.atomic():
+        deleted_count = models.BimObjectHierarchy.objects.filter(bim_model_id=bim_model_id).delete()[0]
+        send_progress('cleanup-bimobjecthierarchy',
+                      f'Deleted {deleted_count} BimObjectHierarchy records for bim_model_id={bim_model_id}.')
 
-            # Update last_processed_version after processing
-            # bim_model.last_processed_version = bim_model.version
-            # bim_model.save()
-    else:
-        send_progress('process-bimobjecthierarchy', 'BimObjectHierarchy data is up-to-date, no update needed.')
+        if new_hierarchies:
+            batch_size = 10000
+            for i in range(0, len(new_hierarchies), batch_size):
+                batch = new_hierarchies[i:i + batch_size]
+                models.BimObjectHierarchy.objects.bulk_create(batch)
+                send_progress('process-bimobjecthierarchy',
+                              f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
 
-    # Step 4: Update BimObject
+    # Step 4: Update BimObject with root_dbid
     existing_objects = models.BimObject.objects.filter(bim_model=bim_model)
     if not existing_objects.exists() or bim_model.version != bim_model.last_processed_version:
         send_progress('extract-bimobject', 'Extracting BimObject from SQLite...')
@@ -600,7 +594,8 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                 bim_model=bim_model,
                 dbid=row.dbid,
                 display_name=row.display_name,
-                value=row.value
+                value=row.value,
+                root_dbid=root_dbid_mapping.get(row.dbid)  # 設置 root_dbid
             ) for row in df_objects.itertuples()
         ]
         total = len(bim_objects)
@@ -623,3 +618,25 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         "hierarchy_count": len(new_hierarchies),
         "objects_count": len(df_objects) if 'df_objects' in locals() else 0
     }
+
+
+def find_root_dbid(entity_id, hierarchy_dict, bim_region_dbids):
+    """
+    查找指定 entity_id 的根節點 dbid。
+
+    Args:
+        entity_id (int): 要查找的物件的 dbid。
+        hierarchy_dict (dict): 儲存 entity_id 到 parent_id 的映射。
+        bim_region_dbids (set): BimRegion 中的 dbid 集合。
+
+    Returns:
+        int or None: 根節點的 dbid，若無則返回 None。
+    """
+    current_id = entity_id
+    visited = set()  # 避免迴圈
+    while current_id in hierarchy_dict and current_id not in visited:
+        if current_id in bim_region_dbids:
+            return current_id
+        visited.add(current_id)
+        current_id = hierarchy_dict.get(current_id)
+    return None  # 如果無法追溯到 BimRegion，則返回 None

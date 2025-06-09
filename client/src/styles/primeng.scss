@@ -14,7 +14,16 @@
 }
 
 .p-autocomplete-overlay {
-    @apply text-base text-white dark:bg-card;
+  @apply text-base dark:text-white dark:bg-card;
+}
+
+.p-autocomplete-option {
+  @apply text-base dark:text-white;
+}
+.p-autocomplete-option:not(.p-autocomplete-option-selected):not(
+    .p-disabled
+  ).p-focus {
+  @apply dark:text-white dark:bg-gray-700;
 }
 
 /* Calendar */
@@ -131,7 +140,7 @@
   .p-multiselect-option:not(.p-multiselect-option-selected):not(
       .p-disabled
     ).p-focus {
-    @apply text-inherit bg-gray-800;
+    @apply text-inherit bg-gray-700;
   }
 
   .p-multiselect-label {

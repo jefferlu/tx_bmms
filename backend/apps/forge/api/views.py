@@ -696,6 +696,18 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 "code": "empty_regions"
             })
 
+        # 處理 fuzzy_keyword
+        if fuzzy_keyword:
+            if not isinstance(fuzzy_keyword, dict):
+                raise ValidationError({
+                    "fuzzy_keyword": "必須是物件，包含 label 和 display_name。",
+                    "code": "invalid_fuzzy_keyword_format"
+                })
+            label = fuzzy_keyword.get('label')
+            # 若 label 為空字串或 null，視為 fuzzy_keyword 未提供
+            if label is None or (isinstance(label, str) and not label.strip()):
+                fuzzy_keyword = None
+
         # 快取查詢參數
         query_data = {k: v for k, v in request.data.items() if k not in ['page', 'size']}
         query_key = hashlib.md5(str(query_data).encode()).hexdigest()
@@ -716,9 +728,9 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             role_id = region.get('role_id')
             level = region.get('level')
 
-            if not isinstance(zone_id, int):
+            if zone_id is not None and not isinstance(zone_id, int):
                 raise ValidationError({
-                    "zone_id": f"必須是整數，收到：{zone_id}",
+                    "zone_id": f"必須是整數或 null，收到：{zone_id}",
                     "code": "invalid_zone_id"
                 })
             if role_id is not None and not isinstance(role_id, int):
@@ -733,7 +745,9 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 })
 
             # 查詢 BimRegion
-            bim_region_qs = models.BimRegion.objects.filter(zone_id=zone_id)
+            bim_region_qs = models.BimRegion.objects.all()
+            if zone_id is not None:
+                bim_region_qs = bim_region_qs.filter(zone_id=zone_id)
             if role_id is not None:
                 bim_region_qs = bim_region_qs.filter(role_id=role_id)
             if level is not None:
@@ -750,7 +764,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             for bim_region in bim_regions:
                 bim_model_id = bim_region['bim_model_id']
                 dbid = bim_region['dbid']
-                value = bim_region['value'].strip()  # 標準化 value
+                value = bim_region['value'].strip()
                 if not models.BimModel.objects.filter(id=bim_model_id).exists():
                     raise ValidationError({
                         "bim_model_id": f"無效的 bim_model_id：{bim_model_id}",
@@ -763,16 +777,16 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         # 定義查詢條件
         filters = Q()
         if not categories and not fuzzy_keyword:
-            # 僅 regions：使用 region_dbids, valid_bim_models 和 region_values 查詢
+            # 僅 regions：保持原有邏輯，僅查詢根節點
             if region_dbids and valid_bim_models and region_values:
                 filters &= Q(dbid__in=region_dbids) & Q(bim_model_id__in=valid_bim_models) & Q(
                     display_name="Name") & Q(value__in=region_values)
             else:
                 filters &= Q(dbid__in=[])
         else:
-            # 包含 categories 或 fuzzy_keyword：使用 bim_model_id
+            # 包含 categories 或 fuzzy_keyword：使用 root_dbid 過濾
             if valid_bim_models:
-                filters &= Q(bim_model_id__in=valid_bim_models)
+                filters &= Q(bim_model_id__in=valid_bim_models) & Q(root_dbid__in=region_dbids)
 
             # 處理 categories
             value_filters = Q()
@@ -813,20 +827,35 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             # 處理 fuzzy_keyword
             fuzzy_filters = Q()
             if fuzzy_keyword:
-                if not isinstance(fuzzy_keyword, str):
+                label = fuzzy_keyword.get('label')
+                display_name = fuzzy_keyword.get('display_name')
+
+                if not isinstance(label, str):
                     raise ValidationError({
-                        "fuzzy_keyword": "必須是字串。",
-                        "code": "invalid_fuzzy_keyword"
+                        "fuzzy_keyword.label": f"必須是字串，收到：{label}",
+                        "code": "invalid_fuzzy_label"
                     })
-                if not fuzzy_keyword.strip():
+                label = label.strip()
+                if not label:
                     raise ValidationError({
-                        "fuzzy_keyword": "不能為空字串。",
-                        "code": "empty_fuzzy_keyword"
+                        "fuzzy_keyword.label": "label 不能為空字串。",
+                        "code": "empty_fuzzy_label"
                     })
+
+                if display_name is not None and (not isinstance(display_name, str) or not display_name.strip()):
+                    raise ValidationError({
+                        "fuzzy_keyword.display_name": f"必須是空值或非空字串，收到：{display_name}",
+                        "code": "invalid_fuzzy_display_name"
+                    })
+
                 fuzzy_filters = (
-                    Q(value__trigram_similar=fuzzy_keyword) |
-                    Q(value__contains=fuzzy_keyword)
-                ) & Q(display_name="Name")
+                    Q(value__trigram_similar=label) |
+                    Q(value__contains=label)
+                )
+                if display_name is not None:
+                    fuzzy_filters &= Q(display_name=display_name)
+                else:
+                    fuzzy_filters &= Q(display_name="Name")  # 當 display_name 為 null 或未提供時，預設為 "Name"
 
             # 結合 filters
             if value_filters and fuzzy_filters:
@@ -842,6 +871,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             'dbid',
             'value',
             'display_name',
+            'root_dbid',  # 返回 root_dbid 以便調試或前端使用
             'bim_model__name',
             'bim_model__version',
             'bim_model__urn',
@@ -849,7 +879,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             'bim_model__sqlite_path'
         ).order_by('bim_model', 'dbid')
 
-        # 快取結果
+        # 快存結果
         results = list(queryset)
         cache.set(query_key, results, timeout=300)
 
@@ -859,12 +889,71 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         response = paginator.get_paginated_response(serializer.data)
 
         ip_address = request.META.get('REMOTE_ADDR')
-        log_regions = f"regions: {regions[:10]}" if regions else ""
-        log_cats = f"categories: {categories[:10]}" if categories else ""
+        log_regions = f"regions: {regions[:3]}" if regions else ""
+        log_cats = f"categories: {categories[:3]}" if categories else ""
         log_fuzzy = f"fuzzy_keyword: {fuzzy_keyword}" if fuzzy_keyword else ""
-        log_message = f"查詢 {log_regions}{' ; ' if log_regions else ''}{log_cats}{' ; ' if log_cats else ''}{log_fuzzy}"
+        log_message = f"查詢 {log_regions}{' ;' if log_regions else ''}{log_cats}{' ;' if log_cats else ''}{log_fuzzy}"
         log_user_activity(self.request.user, '圖資檢索', log_message, 'SUCCESS', ip_address)
         return response
+
+    def get(self, request, *args, **kwargs):
+        # 取得請求參數
+        file_name = request.query_params.get('file_name')
+        version = request.query_params.get('version')
+
+        # 驗證輸入
+        if not file_name or not version:
+            return Response(
+                {"error": "必須提供 file_name 和 version 參數"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 檢查檔案名稱格式
+        if not re.match(r'^([^-\n]+-){7}[^-\n]+$', file_name):
+            return Response(
+                {"error": f"無效的檔案名稱格式：'{file_name}'。預期格式：XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 檢查版本號是否為正整數
+        try:
+            version = int(version)
+            if version <= 0:
+                raise ValueError
+        except ValueError:
+            return Response(
+                {"error": "版本號必須為正整數"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 提取檔案主名稱和副檔名
+        file_base_name = file_name.rsplit('.', 1)[0] if '.' in file_name else file_name
+        file_extension = file_name.rsplit('.', 1)[1] if '.' in file_name else ''
+
+        # 構建版本檔案路徑
+        base_path = 'uploads'
+        ver_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name, 'ver').replace(os.sep, '/')
+        versioned_file_name = f"{file_base_name}_{version}.{file_extension}" if file_extension else f"{file_base_name}_{version}"
+        versioned_file_path = os.path.join(ver_dir, versioned_file_name).replace(os.sep, '/')
+        storage_versioned_file_path = f'{base_path}/{file_base_name}/ver/{versioned_file_name}'
+
+        # 檢查檔案是否存在
+        if not default_storage.exists(storage_versioned_file_path):
+            return Response(
+                {"error": f"版本 {version} 的檔案 '{file_name}' 不存在"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            # 開啟檔案並回傳 FileResponse
+            file = default_storage.open(storage_versioned_file_path, 'rb')
+            response = FileResponse(file, as_attachment=True, filename=file_name)
+            return response
+        except Exception as e:
+            return Response(
+                {"error": f"下載檔案時發生錯誤：{str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class BimObjectViewSet_(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
@@ -1138,7 +1227,60 @@ class BimObjectViewSet_(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet)
 class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = models.BimObject.objects.all()
 
-    def list(self, request, *args, **kwargs):
+    @action(detail=False, methods=['get'])
+    def distinct_name_value(self, request):
+        try:
+            # 查詢以 'COBie.' 開頭的唯一 display_name 和 value，並按 display_name 排序
+            queryset = models.BimObject.objects.filter(
+                display_name__startswith='COBie.'
+            ).values('display_name', 'value').distinct().order_by('display_name')
+
+            # 將查詢結果轉為列表並添加 description 欄位
+            data = [
+                {
+                    'display_name': item['display_name'],
+                    'label': item['value'],
+                    'description': f"{item['value']} ({item['display_name']})"
+                }
+                for item in queryset
+            ]
+
+            return Response(data, status=200)
+
+        except Exception as e:
+            # 記錄錯誤日誌
+            logger.error(f"Error fetching distinct name-value pairs: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "伺服器內部錯誤，請聯繫管理員"},
+                status=500
+            )
+
+    @action(detail=False, methods=['get'])
+    def distinct_name(self, request):
+        try:
+            # 查詢以 'COBie.' 開頭的唯一 display_name，並按字母排序
+            display_names = models.BimObject.objects.filter(
+                display_name__startswith='COBie.'
+            ).values('display_name').distinct().order_by('display_name')
+
+            # 提取 display_name 列表
+            result = [item['display_name'] for item in display_names]
+
+            return Response({
+                'count': len(result),
+                'results': result
+            }, status=200)
+
+        except Exception as e:
+            # 記錄錯誤日誌
+            logger.error(f"Error fetching distinct display names: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "伺服器內部錯誤，請聯繫管理員"},
+                status=500
+            )
+
+    @action(detail=False, methods=['get'])
+    def download_csv(self, request):
         try:
             file_name = self.request.query_params.get('file_name', None)
 

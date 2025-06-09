@@ -7,7 +7,7 @@
                 placeholder="選擇區域" (onChange)="onChangeRegion()" (onClear)="onClear()" />
 
             <p-select class="md:w-80 w-full" [options]="selectedRegion?.children" [(ngModel)]="selectedRole" optionLabel="label" [checkmark]="true"
-                [showClear]="true" placeholder="選擇空間/系統" emptyMessage="無資料" (onClear)="onClear()" />
+                [showClear]="true" placeholder="選擇空間/系統" emptyMessage="無資料" (onChange)="onChangeRole()" (onClear)="onClear()" />
 
             <p-select class="md:w-80 w-full" [options]="selectedRole?.children" [(ngModel)]="selectedLevel" optionLabel="label" [checkmark]="true"
                 [showClear]="true" placeholder="選擇樓層" emptyMessage="無資料" (onClear)="onClear()" />
@@ -41,7 +41,7 @@
 
             <!-- 關鍵字查詢 -->
             <p-autocomplete inputStyleClass="sm:min-w-64" [suggestions]="keywordItems" field="label" [(ngModel)]="keyword" (completeMethod)="keywordSearch($event)"
-                placeholder="請輸入關鍵字..." />
+                placeholder="請輸入關鍵字..." emptyMessage="無資料"/>
             <!-- <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
                 placeholder="請輸入關鍵字..." [(ngModel)]="keyword" /> -->
 
@@ -90,8 +90,9 @@
                                 <td class="pl-8">
                                     <p-tableCheckbox [value]="item" />
                                 </td>
-                                <td>{{ item.value }} ({{ item.dbid }}) <br />
-                                    <span class="text-sm text-slate-400">{{item.name}}</span>
+                                <td>{{ item.value }}<br />
+                                    <span class="text-sm text-slate-400">Display: {{item.display_name}} ({{item.dbid}})</span><br />
+                                    <span class="text-sm text-slate-400">BIM: {{item.name}}</span>
                                 </td>
                             </tr>
                         </ng-template>

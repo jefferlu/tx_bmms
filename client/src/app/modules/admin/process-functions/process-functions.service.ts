@@ -39,4 +39,10 @@ export class ProcessFunctionsService {
             tap((res: any) => { })
         );
     }
+
+    getSuggestions(): Observable<any> {
+        return this._appService.get('forge/bim-cobie-objects/distinct_name_value').pipe(
+            tap((response: any) => { })
+        );
+    }
 }

@@ -50,13 +50,9 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     selectedRole: any | undefined;
     selectedLevel: any | undefined;
 
-    keyword: string = '';
+    keyword: any;
     keywordItems: any[];
-    items = [
-        { label: 'Apple', id: 1 },
-        { label: 'Banana', id: 2 },
-        { label: 'Cherry', id: 3 }
-    ];
+    suggestions: any[];
     selectedObjects: any[] = [];
 
     first: number = 0;
@@ -84,7 +80,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             next: (res: any) => {
                 // this.regions = this.transformRegions(res.data.regions);
                 this.regions = res.data.regions;
-
+                this.suggestions = res.data.suggestions;
 
                 res.data.conditions = this._transformData(res.data.conditions);
                 const spaceNode = res.data.conditions.find(item => item.label === 'space');
@@ -135,6 +131,10 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.selectedRole = undefined;
     }
 
+    onChangeRole() {
+        this.selectedLevel = undefined;
+    }
+
     onClear(tag: string) {
         this.request = {};
         this.selectedObjects = [];
@@ -144,7 +144,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     keywordSearch(event: any) {
         const query = event.query.toLowerCase();
-        this.keywordItems = this.items.filter(item =>
+        this.keywordItems = this.suggestions.filter(item =>
             item.label.toLowerCase().includes(query)
         );
     }
@@ -187,16 +187,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         //     return;
         // }
 
-        if ([this.selectedRegion, this.selectedRole, this.selectedLevel].every(val => val == null) &&
-            this.keyword === '') {
+        if ([this.selectedRegion, this.selectedRole, this.selectedLevel].every(val => val == null) && !this.keyword) {
             this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-criteria')}.` });
             return;
         }
 
         this.selectedObjects = [];
         this.nodeInfo = null;
-
-        console.log(this.selectedRegion, this.selectedRole, this.selectedLevel)
 
         this.loadPage(1)
     }
@@ -227,13 +224,11 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         //     dbids: Array.from(dbids as any),
         // }));
 
-        const regions = [
-            {
-                zone_id: this.selectedRegion.id,
-                role_id: this.selectedRole ? this.selectedRole.id : null,
-                level: this.selectedLevel ? this.selectedLevel.label : null
-            }
-        ];
+        const regions = [{
+            zone_id: this.selectedRegion ? this.selectedRegion.id : null,
+            role_id: this.selectedRole ? this.selectedRole.id : null,
+            level: this.selectedLevel ? this.selectedLevel.label : null
+        }];
 
         // 處理 category
         const categories = [
@@ -244,6 +239,9 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             display_name: space.display_name,
             value: space.label
         }));
+
+        // 處理keyword
+        this.keyword = this._handleKeyword(this.keyword);
 
         // 產生最終 request
         this.request = {
@@ -258,6 +256,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         if (this._cache.has(cacheKey)) {
 
             this.objects = this._cache.get(cacheKey);
+            this.selectedObjects = this.objects.results;
             this.updateCriteria();
 
             if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
@@ -282,6 +281,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
                     if (res && res.count >= 0 && res.results) {
                         this.objects = { count: res.count, results: res.results };
+                        this.selectedObjects = res.results;
                         this._cache.set(cacheKey, this.objects);
                     } else {
                         this.objects = { count: 0, results: [] };
@@ -498,22 +498,15 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         return false;
     }
 
-    // handleBlur() {
-    //     if (typeof this.selectedItem === 'string') {
-    //         const matched = this.allItems.find(
-    //             item => item.label.toLowerCase() === this.selectedItem.toLowerCase()
-    //         );
+    private _handleKeyword(item) {
+        if (typeof item === 'string') {
+            // 沒有找到 → 自訂輸入
+            item = {
+                label: item,
+                display_name: null
+            };
+        }
 
-    //         if (matched) {
-    //             // 使用者輸入的值剛好跟某個建議項目一樣 → 用原始物件取代
-    //             this.selectedItem = matched;
-    //         } else {
-    //             // 沒有找到 → 自訂輸入
-    //             this.selectedItem = {
-    //                 label: this.selectedItem,
-    //                 id: null
-    //             };
-    //         }
-    //     }
-    // }
+        return item;
+    }
 }
