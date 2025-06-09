@@ -40,8 +40,10 @@
             </p-treeselect> -->
 
             <!-- 關鍵字查詢 -->
-            <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                placeholder="請輸入關鍵字..." [(ngModel)]="keyword" />
+            <p-autocomplete inputStyleClass="sm:min-w-64" [suggestions]="keywordItems" field="label" [(ngModel)]="keyword" (completeMethod)="keywordSearch($event)"
+                placeholder="請輸入關鍵字..." />
+            <!-- <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                placeholder="請輸入關鍵字..." [(ngModel)]="keyword" /> -->
 
             <!-- Search -->
             <div>

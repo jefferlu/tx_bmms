@@ -7,6 +7,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { TreeSelectModule } from 'primeng/treeselect';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { ProcessFunctionsService } from './process-functions.service';
 import { FormsModule } from '@angular/forms';
@@ -25,7 +26,7 @@ import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.comp
         MatButtonModule, MatIconModule, MatMenuModule,
         TableModule, TranslocoModule,
         SelectModule, TreeSelectModule,
-        ApsViewerComponent
+        AutoCompleteModule, ApsViewerComponent
     ],
     standalone: true
 })
@@ -50,6 +51,12 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     selectedLevel: any | undefined;
 
     keyword: string = '';
+    keywordItems: any[];
+    items = [
+        { label: 'Apple', id: 1 },
+        { label: 'Banana', id: 2 },
+        { label: 'Cherry', id: 3 }
+    ];
     selectedObjects: any[] = [];
 
     first: number = 0;
@@ -135,6 +142,12 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.nodeInfo = null;
     }
 
+    keywordSearch(event: any) {
+        const query = event.query.toLowerCase();
+        this.keywordItems = this.items.filter(item =>
+            item.label.toLowerCase().includes(query)
+        );
+    }
     // onClear(tag: string) {
     //     this.request = {};
     //     this.selectedObjects = [];
@@ -484,4 +497,23 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         }
         return false;
     }
+
+    // handleBlur() {
+    //     if (typeof this.selectedItem === 'string') {
+    //         const matched = this.allItems.find(
+    //             item => item.label.toLowerCase() === this.selectedItem.toLowerCase()
+    //         );
+
+    //         if (matched) {
+    //             // 使用者輸入的值剛好跟某個建議項目一樣 → 用原始物件取代
+    //             this.selectedItem = matched;
+    //         } else {
+    //             // 沒有找到 → 自訂輸入
+    //             this.selectedItem = {
+    //                 label: this.selectedItem,
+    //                 id: null
+    //             };
+    //         }
+    //     }
+    // }
 }

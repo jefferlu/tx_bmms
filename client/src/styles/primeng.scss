@@ -4,9 +4,17 @@
 }
 
 .p-inputtext {
-  @apply text-base text-default bg-transparent;
+  @apply text-base text-default dark:bg-card;
   @apply border-gray-300 dark:border-gray-500 dark:bg-black dark:bg-opacity-5;
   @apply transition-none;
+}
+
+.p-inputtext:is(.dark *) {
+  @apply text-base text-default bg-card;
+}
+
+.p-autocomplete-overlay {
+    @apply text-base text-white dark:bg-card;
 }
 
 /* Calendar */
@@ -54,8 +62,9 @@
   @apply dark:outline-none;
 }
 
-.p-tree-root-children, .p-tree-node-children {
-    @apply flex #{'!important'};
+.p-tree-root-children,
+.p-tree-node-children {
+  @apply flex #{'!important'};
 }
 
 /* Tree */
@@ -74,7 +83,7 @@
 
 /* Select */
 .p-select {
-  @apply text-base text-white dark:bg-card ;
+  @apply text-base text-white dark:bg-card;
   @apply border-gray-300 dark:border-slate-50;
 
   .p-select-overlay {
