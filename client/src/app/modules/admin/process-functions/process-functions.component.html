@@ -149,14 +149,29 @@
 
                     <div class="flex flex-col flex-1 overflow-y-auto">
                         <!-- region -->
-                        @if(selectedRegion){
-                        <div class="flex mt-5 px-4" [attr.data-index]="index">
+                        @if(criteriaRegion){
+                        <div class="flex mt-2 px-4" [attr.data-index]="index">
                             <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
-                            <div>區域: {{ selectedRegion.label }}</div>
+                            <div>區域: {{ criteriaRegion }}</div>
                         </div>
                         }
+
+                        @if(criteriaRole){
+                        <div class="flex mt-2 px-4" [attr.data-index]="index">
+                            <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
+                            <div>空間/系統: {{ criteriaRole }}</div>
+                        </div>
+                        }
+
+                        @if(criteriaLevel){
+                        <div class="flex mt-2 px-4" [attr.data-index]="index">
+                            <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
+                            <div>樓層: {{ criteriaLevel }}</div>
+                        </div>
+                        }
+
                         <!-- regions -->
-                        @if (criteriaRegions && criteriaRegions.length > 0) {
+                        <!-- @if (criteriaRegions && criteriaRegions.length > 0) {
                         @for (item of criteriaRegions; track item.name; let index = $index) {
                         @if(index==0){
                         <div class="flex mt-5 px-4" [attr.data-index]="index">
@@ -168,10 +183,10 @@
                         <div class="flex mt-2 px-4" [attr.data-index]="index">
                             <div class="pl-7">{{ item.name }}: {{ item.criteria }}</div>
                         </div>
-                        }}}
+                        }}} -->
 
                         <!-- spaces -->
-                        @if (criteriaSpaces && criteriaSpaces.length > 0) {
+                        <!-- @if (criteriaSpaces && criteriaSpaces.length > 0) {
                         @for (item of criteriaSpaces; track item.name; let index = $index) {
                         @if(index==0){
                         <div class="flex mt-5 px-4" [attr.data-index]="index">
@@ -183,10 +198,10 @@
                         <div class="flex mt-2 px-4" [attr.data-index]="index">
                             <div class="pl-7">{{ item.name }}: {{ item.criteria }}</div>
                         </div>
-                        }}}
+                        }}} -->
 
                         <!-- systems -->
-                        @if (criteriaSystems && criteriaSystems.length > 0) {
+                        <!-- @if (criteriaSystems && criteriaSystems.length > 0) {
                         @for (item of criteriaSystems; track item.name; let index = $index) {
                         @if(index==0){
                         <div class="flex mt-5 px-4" [attr.data-index]="index">
@@ -198,13 +213,13 @@
                         <div class="flex mt-2 px-4" [attr.data-index]="index">
                             <div class="pl-7">{{ item.name }}: {{ item.criteria }}</div>
                         </div>
-                        }}}
+                        }}} -->
 
                         <!-- keyword -->
-                        @if(this.criteriaKeyword){
-                        <div class="flex mt-5 px-4">
+                        @if(this.keyword){
+                        <div class="flex mt-2 px-4">
                             <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
-                            <div>{{ criteriaKeyword }}</div>
+                            <div>關鍵字：{{ keyword.label }}</div>
                         </div>
                         }
                     </div>

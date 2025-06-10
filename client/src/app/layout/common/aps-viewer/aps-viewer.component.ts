@@ -173,7 +173,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         const container = this.viewerContainer.nativeElement;
         const options = {
             env: 'Local',
-            useConsolidation: true,
+            useConsolidation: false,
             document: `${svf}`,
             language: 'en',
             extensions: ['Autodesk.AEC.Minimap3DExtension', 'Autodesk.AEC.ModelData'],
@@ -359,6 +359,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     // }
 
     private fitToAllModels(data: any[]): void {
+        console.log('-->fitToAllModels')
         const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
         if (!data || data.length === 0) {
             console.warn('無有效數據，無法聚焦視圖');
@@ -414,30 +415,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             }
         });
 
-        // if (allSelections.length > 0) {
-        //     viewer.fitToView(allSelections);
-        //     console.log('聚焦所有模型的 dbIds:', allSelections);
-        // } else {
-        //     console.warn('無有效模型或 dbIds，無法聚焦');
-        //     viewer.fitToView(); // 無指定 dbIds 時，聚焦整個視圖
-        // }
-
-        // 如果 viewer.fitToView(allSelections) 失敗，則逐個模型調用 viewer.fitToView(dbIds, model)，確保相容性。
         if (allSelections.length > 0) {
-            // 嘗試使用多模型 fitToView
-            try {
-                viewer.fitToView(allSelections);
-                console.log('聚焦所有模型的 dbIds:', allSelections);
-            } catch (e) {
-                console.warn('多模型 fitToView 失敗，逐個聚焦:', e);
-                // 逐個模型聚焦
-                allSelections.forEach(({ model, dbIds }) => {
-                    viewer.fitToView(dbIds, model);
-                });
-            }
-        } else {
-            console.warn('無有效模型或 dbIds，無法聚焦');
-            viewer.fitToView();
+            allSelections.forEach(({ model, dbIds }) => {
+                viewer.fitToView(dbIds, model);
+            });
         }
     }
 
@@ -681,7 +662,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
         const options = {
             env: 'Local',
-            useConsolidation: true,
+            useConsolidation: false,
             language: this.lang,
             isAEC: true
         };
@@ -692,15 +673,15 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     this.viewer.start();
 
                     this.isViewerInitialized = true;
-                    this.viewer.setGhosting(false);
+                    // this.viewer.setGhosting(false);
 
-                    this.viewer.setActiveNavigationTool('first-person');
+                    // this.viewer.setActiveNavigationTool('first-person');
 
                     // this.viewer.setDisplayEdges(true);
                     // this.viewer.setQualityLevel(true, true);
                     // this.viewer.setReverseZoomDirection(true); // 確保方向一致
 
-                    this.viewer.impl.invalidate(true);
+                    // this.viewer.impl.invalidate(true);
 
                     this.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
                         this.addAggregatedButton();
@@ -995,12 +976,14 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             const allLoaded = this.loadedModels.every((model: any) => model.isLoadDone());
             if (allLoaded) {
                 // console.log('所有模型已完全載入，模型數量:', this.loadedModels.length);
-                const modelStructure = viewer.modelstructure;
-                if (modelStructure) {
-                    this.waitForObjectTrees(data);
-                    this.setupModelBrowser();
-                } else {
-                    console.error('modelstructure 未初始化於 GEOMETRY_LOADED_EVENT');
+                if (!this.dialogData) {
+                    const modelStructure = viewer.modelstructure;
+                    if (modelStructure) {
+                        this.waitForObjectTrees(data);
+                        this.setupModelBrowser();
+                    } else {
+                        console.error('modelstructure 未初始化於 GEOMETRY_LOADED_EVENT');
+                    }
                 }
             } else {
                 console.log('模型仍在載入中，等待 500ms 後重試');

@@ -59,9 +59,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     first: number = 0;
     rowsPerPage: number = 100;
 
-    criteriaRegions: string = '';
-    criteriaSpaces: string = '';
-    criteriaSystems: string = '';
+
+    // criteriaRegions: string = '';
+    // criteriaSpaces: string = '';
+    // criteriaSystems: string = '';
+    criteriaRegion: string = '';
+    criteriaRole: string = '';
+    criteriaLevel: string = '';
     criteriaKeyword: string = '';
 
     nodeInfo: any;
@@ -139,7 +143,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     onClear(tag: string) {
         // this.request = {};
         // // this.selectedObjects = [];
-        // this.objects = { count: 0, results: [] };
+        this.objects = { count: 0, results: [] };
+        this.focusObject = null;
         // this.nodeInfo = null;
     }
 
@@ -163,7 +168,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     // }
 
     onFitToObject(item: any) {
-        console.log(item)
         this.focusObject = { urn: item.urn, dbIds: [item.dbid] }
     }
 
@@ -367,10 +371,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     updateCriteria() {
-        this.criteriaRegions = this.formatCriteria(this.selectedRegion);
-        this.criteriaSpaces = this.formatCriteria(this.selectedSpaces);
-        this.criteriaSystems = this.formatCriteria(this.selectedSystems);
-        this.criteriaKeyword = this.keyword;
+        // this.criteriaRegions = this.formatCriteria(this.selectedRegion);
+        // this.criteriaSpaces = this.formatCriteria(this.selectedSpaces);
+        // this.criteriaSystems = this.formatCriteria(this.selectedSystems);
+        this.criteriaRegion = this.selectedRegion ? this.selectedRegion.label : undefined;
+        this.criteriaRole = this.selectedRole ? this.selectedRole.label : undefined;
+        this.criteriaLevel = this.selectedLevel ? this.selectedLevel.label : undefined;
+        this.criteriaKeyword = this.keyword ? this.keyword.label : undefined;
     }
 
     // 處理從 ApsViewerComponent 發送的節點屬性
