@@ -40,8 +40,8 @@
             </p-treeselect> -->
 
             <!-- 關鍵字查詢 -->
-            <p-autocomplete inputStyleClass="sm:min-w-64" [suggestions]="keywordItems" field="label" [(ngModel)]="keyword" (completeMethod)="keywordSearch($event)"
-                placeholder="請輸入關鍵字..." emptyMessage="無資料"/>
+            <p-autocomplete inputStyleClass="sm:min-w-64" [suggestions]="keywordItems" field="label" [(ngModel)]="keyword"
+                (completeMethod)="keywordSearch($event)" placeholder="請輸入關鍵字..." emptyMessage="無資料" />
             <!-- <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
                 placeholder="請輸入關鍵字..." [(ngModel)]="keyword" /> -->
 
@@ -87,8 +87,11 @@
                         (onLazyLoad)="onPageChange($event)" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
                         <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
                             <tr class="hover:bg-hover" [pSelectableRow]="item" [pSelectableRowIndex]="rowIndex">
-                                <td class="pl-8">
-                                    <p-tableCheckbox [value]="item" />
+                                <td class="">
+                                    <!-- <p-tableCheckbox [value]="item" /> -->
+                                    <button mat-icon-button matSuffix (click)="onFitToObject(item)">
+                                        <mat-icon [svgIcon]="'heroicons_outline:eye'"></mat-icon>
+                                    </button>
                                 </td>
                                 <td>{{ item.value }}<br />
                                     <span class="text-sm text-slate-400">Display: {{item.display_name}} ({{item.dbid}})</span><br />
@@ -215,8 +218,8 @@
             </div>
 
             <div class="flex-[1] min-w-0 bg-card rounded-md md:flex-[4]">
-                @if (selectedObjects?.length > 0){
-                <aps-viewer [data]="selectedObjects" (nodeProperties)="onProperties($event)"></aps-viewer>
+                @if (objects?.results.length > 0){
+                <aps-viewer [data]="objects?.results" [focusObject]="focusObject" (nodeProperties)="onProperties($event)"></aps-viewer>
                 }
                 @else {
                 <ng-container *ngTemplateOutlet="noDataTemplate context: { icon: 'heroicons_outline:photo', message: 'no-bim-model'}"></ng-container>

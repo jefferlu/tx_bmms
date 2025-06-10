@@ -40,6 +40,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     spaces: any;
     systems: any;
     objects: any = { count: 0, results: [] };
+    focusObject: any;
 
     request: any = {};
     selectedRegions: any = [];
@@ -53,7 +54,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     keyword: any;
     keywordItems: any[];
     suggestions: any[];
-    selectedObjects: any[] = [];
+    // selectedObjects: any[] = [];
 
     first: number = 0;
     rowsPerPage: number = 100;
@@ -136,10 +137,10 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     onClear(tag: string) {
-        this.request = {};
-        this.selectedObjects = [];
-        this.objects = { count: 0, results: [] };
-        this.nodeInfo = null;
+        // this.request = {};
+        // // this.selectedObjects = [];
+        // this.objects = { count: 0, results: [] };
+        // this.nodeInfo = null;
     }
 
     keywordSearch(event: any) {
@@ -161,16 +162,21 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     //     }
     // }
 
+    onFitToObject(item: any) {
+        console.log(item)
+        this.focusObject = { urn: item.urn, dbIds: [item.dbid] }
+    }
+
     onRowSelect(event: any): void {
-        this.selectedObjects = [...this.selectedObjects, event.data];
-        if (this.selectedObjects.length === 0) this.nodeInfo = null;
-        this._changeDetectorRef.markForCheck();
+        // this.selectedObjects = [...this.selectedObjects, event.data];
+        // if (this.selectedObjects.length === 0) this.nodeInfo = null;
+        // this._changeDetectorRef.markForCheck();
     }
 
     onRowUnselect(event: any): void {
-        this.selectedObjects = this.selectedObjects.filter(item => item.id !== event.data.id);
-        if (this.selectedObjects.length === 0) this.nodeInfo = null;
-        this._changeDetectorRef.markForCheck();
+        // this.selectedObjects = this.selectedObjects.filter(item => item.id !== event.data.id);
+        // if (this.selectedObjects.length === 0) this.nodeInfo = null;
+        // this._changeDetectorRef.markForCheck();
     }
 
     onPageChange(event: TableLazyLoadEvent): void {
@@ -192,8 +198,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.selectedObjects = [];
-        this.nodeInfo = null;
+        // this.selectedObjects = [];
+        // this.nodeInfo = null;
 
         this.loadPage(1)
     }
@@ -256,11 +262,11 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         if (this._cache.has(cacheKey)) {
 
             this.objects = this._cache.get(cacheKey);
-            this.selectedObjects = this.objects.results;
+            // this.selectedObjects = this.objects.results;
             this.updateCriteria();
 
             if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
-                this.selectedObjects = this.bimCriteria.objects;
+                // this.selectedObjects = this.bimCriteria.objects;
                 this.bimCriteria.isRead = true;
             }
             this._changeDetectorRef.markForCheck();
@@ -281,7 +287,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
                     if (res && res.count >= 0 && res.results) {
                         this.objects = { count: res.count, results: res.results };
-                        this.selectedObjects = res.results;
+                        // this.selectedObjects = res.results;
                         this._cache.set(cacheKey, this.objects);
                     } else {
                         this.objects = { count: 0, results: [] };
@@ -299,7 +305,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     // debugger;
 
                     if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
-                        this.selectedObjects = this.bimCriteria.objects;
+                        // this.selectedObjects = this.bimCriteria.objects;
                         this.bimCriteria.isRead = true;
                     }
                     this._changeDetectorRef.markForCheck();
@@ -316,7 +322,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         // 構建要儲存的 bim_criteria 資料
         const bimCriteria = {
             page: this.request.page || 1,
-            objects: this.selectedObjects,
+            // objects: this.selectedObjects,
             regions: this.selectedRegions.map(node => ({ key: node.key, label: node.label, data: node.data, parentLabel: node.parent?.label })),
             spaces: this.selectedSpaces.map(node => ({ key: node.key, label: node.label, bim_model: node.bim_model, display_name: node.display_name, parentLabel: node.parent?.label })),
             systems: this.selectedSystems.map(node => ({ key: node.key, label: node.label, bim_model: node.bim_model, display_name: node.display_name, parentLabel: node.parent?.label }))
@@ -335,7 +341,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     onReadCriteria() {
-        this.selectedObjects = [];
+        // this.selectedObjects = [];
         this.bimCriteria.isRead = false;
 
         this._processFunctionsService.getCriteria()

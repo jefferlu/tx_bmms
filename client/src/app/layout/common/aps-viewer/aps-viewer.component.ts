@@ -23,6 +23,7 @@ const MEDIA_URL = 'media/';
 })
 export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
     @Input() data: any;
+    @Input() focusObject: { urn: string, dbIds: number | number[] } | null = null;
 
     @ViewChild('viewer') viewerContainer: ElementRef;
 
@@ -83,7 +84,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     return acc;
                 }, {});
 
-                console.log('所有 dbIds 按 urn 分組:', this.allDbIdsByUrn);
+                // console.log('所有 dbIds 按 urn 分組:', this.allDbIdsByUrn);
 
                 const isDataChanged = !oldData || JSON.stringify(this.extractKeyData(newData)) !== JSON.stringify(this.extractKeyData(oldData));
 
@@ -96,6 +97,14 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                         }
                         this.debouncedLoadViewer();
                     }
+                }
+            }
+
+            // 處理 focusObject 變化
+            if (changes['focusObject'] && changes['focusObject'].currentValue) {
+                const focusObject = changes['focusObject'].currentValue;
+                if (focusObject && focusObject.urn && focusObject.dbIds) {
+                    this.fitToObject(focusObject);
                 }
             }
         }
@@ -368,7 +377,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
             if (targetModel) {
                 viewer.isolate(dbIds, targetModel);
-                console.log(`為模型 ${urn} 隔離 dbIds:`, dbIds);
+                // console.log(`為模型 ${urn} 隔離 dbIds:`, dbIds);
             } else {
                 console.warn(`未找到 URN 為 ${urn} 的模型`);
             }
@@ -432,6 +441,30 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         }
     }
 
+    private fitToObject(object: { urn: string, dbIds: number | number[] }): void {
+        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+        const dbIds = Array.isArray(object.dbIds) ? object.dbIds : [object.dbIds];
+        const targetModel = this.loadedModels.find((model: any) => model.getData().urn === object.urn);
+        const modelStructure = viewer.modelstructure;
+
+        // 展開物件樹
+        const tree = targetModel.getInstanceTree();
+        if (tree) {
+            dbIds.forEach((dbId: number) => {
+                if (dbId) {
+                    const nodePath = this.getNodePath(tree, dbId);
+                    if (nodePath) {
+                        this.expandNodePathInTree(tree, nodePath, modelStructure, targetModel);
+                    }
+                }
+            });
+        }
+
+        // 聚焦指定的 dbIds
+        viewer.fitToView(dbIds, targetModel);
+
+    }
+
     private fitToLastModel(data: any[]): void {
         const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
         if (data && data.length > 0) {
@@ -461,7 +494,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
                 if (targetModel) {
                     viewer.isolate(dbIds, targetModel);
-                    console.log(`為模型 ${urn} 隔離 dbIds:`, dbIds);
+                    // console.log(`為模型 ${urn} 隔離 dbIds:`, dbIds);
                 } else {
                     console.warn(`未找到 URN 為 ${urn} 的模型`);
                 }
@@ -493,7 +526,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             if (this.latestUrn && this.latestDbIds.length > 0) {
                 const targetModel = this.loadedModels.find((model: any) => model.getData().urn === this.latestUrn);
                 if (targetModel) {
-                    console.log(`聚焦模型 ${this.latestUrn}，dbIds: ${this.latestDbIds}`);
+                    // console.log(`聚焦模型 ${this.latestUrn}，dbIds: ${this.latestDbIds}`);
                     viewer.fitToView(this.latestDbIds, targetModel);
                 } else {
                     console.warn(`未找到 URN 為 ${this.latestUrn} 的模型進行聚焦`);
@@ -756,7 +789,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                                 Autodesk.Viewing.Document.load(documentId, (doc) => {
                                     const viewables = doc.getRoot().search({ type: 'geometry' });
                                     if (viewables.length > 0) {
-                                        console.log(`OSS viewable 節點載入成功: ${urn}`);
+                                        // console.log(`OSS viewable 節點載入成功: ${urn}`);
                                         resolve({ viewable: viewables[0], urn });
                                     } else {
                                         reject(new Error(`未找到 URN ${urn} 的 geometry 節點`));
@@ -781,20 +814,20 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             if (this.isLocalMode) {
                 const newModels = results.map(result => result.model);
                 this.loadedModels = [...this.loadedModels, ...newModels];
-                console.log('更新後的本地模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
+                // console.log('更新後的本地模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
                 this.loadedModels = this.viewer.getAllModels();
                 this.handleModelLoading(data);
             } else {
                 const newBubbleNodes = results.map(result => result.viewable);
                 const allBubbleNodes = [...this.loadedBubbleNodes, ...newBubbleNodes];
-                console.log('準備設置 OSS 節點:', allBubbleNodes.map(node => ({
-                    urn: node.data?.urn || node.urn,
-                    hasIs3D: typeof node.is3D === 'function'
-                })));
+                // console.log('準備設置 OSS 節點:', allBubbleNodes.map(node => ({
+                //     urn: node.data?.urn || node.urn,
+                //     hasIs3D: typeof node.is3D === 'function'
+                // })));
                 this.viewer.setNodes(allBubbleNodes).then(() => {
                     this.loadedBubbleNodes = allBubbleNodes;
                     this.loadedModels = this.viewer.viewer.getAllModels();
-                    console.log('更新後的 OSS 模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
+                    // console.log('更新後的 OSS 模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
                     this.handleModelLoading(data);
                 }).catch((err) => {
                     console.error('設置 OSS 模型失敗:', err);
@@ -961,7 +994,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         const checkAllModelsLoaded = () => {
             const allLoaded = this.loadedModels.every((model: any) => model.isLoadDone());
             if (allLoaded) {
-                console.log('所有模型已完全載入，模型數量:', this.loadedModels.length);
+                // console.log('所有模型已完全載入，模型數量:', this.loadedModels.length);
                 const modelStructure = viewer.modelstructure;
                 if (modelStructure) {
                     this.waitForObjectTrees(data);
