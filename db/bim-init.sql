@@ -3,9 +3,9 @@
 --
 
 -- Dumped from database version 17.5
--- Dumped by pg_dump version 17.5
+-- Dumped by pg_dump version 17.0
 
--- Started on 2025-06-08 13:11:39
+-- Started on 2025-06-10 16:46:02 CST
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -38,7 +38,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 
 
 --
--- TOC entry 3802 (class 0 OID 0)
+-- TOC entry 3803 (class 0 OID 0)
 -- Dependencies: 2
 -- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: 
 --
@@ -799,7 +799,8 @@ CREATE TABLE public.forge_bim_object (
     dbid integer NOT NULL,
     display_name character varying(255) NOT NULL,
     value character varying(255) NOT NULL,
-    bim_model_id bigint NOT NULL
+    bim_model_id bigint NOT NULL,
+    root_dbid integer
 );
 
 
@@ -1003,7 +1004,7 @@ ALTER TABLE public.token_blacklist_outstandingtoken ALTER COLUMN id ADD GENERATE
 
 
 --
--- TOC entry 3739 (class 0 OID 16472)
+-- TOC entry 3740 (class 0 OID 16472)
 -- Dependencies: 218
 -- Data for Name: account_user; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1011,12 +1012,12 @@ ALTER TABLE public.token_blacklist_outstandingtoken ALTER COLUMN id ADD GENERATE
 COPY public.account_user (id, password, last_login, is_superuser, first_name, last_name, is_staff, is_active, date_joined, email, username) FROM stdin;
 1	pbkdf2_sha256$870000$8EccJq8FBMzlgvC5WHzBdY$w2ie3AJZGFeWpHPPzqqzAOvpijDBFCeIbxrmRmX2EQs=	\N	f			f	t	2025-03-08 11:30:08.045544+00	user@example.com	使用者
 3	pbkdf2_sha256$870000$vgzxg5k4B4DvMltw2Ae0tW$OxbyTMc0EhcvPH0e4Xss634Knc2lpLiOaW8TfH0jB9Y=	2025-03-26 07:01:59.547044+00	t			t	t	2025-03-11 08:22:29.63179+00	zenithbim@example.com	ZenithBIM
-2	pbkdf2_sha256$1000000$8a7N8x7vaN7i2F4NI1W0ke$4KCkU52Ck2xw8NvVRjN4ksufFeDCkHG5pxOHfXeqlPc=	2025-06-07 16:19:27.460392+00	t			t	t	2025-02-15 07:23:36.214256+00	admin@example.com	管理員
+2	pbkdf2_sha256$870000$jDrgUtwoOmLmQrqFNWV9HG$/F9lDJpbA/U4lv2NPW2mBOziSYbrbj1pNKdgoD9lrHA=	2025-06-09 15:32:28.668754+00	t			t	t	2025-02-15 07:23:36.214256+00	admin@example.com	管理員
 \.
 
 
 --
--- TOC entry 3740 (class 0 OID 16477)
+-- TOC entry 3741 (class 0 OID 16477)
 -- Dependencies: 219
 -- Data for Name: account_user_groups; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1026,7 +1027,7 @@ COPY public.account_user_groups (id, user_id, group_id) FROM stdin;
 
 
 --
--- TOC entry 3743 (class 0 OID 16482)
+-- TOC entry 3744 (class 0 OID 16482)
 -- Dependencies: 222
 -- Data for Name: account_user_user_permissions; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1036,7 +1037,7 @@ COPY public.account_user_user_permissions (id, user_id, permission_id) FROM stdi
 
 
 --
--- TOC entry 3745 (class 0 OID 16486)
+-- TOC entry 3746 (class 0 OID 16486)
 -- Dependencies: 224
 -- Data for Name: admin_interface_theme; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1048,7 +1049,7 @@ COPY public.admin_interface_theme (id, name, active, title, title_visible, logo,
 
 
 --
--- TOC entry 3747 (class 0 OID 16494)
+-- TOC entry 3748 (class 0 OID 16494)
 -- Dependencies: 226
 -- Data for Name: auth_group; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1063,7 +1064,7 @@ COPY public.auth_group (id, name) FROM stdin;
 
 
 --
--- TOC entry 3749 (class 0 OID 16498)
+-- TOC entry 3750 (class 0 OID 16498)
 -- Dependencies: 228
 -- Data for Name: auth_group_permissions; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1073,7 +1074,7 @@ COPY public.auth_group_permissions (id, group_id, permission_id) FROM stdin;
 
 
 --
--- TOC entry 3751 (class 0 OID 16502)
+-- TOC entry 3752 (class 0 OID 16502)
 -- Dependencies: 230
 -- Data for Name: auth_permission; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1215,7 +1216,7 @@ COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
 
 
 --
--- TOC entry 3753 (class 0 OID 16506)
+-- TOC entry 3754 (class 0 OID 16506)
 -- Dependencies: 232
 -- Data for Name: core_aps_credentials; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1226,7 +1227,7 @@ COPY public.core_aps_credentials (id, client_id, client_secret, created_at, upda
 
 
 --
--- TOC entry 3755 (class 0 OID 16512)
+-- TOC entry 3756 (class 0 OID 16512)
 -- Dependencies: 234
 -- Data for Name: core_company; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1237,7 +1238,7 @@ COPY public.core_company (id, name) FROM stdin;
 
 
 --
--- TOC entry 3757 (class 0 OID 16516)
+-- TOC entry 3758 (class 0 OID 16516)
 -- Dependencies: 236
 -- Data for Name: core_locale; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1249,7 +1250,7 @@ COPY public.core_locale (id, lang, name, is_active) FROM stdin;
 
 
 --
--- TOC entry 3759 (class 0 OID 16520)
+-- TOC entry 3760 (class 0 OID 16520)
 -- Dependencies: 238
 -- Data for Name: core_log_user_activity; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -5751,11 +5752,180 @@ COPY public.core_log_user_activity (id, function, action, "timestamp", status, i
 4526	模型檢視	查詢	2025-06-07 16:01:34.253558+00	SUCCESS	127.0.0.1	2
 4527	模型匯入	匯入T3-TP16-XXX-XX-XXX-M3-XX-00001.nwd	2025-06-07 16:09:49.54151+00	SUCCESS	127.0.0.1	2
 4528	模型匯入	匯入T3-TP21A-XXX-XX-XXX-M3-XX-00001.nwd	2025-06-07 16:09:52.385137+00	SUCCESS	127.0.0.1	2
+4529	模型匯入	匯入T3-TP01-XXX-XX-XXX-M3-XX-00001.nwd	2025-06-08 06:35:32.601444+00	SUCCESS	127.0.0.1	2
+4530	模型匯入	匯入T3-TP25-XXX-XX-XXX-M3-XX-00001.nwd	2025-06-08 06:35:33.049109+00	SUCCESS	127.0.0.1	2
+4531	模型匯入	匯入T3-TP16-XXX-XX-XXX-M3-XX-00001.nwd	2025-06-08 06:36:19.49971+00	SUCCESS	127.0.0.1	2
+4532	模型匯入	匯入T3-TP25-XXX-XX-XXX-M3-XX-00001.nwd	2025-06-08 06:41:39.059039+00	SUCCESS	127.0.0.1	2
+4533	模型匯入	匯入T3-TP21A-XXX-XX-XXX-M3-XX-00001.nwd	2025-06-08 06:44:16.267812+00	SUCCESS	127.0.0.1	2
+4534	使用者登入	登入系統	2025-06-08 07:35:00.874114+00	SUCCESS	127.0.0.1	2
+4535	使用者登入	登入系統	2025-06-08 07:35:40.255039+00	SUCCESS	127.0.0.1	2
+4536	使用者登入	登入系統	2025-06-08 15:29:29.099062+00	SUCCESS	127.0.0.1	2
+4537	圖資檢索	查詢 categories: [{'bim_model': 74, 'value': '電氣設備', 'display_name': 'Name'}] ; 	2025-06-08 17:26:53.560467+00	SUCCESS	127.0.0.1	2
+4538	圖資檢索	查詢 categories: [{'bim_model': 74, 'value': '電氣設備', 'display_name': 'Name'}] ; 	2025-06-08 17:35:35.907299+00	SUCCESS	127.0.0.1	2
+4539	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-08 17:38:08.75015+00	SUCCESS	127.0.0.1	2
+4540	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; fuzzy_keyword: 電氣設備	2025-06-08 18:16:04.758469+00	SUCCESS	127.0.0.1	2
+4541	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-08 18:17:32.569169+00	SUCCESS	127.0.0.1	2
+4542	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; fuzzy_keyword: 123	2025-06-08 18:17:34.260713+00	SUCCESS	127.0.0.1	2
+4543	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-08 18:40:08.823596+00	SUCCESS	127.0.0.1	2
+4544	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; categories: [{'bim_model': 74, 'value': '電氣設備', 'display_name': 'Name'}] ; fuzzy_keyword: 電氣設備	2025-06-08 18:49:18.006627+00	SUCCESS	127.0.0.1	2
+4545	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-08 18:50:11.07547+00	SUCCESS	127.0.0.1	2
+4546	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; fuzzy_keyword: 電氣設備	2025-06-08 18:52:37.388432+00	SUCCESS	127.0.0.1	2
+4547	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; fuzzy_keyword: 電氣設備	2025-06-08 18:55:30.434324+00	SUCCESS	127.0.0.1	2
+4548	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-08 18:55:45.464212+00	SUCCESS	127.0.0.1	2
+4549	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-08 19:15:24.459142+00	SUCCESS	127.0.0.1	2
+4550	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; categories: [{'bim_model': 74, 'value': '電氣設備', 'display_name': 'Name'}] ; 	2025-06-08 19:16:22.458697+00	SUCCESS	127.0.0.1	2
+4551	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-08 19:32:20.253717+00	SUCCESS	127.0.0.1	2
+4552	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-08 19:33:43.177437+00	SUCCESS	127.0.0.1	2
+4553	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-08 19:34:11.497478+00	SUCCESS	127.0.0.1	2
+4554	模型檢視	查詢	2025-06-08 19:34:30.833049+00	SUCCESS	127.0.0.1	2
+4555	模型檢視	查詢	2025-06-08 19:39:02.069238+00	SUCCESS	127.0.0.1	2
+4556	模型檢視	查詢	2025-06-08 19:41:05.363005+00	SUCCESS	127.0.0.1	2
+4557	模型檢視	查詢	2025-06-08 19:42:48.518984+00	SUCCESS	127.0.0.1	2
+4558	模型檢視	查詢	2025-06-08 19:46:22.031825+00	SUCCESS	127.0.0.1	2
+4559	模型檢視	查詢	2025-06-08 19:46:25.104195+00	SUCCESS	127.0.0.1	2
+4560	模型檢視	查詢	2025-06-08 19:46:30.080303+00	SUCCESS	127.0.0.1	2
+4561	模型檢視	查詢	2025-06-08 19:59:18.928057+00	SUCCESS	127.0.0.1	2
+4562	使用者登入	登入系統	2025-06-09 06:11:11.556566+00	SUCCESS	127.0.0.1	2
+4563	使用者登入	登入系統	2025-06-09 06:23:09.560612+00	SUCCESS	127.0.0.1	2
+4564	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': 'B2'}] ; 	2025-06-09 06:25:17.666793+00	SUCCESS	127.0.0.1	2
+4565	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': 'B2'}] ; fuzzy_keyword: 管配件	2025-06-09 06:26:04.453255+00	SUCCESS	127.0.0.1	2
+4566	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; fuzzy_keyword: 管配件	2025-06-09 06:27:06.893105+00	SUCCESS	127.0.0.1	2
+4567	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-09 06:27:12.534732+00	SUCCESS	127.0.0.1	2
+4568	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ; 	2025-06-09 06:28:35.555538+00	SUCCESS	127.0.0.1	2
+4569	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ; 	2025-06-09 06:28:51.768823+00	SUCCESS	127.0.0.1	2
+4570	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ; fuzzy_keyword: 機械設備	2025-06-09 06:29:21.229414+00	SUCCESS	127.0.0.1	2
+4571	模型檢視	查詢	2025-06-09 06:37:03.177702+00	SUCCESS	127.0.0.1	2
+4572	模型檢視	查詢	2025-06-09 06:39:15.265127+00	SUCCESS	127.0.0.1	2
+4573	模型匯入	匯入T3-TP25-XXX-XX-XXX-M3-XX-00001.nwd	2025-06-09 06:40:03.162182+00	SUCCESS	127.0.0.1	2
+4574	圖資檢索	查詢 regions: [{'zone_id': 185, 'role_id': 24, 'level': None}] ; 	2025-06-09 06:47:08.77991+00	SUCCESS	127.0.0.1	2
+4575	圖資檢索	查詢 regions: [{'zone_id': 185, 'role_id': 24, 'level': None}] ; fuzzy_keyword: UUC	2025-06-09 06:48:26.386024+00	SUCCESS	127.0.0.1	2
+4576	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': 'B2'}] ; 	2025-06-09 06:52:12.313082+00	SUCCESS	127.0.0.1	2
+4577	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-09 06:56:41.377395+00	SUCCESS	127.0.0.1	2
+4578	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': None, 'level': None}] ; 	2025-06-09 07:11:04.454038+00	SUCCESS	127.0.0.1	2
+4579	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-09 07:12:06.622736+00	SUCCESS	127.0.0.1	2
+4580	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': 'B2'}] ; 	2025-06-09 07:12:10.888987+00	SUCCESS	127.0.0.1	2
+4581	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': 'B3'}] ; 	2025-06-09 07:12:23.706334+00	SUCCESS	127.0.0.1	2
+4582	使用者登入	登入系統	2025-06-09 07:46:21.073698+00	SUCCESS	127.0.0.1	2
+4583	使用者登入	登入系統	2025-06-09 07:46:47.37991+00	SUCCESS	127.0.0.1	2
+4584	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': None, 'level': None}] ; 	2025-06-09 07:47:18.88996+00	SUCCESS	127.0.0.1	2
+4585	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-09 07:47:24.97793+00	SUCCESS	127.0.0.1	2
+4586	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ; 	2025-06-09 07:49:38.113556+00	SUCCESS	127.0.0.1	2
+4587	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ; 	2025-06-09 08:04:41.928161+00	SUCCESS	127.0.0.1	2
+4588	模型檢視	查詢	2025-06-09 09:36:13.740101+00	SUCCESS	127.0.0.1	2
+4589	模型檢視	查詢	2025-06-09 09:36:14.022126+00	SUCCESS	127.0.0.1	2
+4590	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-09 09:40:18.366356+00	SUCCESS	127.0.0.1	2
+4591	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': None}] ; fuzzy_keyword: 電氣設備	2025-06-09 09:41:40.978013+00	SUCCESS	127.0.0.1	2
+4592	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ; fuzzy_keyword: 電氣設備	2025-06-09 09:47:10.359556+00	SUCCESS	127.0.0.1	2
+4593	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ; 	2025-06-09 10:23:40.13+00	SUCCESS	127.0.0.1	2
+4594	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 5, 'level': None}] ; 	2025-06-09 10:24:43.192992+00	SUCCESS	127.0.0.1	2
+4595	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 12, 'level': None}] ; 	2025-06-09 10:25:01.587788+00	SUCCESS	127.0.0.1	2
+4596	模型檢視	查詢	2025-06-09 12:35:43.15011+00	SUCCESS	127.0.0.1	2
+4597	模型檢視	查詢	2025-06-09 12:36:25.038861+00	SUCCESS	127.0.0.1	2
+4598	模型檢視	查詢	2025-06-09 12:39:16.354654+00	SUCCESS	127.0.0.1	2
+4599	模型檢視	查詢	2025-06-09 12:46:07.742722+00	SUCCESS	127.0.0.1	2
+4600	模型檢視	查詢	2025-06-09 12:46:29.866757+00	SUCCESS	127.0.0.1	2
+4601	模型檢視	查詢	2025-06-09 14:29:42.324319+00	SUCCESS	127.0.0.1	2
+4602	使用者登入	登入系統	2025-06-09 15:32:28.710439+00	SUCCESS	127.0.0.1	2
+4603	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-09 15:35:56.491854+00	SUCCESS	127.0.0.1	2
+4604	模型檢視	查詢	2025-06-09 15:37:27.184585+00	SUCCESS	127.0.0.1	2
+4605	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; categories: [{'bim_model': 74, 'value': '電氣設備', 'display_name': 'Name'}] ; fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 16:39:46.939846+00	SUCCESS	127.0.0.1	2
+4606	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; categories: [{'bim_model': 74, 'value': '電氣設備', 'display_name': 'Name'}] ; 	2025-06-09 16:40:04.320542+00	SUCCESS	127.0.0.1	2
+4607	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-09 16:40:16.783309+00	SUCCESS	127.0.0.1	2
+4608	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 16:40:27.167648+00	SUCCESS	127.0.0.1	2
+4609	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 16:41:24.477196+00	SUCCESS	127.0.0.1	2
+4610	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': 'B2'}] ; 	2025-06-09 16:45:34.107371+00	SUCCESS	127.0.0.1	2
+4611	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': 'B2'}] ; fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 16:45:46.864803+00	SUCCESS	127.0.0.1	2
+4612	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ; fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 16:48:06.53743+00	SUCCESS	127.0.0.1	2
+4613	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ; fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 16:53:27.742565+00	SUCCESS	127.0.0.1	2
+4614	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ; fuzzy_keyword: {'display_name': 'COBie.Component.Name', 'label': '不斷電系統設備', 'description': '不斷電系統設備 (COBie.Component.Name)'}	2025-06-09 16:54:52.670083+00	SUCCESS	127.0.0.1	2
+4615	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ; fuzzy_keyword: {'display_name': 'COBie.Component.Name', 'label': '不鏽鋼照光按鈕盒', 'description': '不鏽鋼照光按鈕盒 (COBie.Component.Name)'}	2025-06-09 16:55:10.607041+00	SUCCESS	127.0.0.1	2
+4616	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': None, 'level': None}] ; fuzzy_keyword: {'display_name': 'COBie.Component.Name', 'label': '不鏽鋼照光按鈕盒', 'description': '不鏽鋼照光按鈕盒 (COBie.Component.Name)'}	2025-06-09 16:55:56.540844+00	SUCCESS	127.0.0.1	2
+4617	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ; fuzzy_keyword: {'label': '123', 'display_name': None}	2025-06-09 16:56:12.629522+00	SUCCESS	127.0.0.1	2
+4618	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ; fuzzy_keyword: {'label': '@!wq', 'display_name': None}	2025-06-09 17:00:46.788855+00	SUCCESS	127.0.0.1	2
+4619	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': None, 'level': None}] ; fuzzy_keyword: {'label': '', 'display_name': None}	2025-06-09 17:12:06.539546+00	SUCCESS	127.0.0.1	2
+4620	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; 	2025-06-09 17:13:39.689502+00	SUCCESS	127.0.0.1	2
+4621	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ; fuzzy_keyword: {'label': '', 'display_name': None}	2025-06-09 17:15:58.683727+00	SUCCESS	127.0.0.1	2
+4622	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ;	2025-06-09 17:23:00.745316+00	SUCCESS	127.0.0.1	2
+4623	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ;	2025-06-09 17:23:09.47926+00	SUCCESS	127.0.0.1	2
+4624	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 17:23:50.269223+00	SUCCESS	127.0.0.1	2
+4625	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 17:23:54.750542+00	SUCCESS	127.0.0.1	2
+4626	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': None, 'level': None}] ;	2025-06-09 17:24:17.876827+00	SUCCESS	127.0.0.1	2
+4627	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ;	2025-06-09 17:24:51.388225+00	SUCCESS	127.0.0.1	2
+4628	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': None}] ;	2025-06-09 17:25:20.032462+00	SUCCESS	127.0.0.1	2
+4629	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-09 17:25:47.133044+00	SUCCESS	127.0.0.1	2
+4630	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;fuzzy_keyword: {'label': '天花板', 'display_name': None}	2025-06-09 17:26:06.869443+00	SUCCESS	127.0.0.1	2
+4631	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ;	2025-06-09 17:50:21.977224+00	SUCCESS	127.0.0.1	2
+4632	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ;categories: [{'bim_model': 74, 'value': '電氣設備', 'display_name': 'Name'}] ;	2025-06-09 17:50:31.655004+00	SUCCESS	127.0.0.1	2
+4633	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 17:50:43.383336+00	SUCCESS	127.0.0.1	2
+4634	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 18:03:30.759304+00	SUCCESS	127.0.0.1	2
+4635	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': 'B2'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 18:08:08.72255+00	SUCCESS	127.0.0.1	2
+4636	圖資檢索	查詢 regions: [{'zone_id': 130, 'role_id': 10, 'level': 'B2'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 18:08:51.999087+00	SUCCESS	127.0.0.1	2
+4637	模型匯入	匯入T3-TP16-XXX-XX-XXX-M3-XX-00001.nwd	2025-06-09 18:34:51.760962+00	SUCCESS	127.0.0.1	2
+4638	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-09 18:49:26.859593+00	SUCCESS	127.0.0.1	2
+4639	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': None}] ;	2025-06-09 18:50:20.502184+00	SUCCESS	127.0.0.1	2
+4640	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-09 18:55:31.801922+00	SUCCESS	127.0.0.1	2
+4641	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;fuzzy_keyword: {'label': '天花板', 'display_name': None}	2025-06-09 18:56:04.206398+00	SUCCESS	127.0.0.1	2
+4642	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;fuzzy_keyword: {'display_name': 'COBie.Component.Name', 'label': '不斷電系統設備', 'description': '不斷電系統設備 (COBie.Component.Name)'}	2025-06-09 18:57:54.84637+00	SUCCESS	127.0.0.1	2
+4643	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;fuzzy_keyword: {'label': '天花版', 'display_name': None}	2025-06-09 19:01:35.277367+00	SUCCESS	127.0.0.1	2
+4644	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '天花版', 'display_name': None}	2025-06-09 19:01:55.664662+00	SUCCESS	127.0.0.1	2
+4645	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.Name', 'label': '不斷電系統設備', 'description': '不斷電系統設備 (COBie.Component.Name)'}	2025-06-09 19:02:09.915974+00	SUCCESS	127.0.0.1	2
+4646	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.Name', 'label': '不斷電系統設備', 'description': '不斷電系統設備 (COBie.Component.Name)'}	2025-06-09 19:03:02.072178+00	SUCCESS	127.0.0.1	2
+4647	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.Name', 'label': '不斷電系統設備', 'description': '不斷電系統設備 (COBie.Component.Name)'}	2025-06-09 19:03:06.873215+00	SUCCESS	127.0.0.1	2
+4648	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 12, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.Name', 'label': '不斷電系統設備', 'description': '不斷電系統設備 (COBie.Component.Name)'}	2025-06-09 19:03:10.317433+00	SUCCESS	127.0.0.1	2
+4649	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 16, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.Name', 'label': '不斷電系統設備', 'description': '不斷電系統設備 (COBie.Component.Name)'}	2025-06-09 19:03:13.66432+00	SUCCESS	127.0.0.1	2
+4650	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 24, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.Name', 'label': '不斷電系統設備', 'description': '不斷電系統設備 (COBie.Component.Name)'}	2025-06-09 19:03:16.48014+00	SUCCESS	127.0.0.1	2
+4651	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;	2025-06-09 19:05:47.087596+00	SUCCESS	127.0.0.1	2
+4652	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;	2025-06-09 19:17:25.4409+00	SUCCESS	127.0.0.1	2
+4653	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-09 19:29:03.377774+00	SUCCESS	127.0.0.1	2
+4654	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 19:29:54.537255+00	SUCCESS	127.0.0.1	2
+4655	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 19:30:01.419032+00	SUCCESS	127.0.0.1	2
+4656	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;	2025-06-09 19:30:24.35766+00	SUCCESS	127.0.0.1	2
+4657	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;	2025-06-09 19:32:39.312757+00	SUCCESS	127.0.0.1	2
+4658	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': None}] ;	2025-06-09 19:37:58.76366+00	SUCCESS	127.0.0.1	2
+4659	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-09 19:38:12.920794+00	SUCCESS	127.0.0.1	2
+4660	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 5, 'level': None}] ;	2025-06-09 19:40:22.267578+00	SUCCESS	127.0.0.1	2
+4661	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 19:40:43.782209+00	SUCCESS	127.0.0.1	2
+4662	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 19:41:32.785737+00	SUCCESS	127.0.0.1	2
+4663	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 19:57:41.149549+00	SUCCESS	127.0.0.1	2
+4664	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 20:03:49.560669+00	SUCCESS	127.0.0.1	2
+4665	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 20:04:10.310001+00	SUCCESS	127.0.0.1	2
+4666	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-09 20:04:33.692531+00	SUCCESS	127.0.0.1	2
+4667	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-10 06:32:32.889167+00	SUCCESS	127.0.0.1	2
+4668	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-10 06:32:33.334107+00	SUCCESS	127.0.0.1	2
+4669	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-10 06:32:39.304273+00	SUCCESS	127.0.0.1	2
+4670	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-10 06:47:26.307292+00	SUCCESS	127.0.0.1	2
+4671	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-10 06:49:52.976301+00	SUCCESS	127.0.0.1	2
+4672	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;	2025-06-10 06:53:13.005472+00	SUCCESS	127.0.0.1	2
+4673	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-10 06:54:09.860211+00	SUCCESS	127.0.0.1	2
+4674	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': None}] ;	2025-06-10 07:01:06.829533+00	SUCCESS	127.0.0.1	2
+4675	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-10 07:01:21.471256+00	SUCCESS	127.0.0.1	2
+4676	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ;	2025-06-10 07:01:39.163447+00	SUCCESS	127.0.0.1	2
+4677	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': 'B1'}] ;	2025-06-10 07:06:06.400332+00	SUCCESS	127.0.0.1	2
+4678	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-10 07:08:35.753487+00	SUCCESS	127.0.0.1	2
+4679	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ;	2025-06-10 07:08:48.486618+00	SUCCESS	127.0.0.1	2
+4680	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-10 07:12:29.411802+00	SUCCESS	127.0.0.1	2
+4681	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-10 07:25:33.656254+00	SUCCESS	127.0.0.1	2
+4682	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ;	2025-06-10 07:25:51.104575+00	SUCCESS	127.0.0.1	2
+4683	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': 'RF'}] ;	2025-06-10 07:34:57.810387+00	SUCCESS	127.0.0.1	2
+4684	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-10 07:35:12.711319+00	SUCCESS	127.0.0.1	2
+4685	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-10 07:54:39.471555+00	SUCCESS	127.0.0.1	2
+4686	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ;	2025-06-10 07:57:54.916616+00	SUCCESS	127.0.0.1	2
+4687	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-10 08:00:15.500381+00	SUCCESS	127.0.0.1	2
+4688	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ;	2025-06-10 08:06:11.591479+00	SUCCESS	127.0.0.1	2
+4689	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '1F'}] ;	2025-06-10 08:06:30.282055+00	SUCCESS	127.0.0.1	2
+4690	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;	2025-06-10 08:15:30.109924+00	SUCCESS	127.0.0.1	2
+4691	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-10 08:17:07.101035+00	SUCCESS	127.0.0.1	2
+4692	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-10 08:19:16.84231+00	SUCCESS	127.0.0.1	2
+4693	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': '1F'}] ;fuzzy_keyword: {'display_name': 'COBie.Component.Space', 'label': '所內電氣室', 'description': '所內電氣室 (COBie.Component.Space)'}	2025-06-10 08:23:25.300683+00	SUCCESS	127.0.0.1	2
+4694	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': '1F'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-10 08:23:48.157948+00	SUCCESS	127.0.0.1	2
+4695	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-10 08:24:25.301246+00	SUCCESS	127.0.0.1	2
+4696	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-10 08:29:33.299664+00	SUCCESS	127.0.0.1	2
+4697	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-10 08:35:31.36549+00	SUCCESS	127.0.0.1	2
 \.
 
 
 --
--- TOC entry 3761 (class 0 OID 16526)
+-- TOC entry 3762 (class 0 OID 16526)
 -- Dependencies: 240
 -- Data for Name: core_navigation; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -5778,7 +5948,7 @@ COPY public.core_navigation (id, title_locale, subtitle_locale, type, icon, link
 
 
 --
--- TOC entry 3763 (class 0 OID 16536)
+-- TOC entry 3764 (class 0 OID 16536)
 -- Dependencies: 242
 -- Data for Name: core_navigation_permissions; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -5788,7 +5958,7 @@ COPY public.core_navigation_permissions (id, navigation_id, permission_id) FROM 
 
 
 --
--- TOC entry 3765 (class 0 OID 16540)
+-- TOC entry 3766 (class 0 OID 16540)
 -- Dependencies: 244
 -- Data for Name: core_translation; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6092,7 +6262,7 @@ COPY public.core_translation (id, key, value, locale_id) FROM stdin;
 
 
 --
--- TOC entry 3767 (class 0 OID 16546)
+-- TOC entry 3768 (class 0 OID 16546)
 -- Dependencies: 246
 -- Data for Name: core_userprofile; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6105,7 +6275,7 @@ COPY public.core_userprofile (id, company_id, user_id, bim_criteria) FROM stdin;
 
 
 --
--- TOC entry 3769 (class 0 OID 16552)
+-- TOC entry 3770 (class 0 OID 16552)
 -- Dependencies: 248
 -- Data for Name: django_admin_log; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6390,11 +6560,16 @@ COPY public.django_admin_log (id, action_time, object_id, object_repr, action_fl
 277	2025-06-06 09:54:01.103114+00	41	YE - 環境工程	2	[{"changed": {"fields": ["Description"]}}]	31	2
 278	2025-06-06 09:54:23.14229+00	40	YA - 電聲工程	2	[{"changed": {"fields": ["Description"]}}]	31	2
 279	2025-06-06 09:54:44.963871+00	38	WW - 承包	2	[{"changed": {"fields": ["Description"]}}]	31	2
+280	2025-06-08 10:01:38.93104+00	106	XXX - 全區域	3		22	2
+281	2025-06-08 10:02:06.008348+00	44	XX - 非特定專業	3		31	2
+282	2025-06-08 12:37:35.914732+00	2	AL - 景觀	2	[{"changed": {"fields": ["Description"]}}]	31	2
+283	2025-06-08 12:37:48.523718+00	6	CB - 橋梁	2	[{"changed": {"fields": ["Description"]}}]	31	2
+284	2025-06-08 16:01:03.612279+00	1	AR - 建築空間	2	[{"changed": {"fields": ["Description"]}}]	31	2
 \.
 
 
 --
--- TOC entry 3771 (class 0 OID 16559)
+-- TOC entry 3772 (class 0 OID 16559)
 -- Dependencies: 250
 -- Data for Name: django_content_type; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6435,7 +6610,7 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 
 
 --
--- TOC entry 3773 (class 0 OID 16563)
+-- TOC entry 3774 (class 0 OID 16563)
 -- Dependencies: 252
 -- Data for Name: django_migrations; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6543,11 +6718,13 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 100	forge	0036_bimregion_role	2025-06-06 10:05:53.592975+00
 101	forge	0037_alter_bimregion_unique_together	2025-06-06 10:12:54.817815+00
 102	forge	0038_alter_bimregion_zone	2025-06-06 10:35:11.304872+00
+103	forge	0039_alter_bimregion_role_alter_bimregion_zone	2025-06-08 10:00:47.26481+00
+104	forge	0040_bimobject_root_dbid_and_more	2025-06-09 18:26:42.780528+00
 \.
 
 
 --
--- TOC entry 3775 (class 0 OID 16569)
+-- TOC entry 3776 (class 0 OID 16569)
 -- Dependencies: 254
 -- Data for Name: django_session; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6567,13 +6744,11 @@ dna547ktnsiisw5sjohvv91two5ro79g	.eJxVjDsOwjAQBe_iGln-21DS5wzWrneDA8iR4qRC3B0ipY
 i2hkt3yawe8b5es7lu5yfvy7sptnm726	.eJxVjEEOwiAQRe_C2pBQysC4dO8ZyMCMUjWQlHbVeHdt0oVu_3vvbyrSupS4dpnjxOqsBnX63RLlp9Qd8IPqvenc6jJPSe-KPmjX18byuhzu30GhXr41hgSOBMGQMQFGk8B64hERQLITCMmhHRyjz5icJRkdoWdgQMJ8U-8Pyrc3pQ:1uH1gy:NqixKNVni2sySzSBy5z_9Yp3KHwEaKlK-3HP8e4NH1U	2025-06-02 14:42:12.729919+00
 7g21g4hqa9etiwvwahtq8ii77gv8dj7f	.eJxVjEEOwiAQRe_C2pBQysC4dO8ZyMCMUjWQlHbVeHdt0oVu_3vvbyrSupS4dpnjxOqsBnX63RLlp9Qd8IPqvenc6jJPSe-KPmjX18byuhzu30GhXr41hgSOBMGQMQFGk8B64hERQLITCMmhHRyjz5icJRkdoWdgQMJ8U-8Pyrc3pQ:1uJyUu:9kdHePBaiNemYONZI1EkutATgHwff2X7TJVnmrplXTY	2025-06-10 17:53:56.286267+00
 h1wjs4kpg6skwxcv275p339kp1hl5gm2	e30:1uNT6E:bvvpK6Sa9zhLVQEkac94x4Kj5M0ZXkZ0ZBWwhijx-8k	2025-06-20 09:10:54.327617+00
-odzji0uvjuzl8hlj2xyq1ztm21s8l9eh	.eJxVjEEOgjAQRe_StWmmQymMS_ecgUw7raCmTSisjHcXEha6_e-9_1Yjb-s0bjUu4yzqqlBdfjfP4RnzAeTB-V50KHldZq8PRZ-06qFIfN1O9-9g4jrttY2dEDaAgI7JOCRMvbRsgSkYjr6DKGRSa4PDPoHrxdIOAQWk8a36fAHEiDc0:1uNT6F:kKWu-fu4Z2igxPrt805jZ9CxqIxfTcmdpCUIpSNnmuE	2025-06-20 09:10:55.91796+00
-ezworcuis1dwaamits0dgo3ro1hud7gp	.eJxVjEEOwiAQRe_C2hBmWii4dO8ZCDCMVA0kpV0Z765NutDtf-_9l_BhW4vfel78TOIsUJx-txjSI9cd0D3UW5Op1XWZo9wVedAur43y83K4fwcl9PKtNVNKHJTG0aqQwDFgNpG0MzAoA5SnwViFESFrg04PhkZrIzNMmsGJ9wfgVjdI:1uNwGV:ToryOVa1W1OkXqcqU5Hg58LfsJBQf6j4fYy9osfPOlw	2025-06-21 16:19:27.485522+00
 \.
 
 
 --
--- TOC entry 3776 (class 0 OID 16574)
+-- TOC entry 3777 (class 0 OID 16574)
 -- Dependencies: 255
 -- Data for Name: forge_bim_category; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6583,7 +6758,7 @@ COPY public.forge_bim_category (id, value, display_name, condition_id, bim_model
 
 
 --
--- TOC entry 3778 (class 0 OID 16580)
+-- TOC entry 3779 (class 0 OID 16580)
 -- Dependencies: 257
 -- Data for Name: forge_bim_condition; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6622,7 +6797,7 @@ COPY public.forge_bim_condition (id, name, display_name, value, description, is_
 
 
 --
--- TOC entry 3780 (class 0 OID 16590)
+-- TOC entry 3781 (class 0 OID 16590)
 -- Dependencies: 259
 -- Data for Name: forge_bim_model; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6632,17 +6807,17 @@ COPY public.forge_bim_model (id, name, urn, version, updated_at, created_at, las
 
 
 --
--- TOC entry 3782 (class 0 OID 16596)
+-- TOC entry 3783 (class 0 OID 16596)
 -- Dependencies: 261
 -- Data for Name: forge_bim_object; Type: TABLE DATA; Schema: public; Owner: bmms
 --
 
-COPY public.forge_bim_object (id, dbid, display_name, value, bim_model_id) FROM stdin;
+COPY public.forge_bim_object (id, dbid, display_name, value, bim_model_id, root_dbid) FROM stdin;
 \.
 
 
 --
--- TOC entry 3783 (class 0 OID 16601)
+-- TOC entry 3784 (class 0 OID 16601)
 -- Dependencies: 262
 -- Data for Name: forge_bim_object_hierarchy; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6652,7 +6827,7 @@ COPY public.forge_bim_object_hierarchy (id, entity_id, parent_id, bim_model_id) 
 
 
 --
--- TOC entry 3786 (class 0 OID 16606)
+-- TOC entry 3787 (class 0 OID 16606)
 -- Dependencies: 265
 -- Data for Name: forge_bim_region; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6662,25 +6837,17 @@ COPY public.forge_bim_region (id, level, value, dbid, bim_model_id, zone_id, rol
 
 
 --
--- TOC entry 3788 (class 0 OID 16610)
+-- TOC entry 3789 (class 0 OID 16610)
 -- Dependencies: 267
 -- Data for Name: forge_role_code; Type: TABLE DATA; Schema: public; Owner: bmms
 --
 
 COPY public.forge_role_code (id, code, description) FROM stdin;
-1	AR	建築
-2	AL	景觀設計
 3	BS	建築測量
 4	BM	BIM 管理
-5	CE	土木工程
-6	CB	橋梁工程
-7	CR	道路/公路工程
 8	CS	預算估算
-9	CW	水利/水壩工程
 10	DP	排水、污水管線、排水溝
 11	EC	控制系統
-13	EF	消防保全系統
-14	EL	照明系統
 15	EM	環控動力
 17	OS	輸油管線
 18	PH	公共安全
@@ -6702,21 +6869,28 @@ COPY public.forge_role_code (id, code, description) FROM stdin;
 37	KT	客戶/業主
 39	XS	分包
 43	YS	專業設計
-44	XX	非特定專業
-12	EE	電機工程
-30	ET	電信工程
-16	ME	機械工程
-28	TE	電信工程
-24	SE	結構工程
-42	YF	消防工程
-41	YE	環境工程
-40	YA	電聲工程
 38	WW	承包
+2	AL	景觀
+6	CB	橋梁
+5	CE	土木
+7	CR	道路/公路
+9	CW	水利/水壩
+12	EE	電機
+13	EF	消防保全
+14	EL	照明
+16	ME	機械
+24	SE	結構
+28	TE	電信
+30	ET	電信
+40	YA	電聲
+41	YE	環境
+42	YF	消防
+1	AR	建築空間
 \.
 
 
 --
--- TOC entry 3790 (class 0 OID 16614)
+-- TOC entry 3791 (class 0 OID 16614)
 -- Dependencies: 269
 -- Data for Name: forge_zone_code; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6827,12 +7001,11 @@ COPY public.forge_zone_code (id, code, description) FROM stdin;
 209	SR2	勤務道路
 210	SR3	勤務道路
 211	SR4	勤務道路
-106	XXX	全區域
 \.
 
 
 --
--- TOC entry 3792 (class 0 OID 16618)
+-- TOC entry 3793 (class 0 OID 16618)
 -- Dependencies: 271
 -- Data for Name: token_blacklist_blacklistedtoken; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -10304,11 +10477,369 @@ COPY public.token_blacklist_blacklistedtoken (id, blacklisted_at, token_id) FROM
 3470	2025-06-07 15:46:23.105522+00	3504
 3471	2025-06-07 16:19:12.112697+00	3505
 3472	2025-06-08 05:06:31.183581+00	3506
+3473	2025-06-08 06:32:07.031974+00	3507
+3474	2025-06-08 06:34:17.87271+00	3508
+3475	2025-06-08 06:37:27.503314+00	3509
+3476	2025-06-08 06:37:51.417789+00	3510
+3477	2025-06-08 06:55:00.635879+00	3511
+3478	2025-06-08 07:15:00.577457+00	3512
+3479	2025-06-08 07:50:32.893067+00	3515
+3480	2025-06-08 08:38:55.840469+00	3516
+3481	2025-06-08 08:39:47.829006+00	3517
+3482	2025-06-08 08:40:32.567684+00	3518
+3483	2025-06-08 08:41:06.494334+00	3519
+3484	2025-06-08 08:42:41.85738+00	3520
+3485	2025-06-08 08:50:33.631233+00	3521
+3486	2025-06-08 09:06:31.963392+00	3522
+3487	2025-06-08 09:06:57.540024+00	3523
+3488	2025-06-08 09:08:01.095506+00	3524
+3489	2025-06-08 09:08:32.883054+00	3525
+3490	2025-06-08 09:16:04.348196+00	3526
+3491	2025-06-08 09:17:24.277738+00	3527
+3492	2025-06-08 09:17:57.144459+00	3528
+3493	2025-06-08 09:18:26.271469+00	3529
+3494	2025-06-08 09:26:09.710888+00	3530
+3495	2025-06-08 09:26:43.425242+00	3531
+3496	2025-06-08 09:27:19.268643+00	3532
+3497	2025-06-08 10:02:38.060743+00	3533
+3498	2025-06-08 10:40:01.507237+00	3534
+3499	2025-06-08 10:51:21.194015+00	3535
+3500	2025-06-08 10:51:44.44898+00	3536
+3501	2025-06-08 10:53:56.128305+00	3537
+3502	2025-06-08 10:54:08.875775+00	3538
+3503	2025-06-08 10:55:47.083571+00	3539
+3504	2025-06-08 10:56:35.099832+00	3540
+3505	2025-06-08 10:56:51.818501+00	3541
+3506	2025-06-08 10:57:36.736559+00	3542
+3507	2025-06-08 11:01:56.294418+00	3543
+3508	2025-06-08 11:02:18.104548+00	3544
+3509	2025-06-08 11:02:59.786932+00	3545
+3510	2025-06-08 11:04:51.116767+00	3546
+3511	2025-06-08 11:05:03.848108+00	3547
+3512	2025-06-08 11:05:23.854875+00	3548
+3513	2025-06-08 11:05:39.006483+00	3549
+3514	2025-06-08 11:06:08.500111+00	3550
+3515	2025-06-08 11:11:49.800264+00	3551
+3516	2025-06-08 11:12:27.617799+00	3552
+3517	2025-06-08 11:13:07.300174+00	3553
+3518	2025-06-08 11:13:20.15126+00	3554
+3519	2025-06-08 11:13:29.704243+00	3555
+3520	2025-06-08 11:13:47.318849+00	3556
+3521	2025-06-08 11:14:06.712098+00	3557
+3522	2025-06-08 11:14:18.571207+00	3558
+3523	2025-06-08 11:15:07.791032+00	3559
+3524	2025-06-08 11:15:51.788677+00	3560
+3525	2025-06-08 11:15:55.355814+00	3561
+3526	2025-06-08 11:16:33.755567+00	3562
+3527	2025-06-08 11:17:11.743836+00	3563
+3528	2025-06-08 11:17:31.848851+00	3564
+3529	2025-06-08 11:17:36.087368+00	3565
+3530	2025-06-08 11:17:45.109951+00	3566
+3531	2025-06-08 11:18:03.555199+00	3567
+3532	2025-06-08 11:20:59.828304+00	3568
+3533	2025-06-08 11:21:11.669829+00	3569
+3534	2025-06-08 11:21:18.370643+00	3570
+3535	2025-06-08 11:21:55.823871+00	3571
+3536	2025-06-08 11:22:35.76077+00	3572
+3537	2025-06-08 11:22:49.965715+00	3573
+3538	2025-06-08 11:23:09.023326+00	3574
+3539	2025-06-08 11:23:12.973959+00	3575
+3540	2025-06-08 11:23:24.131929+00	3576
+3541	2025-06-08 11:23:30.890969+00	3577
+3542	2025-06-08 11:23:45.545399+00	3578
+3543	2025-06-08 11:26:56.372071+00	3579
+3544	2025-06-08 11:27:00.966297+00	3580
+3545	2025-06-08 11:27:15.956836+00	3581
+3546	2025-06-08 11:27:53.509605+00	3582
+3547	2025-06-08 11:27:57.073757+00	3583
+3548	2025-06-08 11:28:15.843149+00	3584
+3549	2025-06-08 11:28:24.78932+00	3585
+3550	2025-06-08 11:38:44.369092+00	3586
+3551	2025-06-08 12:26:51.252554+00	3587
+3552	2025-06-08 12:27:34.866084+00	3588
+3553	2025-06-08 12:28:04.484266+00	3589
+3554	2025-06-08 12:28:22.476897+00	3590
+3555	2025-06-08 12:29:14.183593+00	3591
+3556	2025-06-08 12:30:06.497282+00	3592
+3557	2025-06-08 12:31:09.473839+00	3593
+3558	2025-06-08 12:31:39.547987+00	3594
+3559	2025-06-08 12:31:49.42835+00	3595
+3560	2025-06-08 12:31:56.494236+00	3596
+3561	2025-06-08 12:34:27.28738+00	3597
+3562	2025-06-08 12:34:46.098536+00	3598
+3563	2025-06-08 12:35:00.261224+00	3599
+3564	2025-06-08 12:35:24.591442+00	3600
+3565	2025-06-08 12:36:21.798344+00	3601
+3566	2025-06-08 12:40:03.603833+00	3602
+3567	2025-06-08 12:40:54.559134+00	3603
+3568	2025-06-08 12:41:22.217179+00	3604
+3569	2025-06-08 12:41:36.284338+00	3605
+3570	2025-06-08 12:42:50.897518+00	3606
+3571	2025-06-08 12:42:56.848598+00	3607
+3572	2025-06-08 12:43:03.124262+00	3608
+3573	2025-06-08 12:43:09.435627+00	3609
+3574	2025-06-08 12:43:24.429211+00	3610
+3575	2025-06-08 12:43:41.410631+00	3611
+3576	2025-06-08 12:44:06.430715+00	3612
+3577	2025-06-08 12:44:13.777059+00	3613
+3578	2025-06-08 14:52:58.110147+00	3614
+3579	2025-06-08 14:54:44.843873+00	3615
+3580	2025-06-08 14:56:48.442273+00	3616
+3581	2025-06-08 14:57:09.027888+00	3617
+3582	2025-06-08 14:57:52.021811+00	3618
+3583	2025-06-08 14:59:51.466008+00	3619
+3584	2025-06-08 15:02:56.098162+00	3620
+3585	2025-06-08 15:19:15.255145+00	3621
+3586	2025-06-08 15:24:03.499304+00	3622
+3587	2025-06-08 15:32:06.116321+00	3624
+3588	2025-06-08 15:36:45.899325+00	3625
+3589	2025-06-08 15:37:09.071957+00	3626
+3590	2025-06-08 15:37:56.921204+00	3627
+3591	2025-06-08 15:39:55.422986+00	3628
+3592	2025-06-08 15:40:21.118673+00	3629
+3593	2025-06-08 15:52:09.712259+00	3630
+3594	2025-06-08 15:53:02.362398+00	3631
+3595	2025-06-08 15:53:31.94979+00	3632
+3596	2025-06-08 15:54:45.240257+00	3633
+3597	2025-06-08 15:55:00.389003+00	3634
+3598	2025-06-08 15:55:45.61483+00	3635
+3599	2025-06-08 15:56:28.501065+00	3636
+3600	2025-06-08 15:57:08.706228+00	3637
+3601	2025-06-08 15:57:29.931733+00	3638
+3602	2025-06-08 15:59:11.59157+00	3639
+3603	2025-06-08 16:01:10.869512+00	3640
+3604	2025-06-08 16:03:02.123677+00	3641
+3605	2025-06-08 16:03:14.461732+00	3642
+3606	2025-06-08 16:03:45.321176+00	3643
+3607	2025-06-08 16:04:04.647315+00	3644
+3608	2025-06-08 16:05:07.408969+00	3645
+3609	2025-06-08 16:05:39.991477+00	3646
+3610	2025-06-08 16:07:31.274586+00	3647
+3611	2025-06-08 16:07:33.613524+00	3648
+3612	2025-06-08 16:11:47.631158+00	3649
+3613	2025-06-08 16:13:38.70075+00	3650
+3614	2025-06-08 16:13:49.089409+00	3651
+3615	2025-06-08 16:14:18.195167+00	3652
+3616	2025-06-08 16:15:27.261858+00	3653
+3617	2025-06-08 16:16:08.44243+00	3654
+3618	2025-06-08 16:16:15.344067+00	3655
+3619	2025-06-08 16:16:19.788211+00	3656
+3620	2025-06-08 16:17:06.237637+00	3657
+3621	2025-06-08 16:25:11.766208+00	3658
+3622	2025-06-08 16:25:56.565221+00	3659
+3623	2025-06-08 16:26:46.3132+00	3660
+3624	2025-06-08 16:27:46.79445+00	3661
+3625	2025-06-08 16:27:52.643533+00	3662
+3626	2025-06-08 16:28:20.193145+00	3663
+3627	2025-06-08 16:38:57.071933+00	3664
+3628	2025-06-08 16:51:05.542732+00	3665
+3629	2025-06-08 19:33:35.567689+00	3666
+3630	2025-06-08 19:39:01.628674+00	3667
+3631	2025-06-08 19:41:04.915019+00	3668
+3632	2025-06-08 19:42:48.026014+00	3669
+3633	2025-06-08 19:46:21.539871+00	3670
+3634	2025-06-08 19:46:24.733529+00	3671
+3635	2025-06-08 19:46:29.718522+00	3672
+3636	2025-06-08 19:59:18.373409+00	3673
+3637	2025-06-09 06:24:08.412543+00	3674
+3638	2025-06-09 06:24:48.408817+00	3676
+3639	2025-06-09 06:25:11.67526+00	3677
+3640	2025-06-09 06:38:57.938729+00	3678
+3641	2025-06-09 06:39:39.937503+00	3679
+3642	2025-06-09 06:40:19.581817+00	3680
+3643	2025-06-09 06:52:01.012046+00	3681
+3644	2025-06-09 06:56:32.230051+00	3682
+3645	2025-06-09 06:57:52.168462+00	3683
+3646	2025-06-09 07:11:57.855034+00	3684
+3647	2025-06-09 07:45:38.433111+00	3685
+3648	2025-06-09 08:04:16.375887+00	3688
+3649	2025-06-09 08:17:23.090696+00	3689
+3650	2025-06-09 08:27:52.065463+00	3690
+3651	2025-06-09 08:28:30.05256+00	3691
+3652	2025-06-09 08:29:39.085605+00	3692
+3653	2025-06-09 08:30:35.850386+00	3693
+3654	2025-06-09 08:31:33.40813+00	3694
+3655	2025-06-09 08:32:10.76313+00	3695
+3656	2025-06-09 08:32:43.001459+00	3696
+3657	2025-06-09 08:33:09.456473+00	3697
+3658	2025-06-09 08:34:33.471802+00	3698
+3659	2025-06-09 08:36:58.03144+00	3699
+3660	2025-06-09 08:38:10.067959+00	3700
+3661	2025-06-09 08:39:01.035572+00	3701
+3662	2025-06-09 08:42:07.818064+00	3702
+3663	2025-06-09 08:44:48.877222+00	3703
+3664	2025-06-09 08:48:10.565182+00	3704
+3665	2025-06-09 08:49:03.983966+00	3705
+3666	2025-06-09 08:49:29.407481+00	3706
+3667	2025-06-09 08:50:04.253225+00	3707
+3668	2025-06-09 08:50:08.47894+00	3708
+3669	2025-06-09 08:51:08.761201+00	3709
+3670	2025-06-09 08:52:16.943314+00	3710
+3671	2025-06-09 08:53:39.392353+00	3711
+3672	2025-06-09 08:54:20.788755+00	3712
+3673	2025-06-09 08:55:40.898826+00	3713
+3674	2025-06-09 08:56:18.701258+00	3714
+3675	2025-06-09 09:09:23.120621+00	3715
+3676	2025-06-09 09:10:35.988578+00	3716
+3677	2025-06-09 09:12:50.691454+00	3717
+3678	2025-06-09 09:13:50.783959+00	3718
+3679	2025-06-09 09:14:56.433504+00	3719
+3680	2025-06-09 09:16:21.493013+00	3720
+3681	2025-06-09 09:20:33.377894+00	3721
+3682	2025-06-09 09:21:32.058519+00	3722
+3683	2025-06-09 09:21:55.102564+00	3723
+3684	2025-06-09 09:24:22.88165+00	3724
+3685	2025-06-09 10:33:56.85897+00	3725
+3686	2025-06-09 11:04:11.557467+00	3726
+3687	2025-06-09 11:04:42.74701+00	3727
+3688	2025-06-09 11:08:18.448946+00	3728
+3689	2025-06-09 11:08:19.800877+00	3729
+3690	2025-06-09 11:11:01.896589+00	3730
+3691	2025-06-09 11:12:26.358404+00	3731
+3692	2025-06-09 11:13:37.31172+00	3732
+3693	2025-06-09 11:13:54.761521+00	3733
+3694	2025-06-09 11:15:52.083601+00	3734
+3695	2025-06-09 11:16:14.408876+00	3735
+3696	2025-06-09 11:16:22.529399+00	3736
+3697	2025-06-09 11:17:06.269581+00	3737
+3698	2025-06-09 11:17:54.835123+00	3738
+3699	2025-06-09 11:20:21.234499+00	3739
+3700	2025-06-09 12:35:38.992399+00	3740
+3701	2025-06-09 12:36:24.553105+00	3741
+3702	2025-06-09 12:39:15.815565+00	3742
+3703	2025-06-09 12:43:53.16486+00	3743
+3704	2025-06-09 12:45:30.532762+00	3744
+3705	2025-06-09 12:45:40.907559+00	3745
+3706	2025-06-09 14:29:41.869091+00	3746
+3707	2025-06-09 15:37:26.6796+00	3748
+3708	2025-06-09 15:52:00.356486+00	3749
+3709	2025-06-09 15:54:48.981667+00	3750
+3710	2025-06-09 15:55:08.759226+00	3751
+3711	2025-06-09 15:58:14.188869+00	3752
+3712	2025-06-09 15:59:49.748737+00	3753
+3713	2025-06-09 16:00:29.707486+00	3754
+3714	2025-06-09 16:02:23.892387+00	3755
+3715	2025-06-09 16:03:03.888953+00	3756
+3716	2025-06-09 16:03:24.844372+00	3757
+3717	2025-06-09 16:04:14.247352+00	3758
+3718	2025-06-09 16:04:19.190709+00	3759
+3719	2025-06-09 16:05:28.179245+00	3760
+3720	2025-06-09 16:05:31.028899+00	3761
+3721	2025-06-09 16:06:50.070819+00	3762
+3722	2025-06-09 16:06:51.294564+00	3763
+3723	2025-06-09 16:07:37.785202+00	3764
+3724	2025-06-09 16:08:00.290927+00	3765
+3725	2025-06-09 16:09:29.026213+00	3766
+3726	2025-06-09 16:09:32.639546+00	3767
+3727	2025-06-09 16:09:45.7819+00	3768
+3728	2025-06-09 16:09:59.012075+00	3769
+3729	2025-06-09 16:11:11.561888+00	3770
+3730	2025-06-09 16:11:35.267213+00	3771
+3731	2025-06-09 16:17:28.842018+00	3772
+3732	2025-06-09 16:19:03.258678+00	3773
+3733	2025-06-09 16:19:32.936988+00	3774
+3734	2025-06-09 16:19:47.695224+00	3775
+3735	2025-06-09 16:21:21.877576+00	3776
+3736	2025-06-09 16:23:26.878651+00	3777
+3737	2025-06-09 16:24:22.004908+00	3778
+3738	2025-06-09 16:24:29.130629+00	3779
+3739	2025-06-09 16:26:20.884111+00	3780
+3740	2025-06-09 16:26:30.303357+00	3781
+3741	2025-06-09 16:45:02.291593+00	3782
+3742	2025-06-09 16:45:23.958752+00	3783
+3743	2025-06-09 16:46:09.537699+00	3784
+3744	2025-06-09 16:46:45.34311+00	3785
+3745	2025-06-09 16:48:34.475775+00	3786
+3746	2025-06-09 16:48:36.46661+00	3787
+3747	2025-06-09 16:49:07.693467+00	3788
+3748	2025-06-09 16:53:19.437119+00	3789
+3749	2025-06-09 16:53:53.11512+00	3790
+3750	2025-06-09 16:54:26.856065+00	3791
+3751	2025-06-09 17:13:23.272877+00	3792
+3752	2025-06-09 18:07:53.399261+00	3793
+3753	2025-06-09 18:08:27.311699+00	3794
+3754	2025-06-09 18:55:24.622629+00	3795
+3755	2025-06-09 19:01:23.734826+00	3796
+3756	2025-06-09 19:05:35.867029+00	3797
+3757	2025-06-09 19:06:43.030669+00	3798
+3758	2025-06-09 19:17:02.414242+00	3799
+3759	2025-06-09 19:17:17.968394+00	3800
+3760	2025-06-09 19:18:09.342658+00	3801
+3761	2025-06-09 19:18:19.251148+00	3802
+3762	2025-06-09 19:21:26.471376+00	3803
+3763	2025-06-09 19:29:10.580724+00	3804
+3764	2025-06-09 19:32:35.355644+00	3805
+3765	2025-06-09 19:34:10.47046+00	3806
+3766	2025-06-09 19:36:44.725035+00	3807
+3767	2025-06-09 19:37:24.955022+00	3808
+3768	2025-06-09 19:39:03.003463+00	3809
+3769	2025-06-09 19:39:47.87151+00	3810
+3770	2025-06-09 19:40:10.866391+00	3811
+3771	2025-06-09 19:41:23.564135+00	3812
+3772	2025-06-09 19:57:31.161283+00	3813
+3773	2025-06-09 19:58:06.935791+00	3814
+3774	2025-06-09 20:02:30.190501+00	3815
+3775	2025-06-09 20:03:34.047811+00	3816
+3776	2025-06-09 20:04:26.351431+00	3817
+3777	2025-06-10 06:31:36.272181+00	3818
+3778	2025-06-10 06:48:31.056225+00	3819
+3779	2025-06-10 06:49:19.14261+00	3820
+3780	2025-06-10 06:49:30.48937+00	3821
+3781	2025-06-10 06:51:22.31791+00	3822
+3782	2025-06-10 06:52:22.015363+00	3823
+3783	2025-06-10 06:53:26.343773+00	3824
+3784	2025-06-10 06:53:47.232488+00	3825
+3785	2025-06-10 06:55:53.090656+00	3826
+3786	2025-06-10 06:57:23.69184+00	3827
+3787	2025-06-10 06:59:38.251509+00	3828
+3788	2025-06-10 07:07:17.872342+00	3829
+3789	2025-06-10 07:11:56.884388+00	3830
+3790	2025-06-10 07:24:59.306929+00	3831
+3791	2025-06-10 07:25:14.195759+00	3832
+3792	2025-06-10 07:35:03.414137+00	3833
+3793	2025-06-10 07:50:23.324685+00	3834
+3794	2025-06-10 07:50:39.682834+00	3835
+3795	2025-06-10 07:53:57.043462+00	3836
+3796	2025-06-10 07:54:13.72808+00	3837
+3797	2025-06-10 07:54:16.53251+00	3838
+3798	2025-06-10 07:55:54.928154+00	3839
+3799	2025-06-10 07:58:59.57731+00	3840
+3800	2025-06-10 07:59:02.190702+00	3841
+3801	2025-06-10 08:00:05.073719+00	3842
+3802	2025-06-10 08:00:57.089571+00	3843
+3803	2025-06-10 08:01:49.393867+00	3844
+3804	2025-06-10 08:02:40.001895+00	3845
+3805	2025-06-10 08:04:09.395361+00	3846
+3806	2025-06-10 08:06:17.440314+00	3847
+3807	2025-06-10 08:07:47.068345+00	3848
+3808	2025-06-10 08:08:57.547578+00	3849
+3809	2025-06-10 08:09:39.466849+00	3850
+3810	2025-06-10 08:11:33.862623+00	3851
+3811	2025-06-10 08:15:23.946113+00	3852
+3812	2025-06-10 08:16:56.383684+00	3853
+3813	2025-06-10 08:17:25.751593+00	3854
+3814	2025-06-10 08:18:58.281417+00	3855
+3815	2025-06-10 08:20:39.250657+00	3856
+3816	2025-06-10 08:21:21.662802+00	3857
+3817	2025-06-10 08:22:32.76225+00	3858
+3818	2025-06-10 08:22:45.620454+00	3859
+3819	2025-06-10 08:24:03.086665+00	3860
+3820	2025-06-10 08:24:52.227659+00	3861
+3821	2025-06-10 08:25:29.772879+00	3862
+3822	2025-06-10 08:26:43.903386+00	3863
+3823	2025-06-10 08:27:39.340616+00	3864
+3824	2025-06-10 08:28:41.612616+00	3865
+3825	2025-06-10 08:28:46.580925+00	3866
+3826	2025-06-10 08:32:29.899881+00	3867
+3827	2025-06-10 08:35:01.283561+00	3868
+3828	2025-06-10 08:37:51.275111+00	3869
+3829	2025-06-10 08:39:28.185509+00	3870
+3830	2025-06-10 08:39:44.510634+00	3871
 \.
 
 
 --
--- TOC entry 3794 (class 0 OID 16622)
+-- TOC entry 3795 (class 0 OID 16622)
 -- Dependencies: 273
 -- Data for Name: token_blacklist_outstandingtoken; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -13817,11 +14348,376 @@ COPY public.token_blacklist_outstandingtoken (id, token, created_at, expires_at,
 3504	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTkwMjY0NywiaWF0IjoxNzQ5MzEwNjQ3LCJqdGkiOiJmNjJhOGExODI3NmU0ZDJjYWYxZGE2MDI5MjUwYjBkYiIsInVzZXJfaWQiOjJ9.UYHlzrAlcSbuVxPmw3n-RBVPcBZ02a3PHAM1shpor8U	\N	2025-07-07 15:37:27+00	\N	f62a8a18276e4d2caf1da6029250b0db
 3505	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTkwMzE4MywiaWF0IjoxNzQ5MzExMTgzLCJqdGkiOiI3ZTQwNjFkNzBlYTY0Y2MyYjkyYWE4MDY5MzQ0NTUyNiIsInVzZXJfaWQiOjJ9.pUcZ3t13yC-XZT5_GBgv65-Ipo4I7IAGgH3yeoryH9o	\N	2025-07-07 15:46:23+00	\N	7e4061d70ea64cc2b92aa80693445526
 3506	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTkwNTE1MiwiaWF0IjoxNzQ5MzEzMTUyLCJqdGkiOiIzM2E4Y2Y0NTAyNTE0NjhmOTY4MjI3NzE0NjFkNjkzMiIsInVzZXJfaWQiOjJ9.51tIUQA3ruJl1oS1r5Ff7m85O1ytjTqXScmQhwO5Z60	\N	2025-07-07 16:19:12+00	\N	33a8cf450251468f96822771461d6932
+3507	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTkwMDA2MywiaWF0IjoxNzQ5MzA4MDYzLCJqdGkiOiI3ZWE4ODAzYWI3YmU0ZWU3ODdmODJjZWVkMDcyMmRkNyIsInVzZXJfaWQiOjJ9.9M3vXYNLfNjLMjdPN56mB0q-KPklN8oODIKo8n73FH8	\N	2025-07-07 14:54:23+00	\N	7ea8803ab7be4ee787f82ceed0722dd7
+3508	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk1NjMyNiwiaWF0IjoxNzQ5MzY0MzI2LCJqdGkiOiI4N2EzMjk4NzgzNDM0ZmI3OGFiNWZjN2QwM2VmOGJlNSIsInVzZXJfaWQiOjJ9.s0bFrByKlmogcv6WvvFxFgBuFOnhO1NIV_D6lb3WYKE	\N	2025-07-08 06:32:06+00	\N	87a3298783434fb78ab5fc7d03ef8be5
+3509	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk1NjQ1NywiaWF0IjoxNzQ5MzY0NDU3LCJqdGkiOiI2Y2U4NmMzZTM2OTY0ZjZhYjgzYzFhNDE3YzNkYTFlYyIsInVzZXJfaWQiOjJ9.GU_WdUcrTpWU4mySJPz_yNHomIVrkfLjwU5nQh1RTyQ	\N	2025-07-08 06:34:17+00	\N	6ce86c3e36964f6ab83c1a417c3da1ec
+3510	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk1MTE5MSwiaWF0IjoxNzQ5MzU5MTkxLCJqdGkiOiIxYzUyZmM4ZGQ5YWQ0OTMwYmFkNzNiY2RmOTg1NDBmYSIsInVzZXJfaWQiOjJ9.vK2hLWyrj8tLIkg-bfF9PX5Slou-I3h4f2VlqrWSffM	\N	2025-07-08 05:06:31+00	\N	1c52fc8dd9ad4930bad73bcdf98540fa
+3511	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk1NjY0NywiaWF0IjoxNzQ5MzY0NjQ3LCJqdGkiOiIzYzJjZjY5NTE3ZDA0YTZjOTlkZWU0YjVkOTQ4OGVmYiIsInVzZXJfaWQiOjJ9.2MBgaF2oWQXTZrfO-bmBqhhNrE-5NXVdFDnq5Qh9E3c	\N	2025-07-08 06:37:27+00	\N	3c2cf69517d04a6c99dee4b5d9488efb
+3512	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk1NzcwMCwiaWF0IjoxNzQ5MzY1NzAwLCJqdGkiOiI3MWRhYjdkMDU5YmY0MDcyOThjYjc5M2IyYjA3MGI0NCIsInVzZXJfaWQiOjJ9.spIdd2Ct4knJQim9ZcYNYwxNd-VhLAsPAM2t0Hir8js	\N	2025-07-08 06:55:00+00	\N	71dab7d059bf407298cb793b2b070b44
+3513	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2MDEwMCwiaWF0IjoxNzQ5MzY4MTAwLCJqdGkiOiI1Mzk5ZWNhNjM4NDc0MjA2OGJiYzBjNmE0ZmE5MGFhZCIsInVzZXJfaWQiOjJ9.gpps3Lmc9gOUIm489ftnnCeZciyzZICjq23tZXjO1js	2025-06-08 07:35:00.193611+00	2025-07-08 07:35:00+00	2	5399eca6384742068bbc0c6a4fa90aad
+3514	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2MDEzOSwiaWF0IjoxNzQ5MzY4MTM5LCJqdGkiOiI3NWUyNzAyZmEyZjk0NmFhODIwYzFiZDRhMTcwNTVlYSIsInVzZXJfaWQiOjJ9.bN7JGgRSjcCFj6-WYBEO4gIRU747cSEwGLZ0CT3piQY	2025-06-08 07:35:39.702703+00	2025-07-08 07:35:39+00	2	75e2702fa2f946aa820c1bd4a17055ea
+3515	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk1ODkwMCwiaWF0IjoxNzQ5MzY2OTAwLCJqdGkiOiJmMmNiNjc3ZTM3NDM0ZTVmYWUxYWUxMDNmYjA4MTFmNCIsInVzZXJfaWQiOjJ9.r0PdolbzlGTmmZ31G_oz7ZgVP87L5O7hNx-HXLMr2mE	\N	2025-07-08 07:15:00+00	\N	f2cb677e37434e5fae1ae103fb0811f4
+3516	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2MTAzMiwiaWF0IjoxNzQ5MzY5MDMyLCJqdGkiOiJiZWM5Yzc2OTFkMzc0Y2UzOTZmYWZmNmZmY2ExZmNlZiIsInVzZXJfaWQiOjJ9.nvepz3KmwCYyaF3iugjit0ZC6NATbM03dc3xJs71tZY	\N	2025-07-08 07:50:32+00	\N	bec9c7691d374ce396faff6ffca1fcef
+3517	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2MzkzNSwiaWF0IjoxNzQ5MzcxOTM1LCJqdGkiOiJkMzg3NmQwYmNjMWE0MjM5OWMzNmE2MDkxZDQ1MTQ5ZSIsInVzZXJfaWQiOjJ9.G7fyTE_9ysFg_h_vxQqUgbmD7-V5qCeWdtPKzLhoJ38	\N	2025-07-08 08:38:55+00	\N	d3876d0bcc1a42399c36a6091d45149e
+3518	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2Mzk4NywiaWF0IjoxNzQ5MzcxOTg3LCJqdGkiOiIyMmY1MjI5MWYxOWQ0NzNmYjFlY2Q3ZDE4YmU2NmNlOCIsInVzZXJfaWQiOjJ9.VF905oby8Zz7lHZuNfbd9vLfWZh2PzS-t7fzm5gvGKw	\N	2025-07-08 08:39:47+00	\N	22f52291f19d473fb1ecd7d18be66ce8
+3519	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NDAzMSwiaWF0IjoxNzQ5MzcyMDMxLCJqdGkiOiI1ODU4NDcxZGNmMDc0OTM4OGFjMjE4ZDAyMDA1YzM1MiIsInVzZXJfaWQiOjJ9.SPjacHOysanwYMr5IxvMDDz6nEUhwu5l8V1NvKb1TPY	\N	2025-07-08 08:40:31+00	\N	5858471dcf0749388ac218d02005c352
+3520	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NDA2NSwiaWF0IjoxNzQ5MzcyMDY1LCJqdGkiOiI1YjBkMGJkNGVlODA0NDhmOGJmNDA3ZmJhNGM5ZWI4NiIsInVzZXJfaWQiOjJ9.cP9MVJsit88yftCEzhJLM3n9eva5hTZXQB9r7XpCaro	\N	2025-07-08 08:41:05+00	\N	5b0d0bd4ee80448f8bf407fba4c9eb86
+3521	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NDE2MSwiaWF0IjoxNzQ5MzcyMTYxLCJqdGkiOiJmZTdkZmQxMWNkN2Y0YWQyYjlhNWRhZmNjNzEzZmFmYiIsInVzZXJfaWQiOjJ9.f5x6TSuYmL7LRz9PJNlER8M8t0MiiFDHHzmi9relQiQ	\N	2025-07-08 08:42:41+00	\N	fe7dfd11cd7f4ad2b9a5dafcc713fafb
+3522	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NDYzMywiaWF0IjoxNzQ5MzcyNjMzLCJqdGkiOiJjM2I3ZjRiMjYyNjE0OTM1YWQ3ZTUxODg5NmNmZjZlMSIsInVzZXJfaWQiOjJ9.ly3NPceSKn8VTfiJGBsxV3aDcarHpKCiFZr0dtrnfzo	\N	2025-07-08 08:50:33+00	\N	c3b7f4b262614935ad7e518896cff6e1
+3523	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NTU4NiwiaWF0IjoxNzQ5MzczNTg2LCJqdGkiOiJlNmQ5NGZlYjgwOTk0NDk3OTU0NDVlMWJmY2YxYWVjNiIsInVzZXJfaWQiOjJ9.2v1KBmMWwmqu_mRTiH-oFlO_57G6297VI7_BSDC0yRc	\N	2025-07-08 09:06:26+00	\N	e6d94feb8099449795445e1bfcf1aec6
+3524	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NTYxNSwiaWF0IjoxNzQ5MzczNjE1LCJqdGkiOiJhZGFlNWJjMzQyMGE0NDA4OWI4MmM2ZTUwNjA3ZjU5NSIsInVzZXJfaWQiOjJ9.1MFtPaDv7F1GWPppUE1e79gVtrHl7THIzRxLB_faClw	\N	2025-07-08 09:06:55+00	\N	adae5bc3420a44089b82c6e50607f595
+3525	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NTY4MCwiaWF0IjoxNzQ5MzczNjgwLCJqdGkiOiIwNTU1OTJlNzVlZjk0MjcwODU4OWNkYTRlNGVjYmZhNyIsInVzZXJfaWQiOjJ9.ARRJ4L8lDpris-_vJyY4EdnMJLe8uQdi5qVIHpqDYGg	\N	2025-07-08 09:08:00+00	\N	055592e75ef942708589cda4e4ecbfa7
+3526	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NTcxMSwiaWF0IjoxNzQ5MzczNzExLCJqdGkiOiIyNGQ0OWE4YjdjMzM0ZjFiYjcxMjBiMjliNzlkZjU3YiIsInVzZXJfaWQiOjJ9.CwVMyrahXOJ5qj3deBAecq5xIPQLvixgnhlEnA3pWrg	\N	2025-07-08 09:08:31+00	\N	24d49a8b7c334f1bb7120b29b79df57b
+3527	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NjE2MywiaWF0IjoxNzQ5Mzc0MTYzLCJqdGkiOiIwMjZlZmYzOTg2NDA0MjM5YTYwNWQ4NWM2NzI5ZjQ3YiIsInVzZXJfaWQiOjJ9.qeMtqAcHe0WzmFpeH4yR_86iSPxpS3Fij1xZABF0rFU	\N	2025-07-08 09:16:03+00	\N	026eff3986404239a605d85c6729f47b
+3528	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NjI0MywiaWF0IjoxNzQ5Mzc0MjQzLCJqdGkiOiI4ZjRjMTZlMTg2ZGY0ZGQ2YTFhZmIwMmY2ZjY5YmIwNSIsInVzZXJfaWQiOjJ9.fRUGr4R2Q3jW_R0COPdllO6Jdt3MAC7X59stO59CXik	\N	2025-07-08 09:17:23+00	\N	8f4c16e186df4dd6a1afb02f6f69bb05
+3529	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NjI3NiwiaWF0IjoxNzQ5Mzc0Mjc2LCJqdGkiOiJiYzdmNGM4NDQ0ZDg0NTNhOWMwOTQ5NzY5Y2Y5OTVjYSIsInVzZXJfaWQiOjJ9.KmjZOXoEqOBe4DRzpa6uKXb9HKq4NAG_Nvoq2tMIN14	\N	2025-07-08 09:17:56+00	\N	bc7f4c8444d8453a9c0949769cf995ca
+3530	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NjMwMywiaWF0IjoxNzQ5Mzc0MzAzLCJqdGkiOiIzNjYzZjA4ZGQxNDc0NjUwYmFiMDc5NGEyZjdjOGUwYiIsInVzZXJfaWQiOjJ9.5GMHRwospNRUgs8FFOnpIaiyKo6q04-6pVBHjRVjLI8	\N	2025-07-08 09:18:23+00	\N	3663f08dd1474650bab0794a2f7c8e0b
+3531	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2Njc2OCwiaWF0IjoxNzQ5Mzc0NzY4LCJqdGkiOiIxNDdhNGQ1OGMzNGI0YmVjOTM2MTZkMTZhYjcxM2NkYyIsInVzZXJfaWQiOjJ9.cbayLpP9jE_gC7NqN8m5_gj3Z27xHrGtXLOXoIr2zYI	\N	2025-07-08 09:26:08+00	\N	147a4d58c34b4bec93616d16ab713cdc
+3532	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NjgwMiwiaWF0IjoxNzQ5Mzc0ODAyLCJqdGkiOiIwZjRmYzZlY2YwZWY0MTliOTI5YTE4Y2VjZTYwNmZhZCIsInVzZXJfaWQiOjJ9.BG5I_0ZdmBbZK9-g11ITHoTDL2Vcygi_DrMkh8fvyIM	\N	2025-07-08 09:26:42+00	\N	0f4fc6ecf0ef419b929a18cece606fad
+3533	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2NjgzOCwiaWF0IjoxNzQ5Mzc0ODM4LCJqdGkiOiIyNjI2N2RkMzgyNmE0M2JjYTVjMjUxMmM5YjNmMTAzYyIsInVzZXJfaWQiOjJ9.1yvUeDsdIfe0ZZHqwKLHpZVWXowRF7_Vl0dSP9hU2sE	\N	2025-07-08 09:27:18+00	\N	26267dd3826a43bca5c2512c9b3f103c
+3534	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk1NjY3MSwiaWF0IjoxNzQ5MzY0NjcxLCJqdGkiOiI5OTRlMTUwNTAyNzk0Mjg1YjZiODU1ZDZlZTc2OTIyMyIsInVzZXJfaWQiOjJ9.BLN_GPI3HVu2BhuOrWsPzHi9ogFXTglSxtsx6g_zt7k	\N	2025-07-08 06:37:51+00	\N	994e150502794285b6b855d6ee769223
+3535	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MTIwMSwiaWF0IjoxNzQ5Mzc5MjAxLCJqdGkiOiI1ZDFmMTExM2NiMzc0ZDlkYjk3YTU0YmZiZDU0YjgwNSIsInVzZXJfaWQiOjJ9.OWhpa2h9Yi79xUl5NAUdci3OUdW6cj35B_5A72M3IDE	\N	2025-07-08 10:40:01+00	\N	5d1f1113cb374d9db97a54bfbd54b805
+3536	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MTg4MSwiaWF0IjoxNzQ5Mzc5ODgxLCJqdGkiOiI0ODM3ODg1OGI0NGY0NjhmOWY0N2EzYWM4ZTFjMzBhYiIsInVzZXJfaWQiOjJ9.78NnwrjBpHsk3IydH7hAYzzy-YrcTjh-Z47NGV4dTCA	\N	2025-07-08 10:51:21+00	\N	48378858b44f468f9f47a3ac8e1c30ab
+3537	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MTkwNCwiaWF0IjoxNzQ5Mzc5OTA0LCJqdGkiOiIyM2U4OWZjMzBmZDQ0MWRmOTQxNjc5YTM3NTYwMzYxNSIsInVzZXJfaWQiOjJ9.qH-lCH_vIlpbIOU7eXbKMkgK7Hej6XFPIkFcljn6Tks	\N	2025-07-08 10:51:44+00	\N	23e89fc30fd441df941679a375603615
+3538	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjAzNiwiaWF0IjoxNzQ5MzgwMDM2LCJqdGkiOiJlY2NiZWFkYjUyOGY0MzI4ODc1MjU4NWVjMjZiYmIzYiIsInVzZXJfaWQiOjJ9.AJlOuyXpc7QW0-6YBK3NgrfQl6RbUIQ8_S_HigUokjs	\N	2025-07-08 10:53:56+00	\N	eccbeadb528f43288752585ec26bbb3b
+3539	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjA0OCwiaWF0IjoxNzQ5MzgwMDQ4LCJqdGkiOiJkYWJjZDM4ZmQxYTA0YzY0YjdhMjAzYzFhZWQ4OTEyYyIsInVzZXJfaWQiOjJ9.9AXSDIX3Vss4XpkumVw_BSLHQqlgoW051HQA2GrElEk	\N	2025-07-08 10:54:08+00	\N	dabcd38fd1a04c64b7a203c1aed8912c
+3540	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjE0NywiaWF0IjoxNzQ5MzgwMTQ3LCJqdGkiOiJhOTM2YmQ3Mjc0OTM0ODk3OGJhZWRhMDdiNTIxMWZlOSIsInVzZXJfaWQiOjJ9.Ej2cjFSy-l8S3F0Nz5SfVvrv60BQbH5V7ahmq67NsbU	\N	2025-07-08 10:55:47+00	\N	a936bd72749348978baeda07b5211fe9
+3541	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjE5NSwiaWF0IjoxNzQ5MzgwMTk1LCJqdGkiOiI2MDA4YjRmNWJjZDQ0YTYzOTViODBmMWUyOTcxZmM3ZSIsInVzZXJfaWQiOjJ9.qnzsOSbziJzqi1n-112CgLNxz5Z6x5Kl6f5RFmuOyis	\N	2025-07-08 10:56:35+00	\N	6008b4f5bcd44a6395b80f1e2971fc7e
+3542	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjIxMSwiaWF0IjoxNzQ5MzgwMjExLCJqdGkiOiIwMWU2ZTNkYTcwZWQ0NDUyYjIxNmY4MTY2ZWNmYmY5ZSIsInVzZXJfaWQiOjJ9.CiPEPUMSVS_i3C5yP7L7liQLek2YjnEN2uu29fP_g6g	\N	2025-07-08 10:56:51+00	\N	01e6e3da70ed4452b216f8166ecfbf9e
+3543	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjI1NiwiaWF0IjoxNzQ5MzgwMjU2LCJqdGkiOiIxMGU0MGFhMTEwMmU0NGY1OTA5YmJkMDNjNzkyMTA1NCIsInVzZXJfaWQiOjJ9.FTuOOKVqnc8y7IHrrNO90Z7Kh-QNXy4Fzw-IW5OJeyA	\N	2025-07-08 10:57:36+00	\N	10e40aa1102e44f5909bbd03c7921054
+3544	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjUxNiwiaWF0IjoxNzQ5MzgwNTE2LCJqdGkiOiJhN2NhMDVmZDFlMTQ0NDgwYjVkNDk0ZTUzNWI5OWY3MCIsInVzZXJfaWQiOjJ9.uFK9_OJJLxQEzaSm4mmdAs0S8nc1RiUHxOwqjrJzVOw	\N	2025-07-08 11:01:56+00	\N	a7ca05fd1e144480b5d494e535b99f70
+3545	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjUzOCwiaWF0IjoxNzQ5MzgwNTM4LCJqdGkiOiJiZDVmYTJjMGRhYmQ0ODA4OTIxNTQ5MDEzMDczZmNkZCIsInVzZXJfaWQiOjJ9.3XkH0gQcl0FOWX1FTjGGNYc-doutSQ2YwVteJxckTuM	\N	2025-07-08 11:02:18+00	\N	bd5fa2c0dabd4808921549013073fcdd
+3546	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjU3OSwiaWF0IjoxNzQ5MzgwNTc5LCJqdGkiOiIyYjk1YTI1NTA0ODM0MWU1OTY3ZTE0M2E2MDFiYTM5MCIsInVzZXJfaWQiOjJ9.SF1EHsQ7HU3qbfnEg4tQvHPfelYj6iFTdCH6FQYLqlg	\N	2025-07-08 11:02:59+00	\N	2b95a255048341e5967e143a601ba390
+3547	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjY5MSwiaWF0IjoxNzQ5MzgwNjkxLCJqdGkiOiI4ZjJjYjdiZTdiYjY0YjgwYjJjMTg3ZGYzOThlYWQxZSIsInVzZXJfaWQiOjJ9.MlgIFOyGxlrYhLv2KlEwULAGKStqa-bG7ESCaRssSVg	\N	2025-07-08 11:04:51+00	\N	8f2cb7be7bb64b80b2c187df398ead1e
+3548	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjcwMywiaWF0IjoxNzQ5MzgwNzAzLCJqdGkiOiJiOWViMjc3MGY3YmM0NTExYmFjZWNmMGY3OTc2M2UzYSIsInVzZXJfaWQiOjJ9.uI9k_WITOTRwTWm-om0mX3pVWr9et2lEbWORQP-VVJw	\N	2025-07-08 11:05:03+00	\N	b9eb2770f7bc4511bacecf0f79763e3a
+3549	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjcyMywiaWF0IjoxNzQ5MzgwNzIzLCJqdGkiOiI4ZDBmNzBjMDViM2Y0NTc2ODJiMzY4NDc4Njc4NDgyZiIsInVzZXJfaWQiOjJ9.koYwlZ5ORISkLbcZ-KfpiMS90XqSA-UMpFHp12McVdA	\N	2025-07-08 11:05:23+00	\N	8d0f70c05b3f457682b368478678482f
+3550	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MjczOCwiaWF0IjoxNzQ5MzgwNzM4LCJqdGkiOiIzMmIzYjc3NTg4YTc0YzFjODVkNzJlNDFkYmVlN2ZlZCIsInVzZXJfaWQiOjJ9.m0zgqavrMjAesYeowUaEdDFs96SmJGmi3sdkO19VNNc	\N	2025-07-08 11:05:38+00	\N	32b3b77588a74c1c85d72e41dbee7fed
+3551	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3Mjc2OCwiaWF0IjoxNzQ5MzgwNzY4LCJqdGkiOiIxNDZkMzViNjYzOWY0MTZjOTg5OWRkZGExZjFlOWIyOSIsInVzZXJfaWQiOjJ9.ZFgUuxJIFP84OEBuVH2M2oMdRPvg3oEIWGLI-MpMHdg	\N	2025-07-08 11:06:08+00	\N	146d35b6639f416c9899ddda1f1e9b29
+3552	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzEwOSwiaWF0IjoxNzQ5MzgxMTA5LCJqdGkiOiJjYTY1N2JkMjg4OGM0ZjFmOGNmN2I5ZTYxNTg2ZWIzNiIsInVzZXJfaWQiOjJ9.315q1vh0VwXMk342G8dsGEqUGmH7sFp75TWZXvGvvYk	\N	2025-07-08 11:11:49+00	\N	ca657bd2888c4f1f8cf7b9e61586eb36
+3553	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzE0NywiaWF0IjoxNzQ5MzgxMTQ3LCJqdGkiOiI0MDhjNDk2YjFhNjg0NWVjYTY4YTU0ZmJiNzU2M2Q5MyIsInVzZXJfaWQiOjJ9.6SLG2FODkF6Py6MWxGdfu8MF0OnueQGLOtjlO8FvbNo	\N	2025-07-08 11:12:27+00	\N	408c496b1a6845eca68a54fbb7563d93
+3554	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzE4NywiaWF0IjoxNzQ5MzgxMTg3LCJqdGkiOiI5OGYzNTg5NzhlNWU0ZmQxYTlhZDM3MzQyNWMyYWYyZSIsInVzZXJfaWQiOjJ9.WSDNpZtY0u0fuXFeNDEv1cawOcZfUs3qwMbPbc7p240	\N	2025-07-08 11:13:07+00	\N	98f358978e5e4fd1a9ad373425c2af2e
+3555	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzIwMCwiaWF0IjoxNzQ5MzgxMjAwLCJqdGkiOiI1ZDhiOWZlYzhhYzE0MzJmOGRhMDlmYTQ1Y2E1OTZmOCIsInVzZXJfaWQiOjJ9.lEdR_R06kRrb_sMc7oqaJWYzo6ysHnwessWKX0V2d6k	\N	2025-07-08 11:13:20+00	\N	5d8b9fec8ac1432f8da09fa45ca596f8
+3556	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzIwOSwiaWF0IjoxNzQ5MzgxMjA5LCJqdGkiOiJhZTBkNjcyYzVlZGQ0Yzk0OTRiZjMwNTEzNDQ5ZDYxNSIsInVzZXJfaWQiOjJ9.0Z6sL9VhA67t6yx8jqYQbaLZL_ZxZGnRXsIQLE6_3VA	\N	2025-07-08 11:13:29+00	\N	ae0d672c5edd4c9494bf30513449d615
+3557	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzIyNywiaWF0IjoxNzQ5MzgxMjI3LCJqdGkiOiI0NWE0NGZlMzExZWY0OTgyODE2Y2JjMzNkYjBkNWQ4YyIsInVzZXJfaWQiOjJ9.hUbI9tUJNtaqC-7Vv6EGIS7KQujtP4cBzXkXTRMc9_Q	\N	2025-07-08 11:13:47+00	\N	45a44fe311ef4982816cbc33db0d5d8c
+3558	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzI0NiwiaWF0IjoxNzQ5MzgxMjQ2LCJqdGkiOiJkZmE3ZTljMWZmMjI0MWYyODRkODZhM2VhMDdlNTRlYiIsInVzZXJfaWQiOjJ9.go3r-o1_KtEnmQd-z11iDWleRIFgsTQrJITV0vm21TE	\N	2025-07-08 11:14:06+00	\N	dfa7e9c1ff2241f284d86a3ea07e54eb
+3559	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzI1OCwiaWF0IjoxNzQ5MzgxMjU4LCJqdGkiOiIyZTlkYmY0MTE5OGU0MGU1YTI5NzdiM2MyMjBiNTBmMyIsInVzZXJfaWQiOjJ9.qmnnMrIQD03ZwEWWwJPDSHwFdM9RKeV_L-L5sOXIDYo	\N	2025-07-08 11:14:18+00	\N	2e9dbf41198e40e5a2977b3c220b50f3
+3560	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzMwNywiaWF0IjoxNzQ5MzgxMzA3LCJqdGkiOiI5OWRkMmFkN2Y1NWI0ZTgxYTM0MGM4ZDcwNjg3OWVlOCIsInVzZXJfaWQiOjJ9.A4G-9JohRLVgDNkV_o47JNXuKidVoahoViECfaFg1IE	\N	2025-07-08 11:15:07+00	\N	99dd2ad7f55b4e81a340c8d706879ee8
+3561	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzM1MSwiaWF0IjoxNzQ5MzgxMzUxLCJqdGkiOiI4ZTMyZGZiNjJhYTA0ZDY5OGQ2OTI4MTU3MjkwMmJjOCIsInVzZXJfaWQiOjJ9.hWl81zJeWD5AwoGkapKQHWp2K5bEBze2q4Yyst6nDLI	\N	2025-07-08 11:15:51+00	\N	8e32dfb62aa04d698d69281572902bc8
+3562	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzM1NSwiaWF0IjoxNzQ5MzgxMzU1LCJqdGkiOiIzNzU3NTRhOWVlY2Y0MDk1ODJkMjY1MjA4NWEzZWJjNCIsInVzZXJfaWQiOjJ9.MttfQEkcx07_nIchCo9nMETIkeOFu9Us2j_MjX1LscE	\N	2025-07-08 11:15:55+00	\N	375754a9eecf409582d2652085a3ebc4
+3563	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzM5MywiaWF0IjoxNzQ5MzgxMzkzLCJqdGkiOiJmOGJlMjBhMjE4NjY0ZjNjOTBkZWIwZjU5NDVhNTYyMCIsInVzZXJfaWQiOjJ9.r_CSt4XPHQlNJM9h68-knI7olhh9gwXLdRxZESUjgFY	\N	2025-07-08 11:16:33+00	\N	f8be20a218664f3c90deb0f5945a5620
+3564	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzQzMSwiaWF0IjoxNzQ5MzgxNDMxLCJqdGkiOiJkZmJiYzQ2MjViZjA0Yjg4YTU4ZDQ2ZGVmMTMyYjhmYyIsInVzZXJfaWQiOjJ9.ppyCqmgdmK5RSGvJepstcsNSKrNPJfLZfr4fF-I2dIM	\N	2025-07-08 11:17:11+00	\N	dfbbc4625bf04b88a58d46def132b8fc
+3565	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzQ1MSwiaWF0IjoxNzQ5MzgxNDUxLCJqdGkiOiJkNzFkMmY4NWYwOTg0NWRmODA3ZTQyODhjMTRkMWZmNiIsInVzZXJfaWQiOjJ9.jTu24TAj0wxQ9az4VPU69ok85lXHvU5RlJcYREAN-l8	\N	2025-07-08 11:17:31+00	\N	d71d2f85f09845df807e4288c14d1ff6
+3566	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzQ1NiwiaWF0IjoxNzQ5MzgxNDU2LCJqdGkiOiI1NjI2MjgxYThkZDI0ZmFiOTYyNTFlMjFmMWQ5YmFjMiIsInVzZXJfaWQiOjJ9.f5Xd84yjXLgmJHm4S4CVww1iHndElHzrXnrekzrIwIM	\N	2025-07-08 11:17:36+00	\N	5626281a8dd24fab96251e21f1d9bac2
+3567	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzQ2NSwiaWF0IjoxNzQ5MzgxNDY1LCJqdGkiOiJlZWI1MzcxYjk4NjM0MzI3YTE5MzlmNWQxZjQwNDI2ZiIsInVzZXJfaWQiOjJ9.gif83ff1sDycWecbxQHCkgNGt1PEJO5SmnwPAsw9EWU	\N	2025-07-08 11:17:45+00	\N	eeb5371b98634327a1939f5d1f40426f
+3568	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzQ4MywiaWF0IjoxNzQ5MzgxNDgzLCJqdGkiOiI3Y2U0ZGEwYTM1MTc0YTcwYTFiZWMzYzgwMGIzNDE0MyIsInVzZXJfaWQiOjJ9.niRzB-yTnG_9N4E-_idCa35nlmsLe8Ft4YyOFrKsBcs	\N	2025-07-08 11:18:03+00	\N	7ce4da0a35174a70a1bec3c800b34143
+3569	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzY1OSwiaWF0IjoxNzQ5MzgxNjU5LCJqdGkiOiIyZjZkZTk3ZDRiMDA0ODAwYjJmMDM5MDA0NDk0YmExZCIsInVzZXJfaWQiOjJ9.PKji6dUGuzPE2-nbXesQVb86FjLY0iE3m1o-543aNlc	\N	2025-07-08 11:20:59+00	\N	2f6de97d4b004800b2f039004494ba1d
+3570	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzY3MSwiaWF0IjoxNzQ5MzgxNjcxLCJqdGkiOiJmMzk2ZTVkZTU2Yzc0YTEwYWIzYzY3NjAyZTJmMjJkZiIsInVzZXJfaWQiOjJ9.jxDCKQOf2156ypJBEnIXc1GThqsgVb8qyZ2YN5OAwmA	\N	2025-07-08 11:21:11+00	\N	f396e5de56c74a10ab3c67602e2f22df
+3571	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzY3OCwiaWF0IjoxNzQ5MzgxNjc4LCJqdGkiOiJiODllZDU5ZTgyMDE0NjZlYWU2MDU1NDU0NTUxNjhkNyIsInVzZXJfaWQiOjJ9.UQKv0HjEKApPk5KE3x4UhXhOgm3IaCQ0c8I2wN4fB3I	\N	2025-07-08 11:21:18+00	\N	b89ed59e8201466eae605545455168d7
+3572	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzcxNSwiaWF0IjoxNzQ5MzgxNzE1LCJqdGkiOiI0MjlmMTNlNmVmNWM0YmU3YmM2YTE3ZDRjZjQyMzRhZCIsInVzZXJfaWQiOjJ9.PSEqh2LoeSCFA8x9H3SFPTODP4F6YUOWlD3qpFw0bsM	\N	2025-07-08 11:21:55+00	\N	429f13e6ef5c4be7bc6a17d4cf4234ad
+3573	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3Mzc1NSwiaWF0IjoxNzQ5MzgxNzU1LCJqdGkiOiI1YWRlMDExMjJkZmY0NTY2ODc0ZDRmY2U3MWExOGM2MCIsInVzZXJfaWQiOjJ9.ledt-s2yMBd-MVHa8kOOxI5m_DEYGumMs-DxxM-ajzQ	\N	2025-07-08 11:22:35+00	\N	5ade01122dff4566874d4fce71a18c60
+3574	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3Mzc2OSwiaWF0IjoxNzQ5MzgxNzY5LCJqdGkiOiIwZDZlNTU1N2I1NWI0NmIxYTYwYjFiODc4NGJhZTYyMSIsInVzZXJfaWQiOjJ9.ksK4hBaK_w5UUYh0hMJyvCARAUPTrNhS0vw_ZumRgRI	\N	2025-07-08 11:22:49+00	\N	0d6e5557b55b46b1a60b1b8784bae621
+3575	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3Mzc4OCwiaWF0IjoxNzQ5MzgxNzg4LCJqdGkiOiJiOTVmMDQ5YTA2MWM0ZjZkOTA2ZTI4OGZlNTJhYTFiZiIsInVzZXJfaWQiOjJ9.N_8qVNYQO7TNEMZRVk2UY1rJDz__Wgx5l3ffu6qXphU	\N	2025-07-08 11:23:08+00	\N	b95f049a061c4f6d906e288fe52aa1bf
+3576	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3Mzc5MiwiaWF0IjoxNzQ5MzgxNzkyLCJqdGkiOiI1MDUyZGI2MWRiZDI0YmQzODFiMzgzNGMzYmYwODZlMCIsInVzZXJfaWQiOjJ9.FDUhULsHWexPMZ8TBwDZKfdYZdhUAmNGaag11xayBrI	\N	2025-07-08 11:23:12+00	\N	5052db61dbd24bd381b3834c3bf086e0
+3577	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzgwNCwiaWF0IjoxNzQ5MzgxODA0LCJqdGkiOiI2NDY5NmFiMmEzZjU0ZWYwYWE0NTVmMWU2Y2E0NGRmZSIsInVzZXJfaWQiOjJ9.qSaxYAzLTxP16TWuHt-V-M0vVGiX5Hk2RLuVXY53qvw	\N	2025-07-08 11:23:24+00	\N	64696ab2a3f54ef0aa455f1e6ca44dfe
+3578	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzgxMCwiaWF0IjoxNzQ5MzgxODEwLCJqdGkiOiI5NmE1N2IzNTdiYjg0OGY3YjA2OTEzYjMxMWFiMGY3MSIsInVzZXJfaWQiOjJ9.nzS957Qkh2pdLlgWwqy33QVfyDri6Wy3YBvp0ndtuYQ	\N	2025-07-08 11:23:30+00	\N	96a57b357bb848f7b06913b311ab0f71
+3579	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3MzgyNSwiaWF0IjoxNzQ5MzgxODI1LCJqdGkiOiJjNGIyNjU1NmI0ZTU0YzBhYmI0ZGU3NTg4ZThlNTY1ZCIsInVzZXJfaWQiOjJ9.sMfPGCv13f_srowVImf1QRoBbBTbC0FcgbWfa96pNXg	\N	2025-07-08 11:23:45+00	\N	c4b26556b4e54c0abb4de7588e8e565d
+3580	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NDAxNiwiaWF0IjoxNzQ5MzgyMDE2LCJqdGkiOiJhZWZmZDNjYjFhN2Q0NzY5YmFiMmJhNzRkMjU1OThlYiIsInVzZXJfaWQiOjJ9.ZK3Kx9Lpq7YoWDQmeP0_NzD6KuBWETtPDtSb84OOCYg	\N	2025-07-08 11:26:56+00	\N	aeffd3cb1a7d4769bab2ba74d25598eb
+3581	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NDAyMCwiaWF0IjoxNzQ5MzgyMDIwLCJqdGkiOiI5ZThiODY3M2Q1ZmY0ZWNiOWQ2YzZmMGZlNjFkNjZmZCIsInVzZXJfaWQiOjJ9.4EhEA24GyMNfj2LB_b3xBMUNu-6NgtAuxq-Bx7tBW7w	\N	2025-07-08 11:27:00+00	\N	9e8b8673d5ff4ecb9d6c6f0fe61d66fd
+3582	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NDAzNSwiaWF0IjoxNzQ5MzgyMDM1LCJqdGkiOiJlZjA4NmU1N2JjMmE0ZDc0OTg1NWFjNTRiNTY2NjllMCIsInVzZXJfaWQiOjJ9.k8LGEJSse1jY3d5jYgvRqPR2gJdKzyXXNdxgCj-Ok90	\N	2025-07-08 11:27:15+00	\N	ef086e57bc2a4d749855ac54b56669e0
+3583	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NDA3MywiaWF0IjoxNzQ5MzgyMDczLCJqdGkiOiJjZDQ2ODBiYWM1ZjE0YzRiOTVlZjJiZmJkZjM1NWVmNiIsInVzZXJfaWQiOjJ9.22QEpR2HOvIaXgu71YcrqfItlit4ymV4SdbVvFT-JV4	\N	2025-07-08 11:27:53+00	\N	cd4680bac5f14c4b95ef2bfbdf355ef6
+3584	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NDA3NywiaWF0IjoxNzQ5MzgyMDc3LCJqdGkiOiI1NDY4N2JkNjBmMTQ0MDgwYTkyYmRhOWRkNzMyYTc1NiIsInVzZXJfaWQiOjJ9.6MbbRR0_gREgQ5cPkhgjPqOt4ccYsJ8chFqUfI_QZmQ	\N	2025-07-08 11:27:57+00	\N	54687bd60f144080a92bda9dd732a756
+3585	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NDA5NSwiaWF0IjoxNzQ5MzgyMDk1LCJqdGkiOiI1NTBlY2MzMjU1NzU0MGI3YjM0MjI1YjQ0ZDZiYWNhOSIsInVzZXJfaWQiOjJ9.J5wjYK3KGMSC_9DlYC7Pfka_btvKbvaGU4bXfiitkkA	\N	2025-07-08 11:28:15+00	\N	550ecc32557540b7b34225b44d6baca9
+3586	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NDEwNCwiaWF0IjoxNzQ5MzgyMTA0LCJqdGkiOiI2ODc5YTZiM2Y3MDA0ZDMyYThiYzY0M2RlZmRiYjY4YyIsInVzZXJfaWQiOjJ9.SYXfYWQEEANZDneOsZ4ev5k5NS_hxf8WuonpHf8OAxw	\N	2025-07-08 11:28:24+00	\N	6879a6b3f7004d32a8bc643defdbb68c
+3587	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NDcyNCwiaWF0IjoxNzQ5MzgyNzI0LCJqdGkiOiI5ZmU3MDQ5MTg4YTA0NmMyODE1NTEyZjIzOGRhYzIwNiIsInVzZXJfaWQiOjJ9.LPaEgX6D4h-5ziookJLvfhEeAYUMtmEExOQMmJVFmk0	\N	2025-07-08 11:38:44+00	\N	9fe7049188a046c2815512f238dac206
+3588	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NzYxMSwiaWF0IjoxNzQ5Mzg1NjExLCJqdGkiOiJhM2EzOGJlNWE0YjM0MGMyYWZjZThhNWE3MGY4YjliOCIsInVzZXJfaWQiOjJ9.7vlOSbkjxm1WW0UaBK2plZSF-se9EXO_PxUpK0zw3v4	\N	2025-07-08 12:26:51+00	\N	a3a38be5a4b340c2afce8a5a70f8b9b8
+3589	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NzY1NCwiaWF0IjoxNzQ5Mzg1NjU0LCJqdGkiOiJmMDdjYTU2MzlkODM0NzgwYjVlYjQ3M2IyMzI3MjIyMCIsInVzZXJfaWQiOjJ9.KgxjXLjT3F8hQcCfjnNd1nYAawIpHfgbjoEIX8hOL18	\N	2025-07-08 12:27:34+00	\N	f07ca5639d834780b5eb473b23272220
+3590	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NzY4NCwiaWF0IjoxNzQ5Mzg1Njg0LCJqdGkiOiIwYWIzZWNkMDMxZjA0NTNhOGZjMzFiZTdhYTQyYWZlMiIsInVzZXJfaWQiOjJ9.Z3WtTG-rOo-SYT_sWtVVHZsTwgsl99qKZE9BOPg8epc	\N	2025-07-08 12:28:04+00	\N	0ab3ecd031f0453a8fc31be7aa42afe2
+3591	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NzcwMiwiaWF0IjoxNzQ5Mzg1NzAyLCJqdGkiOiI3Yjc1MzY1MWY1NTA0YTY3YmI3ODM4YmFjYTMyNzNlYiIsInVzZXJfaWQiOjJ9.6AkOg928glijB47uPuEyXB1dQ4nB7-oSkQzhjsgHLXM	\N	2025-07-08 12:28:22+00	\N	7b753651f5504a67bb7838baca3273eb
+3592	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3Nzc1NCwiaWF0IjoxNzQ5Mzg1NzU0LCJqdGkiOiI2MGY0YzUwN2ZkMjE0NTQ4OWUyZmQ1YmNkZmI3M2M2OCIsInVzZXJfaWQiOjJ9.hYUC4mPy_Ugx1buAI7JSJ8IkdFbIW1W3zpp0eEALq9Y	\N	2025-07-08 12:29:14+00	\N	60f4c507fd2145489e2fd5bcdfb73c68
+3593	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NzgwNiwiaWF0IjoxNzQ5Mzg1ODA2LCJqdGkiOiI2MWYzYTI2MjhmMjk0YjQxYTY5NTAyNzYwZTJiOGNhYiIsInVzZXJfaWQiOjJ9.3GbUl6-vvg4Lft4-RTbqbBlp3WLYPMNoWsuaZRDABkc	\N	2025-07-08 12:30:06+00	\N	61f3a2628f294b41a69502760e2b8cab
+3594	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3Nzg2OSwiaWF0IjoxNzQ5Mzg1ODY5LCJqdGkiOiI5ZmE5M2YxZDJkNTQ0YjgwYmI0YjRjOWFlMmE4NTU3NCIsInVzZXJfaWQiOjJ9.T5tz7xQalLVSBE96hXuGlS7mwUaWw7a_g2aKLi4JJBw	\N	2025-07-08 12:31:09+00	\N	9fa93f1d2d544b80bb4b4c9ae2a85574
+3595	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3Nzg5OSwiaWF0IjoxNzQ5Mzg1ODk5LCJqdGkiOiJhZDEzZGRiOTNiOGY0MjY3OTkzYjBjNTdmOTcyMjdkYyIsInVzZXJfaWQiOjJ9.MN7AYkxAEn8KvTVMXh3LYWzGGQymJ2xMULWqiNGbiz4	\N	2025-07-08 12:31:39+00	\N	ad13ddb93b8f4267993b0c57f97227dc
+3596	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NzkwOSwiaWF0IjoxNzQ5Mzg1OTA5LCJqdGkiOiJiMzlmN2YxZjAyZmM0ZmRkODIyMWU0ZjU5YThhZWRiNCIsInVzZXJfaWQiOjJ9.9JcunHF99c-hR-wcGkpiy3QfTGUENsDlBqkHZH8N0G8	\N	2025-07-08 12:31:49+00	\N	b39f7f1f02fc4fdd8221e4f59a8aedb4
+3597	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3NzkxNiwiaWF0IjoxNzQ5Mzg1OTE2LCJqdGkiOiJhOTgxNGNjNWQ2MWM0MDM2ODM1Yzc4NTZmM2U3MWU0ZiIsInVzZXJfaWQiOjJ9.Z0HWaDo6mtcDw3o93ISUIYM4WGohTxW2yqS8WtNIbu4	\N	2025-07-08 12:31:56+00	\N	a9814cc5d61c4036835c7856f3e71e4f
+3598	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODA2NywiaWF0IjoxNzQ5Mzg2MDY3LCJqdGkiOiJiYzAxNzdiZjVlY2E0OWZkYjNhMTQ4ODEyYWE1MTRlZiIsInVzZXJfaWQiOjJ9.DuYYDJM1I_rXRqTnWxq2CZlh_S2TwM7MLasmIeUS7ek	\N	2025-07-08 12:34:27+00	\N	bc0177bf5eca49fdb3a148812aa514ef
+3599	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODA4NiwiaWF0IjoxNzQ5Mzg2MDg2LCJqdGkiOiIzN2RmMTVmNjM0NjQ0M2Q1OTVhNjNjYzQyNTVhNDU5MSIsInVzZXJfaWQiOjJ9.thzPveaRrWLQ9RZTN7iE90AwZvFhRo7v2yo1Y54iS-s	\N	2025-07-08 12:34:46+00	\N	37df15f6346443d595a63cc4255a4591
+3600	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODEwMCwiaWF0IjoxNzQ5Mzg2MTAwLCJqdGkiOiIyNzdiYTE1OTcyM2U0NjFhOTAyNWNkNGI4ZmQ3YmQ1OSIsInVzZXJfaWQiOjJ9.KI4TreCS4WmGdyxMVtCLLQdPCpUEDGuDrDcai4ohOIU	\N	2025-07-08 12:35:00+00	\N	277ba159723e461a9025cd4b8fd7bd59
+3601	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODEyNCwiaWF0IjoxNzQ5Mzg2MTI0LCJqdGkiOiI4MTA3ZmU2Y2NlMzU0MzM0YWMxMzM0NmZiODZmYzNlYSIsInVzZXJfaWQiOjJ9.1HR-5-S_OstSw2Etikny78vLEHYo_9r1GpOkdyxZEPE	\N	2025-07-08 12:35:24+00	\N	8107fe6cce354334ac13346fb86fc3ea
+3602	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODE4MSwiaWF0IjoxNzQ5Mzg2MTgxLCJqdGkiOiI4ZjI1NDgyZGYwOWI0Yjg4OWVhOWUwNzRkNWNiZTYyYSIsInVzZXJfaWQiOjJ9.xzG_QXkzYk_nrrDUIE5V3LNKSk2zEOfjMuW1q6Xh9uA	\N	2025-07-08 12:36:21+00	\N	8f25482df09b4b889ea9e074d5cbe62a
+3603	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODQwMywiaWF0IjoxNzQ5Mzg2NDAzLCJqdGkiOiJiNGE4ZmM4Yzk0ZDM0ODQ5YjRkNjBhMDE3NzA1NDE5MiIsInVzZXJfaWQiOjJ9.05bbsMZJajLTYYLsEHEzwUsAQ2hhwKIqV3mPfuCx3Ks	\N	2025-07-08 12:40:03+00	\N	b4a8fc8c94d34849b4d60a0177054192
+3604	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODQ1NCwiaWF0IjoxNzQ5Mzg2NDU0LCJqdGkiOiI4ZWI5ZDAyMWQ4ZDQ0OWNiYjAwMWQxNTM5YjU0MDVlMiIsInVzZXJfaWQiOjJ9.H8HEHwRdNuF1Y-qRGblUuir3AsBJzVzIVjg4kuZOD8c	\N	2025-07-08 12:40:54+00	\N	8eb9d021d8d449cbb001d1539b5405e2
+3605	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODQ4MiwiaWF0IjoxNzQ5Mzg2NDgyLCJqdGkiOiI5NzczZWFkZGE1ODM0MGI2YWVkN2I5ZDE0Yjc4YmE4OCIsInVzZXJfaWQiOjJ9.8zRMOX0bJKMmpjSYudC_gB724sO4n4qwV7gA4crYMRY	\N	2025-07-08 12:41:22+00	\N	9773eadda58340b6aed7b9d14b78ba88
+3606	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODQ5NiwiaWF0IjoxNzQ5Mzg2NDk2LCJqdGkiOiI0MWNhMWQ0NWY4OTQ0NGE4OWYzNzY0ZmYxMWY4NDRmNSIsInVzZXJfaWQiOjJ9.CgmCqkz7xCmp4gv3XdlYdpgwR8--4iAIgLMtQBlLW5g	\N	2025-07-08 12:41:36+00	\N	41ca1d45f89444a89f3764ff11f844f5
+3607	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODU3MCwiaWF0IjoxNzQ5Mzg2NTcwLCJqdGkiOiJlN2QwMTkzMTE0OTM0ODExODNhNTUxN2Q0YzA4N2FkZSIsInVzZXJfaWQiOjJ9.ES3e8WS2760ulSo0-b6Jv3TYkKEkfNt_qoL86t0DYB0	\N	2025-07-08 12:42:50+00	\N	e7d019311493481183a5517d4c087ade
+3608	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODU3NiwiaWF0IjoxNzQ5Mzg2NTc2LCJqdGkiOiJkOTFmODMxYzM3NjI0YTJiOTYwOGI5NTllYzZmMDRlOSIsInVzZXJfaWQiOjJ9.cJAyp-qtNei-qkyyIbq4tKWcyJbCNm3kY5SqLP2KuTI	\N	2025-07-08 12:42:56+00	\N	d91f831c37624a2b9608b959ec6f04e9
+3609	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODU4MywiaWF0IjoxNzQ5Mzg2NTgzLCJqdGkiOiI2YWI5NzBkNjM5NzE0MTgxYjM2MzkzMGFjYjYwOGM5MCIsInVzZXJfaWQiOjJ9.L_Cp7sVIye2WqdL_S6DNuvU-rNQmMhEhp3Pttjuj4Dw	\N	2025-07-08 12:43:03+00	\N	6ab970d639714181b363930acb608c90
+3610	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODU4OSwiaWF0IjoxNzQ5Mzg2NTg5LCJqdGkiOiIxNDEzMjlhYTVhODE0YWNiYTZjMGQ3ZGQ5NDZhOTM4ZSIsInVzZXJfaWQiOjJ9.1_T9LL7yDsB9BHKOF-kiEeiDE5NmKbIEwiFAhqDA-VA	\N	2025-07-08 12:43:09+00	\N	141329aa5a814acba6c0d7dd946a938e
+3611	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODYwNCwiaWF0IjoxNzQ5Mzg2NjA0LCJqdGkiOiI2NTgwZmUyOGU3Mzk0ZDcxYmRlYTAzOTQyM2Y0OWUyMSIsInVzZXJfaWQiOjJ9.f-z2D1y3m0XvXVhptY9IJzTUpXTdGSu3A9i2PE06xWE	\N	2025-07-08 12:43:24+00	\N	6580fe28e7394d71bdea039423f49e21
+3612	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODYyMSwiaWF0IjoxNzQ5Mzg2NjIxLCJqdGkiOiIwYzIwNWI4YzU3NjM0YzVjODBhMmFlNTYyYmU2ZThjZSIsInVzZXJfaWQiOjJ9.PvZZrg1HTVsJQ8clqxT5ydRGr1lqU6Ru7G6DCGj5rpY	\N	2025-07-08 12:43:41+00	\N	0c205b8c57634c5c80a2ae562be6e8ce
+3613	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODY0NiwiaWF0IjoxNzQ5Mzg2NjQ2LCJqdGkiOiI2YzBhZGFkOTMyMTQ0YWM0YjMxZTJjNzVhMjcyN2IzZCIsInVzZXJfaWQiOjJ9.fTYpDpevt-7PWoEsz39njpt4ufIcDPhBWF4ovrBYuew	\N	2025-07-08 12:44:06+00	\N	6c0adad932144ac4b31e2c75a2727b3d
+3614	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk3ODY1MywiaWF0IjoxNzQ5Mzg2NjUzLCJqdGkiOiJhNDVmZjk0MzhlNDg0ZTk4YmE2MmM4MzBkNzExN2FhNCIsInVzZXJfaWQiOjJ9.patI-PuKwzIyenDReJVa3zwImKhpRyPS8xCqqlTDExM	\N	2025-07-08 12:44:13+00	\N	a45ff9438e484e98ba62c830d7117aa4
+3615	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4NjM3OCwiaWF0IjoxNzQ5Mzk0Mzc4LCJqdGkiOiI5N2RiNDEwZjhmNzI0ZmQ5YWI4Y2RlYjY5N2M0NGM1MyIsInVzZXJfaWQiOjJ9.x_3r_-IB3OThXmPFmWPt7zo2nygXvm-ANVGQssMM0Hg	\N	2025-07-08 14:52:58+00	\N	97db410f8f724fd9ab8cdeb697c44c53
+3616	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4NjQ4NCwiaWF0IjoxNzQ5Mzk0NDg0LCJqdGkiOiIzZDc5YmQ4ZTg1ODY0NGRkOGNhMmYzMWE4Zjc1M2RlZSIsInVzZXJfaWQiOjJ9.Om-tj_SXA9N_HasWb0e_BRs3Rt6vg7k-xMazCRnHh1E	\N	2025-07-08 14:54:44+00	\N	3d79bd8e858644dd8ca2f31a8f753dee
+3617	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4NjYwOCwiaWF0IjoxNzQ5Mzk0NjA4LCJqdGkiOiIyZDEwMzFhZmEwODU0MjFhYjU1M2JiOTA0MmIxM2ExMiIsInVzZXJfaWQiOjJ9.7wdMI6TmniQgc9a05rsJwjWcRF4uOamqN-Y6wE0jybA	\N	2025-07-08 14:56:48+00	\N	2d1031afa085421ab553bb9042b13a12
+3618	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4NjYyOCwiaWF0IjoxNzQ5Mzk0NjI4LCJqdGkiOiJjNTMxMWZkNDVhZGM0ZjI0YTMwNDBjNGE4MTZjOTdmNiIsInVzZXJfaWQiOjJ9.gO9qCbkbB4FvFcbjV8JildAe2fpTPUhkxxGOwnkysgk	\N	2025-07-08 14:57:08+00	\N	c5311fd45adc4f24a3040c4a816c97f6
+3619	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4NjY3MSwiaWF0IjoxNzQ5Mzk0NjcxLCJqdGkiOiIyNTZjZTE2NDdmODY0YWUxOGFmMWY3OWMwMDhkODQxNCIsInVzZXJfaWQiOjJ9.zcbDwK0rFJUhqJGVO1VzTDVeZP3znctldHYrvmrFYzw	\N	2025-07-08 14:57:51+00	\N	256ce1647f864ae18af1f79c008d8414
+3620	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4Njc5MSwiaWF0IjoxNzQ5Mzk0NzkxLCJqdGkiOiI0ZGIwYjVhNjNiZDQ0OTMyODAzYjkwMTU4N2QzZDZiNyIsInVzZXJfaWQiOjJ9.NGK1lDyX6wzTKNm6L31GFM8Q5QAwmCdB12qIjqPSENk	\N	2025-07-08 14:59:51+00	\N	4db0b5a63bd44932803b901587d3d6b7
+3621	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4Njk3NiwiaWF0IjoxNzQ5Mzk0OTc2LCJqdGkiOiJkMmViODEwMDFiZGE0YzJkOWFmODMwNmQ0NTUwMGVkMyIsInVzZXJfaWQiOjJ9.w07ClbGxeV1lP1oPg39K0WmIk5Yoc9VlCxa9Lu3jC8w	\N	2025-07-08 15:02:56+00	\N	d2eb81001bda4c2d9af8306d45500ed3
+3622	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4Nzk1NSwiaWF0IjoxNzQ5Mzk1OTU1LCJqdGkiOiJiMzk3Yjk1NTI3YmM0NzM4OTkyMDAxODBmMGU0ZjI4OSIsInVzZXJfaWQiOjJ9.iJoKN4yeAe1A488iWZ7uSFqXNBzqcVUPzf2djSKtwds	\N	2025-07-08 15:19:15+00	\N	b397b95527bc473899200180f0e4f289
+3623	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4ODU2OSwiaWF0IjoxNzQ5Mzk2NTY5LCJqdGkiOiI3NWIwODcwZmQ4YmQ0NzA2YWI1NWNhNzE0N2JlMDQ5ZSIsInVzZXJfaWQiOjJ9.Y2fN_biGUDqSjtoUR48amah4rGx0Sm78SPfeq1nijEQ	2025-06-08 15:29:29.046183+00	2025-07-08 15:29:29+00	2	75b0870fd8bd4706ab55ca7147be049e
+3624	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4ODI0MywiaWF0IjoxNzQ5Mzk2MjQzLCJqdGkiOiIwZTBhZDE2ZjRkYTQ0YTczYWEzNzc5Yjc2NGIxYzBjNCIsInVzZXJfaWQiOjJ9.ITalNlw2tiqoB_ezo_mG1Y8ThS-oGb41uCEL1IYkgx8	\N	2025-07-08 15:24:03+00	\N	0e0ad16f4da44a73aa3779b764b1c0c4
+3625	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4ODcyNiwiaWF0IjoxNzQ5Mzk2NzI2LCJqdGkiOiI2Y2NkZjFlOWYzMWU0OWNhOGI1ZWJlMTFlMWM3YTRiYyIsInVzZXJfaWQiOjJ9.cb4TlKXZdcFcim_t4541qES8iMSFQJoe_Avh9OPdAc4	\N	2025-07-08 15:32:06+00	\N	6ccdf1e9f31e49ca8b5ebe11e1c7a4bc
+3626	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4OTAwNSwiaWF0IjoxNzQ5Mzk3MDA1LCJqdGkiOiJhMjEzNjJiZGQ4ZTg0ZTRlOTEwMzg3NDA3NWE0MWZkYSIsInVzZXJfaWQiOjJ9.0mdk_xvRQlroOe0eGIyOK6a2t9APzNwmLi12MF0p1fQ	\N	2025-07-08 15:36:45+00	\N	a21362bdd8e84e4e9103874075a41fda
+3627	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4OTAyOSwiaWF0IjoxNzQ5Mzk3MDI5LCJqdGkiOiI1NDI3ZmMyYTYzOGM0MmU4YjYxNzU0YmE1N2IxNDk4OSIsInVzZXJfaWQiOjJ9.s3V9FYnFu_jTjO9FCiqYKCyEVNcjRnV0-lh4vx9p5JU	\N	2025-07-08 15:37:09+00	\N	5427fc2a638c42e8b61754ba57b14989
+3628	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4OTA3NiwiaWF0IjoxNzQ5Mzk3MDc2LCJqdGkiOiIxYzhhNTVjZTcxNDk0ZDgxYTE2YTg1N2U3ZWQ0Zjc3ZCIsInVzZXJfaWQiOjJ9.qc7b9qsbwh6vVeLGtUW_I05kyXq_8jABpjQQk97rids	\N	2025-07-08 15:37:56+00	\N	1c8a55ce71494d81a16a857e7ed4f77d
+3629	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4OTE5NSwiaWF0IjoxNzQ5Mzk3MTk1LCJqdGkiOiJiZjhjNzUzODNjYzk0NGE5OTUyYzNlOTgxYTQyNDIwNCIsInVzZXJfaWQiOjJ9.Vt57IJZ9KP7ETrHQSqH1oqd7v5sWjatIMvxKgH55j4Y	\N	2025-07-08 15:39:55+00	\N	bf8c75383cc944a9952c3e981a424204
+3630	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4OTIyMSwiaWF0IjoxNzQ5Mzk3MjIxLCJqdGkiOiJjMTExYzkyOGExZGM0NDhmOTgyN2ZiNDI0MjU2OGViYyIsInVzZXJfaWQiOjJ9.oL1qgRZJKahxuhvXPZn1MHpEhNfoVL1SAUfg20AxiuY	\N	2025-07-08 15:40:21+00	\N	c111c928a1dc448f9827fb4242568ebc
+3631	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4OTkyOSwiaWF0IjoxNzQ5Mzk3OTI5LCJqdGkiOiIxOTI5Mzc1Yjk1Yzg0NmMzYmE0YWM3Mzg3YTExMjZkNiIsInVzZXJfaWQiOjJ9.jGzIaCRZJ6aPnue1QryU76uIwJFyreFabJNFxmPjtzE	\N	2025-07-08 15:52:09+00	\N	1929375b95c846c3ba4ac7387a1126d6
+3632	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk4OTk4MiwiaWF0IjoxNzQ5Mzk3OTgyLCJqdGkiOiI4YmFkYmQyNmI1NmQ0ZTQ2ODBjY2VjYTU2MmEyMDU3NiIsInVzZXJfaWQiOjJ9.N7E7WW11ncMy-2uoa4Q2AXnA0_AAT2C65kW_Qv86xh8	\N	2025-07-08 15:53:02+00	\N	8badbd26b56d4e4680cceca562a20576
+3633	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDAxMSwiaWF0IjoxNzQ5Mzk4MDExLCJqdGkiOiI4Yzg3ZDI1YWZlNmI0YjYwYTE4ODNlNjJjZDE0YWFkMCIsInVzZXJfaWQiOjJ9.pxadyio6Pi7bzla4YCsbiiAMPAk7moLTn5mZUT7hQFM	\N	2025-07-08 15:53:31+00	\N	8c87d25afe6b4b60a1883e62cd14aad0
+3634	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDA4NSwiaWF0IjoxNzQ5Mzk4MDg1LCJqdGkiOiI0ZWU1Yjc3NmMwMWQ0YjY1YWFkMGEyZWVlMjFiMjRlNSIsInVzZXJfaWQiOjJ9.eDpATRaIlHxbwZxfR3JW8cmaSYvz-1RBHq1jIDnR02M	\N	2025-07-08 15:54:45+00	\N	4ee5b776c01d4b65aad0a2eee21b24e5
+3635	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDEwMCwiaWF0IjoxNzQ5Mzk4MTAwLCJqdGkiOiI3MWU2MjcwYTQxN2I0MTE4ODIzMjMyNWJhYzQ3YjdhNyIsInVzZXJfaWQiOjJ9.RX_xtbB5_NPLs_hN8h4ZZUmCV0H2lCyvbABlVteayd0	\N	2025-07-08 15:55:00+00	\N	71e6270a417b41188232325bac47b7a7
+3636	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDE0NSwiaWF0IjoxNzQ5Mzk4MTQ1LCJqdGkiOiI3YmE4YTk3MWNkZGM0MGYwYjE3ZjM2NDYxNzkxOWJlYiIsInVzZXJfaWQiOjJ9.X40TfPn3gZbAQkBoPwuHl0YKZzzDk4XFRjMXr7bxm6k	\N	2025-07-08 15:55:45+00	\N	7ba8a971cddc40f0b17f364617919beb
+3637	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDE4OCwiaWF0IjoxNzQ5Mzk4MTg4LCJqdGkiOiI3ZWNjYmE2MjA4ZDA0YmU4YjBkMDg5MWZlZmY0MDBmYiIsInVzZXJfaWQiOjJ9.bzQ8bdAIiPm0xqY9oAwiipKRLZblXfcJRfrgx3BS6OI	\N	2025-07-08 15:56:28+00	\N	7eccba6208d04be8b0d0891feff400fb
+3638	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDIyOCwiaWF0IjoxNzQ5Mzk4MjI4LCJqdGkiOiIyMjA4NWMzNDVjNDc0ZTlkOThkM2Q3ZDUyY2Y0ZjQwNCIsInVzZXJfaWQiOjJ9.l5BW1hvEE2tyctxsYbYDIaF3XZjf9XRBegFBlmOZZs0	\N	2025-07-08 15:57:08+00	\N	22085c345c474e9d98d3d7d52cf4f404
+3639	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDI0OSwiaWF0IjoxNzQ5Mzk4MjQ5LCJqdGkiOiI2NjdmZjk5NDI0M2Q0M2Y2ODUzODVhN2I4NzhkY2ZlNCIsInVzZXJfaWQiOjJ9.hFKre0Y-bstdhX4F6gY4OyMIah4N2bh-RtzS-8Qliw8	\N	2025-07-08 15:57:29+00	\N	667ff994243d43f685385a7b878dcfe4
+3640	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDM1MSwiaWF0IjoxNzQ5Mzk4MzUxLCJqdGkiOiJhZDAyMDZiZDFlNzc0ZTFmODA1Y2QwMDk0NDNhOTVkNCIsInVzZXJfaWQiOjJ9.XvkL5uLI2r_98xmJNeV6sFw7VHRzSV9_hKo4sxRnWt0	\N	2025-07-08 15:59:11+00	\N	ad0206bd1e774e1f805cd009443a95d4
+3641	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDQ3MCwiaWF0IjoxNzQ5Mzk4NDcwLCJqdGkiOiJhZjU2MDFlNGU2ZGY0OTI3OWU1ZDY3ZTNlM2VkMTdhMyIsInVzZXJfaWQiOjJ9.qzbXlTI7iGQ1rJ5Ll8JRm5vm6Ua6VdPYYAmnWg2JGtM	\N	2025-07-08 16:01:10+00	\N	af5601e4e6df49279e5d67e3e3ed17a3
+3642	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDU4MiwiaWF0IjoxNzQ5Mzk4NTgyLCJqdGkiOiI5NjUwNmVjZjlkYWQ0YjI5YjE3NTg0NzJjMjYxMzMzMCIsInVzZXJfaWQiOjJ9.J39l2SF0BD1Kgb5Rugm5mmnnRI6NWPJ2_IWfBLFBdVI	\N	2025-07-08 16:03:02+00	\N	96506ecf9dad4b29b1758472c2613330
+3643	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDU5NCwiaWF0IjoxNzQ5Mzk4NTk0LCJqdGkiOiJjMThkMjQ2ODU2ZGM0ODJmYmI1ZjU1NTQ0YWEyYzA3ZCIsInVzZXJfaWQiOjJ9.DVmPaeuM4fDavLJ07I2YCZf2tbjYv8PhuS-QObmaj40	\N	2025-07-08 16:03:14+00	\N	c18d246856dc482fbb5f55544aa2c07d
+3644	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDYyNSwiaWF0IjoxNzQ5Mzk4NjI1LCJqdGkiOiJmZmE3YzhhNDMxMWI0NTljODgwYTdiZjc1NGI5YTFiYiIsInVzZXJfaWQiOjJ9.Da_fGDiGZ6RT85LFr4ouPnKPco2Jm3VybuYoo7cvnA0	\N	2025-07-08 16:03:45+00	\N	ffa7c8a4311b459c880a7bf754b9a1bb
+3645	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDY0NCwiaWF0IjoxNzQ5Mzk4NjQ0LCJqdGkiOiJlM2M2OWZjM2U2ODE0ZDJjYjBlOWJlYjk1Y2EwOWViMyIsInVzZXJfaWQiOjJ9.69qjp1kK7m2Dpr_jq6btYQUqun4r6R4M2sEXQL94wbQ	\N	2025-07-08 16:04:04+00	\N	e3c69fc3e6814d2cb0e9beb95ca09eb3
+3646	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDcwNywiaWF0IjoxNzQ5Mzk4NzA3LCJqdGkiOiIxNzYzZDk0ZGU1MDU0OGFmYWVhMzMwYmVlYWY4NzI1NSIsInVzZXJfaWQiOjJ9.RBMyAflCRqgaToX6eUnVVOFqyq5OTmqQeiu38NfYQec	\N	2025-07-08 16:05:07+00	\N	1763d94de50548afaea330beeaf87255
+3647	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDczOSwiaWF0IjoxNzQ5Mzk4NzM5LCJqdGkiOiI4OTRlZDM5MWExNjQ0MGZjOTg0ZWQwYzljMzY5YTUxNyIsInVzZXJfaWQiOjJ9.aPkoUujul1bci3anDF8GTMSOXHkWTTOa1KuaUnnJ8d4	\N	2025-07-08 16:05:39+00	\N	894ed391a16440fc984ed0c9c369a517
+3648	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDg1MSwiaWF0IjoxNzQ5Mzk4ODUxLCJqdGkiOiI5NDMxNGIxMjM0MTk0YTA2YWEzNTk1NGNiODkwYmU5OCIsInVzZXJfaWQiOjJ9.C10Ur9KxgSPpY4G2eSmOwH5m6zU5pyNOPXahSN2jXPI	\N	2025-07-08 16:07:31+00	\N	94314b1234194a06aa35954cb890be98
+3649	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MDg1MywiaWF0IjoxNzQ5Mzk4ODUzLCJqdGkiOiI4NTNkN2U2MGVhOWM0NDk3OWYxMWM2OTk2OWVlM2RiMyIsInVzZXJfaWQiOjJ9.lh_GCfmqlFPgwQ_Bfat-xagLGqT3czJ7HB8xibBQsYY	\N	2025-07-08 16:07:33+00	\N	853d7e60ea9c44979f11c69969ee3db3
+3650	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MTEwNywiaWF0IjoxNzQ5Mzk5MTA3LCJqdGkiOiJiNTY1NGE4OTljNzM0ZDg2ODMzZWNmNmYzOTM3YmQ0NyIsInVzZXJfaWQiOjJ9.2I2X9GbwpMpX42hW-GVNXR1FVAKTozMZeq5LTEZOfzo	\N	2025-07-08 16:11:47+00	\N	b5654a899c734d86833ecf6f3937bd47
+3651	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MTIxOCwiaWF0IjoxNzQ5Mzk5MjE4LCJqdGkiOiI2ZDU1OTExNDg2YjM0NjhmOGZiN2VlNzlkYjdhN2NhMiIsInVzZXJfaWQiOjJ9.9_XjPcnJUEXDivPKX4E5p9jcByt5Dfaj_jmncYrC94E	\N	2025-07-08 16:13:38+00	\N	6d55911486b3468f8fb7ee79db7a7ca2
+3652	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MTIyOSwiaWF0IjoxNzQ5Mzk5MjI5LCJqdGkiOiJlOWRlMWJlODU5YjY0ZmE5YTk0NGFmN2IyNGFlNjRhOCIsInVzZXJfaWQiOjJ9.9Wjn5zaomUeANNRNQCTtto-6SMEIu-bUuK80i0KRFjc	\N	2025-07-08 16:13:49+00	\N	e9de1be859b64fa9a944af7b24ae64a8
+3653	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MTI1OCwiaWF0IjoxNzQ5Mzk5MjU4LCJqdGkiOiI4ZjQwNzY2NjNlM2U0NWEyYjM0MDU5YzQxZGRkYWVjOCIsInVzZXJfaWQiOjJ9.uRqwocKa-OxL_2ofr5Q3XCLfIutpuyOQRJ1Gpd2hGWE	\N	2025-07-08 16:14:18+00	\N	8f4076663e3e45a2b34059c41dddaec8
+3654	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MTMyNywiaWF0IjoxNzQ5Mzk5MzI3LCJqdGkiOiIxOTM4N2JkZmNkNmU0MWQ2OTE5YWM4ODlhYWFhMGQxMiIsInVzZXJfaWQiOjJ9.1_JR00ZMh_XPN04hSEi6c3UAYC-z-0QBzULxXF1YPHU	\N	2025-07-08 16:15:27+00	\N	19387bdfcd6e41d6919ac889aaaa0d12
+3655	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MTM2OCwiaWF0IjoxNzQ5Mzk5MzY4LCJqdGkiOiJiNzUzZmU1YTllMWY0NTUzYTU2OGNkOGQwZTU4NjU4OSIsInVzZXJfaWQiOjJ9.-W1lITufR9aDgurt-cQSH1BVp6b_7TLgvyJGSgkC5mw	\N	2025-07-08 16:16:08+00	\N	b753fe5a9e1f4553a568cd8d0e586589
+3656	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MTM3NSwiaWF0IjoxNzQ5Mzk5Mzc1LCJqdGkiOiI5ZDZlNWFkOTMxYWE0MDk2YTE0NDNlNDRlMTVjYmZjNyIsInVzZXJfaWQiOjJ9.TW39Jt4-yorsrZU5gtg-HwX6p3VTgF9sf2EIRHJauoU	\N	2025-07-08 16:16:15+00	\N	9d6e5ad931aa4096a1443e44e15cbfc7
+3657	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MTM3OSwiaWF0IjoxNzQ5Mzk5Mzc5LCJqdGkiOiIzN2FmNTNhMmJhZGQ0Mjg5YWI0MTdmODA2N2MyZjZjMyIsInVzZXJfaWQiOjJ9.5L2r0d1Gl3c0uNARpn1bgaIQrwt9QaDXMg9I3y1gH4c	\N	2025-07-08 16:16:19+00	\N	37af53a2badd4289ab417f8067c2f6c3
+3658	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MTQyNiwiaWF0IjoxNzQ5Mzk5NDI2LCJqdGkiOiJlNTlhZWM3MzVjOWI0ZjU4YjZkZTczN2M4NjkyOGNkNSIsInVzZXJfaWQiOjJ9.TMStXVsmwHbR1LNwE2UjEYdUzsb8jPs4ypZ_qAuNQOk	\N	2025-07-08 16:17:06+00	\N	e59aec735c9b4f58b6de737c86928cd5
+3659	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MTkxMSwiaWF0IjoxNzQ5Mzk5OTExLCJqdGkiOiI3ZGZlODA5NjZiYzQ0MWVmYWViZTk1NDFiOGJjMzIxZiIsInVzZXJfaWQiOjJ9.yCt7VGNhfKjbHgYx1Zc4zyCQQ7ALlb9Z4TLwe5lh2-k	\N	2025-07-08 16:25:11+00	\N	7dfe80966bc441efaebe9541b8bc321f
+3660	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MTk1NiwiaWF0IjoxNzQ5Mzk5OTU2LCJqdGkiOiI2ZjJiMmJhZGMxN2U0MWE0YjgwZGQ2ODAxZjhlOTE2OCIsInVzZXJfaWQiOjJ9.DE0awWOwDBofVc90ylsi8DFGtQQQev0XguZgB6CMB9g	\N	2025-07-08 16:25:56+00	\N	6f2b2badc17e41a4b80dd6801f8e9168
+3661	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MjAwNiwiaWF0IjoxNzQ5NDAwMDA2LCJqdGkiOiI0M2RlODgxODU2OGM0ZjZkOTUzNWRiYWIwMTBiYzA0YiIsInVzZXJfaWQiOjJ9.b5xkRP1QHVdHNw5qvUmrMBK05RWwDjn3MKdejvRfD08	\N	2025-07-08 16:26:46+00	\N	43de8818568c4f6d9535dbab010bc04b
+3662	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MjA2NiwiaWF0IjoxNzQ5NDAwMDY2LCJqdGkiOiI4MDBhYzljMmIzMzM0OGJlOTNkZTMxMmE1MjJlOGUxNiIsInVzZXJfaWQiOjJ9.FXCkkbh9xS_tYH3PYT_hSVRBMbWLeGSr2w8c9BK-yeY	\N	2025-07-08 16:27:46+00	\N	800ac9c2b33348be93de312a522e8e16
+3663	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MjA3MiwiaWF0IjoxNzQ5NDAwMDcyLCJqdGkiOiJhODVlZmU1N2QyMzM0MDMzOTkxNjVlZmY2ZTI2MzNlNiIsInVzZXJfaWQiOjJ9.6tin_gCPANz3KIUuWDjzt1l_fZ0yrjvOT0bHRy8BT10	\N	2025-07-08 16:27:52+00	\N	a85efe57d233403399165eff6e2633e6
+3664	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MjEwMCwiaWF0IjoxNzQ5NDAwMTAwLCJqdGkiOiJlMTIyZDRlNjYxM2Q0MDk1OTE4NmNjMGY1ZTE1Nzk2ZSIsInVzZXJfaWQiOjJ9.3F8BOFnQvNK-sSd0tSsy_2M3T2XxZIiJCPz0PHQEfYo	\N	2025-07-08 16:28:20+00	\N	e122d4e6613d40959186cc0f5e15796e
+3665	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MjczNiwiaWF0IjoxNzQ5NDAwNzM2LCJqdGkiOiJmY2ZiYTYyMzFiOTM0NWFkODhkZTM3MGQ0ODhlMWI1ZiIsInVzZXJfaWQiOjJ9.u-MadN8m02jI0FVLXYkEtyssZaRC6czX5CNgXuB9SDM	\N	2025-07-08 16:38:56+00	\N	fcfba6231b9345ad88de370d488e1b5f
+3666	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk5MzQ2NSwiaWF0IjoxNzQ5NDAxNDY1LCJqdGkiOiI1MDc2ZDY1OTkzYjY0MjZlYTY2M2Y5YjBjMzJmMjExOCIsInVzZXJfaWQiOjJ9.VEf8dHeIpUXVvkUtBijdnoWZSXOR84cDi9MVomamLyU	\N	2025-07-08 16:51:05+00	\N	5076d65993b6426ea663f9b0c32f2118
+3667	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjAwMzIxNSwiaWF0IjoxNzQ5NDExMjE1LCJqdGkiOiJmMjllZTNmMTVmNmY0MzM3YTYxMjJkMDE1OTNmYTY3OSIsInVzZXJfaWQiOjJ9.6El_Z3-i_4BGdohbOX5tITut0hYIVC7-DVrfdEJC6RI	\N	2025-07-08 19:33:35+00	\N	f29ee3f15f6f4337a6122d01593fa679
+3668	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjAwMzU0MSwiaWF0IjoxNzQ5NDExNTQxLCJqdGkiOiIzYzBmODVkM2UyNzE0NmEzYTFkOTk2OTg2MmFmNWEyYyIsInVzZXJfaWQiOjJ9.0f6HMbXyL1zv5qCIiBCYRF8x9EZGUccKC10xkgVvAo0	\N	2025-07-08 19:39:01+00	\N	3c0f85d3e27146a3a1d9969862af5a2c
+3669	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjAwMzY2NCwiaWF0IjoxNzQ5NDExNjY0LCJqdGkiOiJhMTY5OWNjMGNlMGI0ZTY0OWQ0M2ZiYTViYmE5NWRmYiIsInVzZXJfaWQiOjJ9.C1x1vviDIPeeLcoy-c1E92zjXKVeAWX2b62OTJu8GiI	\N	2025-07-08 19:41:04+00	\N	a1699cc0ce0b4e649d43fba5bba95dfb
+3670	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjAwMzc2NywiaWF0IjoxNzQ5NDExNzY3LCJqdGkiOiI2ZTIwYzI1ODQxYjM0MDk2OTA4NWEyYmM3MmVmODBiMSIsInVzZXJfaWQiOjJ9.xjh_WB9ctneu4jAwqC8RYhgbzYbSibMhboAWZkzdzOY	\N	2025-07-08 19:42:47+00	\N	6e20c25841b340969085a2bc72ef80b1
+3671	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjAwMzk4MSwiaWF0IjoxNzQ5NDExOTgxLCJqdGkiOiI5ODYzYWZkM2FjNmE0OWY0OGNjNzJjOTgxZjlmY2JiNCIsInVzZXJfaWQiOjJ9.Nc23pv7tXRKVPrMxsa-B8m4m296jauxe64dzh1XBKyU	\N	2025-07-08 19:46:21+00	\N	9863afd3ac6a49f48cc72c981f9fcbb4
+3672	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjAwMzk4NCwiaWF0IjoxNzQ5NDExOTg0LCJqdGkiOiI1ZDI3NzM0NzU0YWM0MGY4YTdjZTA2OGU4ZWJiZDMxYiIsInVzZXJfaWQiOjJ9.Q4ielL-Hv6Rui87bYS3fKoRtlMPJDtupvo9ufjxez7E	\N	2025-07-08 19:46:24+00	\N	5d27734754ac40f8a7ce068e8ebbd31b
+3673	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjAwMzk4OSwiaWF0IjoxNzQ5NDExOTg5LCJqdGkiOiJiN2FmNmRlYTRmNGI0YTE0ODM3MmY2MDVjMzY5YWFjNCIsInVzZXJfaWQiOjJ9.oVNL5YST86pTxeKLqxG4-8q7ShREVY2GkNT08mA0b5E	\N	2025-07-08 19:46:29+00	\N	b7af6dea4f4b4a148372f605c369aac4
+3674	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0MTQ3MSwiaWF0IjoxNzQ5NDQ5NDcxLCJqdGkiOiJkMzU1YWNhN2I4MTA0ZmQzODcyMTVkYzY2OGUxOTdhZSIsInVzZXJfaWQiOjJ9.QmYW7DZzm-b6WAsz301RMxOThK0i7BYeJwAGKV0VsBY	2025-06-09 06:11:11.489612+00	2025-07-09 06:11:11+00	2	d355aca7b8104fd387215dc668e197ae
+3675	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0MjE4OSwiaWF0IjoxNzQ5NDUwMTg5LCJqdGkiOiJkMDRlOGNmZGE5OGQ0NzQ1ODY4N2YwYmJjZTgxZDM0YiIsInVzZXJfaWQiOjJ9.YubvMc5H5Q-MS_RSDr0KzP1R7_ThZxDWGohczReaQrg	2025-06-09 06:23:09.511136+00	2025-07-09 06:23:09+00	2	d04e8cfda98d47458687f0bbce81d34b
+3676	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0MjI0OCwiaWF0IjoxNzQ5NDUwMjQ4LCJqdGkiOiI1NjEyYTg2NzI5MTU0NGU4YWZjYmMzZjg5YTY4YmRkMiIsInVzZXJfaWQiOjJ9.jQbLRZtfxcJ1W5aYn8dB38D2AlETwEixpuV7hFLWJUI	\N	2025-07-09 06:24:08+00	\N	5612a867291544e8afcbc3f89a68bdd2
+3677	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0MjI4OCwiaWF0IjoxNzQ5NDUwMjg4LCJqdGkiOiI0MWQ1MjJjNjMyOWI0MTgyODRkYTVmMzNhNzE5ZTA1YSIsInVzZXJfaWQiOjJ9.9eDuqf8gwQwQiBn-uS9L6MBZk0MDUhAxw5rztgdjJ-8	\N	2025-07-09 06:24:48+00	\N	41d522c6329b418284da5f33a719e05a
+3678	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0MjMxMSwiaWF0IjoxNzQ5NDUwMzExLCJqdGkiOiIwNDM5NWFlOWViZmQ0MzJhYjJlMDViY2NkM2E2ZDZlZCIsInVzZXJfaWQiOjJ9.u8gsXeQmCH9PMNzG_j18dOJawLhQWTrpFRd-evViwIk	\N	2025-07-09 06:25:11+00	\N	04395ae9ebfd432ab2e05bccd3a6d6ed
+3679	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0MzEzNywiaWF0IjoxNzQ5NDUxMTM3LCJqdGkiOiIzMGE2MmMzNmZhOWE0MzNkYWMxMjMwYmNkZmNhYmNlMyIsInVzZXJfaWQiOjJ9.ParYcf2_eoz1O7HDN540uCvFQ2R5v65oUKMDy8QVJsQ	\N	2025-07-09 06:38:57+00	\N	30a62c36fa9a433dac1230bcdfcabce3
+3680	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0MzE3OSwiaWF0IjoxNzQ5NDUxMTc5LCJqdGkiOiJhMDQzMDNhMzQyODA0NTYxODkwNmI5ZTJlM2U0MGE2MCIsInVzZXJfaWQiOjJ9.xzSvMnQO049KGAHB6JpXMV1pQYB3y9Xmmc4wBjqMYS4	\N	2025-07-09 06:39:39+00	\N	a04303a3428045618906b9e2e3e40a60
+3681	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0MzIxOSwiaWF0IjoxNzQ5NDUxMjE5LCJqdGkiOiJiMDhiYjZhNDZiYTQ0NTdiYTVjM2U2M2M4M2M5ZGM1MSIsInVzZXJfaWQiOjJ9.YuxNu-p0T_fz8s3ykifsxTBTy-64IsHAtI1PLcVgxrE	\N	2025-07-09 06:40:19+00	\N	b08bb6a46ba4457ba5c3e63c83c9dc51
+3682	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0MzkyMCwiaWF0IjoxNzQ5NDUxOTIwLCJqdGkiOiJhZjk1YjYzMTgyOGQ0MTQzODMwOTVmYWY3OTE3YWRhMCIsInVzZXJfaWQiOjJ9.9Ai-DkavA8D0u-x_Dnxo6HPmAJFSkHjsCW_EzPSlL6s	\N	2025-07-09 06:52:00+00	\N	af95b631828d414383095faf7917ada0
+3683	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0NDE5MiwiaWF0IjoxNzQ5NDUyMTkyLCJqdGkiOiI0YzNjYjBjZmJhMzE0NTJlYjgxMTliMTViOWZhZWY3YyIsInVzZXJfaWQiOjJ9.GT3CF_mGdpA6YfM5gCkEg6H7PW59uV5xoF5J8VGmq2c	\N	2025-07-09 06:56:32+00	\N	4c3cb0cfba31452eb8119b15b9faef7c
+3684	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0NDI3MiwiaWF0IjoxNzQ5NDUyMjcyLCJqdGkiOiJmODg0Y2RjMDljN2M0MmViYmM5MjViZWQ1YmNkM2YyZCIsInVzZXJfaWQiOjJ9.DQyI7dogNVbVGuXY2SpqPnHJrqzhevQ5QlhoNRra9_w	\N	2025-07-09 06:57:52+00	\N	f884cdc09c7c42ebbc925bed5bcd3f2d
+3685	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTk2ODk1NywiaWF0IjoxNzQ5Mzc2OTU3LCJqdGkiOiJlMDk4YzE5NGM3YTQ0MGVjOTdkYmJhNTQ2OTE3Y2E4MiIsInVzZXJfaWQiOjJ9.hVDc5BMnSEn7XwIjTLfOiAQ43stDOG4y_ubJHwHEvS8	\N	2025-07-08 10:02:37+00	\N	e098c194c7a440ec97dbba546917ca82
+3686	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0NzE3OSwiaWF0IjoxNzQ5NDU1MTc5LCJqdGkiOiI3MzIzOWUwNmQ2ZTc0MWY3YWJkYzQxNDcxODcxYTRjZCIsInVzZXJfaWQiOjJ9.RbDTo6QWqrMDI2O1gbXLPByNqxvLrpgzX6u_IwbTRuE	2025-06-09 07:46:19.839735+00	2025-07-09 07:46:19+00	2	73239e06d6e741f7abdc41471871a4cd
+3687	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0NzIwNiwiaWF0IjoxNzQ5NDU1MjA2LCJqdGkiOiIyMzJiYjM1OTE3YWU0YmJkOTY0YjU4MjljMGFkZmFlYSIsInVzZXJfaWQiOjJ9.P2r2wsQZ6xuLHa1nDaYAMfItenyJqYxeqYd7LVrlxU0	2025-06-09 07:46:46.497692+00	2025-07-09 07:46:46+00	2	232bb35917ae4bbd964b5829c0adfaea
+3688	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0NzEzNywiaWF0IjoxNzQ5NDU1MTM3LCJqdGkiOiI4YzEzZDhkNjViNWI0ZTNhYWQ4NTA0MjgzMDRmOWEyNCIsInVzZXJfaWQiOjJ9.2ojxFRUz9WupYFyE93qm5M3Q1bVIfjAdQzFPEKReaE8	\N	2025-07-09 07:45:37+00	\N	8c13d8d65b5b4e3aad850428304f9a24
+3689	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0ODI1NSwiaWF0IjoxNzQ5NDU2MjU1LCJqdGkiOiJiYWQyOGMzZjcwMjE0NmEwODJiZjVmNzE5YzdiN2Q5NSIsInVzZXJfaWQiOjJ9.61nbZ_MBEqRCkRMNfLF6uCptr3EyD1oncEIjkbj02ow	\N	2025-07-09 08:04:15+00	\N	bad28c3f702146a082bf5f719c7b7d95
+3690	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0OTA0MSwiaWF0IjoxNzQ5NDU3MDQxLCJqdGkiOiIzODIyZmI1YWRkNjA0NWMwOGQ4NmM0NGJjNDk0YWUxYSIsInVzZXJfaWQiOjJ9.AjA2eEWWoR14xPBoxTF_7cEjJhmPtAinB0QWA8nzsZU	\N	2025-07-09 08:17:21+00	\N	3822fb5add6045c08d86c44bc494ae1a
+3691	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0OTY3MSwiaWF0IjoxNzQ5NDU3NjcxLCJqdGkiOiI0N2EyMzQwMTA1OGU0Y2VjYTcyNDM1YTZhYmY0OTAwZCIsInVzZXJfaWQiOjJ9.TD7W9_7aMZvRYYdT56sH7TSBdMJ7Y0BaprAUJEJaTxk	\N	2025-07-09 08:27:51+00	\N	47a23401058e4ceca72435a6abf4900d
+3692	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0OTcwOSwiaWF0IjoxNzQ5NDU3NzA5LCJqdGkiOiI1YmMzY2YzYzQ1YTc0MjBhYTY1MWM0ODFiYTgyMjhkYiIsInVzZXJfaWQiOjJ9.8qkEhg0GpI_zgxw9sp2nazs28QyGsGWumOXUlYKTG4Q	\N	2025-07-09 08:28:29+00	\N	5bc3cf3c45a7420aa651c481ba8228db
+3693	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0OTc3OCwiaWF0IjoxNzQ5NDU3Nzc4LCJqdGkiOiI2ZDhjZGIwYWU4ODA0Y2RmODVmOWIxZmI3ZTMxODhjYiIsInVzZXJfaWQiOjJ9.PPdo9uFSVnRrMcNfqzau1vflmknfqmmHXGzZhzrTiGE	\N	2025-07-09 08:29:38+00	\N	6d8cdb0ae8804cdf85f9b1fb7e3188cb
+3694	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0OTgzNCwiaWF0IjoxNzQ5NDU3ODM0LCJqdGkiOiIxN2U1NDgyMjc3YzQ0OGY4YjIwMzQ1NDZiYzE4ZjNlOSIsInVzZXJfaWQiOjJ9.moeKjR7Vzfsncz56qXp4oaBa-s7AfOwlhYeM57z63Fs	\N	2025-07-09 08:30:34+00	\N	17e5482277c448f8b2034546bc18f3e9
+3695	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0OTg5MiwiaWF0IjoxNzQ5NDU3ODkyLCJqdGkiOiJhMjEzNGIyMGY2Nzc0ZTM1OWFkNzY3ZjZhNDc0Mzg4ZiIsInVzZXJfaWQiOjJ9.SYKB-J__pgGILNQE-m8WwwqNnEKQ6PTWyxbvAcN9BNs	\N	2025-07-09 08:31:32+00	\N	a2134b20f6774e359ad767f6a474388f
+3696	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0OTkyOSwiaWF0IjoxNzQ5NDU3OTI5LCJqdGkiOiI3ZDk1NzBhZThjZDU0NzJhYmYzNzg5YjRiNDI0YjMxZSIsInVzZXJfaWQiOjJ9.ZEfXaWMS3C04qa1_Fra6e2R0yMNfMi0RnKD2M-zTbNk	\N	2025-07-09 08:32:09+00	\N	7d9570ae8cd5472abf3789b4b424b31e
+3697	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0OTk2MiwiaWF0IjoxNzQ5NDU3OTYyLCJqdGkiOiIzNzQ4YTkzMTUyNTg0ZDU3OWQwY2I3NTZmMmJjNGY1MCIsInVzZXJfaWQiOjJ9.y-MW7GLEK73OW3BAY37uD5q-sTDPi0TXDcCZi7nJrRk	\N	2025-07-09 08:32:42+00	\N	3748a93152584d579d0cb756f2bc4f50
+3698	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0OTk4OSwiaWF0IjoxNzQ5NDU3OTg5LCJqdGkiOiJmNDg4ZDkxNTI3NjM0OTYxYmQxNGMzMGZjNDhjNGNhNCIsInVzZXJfaWQiOjJ9.fa4VmoaAlD6ueu7r1fXIN1V68Kyk8KWzgcvl52kzOx0	\N	2025-07-09 08:33:09+00	\N	f488d91527634961bd14c30fc48c4ca4
+3699	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MDA3MSwiaWF0IjoxNzQ5NDU4MDcxLCJqdGkiOiIyOTcxZTdjZTM2ZTY0NWRlOTZjN2EwMGY4ZTc1YmI1MyIsInVzZXJfaWQiOjJ9.8r-4nFVwZlVtHKTuTb5M0SvVy_XDZX7VrO0lUphNJlE	\N	2025-07-09 08:34:31+00	\N	2971e7ce36e645de96c7a00f8e75bb53
+3700	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MDIxNywiaWF0IjoxNzQ5NDU4MjE3LCJqdGkiOiI1ODZjNDM5N2MwOGQ0MGYzODFhZmVlODJmMWQ2ZmZmYSIsInVzZXJfaWQiOjJ9.idKx6_DPC-szqeAu8IO7XqJ0oPS8YesNojLazipydSQ	\N	2025-07-09 08:36:57+00	\N	586c4397c08d40f381afee82f1d6fffa
+3701	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MDI4OCwiaWF0IjoxNzQ5NDU4Mjg4LCJqdGkiOiIwYjY4MzQ0NWNkZTY0M2NjOWQyZDAyNTVlY2NkMGZjYyIsInVzZXJfaWQiOjJ9.I4_HA7V-wZON2_ywCqRowo9EW-87Xs3Ubnsqe7N8Lz0	\N	2025-07-09 08:38:08+00	\N	0b683445cde643cc9d2d0255eccd0fcc
+3702	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MDM0MCwiaWF0IjoxNzQ5NDU4MzQwLCJqdGkiOiJjMDIxYzU4YmQxZTA0NTQ1YjM1NWQxYzBkZmUzMDQwYSIsInVzZXJfaWQiOjJ9.3V3t9mVaDt1Lsof8rNlkydUiS22zSltuZN-eNKjnlp4	\N	2025-07-09 08:39:00+00	\N	c021c58bd1e04545b355d1c0dfe3040a
+3703	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MDUyNiwiaWF0IjoxNzQ5NDU4NTI2LCJqdGkiOiI2ZWNhOTljZjVmOTg0ZWUzOTJjMWJmY2YxNzE1N2EyOCIsInVzZXJfaWQiOjJ9.bhcPqs5vpuiS5Qflm8-DLe3CuEbdPJxZRNW_ZoWPouA	\N	2025-07-09 08:42:06+00	\N	6eca99cf5f984ee392c1bfcf17157a28
+3704	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MDY4NywiaWF0IjoxNzQ5NDU4Njg3LCJqdGkiOiJhODRlZWI3M2Q2MTc0N2Y4YjdhODg0NTM0MDY5NmU4NSIsInVzZXJfaWQiOjJ9.EY0fz9x7jdMaslNSGGM0FJuKYpIg4FgePPS2gFEzjyw	\N	2025-07-09 08:44:47+00	\N	a84eeb73d61747f8b7a8845340696e85
+3705	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MDg4OSwiaWF0IjoxNzQ5NDU4ODg5LCJqdGkiOiI1NTE2OTM5MDRiYmE0ODEwYmZkOWUyNjMwNWI3ZDkzZCIsInVzZXJfaWQiOjJ9.-LFM4uVGZhOklGVWE4GrR1lG310CUYHXVzrQTI6w8is	\N	2025-07-09 08:48:09+00	\N	551693904bba4810bfd9e26305b7d93d
+3706	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MDk0MiwiaWF0IjoxNzQ5NDU4OTQyLCJqdGkiOiIwODNmN2I4YWJhZTk0ZWJjOWU4Y2EwY2UyNzU4MmVhYiIsInVzZXJfaWQiOjJ9.AODGz6zOdjERaUxI7ge4yAA_Tte5fjFX60zf3QOIkJY	\N	2025-07-09 08:49:02+00	\N	083f7b8abae94ebc9e8ca0ce27582eab
+3707	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MDk2OCwiaWF0IjoxNzQ5NDU4OTY4LCJqdGkiOiJjMjRmYTgyNjhjZjI0ZmIzYWUyMTNkMzNiYzI5MjYzOSIsInVzZXJfaWQiOjJ9.hNmrN-LzXktgX9CuZyH46NbvzMTPyOSQlVsxjTyj8zs	\N	2025-07-09 08:49:28+00	\N	c24fa8268cf24fb3ae213d33bc292639
+3708	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MTAwMywiaWF0IjoxNzQ5NDU5MDAzLCJqdGkiOiJlMmZmZmNjZjg3NWE0MzU5YWEzZWJmYTZjYjJkOWViMyIsInVzZXJfaWQiOjJ9.I5kJoGQNl3LJO5KjqwAawWXeSlUU9uGkFTNOcaiOOC0	\N	2025-07-09 08:50:03+00	\N	e2fffccf875a4359aa3ebfa6cb2d9eb3
+3709	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MTAwNywiaWF0IjoxNzQ5NDU5MDA3LCJqdGkiOiIxM2VmZjEyMDAzMTQ0MmNjYjRlZTY4MjVmMDU0YmZmZiIsInVzZXJfaWQiOjJ9.FYBE7u-736p6XNTTSMjC5-NCkQg11z6v2Uj87e7tpTQ	\N	2025-07-09 08:50:07+00	\N	13eff120031442ccb4ee6825f054bfff
+3710	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MTA2OCwiaWF0IjoxNzQ5NDU5MDY4LCJqdGkiOiI3ODNiZGQ5MTMwMWU0YjJjYWRhN2ZhYjE5MTU2YzZmNCIsInVzZXJfaWQiOjJ9.Slv6muWt7GcXttN9UOf_endOH26DHAL3IZSHm2K-hYA	\N	2025-07-09 08:51:08+00	\N	783bdd91301e4b2cada7fab19156c6f4
+3711	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MTEzNiwiaWF0IjoxNzQ5NDU5MTM2LCJqdGkiOiIxNDU1NDQwZTZiNDg0MzI2YWNiYzg5YTlhYmFhMzBiMCIsInVzZXJfaWQiOjJ9.z14f8EQAuWocn2AyfDLMnnNjMCq0uX1OWMXqLm6tClU	\N	2025-07-09 08:52:16+00	\N	1455440e6b484326acbc89a9abaa30b0
+3712	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MTIxOCwiaWF0IjoxNzQ5NDU5MjE4LCJqdGkiOiJhYTI2MDIyMTdiOTQ0ZjY1ODFjYzBhMGRkYWM0NjBiZSIsInVzZXJfaWQiOjJ9.2o-1baVURw_eKTPuJkPWGxsTd8psX2K9z5NrCZpWrrs	\N	2025-07-09 08:53:38+00	\N	aa2602217b944f6581cc0a0ddac460be
+3713	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MTI2MCwiaWF0IjoxNzQ5NDU5MjYwLCJqdGkiOiI5NjJlM2JmMjg0NmI0NGM5YTZmNTM3NmFjMmIwNmUyMyIsInVzZXJfaWQiOjJ9.qIcpTosbHY6xV6Aa0Wm2QPr1nLlyW_BdTF7uQfpnBHE	\N	2025-07-09 08:54:20+00	\N	962e3bf2846b44c9a6f5376ac2b06e23
+3714	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MTM0MCwiaWF0IjoxNzQ5NDU5MzQwLCJqdGkiOiIyOTIwNTJiOWU4NzA0NDAyYjJhZDhkZmU4MDA0ZTRhNCIsInVzZXJfaWQiOjJ9.8o4xExMKyRjdrhJJiTtbPd46WV6ron-Yb2X1tro6MPo	\N	2025-07-09 08:55:40+00	\N	292052b9e8704402b2ad8dfe8004e4a4
+3715	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MTM3NywiaWF0IjoxNzQ5NDU5Mzc3LCJqdGkiOiIwZjczNjRmNjhmZmE0YmE4YWViMGIyYWRlYmFmYjQ5MyIsInVzZXJfaWQiOjJ9.3AUlU9zHZ0xPy3Hw5Fooa4wVBx2JX_2Un3y0ph65eeA	\N	2025-07-09 08:56:17+00	\N	0f7364f68ffa4ba8aeb0b2adebafb493
+3716	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MjE2MiwiaWF0IjoxNzQ5NDYwMTYyLCJqdGkiOiJkZjc3MDEyODJhM2Q0NjE1YTZkMjYxY2RhOTRhNWJhZSIsInVzZXJfaWQiOjJ9.p6tRtEbEj5w6W0hVaQdLf4eB0O_CVA-yZkg6lDnOO9w	\N	2025-07-09 09:09:22+00	\N	df7701282a3d4615a6d261cda94a5bae
+3717	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MjIzNSwiaWF0IjoxNzQ5NDYwMjM1LCJqdGkiOiIzY2JkY2Y2MTRmOTc0M2NiODk1NDRkNWE4NGE3MDQ0NSIsInVzZXJfaWQiOjJ9.H2WxyqP95tdBZRU8ov9n-EIts73Ru-DxGpPG7VFrVUU	\N	2025-07-09 09:10:35+00	\N	3cbdcf614f9743cb89544d5a84a70445
+3718	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MjM2OSwiaWF0IjoxNzQ5NDYwMzY5LCJqdGkiOiJjYmM3MWFjMzI2MDk0ZTRlODNiYjRjYTAwNjFjODMzYyIsInVzZXJfaWQiOjJ9.8jOLpnE7wTDAXpzva8c20SMEl6MronNIhGvD0w3vrw0	\N	2025-07-09 09:12:49+00	\N	cbc71ac326094e4e83bb4ca0061c833c
+3719	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MjQyOSwiaWF0IjoxNzQ5NDYwNDI5LCJqdGkiOiI1N2Q5MGQ5MTA5MGY0ZTBmODNiNzMwZDIwNjFmNDFmMyIsInVzZXJfaWQiOjJ9.cM-2kGDfiWHji5qO1mXGBkn-CiP0tKkQNH-FwgyA8iQ	\N	2025-07-09 09:13:49+00	\N	57d90d91090f4e0f83b730d2061f41f3
+3720	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MjQ5NSwiaWF0IjoxNzQ5NDYwNDk1LCJqdGkiOiJlYzUwZGFkOTIzM2Y0MjQ2OWZhYjNlZTAwZDk4NzAxNCIsInVzZXJfaWQiOjJ9.BPo9ZQ8GLG9r3Dd0RKraxSoSeDUyQb_N1OjiHr99ht4	\N	2025-07-09 09:14:55+00	\N	ec50dad9233f42469fab3ee00d987014
+3721	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MjU4MCwiaWF0IjoxNzQ5NDYwNTgwLCJqdGkiOiJlMWQyYzA0YWM0OTQ0MjBjOGZhMWU0NmM4MDljMGNmNSIsInVzZXJfaWQiOjJ9.FN09QWz3P2vfz6yOkCs2_DqpEx4W94jIuWkh4vRa67A	\N	2025-07-09 09:16:20+00	\N	e1d2c04ac494420c8fa1e46c809c0cf5
+3722	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MjgzMiwiaWF0IjoxNzQ5NDYwODMyLCJqdGkiOiI5OWRkNDg4YzkwODk0MDQ4OTBkOGMyMzcyM2M2N2UzYyIsInVzZXJfaWQiOjJ9.mIfCvZGoxPFVeZh6AMEUMeV4w6hRZ_nCh9Q4KR1PHp8	\N	2025-07-09 09:20:32+00	\N	99dd488c9089404890d8c23723c67e3c
+3723	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1Mjg5MCwiaWF0IjoxNzQ5NDYwODkwLCJqdGkiOiJkNDQzNGExZGJjYzY0MDNjODA1YzVjNzk3NWMwMjI5NiIsInVzZXJfaWQiOjJ9.ygMSaylucPvUP-BWtJamxjdrpUTe5FXQaYvzmBuaAIY	\N	2025-07-09 09:21:30+00	\N	d4434a1dbcc6403c805c5c7975c02296
+3724	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MjkxNCwiaWF0IjoxNzQ5NDYwOTE0LCJqdGkiOiI2NTJkMWE0ZmI2MmU0NmUxOTJkYWYyMTJjZTUyZmQ3YSIsInVzZXJfaWQiOjJ9.U_w5Inni5Tx7LMXW8BZLdMWP8GmlSUXgUYRE3cJ4YIM	\N	2025-07-09 09:21:54+00	\N	652d1a4fb62e46e192daf212ce52fd7a
+3725	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1MzA2MSwiaWF0IjoxNzQ5NDYxMDYxLCJqdGkiOiIwOGIxNmUzZWVkN2U0NGY0YWNiOGZmZDJhZWJmOGIxZCIsInVzZXJfaWQiOjJ9.4311C8jvpC1JhnIhoa-8nSryAEsaZADZ5KMmvb01c1o	\N	2025-07-09 09:24:21+00	\N	08b16e3eed7e44f4acb8ffd2aebf8b1d
+3726	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1NzIzNSwiaWF0IjoxNzQ5NDY1MjM1LCJqdGkiOiJkZWQ3MzA3MTJkYzI0ZDAxOGUwNzg0Y2NiYzlkZTZlNSIsInVzZXJfaWQiOjJ9.NV2DZoQ-t6rwV85LSib8H_8lmClSFcAU_Fxq91w7zXA	\N	2025-07-09 10:33:55+00	\N	ded730712dc24d018e0784ccbc9de6e5
+3727	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA0NTExNywiaWF0IjoxNzQ5NDUzMTE3LCJqdGkiOiIyMDlkYTljNjViMzM0MmMwOWZhZjY5ODMxZjYwZDE2ZSIsInVzZXJfaWQiOjJ9.MTndNNnMxlqR26YcEDO7TfN9UjWLPKRa7PfraFHLI_w	\N	2025-07-09 07:11:57+00	\N	209da9c65b3342c09faf69831f60d16e
+3728	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTA4MiwiaWF0IjoxNzQ5NDY3MDgyLCJqdGkiOiIyMmYzNTQxZGYyYzM0MGQyYWQ5N2VjNDIyZjk3OTUwNiIsInVzZXJfaWQiOjJ9.x8AQLzisE7sROhpiUj-bTVCXwZtnuZf9Dt9htJttIC8	\N	2025-07-09 11:04:42+00	\N	22f3541df2c340d2ad97ec422f979506
+3729	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTI5OCwiaWF0IjoxNzQ5NDY3Mjk4LCJqdGkiOiIxOTZkMjI0OGMyNTY0ODBjOTRhN2M4Nzg5MTdmY2MwMCIsInVzZXJfaWQiOjJ9.tgZqoWwTbY1L32nkIWp01s9FEnU47VWJ5rJh9OmCfAg	\N	2025-07-09 11:08:18+00	\N	196d2248c256480c94a7c878917fcc00
+3730	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTI5OSwiaWF0IjoxNzQ5NDY3Mjk5LCJqdGkiOiJlODg2ZGM3YTM0MDM0YmE5OWJiYWI4ZjE0MTE1MTYyYSIsInVzZXJfaWQiOjJ9.zQLlmmSQLAwsYFg3y5aMffQjSVs-HE85U94LGk_hw2Y	\N	2025-07-09 11:08:19+00	\N	e886dc7a34034ba99bbab8f14115162a
+3731	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTQ2MSwiaWF0IjoxNzQ5NDY3NDYxLCJqdGkiOiI4MDA2YzgyNmVhYjY0MjNlYjA1Y2QzMzUyZWYwMjA2ZCIsInVzZXJfaWQiOjJ9.HwyX-1AZ51B6rMKOst30W0MfsNdoFhsT8guYpGBnajw	\N	2025-07-09 11:11:01+00	\N	8006c826eab6423eb05cd3352ef0206d
+3732	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTU0NiwiaWF0IjoxNzQ5NDY3NTQ2LCJqdGkiOiJkMjRiYzc2YjAzNGY0ZWU1ODBkNjNhN2RkZjUzMDFlYyIsInVzZXJfaWQiOjJ9.OS5E7XNxqSXEYV56q_U4yhSeLsTlAaV_lNcLRBBtr3k	\N	2025-07-09 11:12:26+00	\N	d24bc76b034f4ee580d63a7ddf5301ec
+3733	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTYxNywiaWF0IjoxNzQ5NDY3NjE3LCJqdGkiOiI3ZDkyZTg5YmIxODU0YWUxYTY1NzRjNTMxYWU5MDQzNiIsInVzZXJfaWQiOjJ9.JTIrFwMa-I1966oMW25bDtEeWkE1DKet2cXoCvJNzsk	\N	2025-07-09 11:13:37+00	\N	7d92e89bb1854ae1a6574c531ae90436
+3734	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTYzNCwiaWF0IjoxNzQ5NDY3NjM0LCJqdGkiOiIwMmJhN2VlMGZlZTg0NmM2YWI0ZDQ1N2QzMDA3OTFkMiIsInVzZXJfaWQiOjJ9.UdD89OUORNoB0nQu1FBjIh-FPH81UvKZHu-oY04m2aM	\N	2025-07-09 11:13:54+00	\N	02ba7ee0fee846c6ab4d457d300791d2
+3735	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTc1MiwiaWF0IjoxNzQ5NDY3NzUyLCJqdGkiOiIxZDNmYmNkNzA0Yzk0Y2ViYjVlNDAyZDg5ODNjMmJiZCIsInVzZXJfaWQiOjJ9.AmSubW4Ac4Mg0nVhspM17BU6ZhL1pOY-4QqAoKJIP_Q	\N	2025-07-09 11:15:52+00	\N	1d3fbcd704c94cebb5e402d8983c2bbd
+3736	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTc3NCwiaWF0IjoxNzQ5NDY3Nzc0LCJqdGkiOiIzNWRiYTE3NTgyNmQ0Y2JhYWIyMTEzM2I4Yzc4ZTRiNyIsInVzZXJfaWQiOjJ9.vIqCMU_b9JAcCP0kWm6Ly1HTlPcbxrAfTn8GZAO4ie4	\N	2025-07-09 11:16:14+00	\N	35dba175826d4cbaab21133b8c78e4b7
+3737	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTc4MiwiaWF0IjoxNzQ5NDY3NzgyLCJqdGkiOiI2YzI1YWU1MGM5NzQ0ZDJhYWI3YzhlZTE2MjRkZmVjNSIsInVzZXJfaWQiOjJ9.o4B9S7H8mW5sifCaThxmKOuQ428gVs2tfl0kmCaJiWk	\N	2025-07-09 11:16:22+00	\N	6c25ae50c9744d2aab7c8ee1624dfec5
+3738	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTgyNiwiaWF0IjoxNzQ5NDY3ODI2LCJqdGkiOiI2OWYzMGI1NDExNTY0YTVmOWRlNTY0ZGE0MTBkYzUxNSIsInVzZXJfaWQiOjJ9.lY9an-Bh0Rw3V0T_20A9sgZXhdfqjQ6hxF3aRTvLhLQ	\N	2025-07-09 11:17:06+00	\N	69f30b5411564a5f9de564da410dc515
+3739	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTg3NCwiaWF0IjoxNzQ5NDY3ODc0LCJqdGkiOiJkYmE0MDY2YjllNzM0OWQzYWFmMjdlYjcyODMzMWU4YyIsInVzZXJfaWQiOjJ9.yAoabEKpJuXV3CzDgjGBWQPloD-iWq-CrRNzn5Ypf6E	\N	2025-07-09 11:17:54+00	\N	dba4066b9e7349d3aaf27eb728331e8c
+3740	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA2MDAyMSwiaWF0IjoxNzQ5NDY4MDIxLCJqdGkiOiJiZDAzZmRmY2JjNzM0NzJlOWQ2ODEwMzhiYzhlM2NmNCIsInVzZXJfaWQiOjJ9.h94MGNUAkSmwXxi73_ptw8G3FONOY7GyKfTZE8avn0g	\N	2025-07-09 11:20:21+00	\N	bd03fdfcbc73472e9d681038bc8e3cf4
+3741	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA2NDUzOCwiaWF0IjoxNzQ5NDcyNTM4LCJqdGkiOiIxODUzNjk4NGYwNDY0ZDVhYTQzOTM3M2MxZjEyMmRjZSIsInVzZXJfaWQiOjJ9.Ojb7zw0URWDmzOhSbTfeCKm3bUhbl2TbgQ8mdmgmT_w	\N	2025-07-09 12:35:38+00	\N	18536984f0464d5aa439373c1f122dce
+3742	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA2NDU4NCwiaWF0IjoxNzQ5NDcyNTg0LCJqdGkiOiJjYzJmZDhmOWQxYTI0ZjY4ODIzMTM3MDU3ZGMwMmE5ZiIsInVzZXJfaWQiOjJ9.C6fVAnVrkxreTRQl-erxvyQidLJd9wzoqcBWSl1f4jk	\N	2025-07-09 12:36:24+00	\N	cc2fd8f9d1a24f68823137057dc02a9f
+3743	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA2NDc1NSwiaWF0IjoxNzQ5NDcyNzU1LCJqdGkiOiJmNzRhMDJkNWJkYjI0NTA1OTBkZWVmMDdmYjI2N2JjNSIsInVzZXJfaWQiOjJ9.5SnXYxybT9kxYA8o60Xc8HHn4oMSv-71kX2sagL4YV8	\N	2025-07-09 12:39:15+00	\N	f74a02d5bdb2450590deef07fb267bc5
+3744	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA2NTAzMywiaWF0IjoxNzQ5NDczMDMzLCJqdGkiOiI0ZjkyYzIzZTRmYTU0OWJjYmM2MTg2MzUzZDI1ZGI5OCIsInVzZXJfaWQiOjJ9.909rkV_OndYPc3F_gJ9_NVkq4k-YA9qnXxotIE_IOqA	\N	2025-07-09 12:43:53+00	\N	4f92c23e4fa549bcbc6186353d25db98
+3745	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA2NTEzMCwiaWF0IjoxNzQ5NDczMTMwLCJqdGkiOiI5NDA5N2JiNzA5YTM0ZjJiYThiMjI1ODBkMjA3ODA5YiIsInVzZXJfaWQiOjJ9.3GhCcFZN65wvUhAem-PkIxSRwTW9ZpgwBb6w3T4jUDU	\N	2025-07-09 12:45:30+00	\N	94097bb709a34f2ba8b22580d207809b
+3746	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA2NTE0MCwiaWF0IjoxNzQ5NDczMTQwLCJqdGkiOiJmNmYwMmM3YzA2ODM0ZDVjODI4ZGQzMTFhOWQwMTczOSIsInVzZXJfaWQiOjJ9.7zT7Lo4LvcSBCO1XEaxcpW1dxL_dfHIVVa2jUwLcJqU	\N	2025-07-09 12:45:40+00	\N	f6f02c7c06834d5c828dd311a9d01739
+3747	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NTE0OCwiaWF0IjoxNzQ5NDgzMTQ4LCJqdGkiOiJhNTdmOWJlNDUzYzU0MGU5OGYyMzQxYTNlYzExNDgwMiIsInVzZXJfaWQiOjJ9.VJGIjTA5QPujUz3w24KUJ0L4zRx_irLOBSrkpOrAjqA	2025-06-09 15:32:28.653072+00	2025-07-09 15:32:28+00	2	a57f9be453c540e98f2341a3ec114802
+3748	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3MTM4MSwiaWF0IjoxNzQ5NDc5MzgxLCJqdGkiOiJhMTlhNzZmMjZhNGI0NmJmOTU1YTA5ODNiNzc0YWUxMiIsInVzZXJfaWQiOjJ9.jIkZJFfjzOGIlPl4Dkh9qAicDCPyuP8XfbS8PLOk2m0	\N	2025-07-09 14:29:41+00	\N	a19a76f26a4b46bf955a0983b774ae12
+3749	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NTQ0NiwiaWF0IjoxNzQ5NDgzNDQ2LCJqdGkiOiI0YWQ4MjA0ZjExMzE0YmU0YWE4ZThjOTllZjczNGI4OSIsInVzZXJfaWQiOjJ9.km3I-e3RD_duHuhnw72VLq4nRb5diqhwyICQ2AfLgqk	\N	2025-07-09 15:37:26+00	\N	4ad8204f11314be4aa8e8c99ef734b89
+3750	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NjMyMCwiaWF0IjoxNzQ5NDg0MzIwLCJqdGkiOiJlNTZhMDhkMzI2NmQ0NTRmYThlY2IxNDQ2NTIzNTBmMCIsInVzZXJfaWQiOjJ9.620DaqMYoheRIHy1dJ7K9HAVrTrUuFlY0SLAl8ixIME	\N	2025-07-09 15:52:00+00	\N	e56a08d3266d454fa8ecb144652350f0
+3751	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NjQ4OCwiaWF0IjoxNzQ5NDg0NDg4LCJqdGkiOiJlY2MxMGYxZmU5YTk0ZGU5OWJiMjk4ZjdlMTc1ZWI3MyIsInVzZXJfaWQiOjJ9.BFxg6FnD0dBXe0xAEzSUFLuwvxZA_B8VvyTnTQvw4-0	\N	2025-07-09 15:54:48+00	\N	ecc10f1fe9a94de99bb298f7e175eb73
+3752	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NjUwOCwiaWF0IjoxNzQ5NDg0NTA4LCJqdGkiOiI3OGQ4N2VmMDIyNTg0YzYyOGE2MjAwNzU3NGZiYWUyYiIsInVzZXJfaWQiOjJ9.t4aRhMygFo2DvFY22SNWrUxiODKy8uynxGDKo2fZKoM	\N	2025-07-09 15:55:08+00	\N	78d87ef022584c628a62007574fbae2b
+3753	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NjY5NCwiaWF0IjoxNzQ5NDg0Njk0LCJqdGkiOiJlNjIyY2FlZGQ0NjM0MmQzYWM1OGE2NjA4ZWIzNzljYyIsInVzZXJfaWQiOjJ9.-7HIwItNLDBDpCtIgGvfTpNdxledCB1MZmiGbsYyjSM	\N	2025-07-09 15:58:14+00	\N	e622caedd46342d3ac58a6608eb379cc
+3754	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3Njc4OSwiaWF0IjoxNzQ5NDg0Nzg5LCJqdGkiOiJhODk1YmJkZjZjMTE0OTNlYmMzNmUzZmRhZTZmNjc1YyIsInVzZXJfaWQiOjJ9.vSBUi0FofT31GWRWGEM-X117A42q8F7jxW0-p11OS48	\N	2025-07-09 15:59:49+00	\N	a895bbdf6c11493ebc36e3fdae6f675c
+3755	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NjgyOSwiaWF0IjoxNzQ5NDg0ODI5LCJqdGkiOiI3MzgzNDgwNTE4YTk0ZTNhOWFhM2FlOTUzNjlhOTA0MyIsInVzZXJfaWQiOjJ9.DaqYsA7H5KuBJIbZKdq8cFUAh_CxMvvmGQCNCrvhgSU	\N	2025-07-09 16:00:29+00	\N	7383480518a94e3a9aa3ae95369a9043
+3756	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3Njk0MywiaWF0IjoxNzQ5NDg0OTQzLCJqdGkiOiI2OWUwODMwODA5NDk0MjFlODM1ODY1NDM0YmUyYTAxZCIsInVzZXJfaWQiOjJ9.KHG-ZTugzX9PTlXLnOuHcpySDfgu4BGrg6QXhGw87H4	\N	2025-07-09 16:02:23+00	\N	69e083080949421e835865434be2a01d
+3757	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3Njk4MywiaWF0IjoxNzQ5NDg0OTgzLCJqdGkiOiIwYTg3NjAxZjQxZDc0MjI2OWViZTlmYjhjNDE1NDQ1NiIsInVzZXJfaWQiOjJ9.GFfcL6uEMcaltY6_e5NDIIo5TWHfqJPd0hnDZ7cda20	\N	2025-07-09 16:03:03+00	\N	0a87601f41d742269ebe9fb8c4154456
+3758	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzAwNCwiaWF0IjoxNzQ5NDg1MDA0LCJqdGkiOiJkZGFmNjgyMzRmNjg0MGJhYjFiZWI3NmQzMTc5YzYxYiIsInVzZXJfaWQiOjJ9.NWjUl2hcZbH6Nkc2K531alJIikbSsKHHdXixzh8ECYs	\N	2025-07-09 16:03:24+00	\N	ddaf68234f6840bab1beb76d3179c61b
+3759	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzA1NCwiaWF0IjoxNzQ5NDg1MDU0LCJqdGkiOiI3OWQzZmY2MDllYzU0NGRkYmEwNDdhZTI4NjE3MDkwNyIsInVzZXJfaWQiOjJ9.7ZejTP9j3VpIzlgTpPiZGTMDx0c2D-nGrdDI91ha1yg	\N	2025-07-09 16:04:14+00	\N	79d3ff609ec544ddba047ae286170907
+3760	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzA1OSwiaWF0IjoxNzQ5NDg1MDU5LCJqdGkiOiI3NTYzNWI4NzAwYjc0ZGRlOGE5YzQ5NTliNTkyYzY5MyIsInVzZXJfaWQiOjJ9.zXSFoVbcmp_sedqAARMvynpM13GY4PuSC8oCXCW8Cj4	\N	2025-07-09 16:04:19+00	\N	75635b8700b74dde8a9c4959b592c693
+3761	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzEyOCwiaWF0IjoxNzQ5NDg1MTI4LCJqdGkiOiI2ZmE1YTllOGM2NDk0MDk1YTRkYWNiMDNhYjNjNmZmNSIsInVzZXJfaWQiOjJ9.3OXmoujoDGTaamAU9cU6SYZt2qVssFZ_fcjVnTbaPm0	\N	2025-07-09 16:05:28+00	\N	6fa5a9e8c6494095a4dacb03ab3c6ff5
+3762	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzEzMCwiaWF0IjoxNzQ5NDg1MTMwLCJqdGkiOiJhNGM2NWZhYzU1Yzc0NDE2YjVhMWEyNGQyNGYxYTAyZCIsInVzZXJfaWQiOjJ9.s4fOcfkvs5Ask0FIiYleq_7tbrwSx299VJdAJZwp488	\N	2025-07-09 16:05:30+00	\N	a4c65fac55c74416b5a1a24d24f1a02d
+3763	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzIxMCwiaWF0IjoxNzQ5NDg1MjEwLCJqdGkiOiJjNGY3NTE4NDA1YzU0NmMzOTg5YjcyN2JlYzlkZDZmZCIsInVzZXJfaWQiOjJ9.sFX5-lY1c8pkwK5rsrWYZzFjP-M-h35VWCigRH0C-rY	\N	2025-07-09 16:06:50+00	\N	c4f7518405c546c3989b727bec9dd6fd
+3764	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzIxMSwiaWF0IjoxNzQ5NDg1MjExLCJqdGkiOiI0NmY1ZDJlMjNmYmE0OWU1YWYyNGNmNGQwZDY1OTNkYyIsInVzZXJfaWQiOjJ9.xHgTDQxvxJ7WFLpt-kJ_EeM4JYUM0X71zeB01d8OZzE	\N	2025-07-09 16:06:51+00	\N	46f5d2e23fba49e5af24cf4d0d6593dc
+3765	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzI1NywiaWF0IjoxNzQ5NDg1MjU3LCJqdGkiOiI0NzAyYmEzN2YwZWI0Zjc1OGVkZmFjYzViNDJlMzE0MiIsInVzZXJfaWQiOjJ9.pZGQi400mAGrvMYkaPKPbHv0Rv0EZ9qt2KSTOtkdCbU	\N	2025-07-09 16:07:37+00	\N	4702ba37f0eb4f758edfacc5b42e3142
+3766	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzI4MCwiaWF0IjoxNzQ5NDg1MjgwLCJqdGkiOiI4NmUwNTBkM2RhMjk0YmNmYWFlMGM1NjU2ZmI2NmFmMSIsInVzZXJfaWQiOjJ9.0HK7B-JhqGSPZzEN4VArlpd-9C-fYM557sWg9y_bHvM	\N	2025-07-09 16:08:00+00	\N	86e050d3da294bcfaae0c5656fb66af1
+3767	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzM2OCwiaWF0IjoxNzQ5NDg1MzY4LCJqdGkiOiI2NzM0ZjgxZjM5NGU0M2I4ODk4ZTRiNjdhMmUwNmE4YyIsInVzZXJfaWQiOjJ9.b7jEiZxoCmw242SAb0szlTNwUW-zZt27djcyLcCs1EY	\N	2025-07-09 16:09:28+00	\N	6734f81f394e43b8898e4b67a2e06a8c
+3768	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzM3MiwiaWF0IjoxNzQ5NDg1MzcyLCJqdGkiOiJhNDYxYmU4M2IyN2Y0NmQ1YWUwZjk3MWFlZmU1YTVhNCIsInVzZXJfaWQiOjJ9.s8Jx5GAiJclWiYYpt-aX7aXsSLdyIaJJoSweGTfktkA	\N	2025-07-09 16:09:32+00	\N	a461be83b27f46d5ae0f971aefe5a5a4
+3769	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzM4NSwiaWF0IjoxNzQ5NDg1Mzg1LCJqdGkiOiJhZTVmNDczY2UxZDI0ZTdjYmVhMjY1ZGM3NTY4MWU3NCIsInVzZXJfaWQiOjJ9.A1N1dxYkMS1ZNYFrNz0ypxj6z55WwfMIuVJ3fCqxvJw	\N	2025-07-09 16:09:45+00	\N	ae5f473ce1d24e7cbea265dc75681e74
+3770	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzM5OCwiaWF0IjoxNzQ5NDg1Mzk4LCJqdGkiOiJjZjU5YWMxYWVjMzU0NzY0YTQ4YmI3OTY2MmMzNzVkMyIsInVzZXJfaWQiOjJ9.SoNV4YIveIu0Ovt4HYVkeRU7bmlPUoh-4ButlZzEKAQ	\N	2025-07-09 16:09:58+00	\N	cf59ac1aec354764a48bb79662c375d3
+3771	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzQ3MSwiaWF0IjoxNzQ5NDg1NDcxLCJqdGkiOiJiZWQxNzlmYmQ0Nzg0MmI3YWE3YjhlMzdkYzdiODExYiIsInVzZXJfaWQiOjJ9.gNKBqhZZXvK5KqAcD9Rc9atPPrP0ZWedryisM3mw9vA	\N	2025-07-09 16:11:11+00	\N	bed179fbd47842b7aa7b8e37dc7b811b
+3772	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3NzQ5NSwiaWF0IjoxNzQ5NDg1NDk1LCJqdGkiOiJjOGE3OGYwNTMyYmE0M2I0YmIwMWRmYmZmNmVhZTJlNyIsInVzZXJfaWQiOjJ9.PwrBNQb9pJNZ2lx3NP97csvDTEa_PX1CAi2IAO0-3pw	\N	2025-07-09 16:11:35+00	\N	c8a78f0532ba43b4bb01dfbff6eae2e7
+3773	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3Nzg0OCwiaWF0IjoxNzQ5NDg1ODQ4LCJqdGkiOiIyNTgyNDY3ZTgwNDc0ZTY2OGYzYzU0NDk1YWJlYjM1NSIsInVzZXJfaWQiOjJ9.kzKDXdoExBe3hM-mT7VlDf8kGTTAVVoDVNL5_XNlDAw	\N	2025-07-09 16:17:28+00	\N	2582467e80474e668f3c54495abeb355
+3774	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3Nzk0MywiaWF0IjoxNzQ5NDg1OTQzLCJqdGkiOiJlM2IwMzVkYjI1NWQ0YWYzYjRhZmVmNzAxMTVkNzdhNyIsInVzZXJfaWQiOjJ9.N0iVKXOM4PQSlHeo_4fRH7SQShbJhoCMozsNpkmBarU	\N	2025-07-09 16:19:03+00	\N	e3b035db255d4af3b4afef70115d77a7
+3775	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3Nzk3MiwiaWF0IjoxNzQ5NDg1OTcyLCJqdGkiOiJlMDFkMzJhMWU1YjU0OGI0YjYyODUzNDZkNWY5MzczOSIsInVzZXJfaWQiOjJ9.DdcaOiEPHRyM6byR2HRbWnV9R5vV9LXF2egKCdwaS0o	\N	2025-07-09 16:19:32+00	\N	e01d32a1e5b548b4b6285346d5f93739
+3776	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3Nzk4NywiaWF0IjoxNzQ5NDg1OTg3LCJqdGkiOiJmYzY0ZTBlZGQyYTc0MWRkYTdkYWY1ZTE5ZDRkZWNhNCIsInVzZXJfaWQiOjJ9.JJsMeGW2G5J_40KLAM8PQ4rrtZBMnItZodC-CJobr0k	\N	2025-07-09 16:19:47+00	\N	fc64e0edd2a741dda7daf5e19d4deca4
+3777	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3ODA4MSwiaWF0IjoxNzQ5NDg2MDgxLCJqdGkiOiI5N2FjYTAxM2VhNjI0Y2MzYjM2ZTZkYmIwMGJhZGM4MyIsInVzZXJfaWQiOjJ9.DTTarJxAHjb3Zy_l8fGzIsspP9WRYVpb2vF1ehrfgP4	\N	2025-07-09 16:21:21+00	\N	97aca013ea624cc3b36e6dbb00badc83
+3778	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3ODIwNiwiaWF0IjoxNzQ5NDg2MjA2LCJqdGkiOiI5MjgzODJjZDc3ODU0ZGY0YjZlMmFkNjNmZDZkZGZiNCIsInVzZXJfaWQiOjJ9.sh-teHCZ4dz7H8Qpaau8GV6Y0hLdKZXF87EeYCjRjKU	\N	2025-07-09 16:23:26+00	\N	928382cd77854df4b6e2ad63fd6ddfb4
+3779	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3ODI2MSwiaWF0IjoxNzQ5NDg2MjYxLCJqdGkiOiJhMGM2MzlhMGI3ZmU0ZWM5OWRmZGZiMzIxM2UwM2E5ZCIsInVzZXJfaWQiOjJ9.OIxFxhw2EgegUM-38DWOAAINA_j63udvxUK3Qe4aCK4	\N	2025-07-09 16:24:21+00	\N	a0c639a0b7fe4ec99dfdfb3213e03a9d
+3780	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3ODI2OSwiaWF0IjoxNzQ5NDg2MjY5LCJqdGkiOiI1NzE1ZTIzODI4ZWM0YWJmOWJiOWI5YmQ2YmFiYmNlMSIsInVzZXJfaWQiOjJ9.H3wfcxSMVskf_4zEBFQSU2YCgnhCnowTNiqTHrvdIiY	\N	2025-07-09 16:24:29+00	\N	5715e23828ec4abf9bb9b9bd6babbce1
+3781	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3ODM4MCwiaWF0IjoxNzQ5NDg2MzgwLCJqdGkiOiI1NDlkMGU4NTY5OGE0OTQ4YTZhOTEyYzkwYWVhNmE4NyIsInVzZXJfaWQiOjJ9.WIzLfffJ7L4yIFXmpdwRlIFuHqoKQi46pBSW6RGQ2ug	\N	2025-07-09 16:26:20+00	\N	549d0e85698a4948a6a912c90aea6a87
+3782	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3ODM5MCwiaWF0IjoxNzQ5NDg2MzkwLCJqdGkiOiJjNzdlNmJmODllYTY0MzhmODYzZWQ0YjM4YTI3YTMzYSIsInVzZXJfaWQiOjJ9.iWAhrzeHxGIxoFH-YOUiu_mM8CCQ0IHqHhoJ185PsHk	\N	2025-07-09 16:26:30+00	\N	c77e6bf89ea6438f863ed4b38a27a33a
+3783	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3OTUwMiwiaWF0IjoxNzQ5NDg3NTAyLCJqdGkiOiI1YWI3N2Y0ZGM4MjI0ZWI0YTU0ZDA2MmVjZTU0ODU4YyIsInVzZXJfaWQiOjJ9.FBdf-6rj620tdW5nvCA07cqCq5S0r8yGKL2Sj3XEaME	\N	2025-07-09 16:45:02+00	\N	5ab77f4dc8224eb4a54d062ece54858c
+3784	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3OTUyMywiaWF0IjoxNzQ5NDg3NTIzLCJqdGkiOiI0ZmY5ZDI1ZDI4NDI0YzllOTNhNTUxNGFkM2ExMGYzOCIsInVzZXJfaWQiOjJ9.W2XlK_7r65_renh8TbKa6yKhzPbRQM1fkFmBKa8ZJPA	\N	2025-07-09 16:45:23+00	\N	4ff9d25d28424c9e93a5514ad3a10f38
+3785	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3OTU2OSwiaWF0IjoxNzQ5NDg3NTY5LCJqdGkiOiJjZWU2NTViOTJiMDQ0M2NiODM1Y2ViZmMxOWNlMjMwZiIsInVzZXJfaWQiOjJ9.VFeM7CCUCylR6cJNN3aTqHx8WkIkSj0POD1m22M6ViY	\N	2025-07-09 16:46:09+00	\N	cee655b92b0443cb835cebfc19ce230f
+3786	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3OTYwNSwiaWF0IjoxNzQ5NDg3NjA1LCJqdGkiOiIxM2YyNmJhN2QyODU0Yjk5ODdkNGY3MGMyYWMxODgyNCIsInVzZXJfaWQiOjJ9.qjMORZJnqonIq7zO4xx2xl0Gq_IOycqFanmOH6QF3ic	\N	2025-07-09 16:46:45+00	\N	13f26ba7d2854b9987d4f70c2ac18824
+3787	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3OTcxNCwiaWF0IjoxNzQ5NDg3NzE0LCJqdGkiOiJjMmViMzkzNjNjNjI0M2NhOTBiYTdmMjU1ODc3NDUyOCIsInVzZXJfaWQiOjJ9.kisxUvYO6jKrqSmp2xmlTVM9a6oU6LT0Q5M41-PvIpE	\N	2025-07-09 16:48:34+00	\N	c2eb39363c6243ca90ba7f2558774528
+3788	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3OTcxNiwiaWF0IjoxNzQ5NDg3NzE2LCJqdGkiOiI2MTM4ZWJhNTdmZGI0NTk2ODUxZWUwZjdkMTRiZjA1NyIsInVzZXJfaWQiOjJ9.Tivr38mW3Rg0GtoP2AS8LaIJpv-uB6o7xoSmRfBIPa8	\N	2025-07-09 16:48:36+00	\N	6138eba57fdb4596851ee0f7d14bf057
+3789	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3OTc0NywiaWF0IjoxNzQ5NDg3NzQ3LCJqdGkiOiIwYWU0MmNjOWY4ODc0MTc3OGM3MjBmZTcyM2Y5NzVjMiIsInVzZXJfaWQiOjJ9.CKcCiHiVrQEKCzrpy3ZO2v7vfiCpx3p84_009KcGkPU	\N	2025-07-09 16:49:07+00	\N	0ae42cc9f88741778c720fe723f975c2
+3790	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA3OTk5OSwiaWF0IjoxNzQ5NDg3OTk5LCJqdGkiOiJmMjY5NDEzZDA2Mjc0ODJiYjFiYzY2MjhlNGJlNGE1YSIsInVzZXJfaWQiOjJ9.YDKm2IShlER7VcSMdxRRJzkvVUn21uYErUU4k8TSZKU	\N	2025-07-09 16:53:19+00	\N	f269413d0627482bb1bc6628e4be4a5a
+3791	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4MDAzMywiaWF0IjoxNzQ5NDg4MDMzLCJqdGkiOiIzNjFiMmQ2NmZmOTU0MDg2YTExZWNkYmY4NmRjNTY4MiIsInVzZXJfaWQiOjJ9.XDQ3kGp8btP4hMgmSJ2PSfPg2_YE9LCJ-8vuHGMn8_I	\N	2025-07-09 16:53:53+00	\N	361b2d66ff954086a11ecdbf86dc5682
+3792	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4MDA2NiwiaWF0IjoxNzQ5NDg4MDY2LCJqdGkiOiJhZjg4N2I0OGZmNWE0YWUwODljNzEyYThjMTE4MGRmYyIsInVzZXJfaWQiOjJ9.ARyrWpoitY1RghgF6n8SBAdRjdZeYWC702h38--IqBA	\N	2025-07-09 16:54:26+00	\N	af887b48ff5a4ae089c712a8c1180dfc
+3793	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4MTIwMywiaWF0IjoxNzQ5NDg5MjAzLCJqdGkiOiJhN2IwYjZjNTZhY2I0ZGU1YTExNGU5MmUxNzFjYjI3OSIsInVzZXJfaWQiOjJ9.uXThQRvr86aOYkOH5BbSDgYpCr8D7dTuMbhn4TIOxDg	\N	2025-07-09 17:13:23+00	\N	a7b0b6c56acb4de5a114e92e171cb279
+3794	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4NDQ3MywiaWF0IjoxNzQ5NDkyNDczLCJqdGkiOiI0OGE5OWM0NzM0ZTI0ZjUwODJiZWE0ZTAzMjIzNzRkMyIsInVzZXJfaWQiOjJ9.vFMo5fcRrcX8V70jGX9XkYoqftkVb8B1PuGSJAvJb5s	\N	2025-07-09 18:07:53+00	\N	48a99c4734e24f5082bea4e0322374d3
+3795	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4NDUwNywiaWF0IjoxNzQ5NDkyNTA3LCJqdGkiOiIxNmNlY2NhOTVjZjE0ZjRlYTBmMTQ3YjRjMzdiZTRiOSIsInVzZXJfaWQiOjJ9.1xyzBBS4FVtekbgm8gDU1z8aAAVVQ6M6LbafIShqmo0	\N	2025-07-09 18:08:27+00	\N	16cecca95cf14f4ea0f147b4c37be4b9
+3796	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4NzMyNCwiaWF0IjoxNzQ5NDk1MzI0LCJqdGkiOiI4ZDdlNDUzN2I0ZmU0MGU2YWMyYWQxZGY2OGJhYjE3ZCIsInVzZXJfaWQiOjJ9.NV1ZYxoqdHm7u_dG38KRBygn4cdb88MGuvv4N20yeQA	\N	2025-07-09 18:55:24+00	\N	8d7e4537b4fe40e6ac2ad1df68bab17d
+3797	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4NzY4MywiaWF0IjoxNzQ5NDk1NjgzLCJqdGkiOiJjZDJiZDg5MDk0Mjg0Y2JlYWViMWEyODYwZjEyNGUwNCIsInVzZXJfaWQiOjJ9.ZkAgkRZuQxtYKODgyI2l9maZDz2boPF8IIfoYy3MlXg	\N	2025-07-09 19:01:23+00	\N	cd2bd89094284cbeaeb1a2860f124e04
+3798	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4NzkzNSwiaWF0IjoxNzQ5NDk1OTM1LCJqdGkiOiIyYmZkYThjYTk3YjU0MzM3YWZiZDcwZGIzZGZjMTliNyIsInVzZXJfaWQiOjJ9.U43zW8X8qwhdxnqof72Kd_TK3JI9C0ob4d0383v24JY	\N	2025-07-09 19:05:35+00	\N	2bfda8ca97b54337afbd70db3dfc19b7
+3799	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4ODAwMiwiaWF0IjoxNzQ5NDk2MDAyLCJqdGkiOiI4ZjJkNTQ1ODExN2E0YWQ3OTIwNzE2MGVhMDk1YzBiYyIsInVzZXJfaWQiOjJ9.D5JbABnVGtsiA6DFqltpFM46UgteraSLWP2xFtN9uuY	\N	2025-07-09 19:06:42+00	\N	8f2d5458117a4ad79207160ea095c0bc
+3800	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4ODYyMiwiaWF0IjoxNzQ5NDk2NjIyLCJqdGkiOiI4MThlN2NhMmY0ODY0MDYyODIxNDA5NzQyMGVkNDdhMSIsInVzZXJfaWQiOjJ9.hpef_mHXKlq3Caw8BB7r8DVXpAs_MDBrSAMlPsMRi_A	\N	2025-07-09 19:17:02+00	\N	818e7ca2f48640628214097420ed47a1
+3801	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4ODYzNywiaWF0IjoxNzQ5NDk2NjM3LCJqdGkiOiI0OWEwOTBmYmZiMzc0Njc5ODEzNGFkNzQ3ZjhjOTA4ZSIsInVzZXJfaWQiOjJ9.vm5B8BmWf0IaVfAwKr8_agMx8DkhbTAFgb_bhqj_pxA	\N	2025-07-09 19:17:17+00	\N	49a090fbfb3746798134ad747f8c908e
+3802	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4ODY4OSwiaWF0IjoxNzQ5NDk2Njg5LCJqdGkiOiJkZjg4ZjZiY2VhZTE0Zjg0Yjk3YzM4YmI2MTE2ZDQ3MiIsInVzZXJfaWQiOjJ9.L-6sJrYYSYK5--iQXikNDrSliDZ46GYrAof6zZK-gaI	\N	2025-07-09 19:18:09+00	\N	df88f6bceae14f84b97c38bb6116d472
+3803	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4ODY5OSwiaWF0IjoxNzQ5NDk2Njk5LCJqdGkiOiIyZmViNmEyMmUxYmY0M2IxYmQzMjFhNmI5YjU4MWM0NSIsInVzZXJfaWQiOjJ9.qf-ZeOOnbAIHihTYU7IfCfyKW8BpAlEo4ORBglbrirs	\N	2025-07-09 19:18:19+00	\N	2feb6a22e1bf43b1bd321a6b9b581c45
+3804	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4ODg4NiwiaWF0IjoxNzQ5NDk2ODg2LCJqdGkiOiJmNDBhNDJlYTE2NjE0N2M1ODk4ZDZlYTJkMGU4MTY3NyIsInVzZXJfaWQiOjJ9.6_yxi1czakNe4lSCYcPJ1Eree77qb9zwEwSohmqrGks	\N	2025-07-09 19:21:26+00	\N	f40a42ea166147c5898d6ea2d0e81677
+3805	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4OTM1MCwiaWF0IjoxNzQ5NDk3MzUwLCJqdGkiOiI3YjNkNTY0YTU3MWQ0NjUwYTlhOWQ3NTFhYTdiYTkxMCIsInVzZXJfaWQiOjJ9.o6nHUThr8iX7pT-Zwm7WzmHU3ZXsZZDoEt4xLqw30Bg	\N	2025-07-09 19:29:10+00	\N	7b3d564a571d4650a9a9d751aa7ba910
+3806	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4OTU1NSwiaWF0IjoxNzQ5NDk3NTU1LCJqdGkiOiIxNDk2NWRlZmJlYmU0OTc0YWY3NzZkNTM4NzkwZjA4NSIsInVzZXJfaWQiOjJ9.AHGeuTE0dataomN3i-kcAWjKPilWkho91G-OVhvUFJg	\N	2025-07-09 19:32:35+00	\N	14965defbebe4974af776d538790f085
+3807	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4OTY1MCwiaWF0IjoxNzQ5NDk3NjUwLCJqdGkiOiI1ZWE2MDBhNWZhNDQ0YWIwYmVhZWZkMWVmNWI2ZjU2MSIsInVzZXJfaWQiOjJ9.vpXNG1TG4XvLyYyWqKA6KAO_Jbx9vj7ma_tX2xg452I	\N	2025-07-09 19:34:10+00	\N	5ea600a5fa444ab0beaefd1ef5b6f561
+3808	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4OTgwNCwiaWF0IjoxNzQ5NDk3ODA0LCJqdGkiOiI5NTZmOWYyZGMwNGE0ZGI0OGU0ZGFjYjk5ZmI1ZjZlOSIsInVzZXJfaWQiOjJ9.Qq43tILTkoUMAzCa-sEsP9pwqA0xWvHGY5cB54jAgdA	\N	2025-07-09 19:36:44+00	\N	956f9f2dc04a4db48e4dacb99fb5f6e9
+3809	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4OTg0NCwiaWF0IjoxNzQ5NDk3ODQ0LCJqdGkiOiJlY2IyZGU4ZGE1MWU0MDM2ODdkM2E0Y2JmYmM2NDg1MyIsInVzZXJfaWQiOjJ9.YujAn2hSlXEA0quNByRGDCz_4eDK9VT43r2LO79C-4U	\N	2025-07-09 19:37:24+00	\N	ecb2de8da51e403687d3a4cbfbc64853
+3810	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4OTk0MiwiaWF0IjoxNzQ5NDk3OTQyLCJqdGkiOiJmMWE1ODRiMTViNGU0OWE1ODUzNGM4YWI4ZGY0ZDVkYiIsInVzZXJfaWQiOjJ9._QL1sQPPv9Yaj4tcqIF71siNWOQVsjAi-zPinBvExKE	\N	2025-07-09 19:39:02+00	\N	f1a584b15b4e49a58534c8ab8df4d5db
+3811	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4OTk4NywiaWF0IjoxNzQ5NDk3OTg3LCJqdGkiOiI5MjM0MmE4MzIyMDU0Y2ZlYTMwZGIxOTc3Mzg1ZGJkOCIsInVzZXJfaWQiOjJ9.YCCh3H9V3AcrLSM0r7emk9Qon2ZLUmEIVGPFGhgoYaA	\N	2025-07-09 19:39:47+00	\N	92342a8322054cfea30db1977385dbd8
+3812	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA5MDAxMCwiaWF0IjoxNzQ5NDk4MDEwLCJqdGkiOiI5Y2UzOWQ1NWRlNDQ0YTMwODI1MDQ4OWU0MmNiMDc5YyIsInVzZXJfaWQiOjJ9.A0xmkpT44gmg5wD7faOpUbd9jVdZYb51cRVOb1CMEaI	\N	2025-07-09 19:40:10+00	\N	9ce39d55de444a308250489e42cb079c
+3813	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA5MDA4MywiaWF0IjoxNzQ5NDk4MDgzLCJqdGkiOiI0MDRjMjBlYjA4MWI0ZjhhOWMzYjc5OTVmMzJjOGFjOCIsInVzZXJfaWQiOjJ9.1a8xbj6Jtt2esvrfan9XacbtVFTerseCQmPJNkZMV7s	\N	2025-07-09 19:41:23+00	\N	404c20eb081b4f8a9c3b7995f32c8ac8
+3814	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA5MTA1MSwiaWF0IjoxNzQ5NDk5MDUxLCJqdGkiOiIwMjBlYjczNzk0NTM0OTU0ODUxZGY2YzQwNGJmN2ZkNCIsInVzZXJfaWQiOjJ9.ETuIGxpTFtiBNR91NirmGnHloHL952MRzpOx2qWFokE	\N	2025-07-09 19:57:31+00	\N	020eb73794534954851df6c404bf7fd4
+3815	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA5MTA4NiwiaWF0IjoxNzQ5NDk5MDg2LCJqdGkiOiI4ZWE3ZjJiYjQwMTE0ZjhmOGQyYTNiZTdmOWI1NWIwZiIsInVzZXJfaWQiOjJ9.gxuqyJ9HBkHYIwTL3gIzuqTnhQafbvlsCQfhe15EVB0	\N	2025-07-09 19:58:06+00	\N	8ea7f2bb40114f8f8d2a3be7f9b55b0f
+3816	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA5MTM1MCwiaWF0IjoxNzQ5NDk5MzUwLCJqdGkiOiJkYzI5NDU5MjM0MjE0OWNlODFhNDczNjhiMDE1MjJiNiIsInVzZXJfaWQiOjJ9.Fg6Ah-6lqBoplcpLVxAgPWyJci1lfjzPkitm3pDSls0	\N	2025-07-09 20:02:30+00	\N	dc294592342149ce81a47368b01522b6
+3817	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA5MTQxMywiaWF0IjoxNzQ5NDk5NDEzLCJqdGkiOiJjYjYwZTUyOWNjNjg0MjQ2OTIzOGQ2NDE4Mjc1YzBjYSIsInVzZXJfaWQiOjJ9.XSSpP8q6OrAM41ajCc-WnLS_DPOSILCIXHzqmnHFdOY	\N	2025-07-09 20:03:33+00	\N	cb60e529cc6842469238d6418275c0ca
+3818	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA1OTA1MSwiaWF0IjoxNzQ5NDY3MDUxLCJqdGkiOiIwNjIxNDZiOTg3ZDE0OTJiOTA3MWI2NTk3NmMzZjJkMyIsInVzZXJfaWQiOjJ9.uAMQbOuKBlBuKkF1FifpIb2k7-MKhpDRhpmskrR-cGA	\N	2025-07-09 11:04:11+00	\N	062146b987d1492b9071b65976c3f2d3
+3819	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEyOTA5NSwiaWF0IjoxNzQ5NTM3MDk1LCJqdGkiOiIxOTZmMTk1NjQ4Yzc0YWZiYjc5YjZmNzNmNTAzYzNiZiIsInVzZXJfaWQiOjJ9.ca1dFw5nxZanBmVmtBDlrKWVMA556MYfGZUu8l6us5g	\N	2025-07-10 06:31:35+00	\N	196f195648c74afbb79b6f73f503c3bf
+3820	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMDEwNywiaWF0IjoxNzQ5NTM4MTA3LCJqdGkiOiIwNThmZGJmYTc0ZmM0MDg5OGEyNDZiMDM4NmI5YjUwMCIsInVzZXJfaWQiOjJ9.KWXGmdhjE8lZ6hVgTCUT7kCl6xcOaz70jNDclNnAO4M	\N	2025-07-10 06:48:27+00	\N	058fdbfa74fc40898a246b0386b9b500
+3821	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMDE1OCwiaWF0IjoxNzQ5NTM4MTU4LCJqdGkiOiI4NWQ1NDEzMjI2MDI0YmY3ODU5ZmFmN2YwMmEzODAzMSIsInVzZXJfaWQiOjJ9.lvUs4oIIaC1wjsO_99RxPewQCr6q-cQgMHjR-0qTjOE	\N	2025-07-10 06:49:18+00	\N	85d5413226024bf7859faf7f02a38031
+3822	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMDE3MCwiaWF0IjoxNzQ5NTM4MTcwLCJqdGkiOiI3ODYzZmRhOWM2N2U0NGMyOWEwOThlYTM5ZGVhM2ExNCIsInVzZXJfaWQiOjJ9.T6HY8HWSunUZ2iwluuctxjNwgGSzjuT6t9DBajV7hU8	\N	2025-07-10 06:49:30+00	\N	7863fda9c67e44c29a098ea39dea3a14
+3823	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMDI4MSwiaWF0IjoxNzQ5NTM4MjgxLCJqdGkiOiIzZjZhMDVjMDQ5ZTQ0NjVkOWE4MjY0MGQ4N2M1MDkyZSIsInVzZXJfaWQiOjJ9.bliXUwFyJMi21VqVb7C4fW-jtF4gDvFhyndvom2xgck	\N	2025-07-10 06:51:21+00	\N	3f6a05c049e4465d9a82640d87c5092e
+3824	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMDM0MCwiaWF0IjoxNzQ5NTM4MzQwLCJqdGkiOiJhOTVhYjUxMDY2MjI0ZGY4YjNiZWFlMTQyMDExNTg1YSIsInVzZXJfaWQiOjJ9.DT6iQLDcDD9u-9GW8TgU_dTFEKzWF8PT3XqH5OIpzMc	\N	2025-07-10 06:52:20+00	\N	a95ab51066224df8b3beae142011585a
+3825	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMDQwNSwiaWF0IjoxNzQ5NTM4NDA1LCJqdGkiOiJkNWM5MzRjZDliOGY0MTU1YjRlMzRlNzgwNjZmNTkxYiIsInVzZXJfaWQiOjJ9.FDk2wPlCI_03Can88sCXWZhUFV5IK_-jqW5AJhVDfOM	\N	2025-07-10 06:53:25+00	\N	d5c934cd9b8f4155b4e34e78066f591b
+3826	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMDQyNSwiaWF0IjoxNzQ5NTM4NDI1LCJqdGkiOiI3ZjYwYjBmOWY0ZGE0MTgzOWU5ZjkyMGMzYjViOTM5YSIsInVzZXJfaWQiOjJ9.Ff6Bs7OkdHA-kEHH_unKSm6aAZuyspUWFfjWAPsaChA	\N	2025-07-10 06:53:45+00	\N	7f60b0f9f4da41839e9f920c3b5b939a
+3827	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMDU1MiwiaWF0IjoxNzQ5NTM4NTUyLCJqdGkiOiI1ZmVjYmRiZTRjMWY0NzZhYTk5YmNlNTVkN2IwMzEwYyIsInVzZXJfaWQiOjJ9.Wte61qxYPwFN_-NPv4RLX9GhTkuv21HcV9imQwD6PQY	\N	2025-07-10 06:55:52+00	\N	5fecbdbe4c1f476aa99bce55d7b0310c
+3828	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMDY0MiwiaWF0IjoxNzQ5NTM4NjQyLCJqdGkiOiI3ZWI0MGQxODViOTU0NmI3OTY5YWEyMzk2NTAzZGNlYyIsInVzZXJfaWQiOjJ9.NYCpz0H0UTvBArvNpu5gL4E2qD1tmQ_9Kk8lBwRpXtk	\N	2025-07-10 06:57:22+00	\N	7eb40d185b9546b7969aa2396503dcec
+3829	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMDc3NywiaWF0IjoxNzQ5NTM4Nzc3LCJqdGkiOiIzMjU5ZDBkMTFhMzc0MTU2ODcxMWZkMDNlYWNiZTE0NCIsInVzZXJfaWQiOjJ9.b7maLNIdfUIjwnxe3sj66Gh3G9RavEFdX0EhdasPdLQ	\N	2025-07-10 06:59:37+00	\N	3259d0d11a3741568711fd03eacbe144
+3830	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMTIzNywiaWF0IjoxNzQ5NTM5MjM3LCJqdGkiOiIyNTEwZjQzNDM0M2Y0ZTRiOGYwMGVmYjgxYzRhMTA2MCIsInVzZXJfaWQiOjJ9.YsShUTdBl0Vm0LCpcn4Rv2kUwAshak4bHxgBVTWb3G0	\N	2025-07-10 07:07:17+00	\N	2510f434343f4e4b8f00efb81c4a1060
+3831	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMTUxNSwiaWF0IjoxNzQ5NTM5NTE1LCJqdGkiOiJmODhiNjcyYjliMDc0NTFkODU3OGE1MDBiODgwYjIzNiIsInVzZXJfaWQiOjJ9.2pAkJNuHzd5lsrwWfUeUd1IVktFrhwzJhAIb0jFbP-8	\N	2025-07-10 07:11:55+00	\N	f88b672b9b07451d8578a500b880b236
+3832	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMjI5OSwiaWF0IjoxNzQ5NTQwMjk5LCJqdGkiOiJiYWQ2YjBjZGQ3Zjg0OTVhODQ3OTY0OWI4MzkzOGMxMyIsInVzZXJfaWQiOjJ9.V39kWrjdjYcC-qBLOa9af6JSiSCUK8CEyo6IzcWE6TQ	\N	2025-07-10 07:24:59+00	\N	bad6b0cdd7f8495a8479649b83938c13
+3833	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMjMxMywiaWF0IjoxNzQ5NTQwMzEzLCJqdGkiOiJkY2ZmMjhkOTYxYTc0M2FhYmFiMGUwOTMxZWU2YWQwZCIsInVzZXJfaWQiOjJ9.-GGyDbnapKfq5w7aHKZnDyXSmrp5D03qgrlh6MAi_qA	\N	2025-07-10 07:25:13+00	\N	dcff28d961a743aabab0e0931ee6ad0d
+3834	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMjkwMywiaWF0IjoxNzQ5NTQwOTAzLCJqdGkiOiI2YzE5NDczN2YxNjM0M2VmOTUyMmMyYzUxYTUyNTQwMCIsInVzZXJfaWQiOjJ9.2H7NHa-zclxHyWkH6pYUlZiWqndgv1FgSsy_l3oujzA	\N	2025-07-10 07:35:03+00	\N	6c194737f16343ef9522c2c51a525400
+3835	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMzgyMywiaWF0IjoxNzQ5NTQxODIzLCJqdGkiOiI2ZGIzYzRiZTVjNTE0ZWEyOWEzNTE0ZTVlMzIzN2VhNCIsInVzZXJfaWQiOjJ9.fklG8um69lqwY5wDkeFH7kohlwReVRgzzR0bcbwShxc	\N	2025-07-10 07:50:23+00	\N	6db3c4be5c514ea29a3514e5e3237ea4
+3836	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzMzgzOSwiaWF0IjoxNzQ5NTQxODM5LCJqdGkiOiI3MTk2ZmUzMmViYzk0MzY4YTA0YmE1NGM0ZTQ4NTJjMCIsInVzZXJfaWQiOjJ9.8w0QAkndBI8JY9EMGbwsGuK7jO9iYTS91S5TBQU3uvI	\N	2025-07-10 07:50:39+00	\N	7196fe32ebc94368a04ba54c4e4852c0
+3837	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDAzNiwiaWF0IjoxNzQ5NTQyMDM2LCJqdGkiOiI4ZmIzZjc3YmU0ZDg0OWY1YjIzNjMxNmFlYTY4MTIzZiIsInVzZXJfaWQiOjJ9.yJOv4cWeHN3NWAKcS5SWyzbN6qDe6oywZJbPGKxDwaI	\N	2025-07-10 07:53:56+00	\N	8fb3f77be4d849f5b236316aea68123f
+3838	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDA1MywiaWF0IjoxNzQ5NTQyMDUzLCJqdGkiOiI5YjU5NzViMDhjNjc0NzQ5YThiNTE0Y2I1OTZmZTVlOCIsInVzZXJfaWQiOjJ9.6Qtq7a36RZkucrXaODXejqPfWdZwx1njZ-5P_J_DUPg	\N	2025-07-10 07:54:13+00	\N	9b5975b08c674749a8b514cb596fe5e8
+3839	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDA1NiwiaWF0IjoxNzQ5NTQyMDU2LCJqdGkiOiJiMjE2ZDFlMjA4YzY0MTU4YjhmOGI3OTJiMjY1YjAwOCIsInVzZXJfaWQiOjJ9.JpqJtg6S9jBGRHDxFwicxW0b_M0Vi7LW8FajSCxSjTU	\N	2025-07-10 07:54:16+00	\N	b216d1e208c64158b8f8b792b265b008
+3840	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDE1NCwiaWF0IjoxNzQ5NTQyMTU0LCJqdGkiOiI1ZGVmZTU3YjZiZjM0OWYyYjFmYTA1MDVlM2JlNWFlNSIsInVzZXJfaWQiOjJ9.ywWbqQNsgbTHUbfLmW9awOsszwnS-7JKJJVY5-Hfuiw	\N	2025-07-10 07:55:54+00	\N	5defe57b6bf349f2b1fa0505e3be5ae5
+3841	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDMzOSwiaWF0IjoxNzQ5NTQyMzM5LCJqdGkiOiIxNDFlZTk5MmE2Y2E0OWE4Yjg3MTY2ZWFiYzI1YTgyMCIsInVzZXJfaWQiOjJ9.PLBzlOXfozTpCwWjQDCD4cjFJV3Ej8CItEoplcIA3jc	\N	2025-07-10 07:58:59+00	\N	141ee992a6ca49a8b87166eabc25a820
+3842	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDM0MSwiaWF0IjoxNzQ5NTQyMzQxLCJqdGkiOiI1NTk2OTc2ZGJmYTI0Y2UxOWFkN2EwZWE2MWY2NDU0MSIsInVzZXJfaWQiOjJ9.rXsb9l0STcqhgrsLnj5eHzyJRTk6CuqbN7LJ-3QLo30	\N	2025-07-10 07:59:01+00	\N	5596976dbfa24ce19ad7a0ea61f64541
+3843	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDQwNCwiaWF0IjoxNzQ5NTQyNDA0LCJqdGkiOiIxZjAxMTkyZjAxMDA0MWE0ODQ4OWMyZDhjMWNiMDAyNyIsInVzZXJfaWQiOjJ9.qqYITYbgjfr31REPr38k2HUqC9XuNu62XNanmNhTVy0	\N	2025-07-10 08:00:04+00	\N	1f01192f010041a48489c2d8c1cb0027
+3844	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDQ1NiwiaWF0IjoxNzQ5NTQyNDU2LCJqdGkiOiI2NGFhZDEwNmFiMDI0MGNlYWNjYTA1MTM1NDNlODZiNSIsInVzZXJfaWQiOjJ9.dmnDcxgP_urhefu0rzO-4vt4tmU7amgG2Ufpoyv8G8Q	\N	2025-07-10 08:00:56+00	\N	64aad106ab0240ceacca0513543e86b5
+3845	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDUwOSwiaWF0IjoxNzQ5NTQyNTA5LCJqdGkiOiJkNDM5N2U0YmE1NGI0ODVmYWQyZjAzNTBkMTMwOGVlMyIsInVzZXJfaWQiOjJ9.jyfVGjpoox2tTwzQfrUqhiKeOWgo7JMaxdd5tLAYFlk	\N	2025-07-10 08:01:49+00	\N	d4397e4ba54b485fad2f0350d1308ee3
+3846	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDU1OSwiaWF0IjoxNzQ5NTQyNTU5LCJqdGkiOiJjMjgwOGE4MTUxM2M0ZWZiOTk0ODg1MmE3ZjRlZjQ1OSIsInVzZXJfaWQiOjJ9.SC4m6ftVzLoY-EDy7zsUYtOGv31ehXqmg-Wi4zYy-Mc	\N	2025-07-10 08:02:39+00	\N	c2808a81513c4efb9948852a7f4ef459
+3847	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDY0NywiaWF0IjoxNzQ5NTQyNjQ3LCJqdGkiOiIzYzJkYmYyZmVhNmI0YTU1OTg3NGU3YmJhM2ViZmM5NCIsInVzZXJfaWQiOjJ9.HnxCKOPuTwzjb3WYDB2S-IR5j52bky3wtLIrpUV5DVQ	\N	2025-07-10 08:04:07+00	\N	3c2dbf2fea6b4a559874e7bba3ebfc94
+3848	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDc3NywiaWF0IjoxNzQ5NTQyNzc3LCJqdGkiOiI2MmRjMzJhNjU2OWU0YmQwYjBjMDQwOGJlNDk5YzA0MCIsInVzZXJfaWQiOjJ9.JKzhx9AMbE2fp97z_cQklK7p0tFvwWQbxzY4PoaaIF4	\N	2025-07-10 08:06:17+00	\N	62dc32a6569e4bd0b0c0408be499c040
+3849	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDg2NiwiaWF0IjoxNzQ5NTQyODY2LCJqdGkiOiIzOGM3NmIwYWNkYzM0NzM0OTAxOWY5YTYxMDVlODBiYyIsInVzZXJfaWQiOjJ9.JzGMYbkbaXTQ7QB76ysmzlS6kbCBMphZZFz9m9uCNs8	\N	2025-07-10 08:07:46+00	\N	38c76b0acdc347349019f9a6105e80bc
+3850	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDkzNSwiaWF0IjoxNzQ5NTQyOTM1LCJqdGkiOiJkMjk1YWY1YTYwN2M0MGJlYmJlOWFkOTcwYzQxZjQ5YSIsInVzZXJfaWQiOjJ9.Uh_St_UZ8pqoJktTuwsbPJI8-wtH-enYOPFYX8jw4po	\N	2025-07-10 08:08:55+00	\N	d295af5a607c40bebbe9ad970c41f49a
+3851	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNDk3OCwiaWF0IjoxNzQ5NTQyOTc4LCJqdGkiOiJmNzZjYjdkOTk4ZmU0ZTUzODczOTgwMGY0ZmNmMDU2NyIsInVzZXJfaWQiOjJ9.YHzkP9XT3vWyTVO59gxOV8pp43d9WG8KtTZQG3NiwaI	\N	2025-07-10 08:09:38+00	\N	f76cb7d998fe4e538739800f4fcf0567
+3852	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTA5MywiaWF0IjoxNzQ5NTQzMDkzLCJqdGkiOiI0NjJmMzkzYmQyMDM0ZGU2ODBhN2RkMDQxYzRjOGM3NSIsInVzZXJfaWQiOjJ9.rzCUyJXY5pwZuAQHLgKwwp3tYCc0aWuRJX6KP3ixeSk	\N	2025-07-10 08:11:33+00	\N	462f393bd2034de680a7dd041c4c8c75
+3853	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTMyMywiaWF0IjoxNzQ5NTQzMzIzLCJqdGkiOiJkZTJlOTMxYTdhNWQ0YWVmYjdkMmI4MzQyZDUyZDhlYSIsInVzZXJfaWQiOjJ9.umjMcg6CUQUp6rujhX_oTsXqvh0jsvdHweUEO0dPfCg	\N	2025-07-10 08:15:23+00	\N	de2e931a7a5d4aefb7d2b8342d52d8ea
+3854	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTQxNiwiaWF0IjoxNzQ5NTQzNDE2LCJqdGkiOiI4Zjg2M2M3YjdjODU0NDQwOGM2MGY4NzMyZjYzMDQ3YyIsInVzZXJfaWQiOjJ9.SUTi9oxO71cYwvG9hR1ndOUksR9XzU7bHURfZHiShkA	\N	2025-07-10 08:16:56+00	\N	8f863c7b7c8544408c60f8732f63047c
+3855	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTQ0NSwiaWF0IjoxNzQ5NTQzNDQ1LCJqdGkiOiJiNGM0N2UyMjQzYjE0MmNmYmQ4YjUzNmI4M2Q3YzM1MCIsInVzZXJfaWQiOjJ9.joKk50MYuKQvfiLWjSR2r_2VE9sMke5E3KducYvDUnw	\N	2025-07-10 08:17:25+00	\N	b4c47e2243b142cfbd8b536b83d7c350
+3856	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTUzOCwiaWF0IjoxNzQ5NTQzNTM4LCJqdGkiOiIzY2FkOTU1MGU2ZmM0MWZmODcxN2E2Y2IxNzZhNTdkZiIsInVzZXJfaWQiOjJ9.LjmylS_JBMeTtdMfSVni2XUjn2_YnR12bWMpJssW6io	\N	2025-07-10 08:18:58+00	\N	3cad9550e6fc41ff8717a6cb176a57df
+3857	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTYzOSwiaWF0IjoxNzQ5NTQzNjM5LCJqdGkiOiJjNmIwMTFkZjVhMWE0YmMxODA5YTM5NmVjZWMwMjljYyIsInVzZXJfaWQiOjJ9.NeJra5rIfrjXEVV4nlLHZwqHQzM_2tth8dmXbHp2FL0	\N	2025-07-10 08:20:39+00	\N	c6b011df5a1a4bc1809a396ecec029cc
+3858	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTY4MSwiaWF0IjoxNzQ5NTQzNjgxLCJqdGkiOiIyZDgxMzI0NjEzNzE0ZDg1YmE2MDM1ODE5MjBlNmUyYiIsInVzZXJfaWQiOjJ9.ZqXZEbx2N80UHbs8McKJFVbtjGE9c8DfTdF2L8JpxzM	\N	2025-07-10 08:21:21+00	\N	2d81324613714d85ba603581920e6e2b
+3859	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTc1MSwiaWF0IjoxNzQ5NTQzNzUxLCJqdGkiOiIzNjUzZGM3MTcwYTQ0NGU0YmJmMzJlMzBmMDRkNWIwNiIsInVzZXJfaWQiOjJ9.z08SyktvfHIiEJGMUckWuB_BazY2_f9uti3LXL-IaC8	\N	2025-07-10 08:22:31+00	\N	3653dc7170a444e4bbf32e30f04d5b06
+3860	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTc2MiwiaWF0IjoxNzQ5NTQzNzYyLCJqdGkiOiJlYTZhMWE1OWU1YmY0YTc3YTZiMmIwM2E5Y2NiZjYyYyIsInVzZXJfaWQiOjJ9.O8uBIIMCbD_zfi0V0yzk9drLbs4WnrgT_nc5SrY-3bI	\N	2025-07-10 08:22:42+00	\N	ea6a1a59e5bf4a77a6b2b03a9ccbf62c
+3861	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTg0MiwiaWF0IjoxNzQ5NTQzODQyLCJqdGkiOiJhMTkzNTQ0Y2ZkODg0YWIyYjQ2NzA0YTU4NTJiNWExOSIsInVzZXJfaWQiOjJ9.yzPPisoOfaEIG-L72O-v7DNfW6rLcMlAlhZq5TNBn0s	\N	2025-07-10 08:24:02+00	\N	a193544cfd884ab2b46704a5852b5a19
+3862	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTg5MSwiaWF0IjoxNzQ5NTQzODkxLCJqdGkiOiI0NzUwMjY1NDViMjg0NjY1YTE1Y2IyY2NkNDQ5OTczZCIsInVzZXJfaWQiOjJ9.0--q-1Aloy4E8ipHAhh9CBLmHSr8OaKefpMb8l9Tc1g	\N	2025-07-10 08:24:51+00	\N	475026545b284665a15cb2ccd449973d
+3863	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNTkyOCwiaWF0IjoxNzQ5NTQzOTI4LCJqdGkiOiIwYzI4ZDc5YTg3NjI0ODk4ODY5NDhkNDIxMjY3NzUyYiIsInVzZXJfaWQiOjJ9.ReTSdkgpYr42LcVaOHQl1glhaIRQuWext29dSr_UIC4	\N	2025-07-10 08:25:28+00	\N	0c28d79a8762489886948d421267752b
+3864	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNjAwMywiaWF0IjoxNzQ5NTQ0MDAzLCJqdGkiOiJjYjg4ZWNlMzQ4ZjQ0YzBhYjk3MjIwZWVjYWQ2YTUwYiIsInVzZXJfaWQiOjJ9.yNNXl2uKNw3P486TsHgWK5lZFtoRNVGj3mDN812tVZk	\N	2025-07-10 08:26:43+00	\N	cb88ece348f44c0ab97220eecad6a50b
+3865	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNjA1OCwiaWF0IjoxNzQ5NTQ0MDU4LCJqdGkiOiI3M2FiOTFiNjc2MjY0ZDNhYWM1NzlhMzA3NDdkYjI2ZSIsInVzZXJfaWQiOjJ9.Q5tpEoCqn8WOjru1s8uaU9KIMQ-6D4QrNAdVcek2Bvw	\N	2025-07-10 08:27:38+00	\N	73ab91b676264d3aac579a30747db26e
+3866	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNjEyMCwiaWF0IjoxNzQ5NTQ0MTIwLCJqdGkiOiJiYTgzMGZjY2RjMmI0Njc0OGMxM2M0NmNiNDZlODg2ZSIsInVzZXJfaWQiOjJ9.fY6qKgwEW65yq7YRtKK7tVTvoK0vWNRG-Ck_FCJuzvk	\N	2025-07-10 08:28:40+00	\N	ba830fccdc2b46748c13c46cb46e886e
+3867	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNjEyNSwiaWF0IjoxNzQ5NTQ0MTI1LCJqdGkiOiIzY2FmNWFmY2Y2MGM0OGNjYWViZmY5ZjcxM2ZlYWIwNSIsInVzZXJfaWQiOjJ9.3KkPeZngfvVl4wqUPbLQqKCvpycazaEkskVQoe0NIog	\N	2025-07-10 08:28:45+00	\N	3caf5afcf60c48ccaebff9f713feab05
+3868	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNjM0OSwiaWF0IjoxNzQ5NTQ0MzQ5LCJqdGkiOiI4OWM1N2JiNzM5YjU0NWZhYjgxMzRmOGQxN2I2ZWUwMiIsInVzZXJfaWQiOjJ9.BpHjzrn7X37mUVfFYOsgOMbxh7gS9WOtPJQHxa_xigU	\N	2025-07-10 08:32:29+00	\N	89c57bb739b545fab8134f8d17b6ee02
+3869	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNjUwMCwiaWF0IjoxNzQ5NTQ0NTAwLCJqdGkiOiJhZjA5NTc4YjRhMDI0MTE1YTdkNjhhNWNlOTY1NDI5ZCIsInVzZXJfaWQiOjJ9.lcTCakKaxbTpBboDdiarhIrWqyeu24Rdz7InjNcimIc	\N	2025-07-10 08:35:00+00	\N	af09578b4a024115a7d68a5ce965429d
+3870	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNjY3MCwiaWF0IjoxNzQ5NTQ0NjcwLCJqdGkiOiI0ZGQ3M2M2ZjQzOWI0MzlkYTFkYmEzNWU3NTcxOWU1MyIsInVzZXJfaWQiOjJ9.1-fYs-A123dHBjjCGUQa73EeV12DBBy0PCbG5RSFsvM	\N	2025-07-10 08:37:50+00	\N	4dd73c6f439b439da1dba35e75719e53
+3871	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjEzNjc2NywiaWF0IjoxNzQ5NTQ0NzY3LCJqdGkiOiJlZDQyYWU5NzgyYmM0ZGE3YjYwMTU1NWEzN2ExNjhlNSIsInVzZXJfaWQiOjJ9.XJnc9JdrTe9xaylvBw2yimGQDsBTrmUSsqrvCKHQjhU	\N	2025-07-10 08:39:27+00	\N	ed42ae9782bc4da7b601555a37a168e5
 \.
 
 
 --
--- TOC entry 3803 (class 0 OID 0)
+-- TOC entry 3804 (class 0 OID 0)
 -- Dependencies: 220
 -- Name: account_user_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13830,7 +14726,7 @@ SELECT pg_catalog.setval('public.account_user_groups_id_seq', 1, false);
 
 
 --
--- TOC entry 3804 (class 0 OID 0)
+-- TOC entry 3805 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: account_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13839,7 +14735,7 @@ SELECT pg_catalog.setval('public.account_user_id_seq', 3, true);
 
 
 --
--- TOC entry 3805 (class 0 OID 0)
+-- TOC entry 3806 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: account_user_user_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13848,7 +14744,7 @@ SELECT pg_catalog.setval('public.account_user_user_permissions_id_seq', 1, false
 
 
 --
--- TOC entry 3806 (class 0 OID 0)
+-- TOC entry 3807 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: admin_interface_theme_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13857,7 +14753,7 @@ SELECT pg_catalog.setval('public.admin_interface_theme_id_seq', 2, true);
 
 
 --
--- TOC entry 3807 (class 0 OID 0)
+-- TOC entry 3808 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: auth_group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13866,7 +14762,7 @@ SELECT pg_catalog.setval('public.auth_group_id_seq', 5, true);
 
 
 --
--- TOC entry 3808 (class 0 OID 0)
+-- TOC entry 3809 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: auth_group_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13875,7 +14771,7 @@ SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
 
 
 --
--- TOC entry 3809 (class 0 OID 0)
+-- TOC entry 3810 (class 0 OID 0)
 -- Dependencies: 231
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13884,7 +14780,7 @@ SELECT pg_catalog.setval('public.auth_permission_id_seq', 132, true);
 
 
 --
--- TOC entry 3810 (class 0 OID 0)
+-- TOC entry 3811 (class 0 OID 0)
 -- Dependencies: 233
 -- Name: core_aps_credentials_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13893,7 +14789,7 @@ SELECT pg_catalog.setval('public.core_aps_credentials_id_seq', 1, false);
 
 
 --
--- TOC entry 3811 (class 0 OID 0)
+-- TOC entry 3812 (class 0 OID 0)
 -- Dependencies: 235
 -- Name: core_company_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13902,7 +14798,7 @@ SELECT pg_catalog.setval('public.core_company_id_seq', 1, false);
 
 
 --
--- TOC entry 3812 (class 0 OID 0)
+-- TOC entry 3813 (class 0 OID 0)
 -- Dependencies: 237
 -- Name: core_locale_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13911,16 +14807,16 @@ SELECT pg_catalog.setval('public.core_locale_id_seq', 2, true);
 
 
 --
--- TOC entry 3813 (class 0 OID 0)
+-- TOC entry 3814 (class 0 OID 0)
 -- Dependencies: 239
 -- Name: core_log_user_activity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.core_log_user_activity_id_seq', 4528, true);
+SELECT pg_catalog.setval('public.core_log_user_activity_id_seq', 4697, true);
 
 
 --
--- TOC entry 3814 (class 0 OID 0)
+-- TOC entry 3815 (class 0 OID 0)
 -- Dependencies: 241
 -- Name: core_navigation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13929,7 +14825,7 @@ SELECT pg_catalog.setval('public.core_navigation_id_seq', 13, true);
 
 
 --
--- TOC entry 3815 (class 0 OID 0)
+-- TOC entry 3816 (class 0 OID 0)
 -- Dependencies: 243
 -- Name: core_navigation_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13938,7 +14834,7 @@ SELECT pg_catalog.setval('public.core_navigation_permissions_id_seq', 1, false);
 
 
 --
--- TOC entry 3816 (class 0 OID 0)
+-- TOC entry 3817 (class 0 OID 0)
 -- Dependencies: 245
 -- Name: core_translation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13947,7 +14843,7 @@ SELECT pg_catalog.setval('public.core_translation_id_seq', 6691, true);
 
 
 --
--- TOC entry 3817 (class 0 OID 0)
+-- TOC entry 3818 (class 0 OID 0)
 -- Dependencies: 247
 -- Name: core_userprofile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13956,16 +14852,16 @@ SELECT pg_catalog.setval('public.core_userprofile_id_seq', 3, true);
 
 
 --
--- TOC entry 3818 (class 0 OID 0)
+-- TOC entry 3819 (class 0 OID 0)
 -- Dependencies: 249
 -- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.django_admin_log_id_seq', 279, true);
+SELECT pg_catalog.setval('public.django_admin_log_id_seq', 284, true);
 
 
 --
--- TOC entry 3819 (class 0 OID 0)
+-- TOC entry 3820 (class 0 OID 0)
 -- Dependencies: 251
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -13974,25 +14870,25 @@ SELECT pg_catalog.setval('public.django_content_type_id_seq', 31, true);
 
 
 --
--- TOC entry 3820 (class 0 OID 0)
+-- TOC entry 3821 (class 0 OID 0)
 -- Dependencies: 253
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 102, true);
-
-
---
--- TOC entry 3821 (class 0 OID 0)
--- Dependencies: 256
--- Name: forge_bim_category_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
---
-
-SELECT pg_catalog.setval('public.forge_bim_category_id_seq', 16007, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 104, true);
 
 
 --
 -- TOC entry 3822 (class 0 OID 0)
+-- Dependencies: 256
+-- Name: forge_bim_category_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
+--
+
+SELECT pg_catalog.setval('public.forge_bim_category_id_seq', 16195, true);
+
+
+--
+-- TOC entry 3823 (class 0 OID 0)
 -- Dependencies: 258
 -- Name: forge_bim_condition_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -14001,43 +14897,43 @@ SELECT pg_catalog.setval('public.forge_bim_condition_id_seq', 45, true);
 
 
 --
--- TOC entry 3823 (class 0 OID 0)
+-- TOC entry 3824 (class 0 OID 0)
 -- Dependencies: 260
 -- Name: forge_bim_model_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.forge_bim_model_id_seq', 91, true);
-
-
---
--- TOC entry 3824 (class 0 OID 0)
--- Dependencies: 263
--- Name: forge_bim_object_hierarchy_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
---
-
-SELECT pg_catalog.setval('public.forge_bim_object_hierarchy_id_seq', 5652640, true);
+SELECT pg_catalog.setval('public.forge_bim_model_id_seq', 96, true);
 
 
 --
 -- TOC entry 3825 (class 0 OID 0)
--- Dependencies: 264
--- Name: forge_bim_object_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
+-- Dependencies: 263
+-- Name: forge_bim_object_hierarchy_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.forge_bim_object_id_seq', 137926274, true);
+SELECT pg_catalog.setval('public.forge_bim_object_hierarchy_id_seq', 6006877, true);
 
 
 --
 -- TOC entry 3826 (class 0 OID 0)
--- Dependencies: 266
--- Name: forge_bim_region_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
+-- Dependencies: 264
+-- Name: forge_bim_object_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.forge_bim_region_id_seq', 2008, true);
+SELECT pg_catalog.setval('public.forge_bim_object_id_seq', 150714280, true);
 
 
 --
 -- TOC entry 3827 (class 0 OID 0)
+-- Dependencies: 266
+-- Name: forge_bim_region_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
+--
+
+SELECT pg_catalog.setval('public.forge_bim_region_id_seq', 2080, true);
+
+
+--
+-- TOC entry 3828 (class 0 OID 0)
 -- Dependencies: 268
 -- Name: forge_role_code_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -14046,7 +14942,7 @@ SELECT pg_catalog.setval('public.forge_role_code_id_seq', 44, true);
 
 
 --
--- TOC entry 3828 (class 0 OID 0)
+-- TOC entry 3829 (class 0 OID 0)
 -- Dependencies: 270
 -- Name: forge_zone_code_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -14055,21 +14951,21 @@ SELECT pg_catalog.setval('public.forge_zone_code_id_seq', 211, true);
 
 
 --
--- TOC entry 3829 (class 0 OID 0)
+-- TOC entry 3830 (class 0 OID 0)
 -- Dependencies: 272
 -- Name: token_blacklist_blacklistedtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 3472, true);
+SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 3830, true);
 
 
 --
--- TOC entry 3830 (class 0 OID 0)
+-- TOC entry 3831 (class 0 OID 0)
 -- Dependencies: 274
 -- Name: token_blacklist_outstandingtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 3506, true);
+SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 3871, true);
 
 
 --
@@ -14397,7 +15293,7 @@ ALTER TABLE ONLY public.forge_bim_model
 
 
 --
--- TOC entry 3532 (class 2606 OID 16701)
+-- TOC entry 3533 (class 2606 OID 16701)
 -- Name: forge_bim_object_hierarchy forge_bim_object_hierarchy_bim_model_id_entity_id_dbed3578_uniq; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14406,7 +15302,7 @@ ALTER TABLE ONLY public.forge_bim_object_hierarchy
 
 
 --
--- TOC entry 3534 (class 2606 OID 16703)
+-- TOC entry 3535 (class 2606 OID 16703)
 -- Name: forge_bim_object_hierarchy forge_bim_object_hierarchy_pkey; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14415,7 +15311,7 @@ ALTER TABLE ONLY public.forge_bim_object_hierarchy
 
 
 --
--- TOC entry 3525 (class 2606 OID 16705)
+-- TOC entry 3526 (class 2606 OID 16705)
 -- Name: forge_bim_object forge_bim_object_pkey; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14424,7 +15320,7 @@ ALTER TABLE ONLY public.forge_bim_object
 
 
 --
--- TOC entry 3540 (class 2606 OID 16707)
+-- TOC entry 3541 (class 2606 OID 16707)
 -- Name: forge_bim_region forge_bim_region_bim_model_id_zone_id_rol_c6a77da7_uniq; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14433,7 +15329,7 @@ ALTER TABLE ONLY public.forge_bim_region
 
 
 --
--- TOC entry 3542 (class 2606 OID 16709)
+-- TOC entry 3543 (class 2606 OID 16709)
 -- Name: forge_bim_region forge_bim_region_pkey; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14442,7 +15338,7 @@ ALTER TABLE ONLY public.forge_bim_region
 
 
 --
--- TOC entry 3548 (class 2606 OID 16711)
+-- TOC entry 3549 (class 2606 OID 16711)
 -- Name: forge_role_code forge_role_code_code_key; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14451,7 +15347,7 @@ ALTER TABLE ONLY public.forge_role_code
 
 
 --
--- TOC entry 3550 (class 2606 OID 16713)
+-- TOC entry 3551 (class 2606 OID 16713)
 -- Name: forge_role_code forge_role_code_pkey; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14460,7 +15356,7 @@ ALTER TABLE ONLY public.forge_role_code
 
 
 --
--- TOC entry 3554 (class 2606 OID 16715)
+-- TOC entry 3555 (class 2606 OID 16715)
 -- Name: forge_zone_code forge_zone_code_code_key; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14469,7 +15365,7 @@ ALTER TABLE ONLY public.forge_zone_code
 
 
 --
--- TOC entry 3556 (class 2606 OID 16717)
+-- TOC entry 3557 (class 2606 OID 16717)
 -- Name: forge_zone_code forge_zone_code_pkey; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14478,7 +15374,7 @@ ALTER TABLE ONLY public.forge_zone_code
 
 
 --
--- TOC entry 3558 (class 2606 OID 16719)
+-- TOC entry 3559 (class 2606 OID 16719)
 -- Name: token_blacklist_blacklistedtoken token_blacklist_blacklistedtoken_pkey; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14487,7 +15383,7 @@ ALTER TABLE ONLY public.token_blacklist_blacklistedtoken
 
 
 --
--- TOC entry 3560 (class 2606 OID 16721)
+-- TOC entry 3561 (class 2606 OID 16721)
 -- Name: token_blacklist_blacklistedtoken token_blacklist_blacklistedtoken_token_id_key; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14496,7 +15392,7 @@ ALTER TABLE ONLY public.token_blacklist_blacklistedtoken
 
 
 --
--- TOC entry 3563 (class 2606 OID 16723)
+-- TOC entry 3564 (class 2606 OID 16723)
 -- Name: token_blacklist_outstandingtoken token_blacklist_outstandingtoken_jti_hex_d9bdf6f7_uniq; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14505,7 +15401,7 @@ ALTER TABLE ONLY public.token_blacklist_outstandingtoken
 
 
 --
--- TOC entry 3565 (class 2606 OID 16725)
+-- TOC entry 3566 (class 2606 OID 16725)
 -- Name: token_blacklist_outstandingtoken token_blacklist_outstandingtoken_pkey; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -14818,7 +15714,7 @@ CREATE INDEX forge_bim_m_name_a6fce3_idx ON public.forge_bim_model USING btree (
 
 
 --
--- TOC entry 3527 (class 1259 OID 16764)
+-- TOC entry 3528 (class 1259 OID 16764)
 -- Name: forge_bim_o_bim_mod_7e68cc_idx; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14858,7 +15754,7 @@ CREATE INDEX forge_bim_o_display_5962dc_idx ON public.forge_bim_object USING btr
 
 
 --
--- TOC entry 3528 (class 1259 OID 16769)
+-- TOC entry 3529 (class 1259 OID 16769)
 -- Name: forge_bim_o_entity__d1ab11_idx; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14866,7 +15762,7 @@ CREATE INDEX forge_bim_o_entity__d1ab11_idx ON public.forge_bim_object_hierarchy
 
 
 --
--- TOC entry 3529 (class 1259 OID 16770)
+-- TOC entry 3530 (class 1259 OID 16770)
 -- Name: forge_bim_o_parent__9aa346_idx; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14874,7 +15770,15 @@ CREATE INDEX forge_bim_o_parent__9aa346_idx ON public.forge_bim_object_hierarchy
 
 
 --
--- TOC entry 3522 (class 1259 OID 16771)
+-- TOC entry 3522 (class 1259 OID 17277)
+-- Name: forge_bim_o_root_db_dc80ae_idx; Type: INDEX; Schema: public; Owner: bmms
+--
+
+CREATE INDEX forge_bim_o_root_db_dc80ae_idx ON public.forge_bim_object USING btree (root_dbid);
+
+
+--
+-- TOC entry 3523 (class 1259 OID 16771)
 -- Name: forge_bim_o_value_a4220c_idx; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14882,7 +15786,7 @@ CREATE INDEX forge_bim_o_value_a4220c_idx ON public.forge_bim_object USING btree
 
 
 --
--- TOC entry 3523 (class 1259 OID 16772)
+-- TOC entry 3524 (class 1259 OID 16772)
 -- Name: forge_bim_object_bim_model_id_bd2e006e; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14890,7 +15794,7 @@ CREATE INDEX forge_bim_object_bim_model_id_bd2e006e ON public.forge_bim_object U
 
 
 --
--- TOC entry 3530 (class 1259 OID 16773)
+-- TOC entry 3531 (class 1259 OID 16773)
 -- Name: forge_bim_object_hierarchy_bim_model_id_c817241b; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14898,7 +15802,7 @@ CREATE INDEX forge_bim_object_hierarchy_bim_model_id_c817241b ON public.forge_bi
 
 
 --
--- TOC entry 3535 (class 1259 OID 16774)
+-- TOC entry 3536 (class 1259 OID 16774)
 -- Name: forge_bim_r_bim_mod_bbded3_idx; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14906,7 +15810,7 @@ CREATE INDEX forge_bim_r_bim_mod_bbded3_idx ON public.forge_bim_region USING btr
 
 
 --
--- TOC entry 3536 (class 1259 OID 16775)
+-- TOC entry 3537 (class 1259 OID 16775)
 -- Name: forge_bim_r_level_2ee72a_idx; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14914,7 +15818,7 @@ CREATE INDEX forge_bim_r_level_2ee72a_idx ON public.forge_bim_region USING btree
 
 
 --
--- TOC entry 3537 (class 1259 OID 16776)
+-- TOC entry 3538 (class 1259 OID 16776)
 -- Name: forge_bim_r_zone_id_cdb1d2_idx; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14922,7 +15826,7 @@ CREATE INDEX forge_bim_r_zone_id_cdb1d2_idx ON public.forge_bim_region USING btr
 
 
 --
--- TOC entry 3538 (class 1259 OID 16777)
+-- TOC entry 3539 (class 1259 OID 16777)
 -- Name: forge_bim_region_bim_model_id_a2552f1d; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14930,7 +15834,7 @@ CREATE INDEX forge_bim_region_bim_model_id_a2552f1d ON public.forge_bim_region U
 
 
 --
--- TOC entry 3543 (class 1259 OID 16778)
+-- TOC entry 3544 (class 1259 OID 16778)
 -- Name: forge_bim_region_role_id_849e7778; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14938,7 +15842,7 @@ CREATE INDEX forge_bim_region_role_id_849e7778 ON public.forge_bim_region USING 
 
 
 --
--- TOC entry 3544 (class 1259 OID 16779)
+-- TOC entry 3545 (class 1259 OID 16779)
 -- Name: forge_bim_region_zone_id_3755200f; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14946,7 +15850,7 @@ CREATE INDEX forge_bim_region_zone_id_3755200f ON public.forge_bim_region USING 
 
 
 --
--- TOC entry 3545 (class 1259 OID 16780)
+-- TOC entry 3546 (class 1259 OID 16780)
 -- Name: forge_role__code_36b8a6_idx; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14954,7 +15858,7 @@ CREATE INDEX forge_role__code_36b8a6_idx ON public.forge_role_code USING btree (
 
 
 --
--- TOC entry 3546 (class 1259 OID 16781)
+-- TOC entry 3547 (class 1259 OID 16781)
 -- Name: forge_role_code_code_09a2120d_like; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14962,7 +15866,7 @@ CREATE INDEX forge_role_code_code_09a2120d_like ON public.forge_role_code USING 
 
 
 --
--- TOC entry 3551 (class 1259 OID 16782)
+-- TOC entry 3552 (class 1259 OID 16782)
 -- Name: forge_zone__code_afcbf9_idx; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14970,7 +15874,7 @@ CREATE INDEX forge_zone__code_afcbf9_idx ON public.forge_zone_code USING btree (
 
 
 --
--- TOC entry 3552 (class 1259 OID 16783)
+-- TOC entry 3553 (class 1259 OID 16783)
 -- Name: forge_zone_code_code_8506bd13_like; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14978,7 +15882,7 @@ CREATE INDEX forge_zone_code_code_8506bd13_like ON public.forge_zone_code USING 
 
 
 --
--- TOC entry 3526 (class 1259 OID 16784)
+-- TOC entry 3527 (class 1259 OID 16784)
 -- Name: idx_bim_obj_val_trgm; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14986,7 +15890,7 @@ CREATE INDEX idx_bim_obj_val_trgm ON public.forge_bim_object USING gin (value pu
 
 
 --
--- TOC entry 3561 (class 1259 OID 16785)
+-- TOC entry 3562 (class 1259 OID 16785)
 -- Name: token_blacklist_outstandingtoken_jti_hex_d9bdf6f7_like; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -14994,7 +15898,7 @@ CREATE INDEX token_blacklist_outstandingtoken_jti_hex_d9bdf6f7_like ON public.to
 
 
 --
--- TOC entry 3566 (class 1259 OID 16786)
+-- TOC entry 3567 (class 1259 OID 16786)
 -- Name: token_blacklist_outstandingtoken_user_id_83bc629a; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -15002,7 +15906,7 @@ CREATE INDEX token_blacklist_outstandingtoken_user_id_83bc629a ON public.token_b
 
 
 --
--- TOC entry 3567 (class 2606 OID 16787)
+-- TOC entry 3568 (class 2606 OID 16787)
 -- Name: account_user_groups account_user_groups_group_id_6c71f749_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15011,7 +15915,7 @@ ALTER TABLE ONLY public.account_user_groups
 
 
 --
--- TOC entry 3568 (class 2606 OID 16792)
+-- TOC entry 3569 (class 2606 OID 16792)
 -- Name: account_user_groups account_user_groups_user_id_14345e7b_fk_account_user_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15020,7 +15924,7 @@ ALTER TABLE ONLY public.account_user_groups
 
 
 --
--- TOC entry 3569 (class 2606 OID 16797)
+-- TOC entry 3570 (class 2606 OID 16797)
 -- Name: account_user_user_permissions account_user_user_pe_permission_id_66c44191_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15029,7 +15933,7 @@ ALTER TABLE ONLY public.account_user_user_permissions
 
 
 --
--- TOC entry 3570 (class 2606 OID 16802)
+-- TOC entry 3571 (class 2606 OID 16802)
 -- Name: account_user_user_permissions account_user_user_pe_user_id_cc42d270_fk_account_u; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15038,7 +15942,7 @@ ALTER TABLE ONLY public.account_user_user_permissions
 
 
 --
--- TOC entry 3571 (class 2606 OID 16807)
+-- TOC entry 3572 (class 2606 OID 16807)
 -- Name: auth_group_permissions auth_group_permissio_permission_id_84c5c92e_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15047,7 +15951,7 @@ ALTER TABLE ONLY public.auth_group_permissions
 
 
 --
--- TOC entry 3572 (class 2606 OID 16812)
+-- TOC entry 3573 (class 2606 OID 16812)
 -- Name: auth_group_permissions auth_group_permissions_group_id_b120cbf9_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15056,7 +15960,7 @@ ALTER TABLE ONLY public.auth_group_permissions
 
 
 --
--- TOC entry 3573 (class 2606 OID 16817)
+-- TOC entry 3574 (class 2606 OID 16817)
 -- Name: auth_permission auth_permission_content_type_id_2f476e4b_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15065,7 +15969,7 @@ ALTER TABLE ONLY public.auth_permission
 
 
 --
--- TOC entry 3574 (class 2606 OID 16822)
+-- TOC entry 3575 (class 2606 OID 16822)
 -- Name: core_aps_credentials core_aps_credentials_company_id_6b8fbd23_fk_core_company_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15074,7 +15978,7 @@ ALTER TABLE ONLY public.core_aps_credentials
 
 
 --
--- TOC entry 3575 (class 2606 OID 16827)
+-- TOC entry 3576 (class 2606 OID 16827)
 -- Name: core_log_user_activity core_log_user_activity_user_id_746d4714_fk_account_user_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15083,7 +15987,7 @@ ALTER TABLE ONLY public.core_log_user_activity
 
 
 --
--- TOC entry 3576 (class 2606 OID 16832)
+-- TOC entry 3577 (class 2606 OID 16832)
 -- Name: core_navigation core_navigation_parent_id_0a0ee36b_fk_core_navigation_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15092,7 +15996,7 @@ ALTER TABLE ONLY public.core_navigation
 
 
 --
--- TOC entry 3577 (class 2606 OID 16837)
+-- TOC entry 3578 (class 2606 OID 16837)
 -- Name: core_navigation_permissions core_navigation_perm_navigation_id_5025399d_fk_core_navi; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15101,7 +16005,7 @@ ALTER TABLE ONLY public.core_navigation_permissions
 
 
 --
--- TOC entry 3578 (class 2606 OID 16842)
+-- TOC entry 3579 (class 2606 OID 16842)
 -- Name: core_navigation_permissions core_navigation_perm_permission_id_dfacc148_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15110,7 +16014,7 @@ ALTER TABLE ONLY public.core_navigation_permissions
 
 
 --
--- TOC entry 3579 (class 2606 OID 16847)
+-- TOC entry 3580 (class 2606 OID 16847)
 -- Name: core_translation core_translation_locale_id_af238300_fk_core_locale_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15119,7 +16023,7 @@ ALTER TABLE ONLY public.core_translation
 
 
 --
--- TOC entry 3580 (class 2606 OID 16852)
+-- TOC entry 3581 (class 2606 OID 16852)
 -- Name: core_userprofile core_userprofile_company_id_f3f7e395_fk_core_company_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15128,7 +16032,7 @@ ALTER TABLE ONLY public.core_userprofile
 
 
 --
--- TOC entry 3581 (class 2606 OID 16857)
+-- TOC entry 3582 (class 2606 OID 16857)
 -- Name: core_userprofile core_userprofile_user_id_5141ad90_fk_account_user_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15137,7 +16041,7 @@ ALTER TABLE ONLY public.core_userprofile
 
 
 --
--- TOC entry 3582 (class 2606 OID 16862)
+-- TOC entry 3583 (class 2606 OID 16862)
 -- Name: django_admin_log django_admin_log_content_type_id_c4bce8eb_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15146,7 +16050,7 @@ ALTER TABLE ONLY public.django_admin_log
 
 
 --
--- TOC entry 3583 (class 2606 OID 16867)
+-- TOC entry 3584 (class 2606 OID 16867)
 -- Name: django_admin_log django_admin_log_user_id_c564eba6_fk_account_user_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15155,7 +16059,7 @@ ALTER TABLE ONLY public.django_admin_log
 
 
 --
--- TOC entry 3584 (class 2606 OID 16872)
+-- TOC entry 3585 (class 2606 OID 16872)
 -- Name: forge_bim_category forge_bim_category_bim_model_id_8d459ec5_fk_forge_bim_model_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15164,7 +16068,7 @@ ALTER TABLE ONLY public.forge_bim_category
 
 
 --
--- TOC entry 3585 (class 2606 OID 16877)
+-- TOC entry 3586 (class 2606 OID 16877)
 -- Name: forge_bim_category forge_bim_category_condition_id_2e52fa79_fk_forge_bim; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15173,7 +16077,7 @@ ALTER TABLE ONLY public.forge_bim_category
 
 
 --
--- TOC entry 3586 (class 2606 OID 16882)
+-- TOC entry 3587 (class 2606 OID 16882)
 -- Name: forge_bim_condition forge_bim_condition_parent_id_1d52eec8_fk_forge_bim; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15182,7 +16086,7 @@ ALTER TABLE ONLY public.forge_bim_condition
 
 
 --
--- TOC entry 3587 (class 2606 OID 16887)
+-- TOC entry 3588 (class 2606 OID 16887)
 -- Name: forge_bim_object forge_bim_object_bim_model_id_bd2e006e_fk_forge_bim_model_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15191,7 +16095,7 @@ ALTER TABLE ONLY public.forge_bim_object
 
 
 --
--- TOC entry 3588 (class 2606 OID 16892)
+-- TOC entry 3589 (class 2606 OID 16892)
 -- Name: forge_bim_object_hierarchy forge_bim_object_hie_bim_model_id_c817241b_fk_forge_bim; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15200,7 +16104,7 @@ ALTER TABLE ONLY public.forge_bim_object_hierarchy
 
 
 --
--- TOC entry 3589 (class 2606 OID 16897)
+-- TOC entry 3590 (class 2606 OID 16897)
 -- Name: forge_bim_region forge_bim_region_bim_model_id_a2552f1d_fk_forge_bim_model_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15209,7 +16113,7 @@ ALTER TABLE ONLY public.forge_bim_region
 
 
 --
--- TOC entry 3590 (class 2606 OID 16902)
+-- TOC entry 3591 (class 2606 OID 16902)
 -- Name: forge_bim_region forge_bim_region_role_id_849e7778_fk_forge_role_code_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15218,7 +16122,7 @@ ALTER TABLE ONLY public.forge_bim_region
 
 
 --
--- TOC entry 3591 (class 2606 OID 16907)
+-- TOC entry 3592 (class 2606 OID 16907)
 -- Name: forge_bim_region forge_bim_region_zone_id_3755200f_fk_forge_zone_code_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15227,7 +16131,7 @@ ALTER TABLE ONLY public.forge_bim_region
 
 
 --
--- TOC entry 3592 (class 2606 OID 16912)
+-- TOC entry 3593 (class 2606 OID 16912)
 -- Name: token_blacklist_blacklistedtoken token_blacklist_blacklistedtoken_token_id_3cc7fe56_fk; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15236,7 +16140,7 @@ ALTER TABLE ONLY public.token_blacklist_blacklistedtoken
 
 
 --
--- TOC entry 3593 (class 2606 OID 16917)
+-- TOC entry 3594 (class 2606 OID 16917)
 -- Name: token_blacklist_outstandingtoken token_blacklist_outs_user_id_83bc629a_fk_account_u; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -15245,7 +16149,7 @@ ALTER TABLE ONLY public.token_blacklist_outstandingtoken
 
 
 --
--- TOC entry 3801 (class 0 OID 0)
+-- TOC entry 3802 (class 0 OID 0)
 -- Dependencies: 6
 -- Name: SCHEMA public; Type: ACL; Schema: -; Owner: bmms
 --
@@ -15254,7 +16158,7 @@ REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2025-06-08 13:11:42
+-- Completed on 2025-06-10 16:46:15 CST
 
 --
 -- PostgreSQL database dump complete
