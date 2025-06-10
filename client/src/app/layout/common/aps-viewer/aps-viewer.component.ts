@@ -603,7 +603,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 if (dbId && !isNaN(dbId)) {
                     const tree = model.getInstanceTree();
                     if (tree && tree.nodeAccess.getIndex(dbId) !== -1) {
-                        viewer.select([dbId], model);
+                        // viewer.select([dbId], model);
                     }
                 }
             });
