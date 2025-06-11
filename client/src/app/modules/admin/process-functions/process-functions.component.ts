@@ -31,6 +31,9 @@ import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.comp
     standalone: true
 })
 export class ProcessFunctionsComponent implements OnInit, OnDestroy {
+
+    @ViewChild('viewer') viewer: ApsViewerComponent;
+
     private _cache = new Map<string, any>();
     private _unsubscribeAll: Subject<void> = new Subject<void>();
 
@@ -140,11 +143,10 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.selectedLevel = undefined;
     }
 
-    onClear(tag: string) {
+    onClear() {
         // this.request = {};
         // // this.selectedObjects = [];
         this.objects = { count: 0, results: [] };
-        this.focusObject = null;
         this.nodeInfo = null;
     }
 
@@ -168,7 +170,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     // }
 
     onFitToObject(item: any) {
-        this.focusObject = { urn: item.urn, dbIds: [item.dbid] }
+        this.viewer.fitToObject({ urn: item.urn, dbIds: [item.dbid] });
     }
 
     onRowSelect(event: any): void {
@@ -205,7 +207,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         // this.selectedObjects = [];
         // this.nodeInfo = null;
 
-        this.loadPage(1)
+        this.onClear(); //觸發aps-viewer的ngOnDestroy()避免模型累積載入
+        this.loadPage(1);
     }
 
     loadPage(page?: number): void {
@@ -263,19 +266,19 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         };
 
         const cacheKey = JSON.stringify(this.request);
-        if (this._cache.has(cacheKey)) {
+        // if (this._cache.has(cacheKey)) {
 
-            this.objects = this._cache.get(cacheKey);
-            // this.selectedObjects = this.objects.results;
-            this.updateCriteria();
+        //     this.objects = this._cache.get(cacheKey);
+        //     // this.selectedObjects = this.objects.results;
+        //     this.updateCriteria();
 
-            if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
-                // this.selectedObjects = this.bimCriteria.objects;
-                this.bimCriteria.isRead = true;
-            }
-            this._changeDetectorRef.markForCheck();
-            return;
-        }
+        //     if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
+        //         // this.selectedObjects = this.bimCriteria.objects;
+        //         this.bimCriteria.isRead = true;
+        //     }
+        //     this._changeDetectorRef.markForCheck();
+        //     return;
+        // }
 
         this.isLoading = true;
         this._processFunctionsService.getData(this.request)
@@ -288,13 +291,16 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             )
             .subscribe({
                 next: (res) => {
-
-                    if (res && res.count >= 0 && res.results) {
+                    if (res && res.count > 0) {
                         this.objects = { count: res.count, results: res.results };
+                        this._changeDetectorRef.detectChanges();
+                        
+                        this.viewer.refresh(this.objects.results);
                         // this.selectedObjects = res.results;
-                        this._cache.set(cacheKey, this.objects);
+                        // this._cache.set(cacheKey, this.objects);
                     } else {
                         this.objects = { count: 0, results: [] };
+                        this._toastService.open({ message: '找不到符合的模型物件' });
                     }
                     this.updateCriteria();
 

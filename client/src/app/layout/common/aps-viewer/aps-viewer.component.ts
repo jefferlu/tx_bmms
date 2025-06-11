@@ -21,13 +21,13 @@ const MEDIA_URL = 'media/';
     styleUrls: ['./aps-viewer.component.scss'],
     encapsulation: ViewEncapsulation.None
 })
-export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
-    @Input() data: any;
-    @Input() focusObject: { urn: string, dbIds: number | number[] } | null = null;
+export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     @ViewChild('viewer') viewerContainer: ElementRef;
 
     @Output() nodeProperties = new EventEmitter<any>();
+
+    data: any[] = [];
 
     viewer: any;
     searchPanel: SearchPanel | null = null;
@@ -57,58 +57,110 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     ) { }
 
     ngOnInit(): void {
-        console.log('aps-viewer init()');
-        this.data = this.data || this.dialogData;
+        // 初始化 this.data 為 dialogData
+        if (this.dialogData) {
+            this.data = this.dialogData;
+        }
         this.lang = this.getViewerLanguage(this._translocoService.getActiveLang());
     }
 
-    ngOnChanges(changes: SimpleChanges): void {
-        if (!this.isUniTest) {
-            if (changes['data'] && changes['data'].currentValue) {
-                const newData = changes['data'].currentValue;
-                const oldData = changes['data'].previousValue;
+    // 公開方法，供父元件調用
+    public refresh(data?: any[]): void {
+        // 如果傳入 data，則更新 this.data
+        if (data) {
+            this.data = data;
+        }
 
-                if (!Array.isArray(newData)) {
-                    console.warn('Input data must be an array for AggregatedView');
-                    return;
-                }
+        if (!Array.isArray(this.data)) {
+            console.warn('Input data must be an array for AggregatedView');
+            this._toastService.open({ message: '無有效數據可載入' });
+            return;
+        }
 
-                // 收集所有 urn 和 dbIds
-                this.allDbIdsByUrn = newData.reduce((acc, entry) => {
-                    const urn = entry.urn;
-                    const dbIds = Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid || 1];
-                    if (!acc[urn]) {
-                        acc[urn] = [];
-                    }
-                    acc[urn] = [...new Set([...acc[urn], ...dbIds])]; // 去重 dbIds
-                    return acc;
-                }, {});
-
-                // console.log('所有 dbIds 按 urn 分組:', this.allDbIdsByUrn);
-
-                const isDataChanged = !oldData || JSON.stringify(this.extractKeyData(newData)) !== JSON.stringify(this.extractKeyData(oldData));
-
-                if (isDataChanged) {
-                    if (this.isViewerInitialized) {
-                        this.loadModels(newData);
-                    } else {
-                        if (this.isViewerInitialized) {
-                            this.cleanupViewer();
-                        }
-                        this.debouncedLoadViewer();
-                    }
-                }
+        // 收集所有 urn 和 dbIds
+        this.allDbIdsByUrn = this.data.reduce((acc, entry) => {
+            const urn = entry.urn;
+            const dbIds = Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid || 1];
+            if (!acc[urn]) {
+                acc[urn] = [];
             }
+            acc[urn] = [...new Set([...acc[urn], ...dbIds])];
+            return acc;
+        }, {});
 
-            // 處理 focusObject 變化
-            if (changes['focusObject'] && changes['focusObject'].currentValue) {
-                const focusObject = changes['focusObject'].currentValue;
-                if (focusObject && focusObject.urn && focusObject.dbIds) {
-                    this.fitToObject(focusObject);
-                }
-            }
+        if (this.isViewerInitialized) {
+            this.loadModels(this.data);
+        } else {
+            this.cleanupViewer();
+            this.debouncedLoadViewer();
         }
     }
+
+    public fitToObject(object: { urn: string, dbIds: number | number[] }): void {
+        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+        const dbIds = Array.isArray(object.dbIds) ? object.dbIds : [object.dbIds];
+        const targetModel = this.loadedModels.find((model: any) => model.getData().urn === object.urn);
+        const modelStructure = viewer.modelstructure;
+
+        // 展開物件樹
+        if (targetModel) {
+            const tree = targetModel.getInstanceTree();
+            if (tree) {
+                dbIds.forEach((dbId: number) => {
+                    if (dbId) {
+                        const nodePath = this.getNodePath(tree, dbId);
+                        if (nodePath) {
+                            this.expandNodePathInTree(tree, nodePath, modelStructure, targetModel);
+                        }
+                    }
+                });
+            }
+
+            // 聚焦指定的 dbIds
+            viewer.fitToView(dbIds, targetModel);
+        }
+
+    }
+
+    // ngOnChanges(changes: SimpleChanges): void {
+    //     if (!this.isUniTest) {
+    //         if (changes['data'] && changes['data'].currentValue) {
+    //             const newData = changes['data'].currentValue;
+    //             const oldData = changes['data'].previousValue;
+
+    //             if (!Array.isArray(newData)) {
+    //                 console.warn('Input data must be an array for AggregatedView');
+    //                 return;
+    //             }
+
+    //             // 收集所有 urn 和 dbIds
+    //             this.allDbIdsByUrn = newData.reduce((acc, entry) => {
+    //                 const urn = entry.urn;
+    //                 const dbIds = Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid || 1];
+    //                 if (!acc[urn]) {
+    //                     acc[urn] = [];
+    //                 }
+    //                 acc[urn] = [...new Set([...acc[urn], ...dbIds])]; // 去重 dbIds
+    //                 return acc;
+    //             }, {});
+
+    //             // console.log('所有 dbIds 按 urn 分組:', this.allDbIdsByUrn);
+
+    //             const isDataChanged = !oldData || JSON.stringify(this.extractKeyData(newData)) !== JSON.stringify(this.extractKeyData(oldData));
+
+    //             if (isDataChanged) {
+    //                 if (this.isViewerInitialized) {
+    //                     this.loadModels(newData);
+    //                 } else {
+    //                     if (this.isViewerInitialized) {
+    //                         this.cleanupViewer();
+    //                     }
+    //                     this.debouncedLoadViewer();
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     // ngOnChanges(changes: SimpleChanges): void {
     //     if (!this.isUniTest) {
@@ -155,7 +207,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
 
     ngAfterViewInit(): void {
         if (this.dialogData) {
-            this.processDataAndLoadViewer();
+            this.refresh(); // 使用 refresh 處理 dialogData
         }
 
         if (this.isUniTest) {
@@ -264,14 +316,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     private processDataAndLoadViewer(): void {
-        if (!this.data || !Array.isArray(this.data)) {
+        if (!Array.isArray(this.data)) {
             console.warn('無有效數據可載入', this.data);
             this._toastService.open({ message: '無有效數據可載入' });
             return;
         }
-
-        // 根據 svf_path 判斷模式（假設 svf_path 表示本地模式）
-        // this.isLocalMode = this.data.some(item => item.svf_path);
 
         if (this.isLocalMode) {
             this.loadAggregatedView(this.data);
@@ -383,27 +432,28 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
             }
         });
 
-        // 展開物件樹並選擇所有 dbIds
-        data.forEach((entry) => {
-            const urn = entry.urn;
-            const dbIds = Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid || 1];
-            const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
-            if (targetModel) {
-                const tree = targetModel.getInstanceTree();
-                if (tree) {
-                    dbIds.forEach((dbId: number) => {
-                        if (dbId) {
-                            const nodePath = this.getNodePath(tree, dbId);
-                            if (nodePath) {
-                                this.expandNodePathInTree(tree, nodePath, modelStructure, targetModel);
-                            }
-                        }
-                    });
-                } else {
-                    console.error(`無法從模型 ${urn} 中獲取 InstanceTree`);
-                }
-            }
-        });
+        // 展開物件樹並選擇所有 dbIds 
+        // this.expandNodePathInTree()中的viewer.select()會造成forge viewer不斷重複讀取
+        // data.forEach((entry) => {
+        //     const urn = entry.urn;
+        //     const dbIds = Array.isArray(entry.dbid) ? entry.dbid : [entry.dbid || 1];
+        //     const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
+        //     if (targetModel) {
+        //         const tree = targetModel.getInstanceTree();
+        //         if (tree) {
+        //             dbIds.forEach((dbId: number) => {
+        //                 if (dbId) {
+        //                     const nodePath = this.getNodePath(tree, dbId);
+        //                     if (nodePath) {
+        //                         this.expandNodePathInTree(tree, nodePath, modelStructure, targetModel);
+        //                     }
+        //                 }
+        //             });
+        //         } else {
+        //             console.error(`無法從模型 ${urn} 中獲取 InstanceTree`);
+        //         }
+        //     }
+        // });
 
         // 聚焦所有 dbIds
         const allSelections: { model: any; dbIds: number[] }[] = [];
@@ -421,29 +471,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         }
     }
 
-    private fitToObject(object: { urn: string, dbIds: number | number[] }): void {
-        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
-        const dbIds = Array.isArray(object.dbIds) ? object.dbIds : [object.dbIds];
-        const targetModel = this.loadedModels.find((model: any) => model.getData().urn === object.urn);
-        const modelStructure = viewer.modelstructure;
 
-        // 展開物件樹
-        const tree = targetModel.getInstanceTree();
-        if (tree) {
-            dbIds.forEach((dbId: number) => {
-                if (dbId) {
-                    const nodePath = this.getNodePath(tree, dbId);
-                    if (nodePath) {
-                        this.expandNodePathInTree(tree, nodePath, modelStructure, targetModel);
-                    }
-                }
-            });
-        }
-
-        // 聚焦指定的 dbIds
-        viewer.fitToView(dbIds, targetModel);
-
-    }
 
     private fitToLastModel(data: any[]): void {
         const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
@@ -550,8 +578,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     }
 
     private emitNodeProperties(dbId: number, model: any): void {
-        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
-        viewer.getProperties(dbId, (result) => {
+        model.getProperties(dbId, (result) => {
             const filteredProperties = result.properties.filter((prop: any) => prop.displayName.startsWith('COBie'));
             const name = result.name ||
                 filteredProperties.find((prop: any) => prop.displayName === 'COBie.Space.Name')?.displayValue ||
@@ -590,6 +617,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         const modelStructure = viewer.modelstructure;
         if (modelStructure) {
             modelStructure.container.addEventListener('mouseup', (event: any) => {
+
                 const target = event.target.closest('[lmv-nodeid]');
                 const dbId = target ? parseInt(target.getAttribute('lmv-nodeid'), 10) : null;
                 const modelId = target ? target.closest('[lmv-modelid]')?.getAttribute('lmv-modelid') : null;
@@ -602,7 +630,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                 if (dbId && !isNaN(dbId)) {
                     const tree = model.getInstanceTree();
                     if (tree && tree.nodeAccess.getIndex(dbId) !== -1) {
-                        // viewer.select([dbId], model);
+                        viewer.select([dbId], model);
                     }
                 }
             });
@@ -672,6 +700,8 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
                     this.viewer.start();
 
                     this.isViewerInitialized = true;
+                    this.viewer.setSelectionMode(3);
+
                     // this.viewer.setGhosting(false);
 
                     // this.viewer.setActiveNavigationTool('first-person');
@@ -793,6 +823,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         Promise.all(loadPromises).then((results) => {
             if (this.isLocalMode) {
                 const newModels = results.map(result => result.model);
+
+                newModels.forEach((model) => {
+                    this.viewer.impl.visibilityManager.addModel(model);
+                });
+
                 this.loadedModels = [...this.loadedModels, ...newModels];
                 // console.log('更新後的本地模型:', this.loadedModels.map((model: any) => model.getData().urn || '無 URN'));
                 this.loadedModels = this.viewer.getAllModels();
@@ -957,14 +992,18 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     private handleModelLoading(data: any[]): void {
         const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
 
-        viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, () => {
-            const selection = viewer.getSelection();
-            if (selection.length > 0) {
-                const dbId = selection[0];
-                const model = viewer.model || this.loadedModels.find((m: any) => {
-                    const tree = m.getInstanceTree();
-                    return tree && tree.nodeAccess.getIndex(dbId) !== -1;
-                }) || viewer;
+        viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, (ev: any) => {
+            const selection = ev.selections[0];
+            // if (selection > 0) {
+            //     const dbId = selection[0];
+            //     const model = viewer.model || this.loadedModels.find((m: any) => {
+            //         const tree = m.getInstanceTree();
+            //         return tree && tree.nodeAccess.getIndex(dbId) !== -1;
+            //     }) || viewer;
+            //     this.emitNodeProperties(dbId, model);
+            if (selection) {
+                const dbId = selection.dbIdArray[0];
+                const model = selection.model;
                 this.emitNodeProperties(dbId, model);
             } else {
                 console.log('沒有選中任何物件');
@@ -997,7 +1036,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
         });
 
         // 立即檢查一次，防止事件未觸發
-        checkAllModelsLoaded();
+        // checkAllModelsLoaded();
     }
 
     // private handleModelLoading(data: any[]): void {

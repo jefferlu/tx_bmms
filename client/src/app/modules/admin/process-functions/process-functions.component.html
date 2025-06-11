@@ -234,7 +234,7 @@
 
             <div class="flex-[1] min-w-0 bg-card rounded-md md:flex-[4]">
                 @if (objects?.results.length > 0){
-                <aps-viewer [data]="objects?.results" [focusObject]="focusObject" (nodeProperties)="onProperties($event)"></aps-viewer>
+                <aps-viewer #viewer (nodeProperties)="onProperties($event)"></aps-viewer>
                 }
                 @else {
                 <ng-container *ngTemplateOutlet="noDataTemplate context: { icon: 'heroicons_outline:photo', message: 'no-bim-model'}"></ng-container>
