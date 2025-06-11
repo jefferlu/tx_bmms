@@ -145,7 +145,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         // // this.selectedObjects = [];
         this.objects = { count: 0, results: [] };
         this.focusObject = null;
-        // this.nodeInfo = null;
+        this.nodeInfo = null;
     }
 
     keywordSearch(event: any) {
