@@ -359,7 +359,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnChanges, OnD
     // }
 
     private fitToAllModels(data: any[]): void {
-        console.log('-->fitToAllModels')
         const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
         if (!data || data.length === 0) {
             console.warn('無有效數據，無法聚焦視圖');
