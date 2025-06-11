@@ -60,7 +60,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     // selectedObjects: any[] = [];
 
     first: number = 0;
-    rowsPerPage: number = 100;
+    rowsPerPage: number = 1000;
 
 
     // criteriaRegions: string = '';

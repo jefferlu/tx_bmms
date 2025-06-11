@@ -636,7 +636,7 @@ class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'size'
-    max_page_size = 100
+    max_page_size = 1000
 
     def get_page_number(self, request, paginator):
         """從 request.data 或 request.query_params 獲取 page"""

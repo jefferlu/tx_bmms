@@ -9,6 +9,8 @@ import { SearchPanel } from './buttons/search-panel';
 import { DownloadExcel } from './buttons/download-excel';
 import { DownloadSqlite } from './buttons/download-sqlite';
 
+import * as THREE from 'three'; // 匯入 THREE 型別定義
+
 declare const Autodesk: any;
 declare const ApsXLS: any;
 
@@ -405,9 +407,10 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     //             });
     //         }
     //     });
-    // }
+    // }   
 
-    private fitToAllModels(data: any[]): void {
+    // 只顯示最多dbids的model
+    private fitToAllModels_(data: any[]): void {
         const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
         if (!data || data.length === 0) {
             console.warn('無有效數據，無法聚焦視圖');
@@ -455,23 +458,74 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
         //     }
         // });
 
-        // 聚焦所有 dbIds
-        const allSelections: { model: any; dbIds: number[] }[] = [];
+        // 找出 dbIds 數量最多的模型
+        let maxDbIdsCount = 0;
+        let targetModelToFit: any = null;
+        let targetDbIds: number[] = [];
+
         Object.entries(this.allDbIdsByUrn).forEach(([urn, dbIds]) => {
-            const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
-            if (targetModel) {
-                allSelections.push({ model: targetModel, dbIds });
+            if (dbIds.length > maxDbIdsCount) {
+                const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
+                if (targetModel) {
+                    maxDbIdsCount = dbIds.length;
+                    targetModelToFit = targetModel;
+                    targetDbIds = dbIds;
+                }
             }
         });
 
-        if (allSelections.length > 0) {
-            allSelections.forEach(({ model, dbIds }) => {
-                viewer.fitToView(dbIds, model);
-            });
+        // 聚焦 dbIds 數量最多的模型
+        if (targetModelToFit && targetDbIds.length > 0) {
+            viewer.fitToView(targetDbIds, targetModelToFit);
+        } else {
+            console.warn('未找到有效的模型或 dbIds，無法聚焦');
+            this._toastService.open({ message: '無法聚焦到選定物件' });
         }
     }
 
+    // viewer.fitToView() 無參數版本
+    private fitToAllModels(data: any[]): void {
+        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+        if (!data || data.length === 0) {
+            console.warn('無有效數據，無法聚焦視圖');
+            this._toastService.open({ message: '無有效數據可聚焦' });
+            return;
+        }
 
+        const modelStructure = viewer.modelstructure;
+        if (!modelStructure) {
+            console.error('modelstructure 未初始化，無法展開物件樹');
+            return;
+        }
+
+        // 收集所有選定物件
+        const allSelections: { model: any; dbIds: number[] }[] = [];
+
+        // 隔離所有 urn 的 dbIds 並準備選定
+        Object.entries(this.allDbIdsByUrn).forEach(([urn, dbIds]) => {
+            const targetModel = this.loadedModels.find((model: any) => model.getData().urn === urn);
+            if (targetModel && dbIds.length > 0) {
+                viewer.isolate(dbIds, targetModel); // 隔離 dbIds
+                allSelections.push({ model: targetModel, dbIds }); // 儲存選定資訊
+            } else {
+                console.warn(`未找到 URN 為 ${urn} 的模型或 dbIds 為空`);
+            }
+        });
+
+        // 如果沒有有效的選定物件，顯示警告
+        if (allSelections.length === 0) {
+            console.warn('無有效的模型或 dbIds，無法聚焦');
+            this._toastService.open({ message: '無法聚焦到選定物件' });
+            return;
+        }
+
+        // 選定所有 dbIds
+        viewer.select(allSelections);
+
+        // 聚焦到所有選定的物件
+        viewer.fitToView();
+        viewer.clearSelection();
+    }
 
     private fitToLastModel(data: any[]): void {
         const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
