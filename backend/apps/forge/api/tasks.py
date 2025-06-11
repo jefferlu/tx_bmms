@@ -564,52 +564,52 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
 
     # Step 4: Update BimObject with root_dbid
     existing_objects = models.BimObject.objects.filter(bim_model=bim_model)
-    if not existing_objects.exists() or bim_model.version != bim_model.last_processed_version:
-        send_progress('extract-bimobject', 'Extracting BimObject from SQLite...')
-        object_query = """
-            SELECT 
-                eav.entity_id AS dbid,
-                attrs.display_name AS display_name,
-                CAST(vals.value AS TEXT) AS value
-            FROM _objects_eav eav
-            JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
-            JOIN _objects_val vals ON vals.id = eav.value_id
-            WHERE vals.value IS NOT NULL AND attrs.display_name IS NOT NULL
-                AND TRIM(CAST(vals.value AS TEXT)) != ''
-        """
-        try:
-            df_objects = pd.read_sql_query(object_query, conn)
-        except Exception as e:
-            logger.error(f"Failed to extract BimObject: {str(e)}")
-            df_objects = pd.DataFrame(columns=['dbid', 'display_name', 'value'])
-        send_progress('extract-bimobject', f'Extracted {len(df_objects)} BimObject records.')
+    # if not existing_objects.exists() or bim_model.version != bim_model.last_processed_version:
+    send_progress('extract-bimobject', 'Extracting BimObject from SQLite...')
+    object_query = """
+        SELECT 
+            eav.entity_id AS dbid,
+            attrs.display_name AS display_name,
+            CAST(vals.value AS TEXT) AS value
+        FROM _objects_eav eav
+        JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
+        JOIN _objects_val vals ON vals.id = eav.value_id
+        WHERE vals.value IS NOT NULL AND attrs.display_name IS NOT NULL
+            AND TRIM(CAST(vals.value AS TEXT)) != ''
+    """
+    try:
+        df_objects = pd.read_sql_query(object_query, conn)
+    except Exception as e:
+        logger.error(f"Failed to extract BimObject: {str(e)}")
+        df_objects = pd.DataFrame(columns=['dbid', 'display_name', 'value'])
+    send_progress('extract-bimobject', f'Extracted {len(df_objects)} BimObject records.')
 
-        if existing_objects.exists():
-            existing_objects.delete()
-            send_progress('process-bimobject', 'Cleared old BimObject records due to version change.')
+    if existing_objects.exists():
+        existing_objects.delete()
+        send_progress('process-bimobject', 'Cleared old BimObject records due to version change.')
 
-        batch_size = 10000
-        bim_objects = [
-            models.BimObject(
-                bim_model=bim_model,
-                dbid=row.dbid,
-                display_name=row.display_name,
-                value=row.value,
-                root_dbid=root_dbid_mapping.get(row.dbid)  # 設置 root_dbid
-            ) for row in df_objects.itertuples()
-        ]
-        total = len(bim_objects)
-        for i in range(0, total, batch_size):
-            batch = bim_objects[i:i + batch_size]
-            with transaction.atomic():
-                models.BimObject.objects.bulk_create(batch)
-            progress = min((i + len(batch)) / total * 100, 100)
-            send_progress('process-bimobject', f'Inserted {i + len(batch)} of {total} records ({progress:.1f}%)')
+    batch_size = 10000
+    bim_objects = [
+        models.BimObject(
+            bim_model=bim_model,
+            dbid=row.dbid,
+            display_name=row.display_name,
+            value=row.value,
+            root_dbid=root_dbid_mapping.get(row.dbid)  # 設置 root_dbid
+        ) for row in df_objects.itertuples()
+    ]
+    total = len(bim_objects)
+    for i in range(0, total, batch_size):
+        batch = bim_objects[i:i + batch_size]
+        with transaction.atomic():
+            models.BimObject.objects.bulk_create(batch)
+        progress = min((i + len(batch)) / total * 100, 100)
+        send_progress('process-bimobject', f'Inserted {i + len(batch)} of {total} records ({progress:.1f}%)')
 
-        bim_model.last_processed_version = bim_model.version
-        bim_model.save()
-    else:
-        send_progress('process-bimobject', 'BimObject data is up-to-date, no update needed.')
+    bim_model.last_processed_version = bim_model.version
+    bim_model.save()
+    # else:
+    #     send_progress('process-bimobject', 'BimObject data is up-to-date, no update needed.')
 
     conn.close()
     return {
