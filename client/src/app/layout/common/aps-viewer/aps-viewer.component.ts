@@ -9,8 +9,6 @@ import { SearchPanel } from './buttons/search-panel';
 import { DownloadExcel } from './buttons/download-excel';
 import { DownloadSqlite } from './buttons/download-sqlite';
 
-import * as THREE from 'three'; // 匯入 THREE 型別定義
-
 declare const Autodesk: any;
 declare const ApsXLS: any;
 
