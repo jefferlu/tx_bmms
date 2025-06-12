@@ -170,6 +170,14 @@
                         </div>
                         }
 
+                        <!-- keyword -->
+                        @if(this.criteriaKeyword){
+                        <div class="flex mt-2 px-4">
+                            <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
+                            <div>關鍵字：{{ criteriaKeyword }}</div>
+                        </div>
+                        }
+
                         <!-- regions -->
                         <!-- @if (criteriaRegions && criteriaRegions.length > 0) {
                         @for (item of criteriaRegions; track item.name; let index = $index) {
@@ -215,13 +223,7 @@
                         </div>
                         }}} -->
 
-                        <!-- keyword -->
-                        @if(this.keyword){
-                        <div class="flex mt-2 px-4">
-                            <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
-                            <div>關鍵字：{{ keyword.label }}</div>
-                        </div>
-                        }
+
                     </div>
                     }
                     @else {
