@@ -251,7 +251,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                 // 等待 Viewer 初始化完成               
                 this.viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
                     this.loadedModels = this.viewer.getAllModels();
-                    console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
+                    // console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
                 });
             });
 
@@ -342,7 +342,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
         const onObjectTreeCreated = (model: any) => {
             loadedModelCount++;
             if (loadedModelCount === totalModels) {
-                console.log('所有模型的物件樹已載入，執行 fitToAllModels');
+                // console.log('所有模型的物件樹已載入，執行 fitToAllModels');
                 this.fitToAllModels(data);
             }
         };
@@ -359,7 +359,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                     console.warn(`模型 ${model.getData().urn} 的物件樹不可用`);
                     loadedModelCount++;
                     if (loadedModelCount === totalModels) {
-                        console.log('所有模型的物件樹處理完成，執行 fitToAllModels');
+                        // console.log('所有模型的物件樹處理完成，執行 fitToAllModels');
                         this.fitToAllModels(data);
                     }
                 });
@@ -835,7 +835,7 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                         loadPromises.push(
                             new Promise((resolve, reject) => {
                                 this.viewer.loadModel(documentId, loadOptions, (model) => {
-                                    console.log(`本地模型載入成功: ${documentId}`);
+                                    // console.log(`本地模型載入成功: ${documentId}`);
                                     model.getData().urn = urn;
                                     resolve({ model, urn });
                                 }, (errorCode, errorMsg) => {
@@ -1057,8 +1057,6 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                 const dbId = selection.dbIdArray[0];
                 const model = selection.model;
                 this.emitNodeProperties(dbId, model);
-            } else {
-                console.log('沒有選中任何物件');
             }
         });
 
@@ -1076,14 +1074,14 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                 }
             } else {
-                console.log('模型仍在載入中，等待 500ms 後重試');
+                // console.log('模型仍在載入中，等待 500ms 後重試');
                 setTimeout(checkAllModelsLoaded, 500);
             }
         };
 
         viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
             this.loadedModels = viewer.getAllModels();
-            console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
+            // console.log('幾何圖形已載入，模型數量:', this.loadedModels.length);
             checkAllModelsLoaded();
         });
 
