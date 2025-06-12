@@ -37,7 +37,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     private _cache = new Map<string, any>();
     private _unsubscribeAll: Subject<void> = new Subject<void>();
 
-    bimCriteria: any;
+    // bimCriteria: any;
     regions: any;
     roles: any;
     spaces: any;
@@ -90,11 +90,11 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 this.regions = res.data.regions;
                 this.suggestions = res.data.suggestions;
 
-                res.data.conditions = this._transformData(res.data.conditions);
-                const spaceNode = res.data.conditions.find(item => item.label === 'space');
-                this.spaces = spaceNode?.children ?? [];
-                const systemNode = res.data.conditions.find(item => item.label === 'system');
-                this.systems = systemNode?.children ?? [];
+                // res.data.conditions = this._transformData(res.data.conditions);
+                // const spaceNode = res.data.conditions.find(item => item.label === 'space');
+                // this.spaces = spaceNode?.children ?? [];
+                // const systemNode = res.data.conditions.find(item => item.label === 'system');
+                // this.systems = systemNode?.children ?? [];
 
                 this._changeDetectorRef.markForCheck();
             },
@@ -102,26 +102,36 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         });
 
         // Get user info
-        this._processFunctionsService.getCriteria()
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((user: any) => {
-                this.bimCriteria = user.bim_criteria;
-                console.log('bimCriteria', this.bimCriteria)
-                // Check if bimCriteria has request
-                if (this.bimCriteria && Object.keys(this.bimCriteria).length > 0 &&
-                    ![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
-                    // Load page with bimCriteria.request
-                    this.selectedRegions = this.bimCriteria.regions;
-                    this.selectedSpaces = this.bimCriteria.spaces;
-                    this.selectedSystems = this.bimCriteria.systems;
+        this.onReadCriteria();
+        // this._processFunctionsService.getCriteria()
+        //     .pipe(takeUntil(this._unsubscribeAll))
+        //     .subscribe((user: any) => {
+        //         this.bimCriteria = user.bim_criteria;
 
-                    const page = this.bimCriteria.page || 1;
-                    this.first = (page - 1) * this.rowsPerPage; // 計算 first
-                    this.loadPage(page);
-                }
+        //         this.selectedRegion = this.bimCriteria.region;
+        //         this.selectedRole = this.bimCriteria.role;
+        //         this.selectedLevel = this.bimCriteria.level;
+        //         this.keyword = this.bimCriteria.keyword;
 
-                this._changeDetectorRef.markForCheck();
-            });
+        //         const page = this.bimCriteria.page || 1;
+        //         this.first = (page - 1) * this.rowsPerPage; // 計算 first
+        //         this.loadPage(page);
+
+        //         // Check if bimCriteria has request
+        //         // if (this.bimCriteria && Object.keys(this.bimCriteria).length > 0 &&
+        //         //     ![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
+        //         //     // Load page with bimCriteria.request
+        //         //     this.selectedRegions = this.bimCriteria.regions;
+        //         //     this.selectedSpaces = this.bimCriteria.spaces;
+        //         //     this.selectedSystems = this.bimCriteria.systems;
+
+        //         //     const page = this.bimCriteria.page || 1;
+        //         //     this.first = (page - 1) * this.rowsPerPage; // 計算 first
+        //         //     this.loadPage(page);
+        //         // }
+
+        //         this._changeDetectorRef.markForCheck();
+        //     });
 
     }
 
@@ -294,7 +304,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     if (res && res.count > 0) {
                         this.objects = { count: res.count, results: res.results };
                         this._changeDetectorRef.detectChanges();
-                        
+
                         this.viewer.refresh(this.objects.results);
                         // this.selectedObjects = res.results;
                         // this._cache.set(cacheKey, this.objects);
@@ -302,6 +312,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                         this.objects = { count: 0, results: [] };
                         this._toastService.open({ message: '找不到符合的模型物件' });
                     }
+
                     this.updateCriteria();
 
                     // Set selectedObjects if bimCriteria has objects and they exist in this.objects.results
@@ -314,10 +325,10 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     //     this.selectedObjects = validObjects;
                     // debugger;
 
-                    if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
-                        // this.selectedObjects = this.bimCriteria.objects;
-                        this.bimCriteria.isRead = true;
-                    }
+                    // if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
+                    //     // this.selectedObjects = this.bimCriteria.objects;
+                    //     this.bimCriteria.isRead = true;
+                    // }
                     this._changeDetectorRef.markForCheck();
                 },
                 error: (err) => {
@@ -333,10 +344,16 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         const bimCriteria = {
             page: this.request.page || 1,
             // objects: this.selectedObjects,
-            regions: this.selectedRegions.map(node => ({ key: node.key, label: node.label, data: node.data, parentLabel: node.parent?.label })),
-            spaces: this.selectedSpaces.map(node => ({ key: node.key, label: node.label, bim_model: node.bim_model, display_name: node.display_name, parentLabel: node.parent?.label })),
-            systems: this.selectedSystems.map(node => ({ key: node.key, label: node.label, bim_model: node.bim_model, display_name: node.display_name, parentLabel: node.parent?.label }))
+            // regions: this.selectedRegions.map(node => ({ key: node.key, label: node.label, data: node.data, parentLabel: node.parent?.label })),
+            // spaces: this.selectedSpaces.map(node => ({ key: node.key, label: node.label, bim_model: node.bim_model, display_name: node.display_name, parentLabel: node.parent?.label })),
+            // systems: this.selectedSystems.map(node => ({ key: node.key, label: node.label, bim_model: node.bim_model, display_name: node.display_name, parentLabel: node.parent?.label }))
+            region: this.selectedRegion,
+            role: this.selectedRole,
+            level: this.selectedLevel,
+            keyword: this.keyword
         };
+
+        console.log(bimCriteria)
 
         // 調用服務發送資料到後端
         this._processFunctionsService.updateCriteria(bimCriteria)
@@ -351,26 +368,41 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     onReadCriteria() {
-        // this.selectedObjects = [];
-        this.bimCriteria.isRead = false;
-
+        this.onClear();
         this._processFunctionsService.getCriteria()
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((user: any) => {
-                this.bimCriteria = user.bim_criteria;
+                const criteria = user.bim_criteria;
 
-                // Check if bimCriteria has request
-                if (this.bimCriteria && Object.keys(this.bimCriteria).length > 0 &&
-                    ![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
-                    // Load page with bimCriteria.request
-                    this.selectedRegions = this.bimCriteria.regions;
-                    this.selectedSpaces = this.bimCriteria.spaces;
-                    this.selectedSystems = this.bimCriteria.systems;
+                this.selectedRegion = criteria.region;
+                this.selectedRole = criteria.role;
+                this.selectedLevel = criteria.level;
+                this.keyword = criteria.keyword;
 
-                    const page = this.bimCriteria.page || 1;
-                    this.first = (page - 1) * this.rowsPerPage; // 計算 first
-                    this.loadPage(page);
-                }
+                const page = criteria.page || 1;
+                this.first = (page - 1) * this.rowsPerPage; // 計算 first
+                this.loadPage(page);
+
+                // this.selectedObjects = [];
+                // this.bimCriteria.isRead = false;
+
+                // this._processFunctionsService.getCriteria()
+                //     .pipe(takeUntil(this._unsubscribeAll))
+                //     .subscribe((user: any) => {
+                //         this.bimCriteria = user.bim_criteria;
+
+                //         // Check if bimCriteria has request
+                //         if (this.bimCriteria && Object.keys(this.bimCriteria).length > 0 &&
+                //             ![this.bimCriteria?.regions, this.bimCriteria?.spaces, this.bimCriteria.systems].every(arr => arr?.length === 0)) {
+                //             // Load page with bimCriteria.request
+                //             this.selectedRegions = this.bimCriteria.regions;
+                //             this.selectedSpaces = this.bimCriteria.spaces;
+                //             this.selectedSystems = this.bimCriteria.systems;
+
+                //             const page = this.bimCriteria.page || 1;
+                //             this.first = (page - 1) * this.rowsPerPage; // 計算 first
+                //             this.loadPage(page);
+                //         }
 
                 this._changeDetectorRef.markForCheck();
             });
