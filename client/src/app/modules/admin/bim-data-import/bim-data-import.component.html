@@ -63,11 +63,11 @@
                                     <mat-icon class="text-green-400 m-2" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
                                 </button> -->
                                 }
-                                @else if(['error'].includes(file.status)){
+                                <!-- @else if(['error'].includes(file.status)){
                                 <button mat-icon-button (click)="onBimDataImport(file)">
                                     <mat-icon [svgIcon]="'heroicons_outline:arrow-path-rounded-square'"></mat-icon>
                                 </button>
-                                }
+                                } -->
                                 @else {
                                 <mat-progress-spinner class="m-3" color="accent" [diameter]="16" [mode]="'indeterminate'"></mat-progress-spinner>
                                 }

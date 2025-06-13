@@ -340,6 +340,14 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             });
     }
 
+    onDownloadCsv(){
+        console.log('download csv')
+    }
+
+    onDownloadTxt(){
+        console.log('download txt')
+    }
+
     onSaveCriteria() {
         // 構建要儲存的 bim_criteria 資料
         const bimCriteria = {

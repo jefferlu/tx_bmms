@@ -129,13 +129,13 @@
                                     <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:arrow-down-tray'"></mat-icon>
                                 </button>
                                 <mat-menu #exportMenu="matMenu">
-                                    <button mat-menu-item>
+                                    <button mat-menu-item (click)="onDownloadCsv()">
                                         <span class="flex items-center">
                                             <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:file-csv'"></mat-icon>
                                             <span>匯出 CSV 檔案</span>
                                         </span>
                                     </button>
-                                    <button mat-menu-item>
+                                    <button mat-menu-item (click)="onDownloadTxt()">
                                         <span class="flex items-center">
                                             <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_solid:document-text'"></mat-icon>
                                             <span>匯出 TXT 檔</span>
