@@ -45,4 +45,16 @@ export class ProcessFunctionsService {
             tap((response: any) => { })
         );
     }
+
+    downloadCsv(request: any) {
+        return this._appService.post('forge/bim-object/download_csv', request, { responseType: 'blob' }).pipe(
+            tap((res: any) => { })
+        );
+    }
+
+    downloadTxt(request: any) {
+        return this._appService.post('forge/bim-object/download_txt', request, { responseType: 'blob' }).pipe(
+            tap((res: any) => { })
+        );
+    }
 }

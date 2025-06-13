@@ -882,7 +882,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         # 快存結果
         results = list(queryset)
-        cache.set(query_key, results, timeout=300)
+        # cache.set(query_key, results, timeout=300)
 
         paginator = self.pagination_class()
         page_queryset = paginator.paginate_queryset(results, request)
@@ -957,7 +957,170 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    # 取得所有查詢結果(共同函式)
+    @action(detail=False, methods=['post'])
+    def download_csv(self, request):
+        """下載查詢結果為 CSV 檔案，使用 pandas 和 FileResponse"""
+        try:
+            # 從 request.data 獲取參數
+            regions = request.data.get('regions', request.data.get('zones', None))
+            fuzzy_keyword = request.data.get('fuzzy_keyword', None)
+
+            if not isinstance(regions, list):
+                raise ValidationError({
+                    "regions": "必須是列表。",
+                    "code": "invalid_regions_format"
+                })
+
+            # 獲取查詢結果
+            results = self.download_data(request)
+
+            # 檢查是否有資料
+            buffer = io.BytesIO()
+            if not results:
+                # 返回空的 CSV 檔案
+                buffer.write('id,dbid,value,display_name,root_dbid,bim_model__name\n'.encode('utf-8-sig'))
+                buffer.seek(0)
+                response = FileResponse(
+                    buffer,
+                    as_attachment=True,
+                    filename='bim_objects.csv',  # 固定檔名
+                    content_type='text/csv'
+                )
+            else:
+                # 分塊生成 CSV
+                chunk_size = 10000
+                chunk_data = []
+                first_chunk = True
+
+                for record in results:
+                    chunk_data.append(record)
+                    if len(chunk_data) >= chunk_size:
+                        # 處理一批資料
+                        df = pd.DataFrame.from_records(chunk_data)
+                        df.columns = ['id', 'dbid', 'value', 'display_name', 'root_dbid', 'bim_model__name']
+                        if first_chunk:
+                            df.to_csv(buffer, index=False, encoding='utf-8-sig')
+                            first_chunk = False
+                        else:
+                            df.to_csv(buffer, index=False, encoding='utf-8-sig', header=False)
+                        chunk_data = []  # 清空 chunk
+
+                # 處理剩餘的資料
+                if chunk_data:
+                    df = pd.DataFrame.from_records(chunk_data)
+                    df.columns = ['id', 'dbid', 'value', 'display_name', 'root_dbid', 'bim_model__name']
+                    if first_chunk:
+                        df.to_csv(buffer, index=False, encoding='utf-8-sig')
+                    else:
+                        df.to_csv(buffer, index=False, encoding='utf-8-sig', header=False)
+
+                buffer.seek(0)
+                response = FileResponse(
+                    buffer,
+                    as_attachment=True,
+                    filename='bim_objects.csv',  # 固定檔名
+                    content_type='text/csv'
+                )
+
+            # 記錄日誌
+            ip_address = request.META.get('REMOTE_ADDR')
+            regions_log = f"regions: {str(regions)[:100]}" if regions else ""
+            categories = f"categories: {str(request.data.get('categories', ''))[:100]}" if request.data.get('categories') else ""
+            fuzzy_keyword_log = f"fuzzy_keyword: {str(fuzzy_keyword)[:100]}" if fuzzy_keyword else ""
+            log_message = f"下載 CSV {regions_log}{' ;' if regions_log else ''}{categories}{' ;' if categories else ''}{fuzzy_keyword_log}"
+            log_user_activity(self.request.user, '圖資下載', log_message, 'SUCCESS', ip_address)
+
+            return response
+        except ValidationError as e:
+            raise  # DRF 會序列化為 JSON
+        except Exception as e:
+            return Response(
+                {"detail": f"下載失敗：{str(e)}", "code": "unexpected_error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['post'])
+    def download_txt(self, request):
+        """下載查詢結果為 TXT 檔案，使用 pandas 和 FileResponse"""
+        try:
+            # 從 request.data 獲取參數
+            regions = request.data.get('regions', request.data.get('zones', None))
+            fuzzy_keyword = request.data.get('fuzzy_keyword', None)
+
+            if not isinstance(regions, list):
+                raise ValidationError({
+                    "regions": "必須是列表。",
+                    "code": "invalid_regions_format"
+                })
+
+            # 獲取查詢結果
+            results = self.download_data(request)
+
+            # 檢查是否有資料
+            buffer = io.BytesIO()
+            if not results:
+                # 返回空的 TXT 檔案（與 CSV 格式相同）
+                buffer.write('id,dbid,value,display_name,root_dbid,bim_model__name\n'.encode('utf-8-sig'))
+                buffer.seek(0)
+                response = FileResponse(
+                    buffer,
+                    as_attachment=True,
+                    filename='bim_objects.txt',  # 固定檔名
+                    content_type='text/plain'
+                )
+            else:
+                # 分塊生成 TXT（格式與 CSV 相同）
+                chunk_size = 10000
+                chunk_data = []
+                first_chunk = True
+
+                for record in results:
+                    chunk_data.append(record)
+                    if len(chunk_data) >= chunk_size:
+                        # 處理一批資料
+                        df = pd.DataFrame.from_records(chunk_data)
+                        df.columns = ['id', 'dbid', 'value', 'display_name', 'root_dbid', 'bim_model__name']
+                        if first_chunk:
+                            df.to_csv(buffer, index=False, encoding='utf-8-sig')
+                            first_chunk = False
+                        else:
+                            df.to_csv(buffer, index=False, encoding='utf-8-sig', header=False)
+                        chunk_data = []  # 清空 chunk
+
+                # 處理剩餘的資料
+                if chunk_data:
+                    df = pd.DataFrame.from_records(chunk_data)
+                    df.columns = ['id', 'dbid', 'value', 'display_name', 'root_dbid', 'bim_model__name']
+                    if first_chunk:
+                        df.to_csv(buffer, index=False, encoding='utf-8-sig')
+                    else:
+                        df.to_csv(buffer, index=False, encoding='utf-8-sig', header=False)
+
+                buffer.seek(0)
+                response = FileResponse(
+                    buffer,
+                    as_attachment=True,
+                    filename='bim_objects.txt',  # 固定檔名
+                    content_type='text/plain'
+                )
+
+            # 記錄日誌
+            ip_address = request.META.get('REMOTE_ADDR')
+            regions_log = f"regions: {str(regions)[:100]}" if regions else ""
+            categories = f"categories: {str(request.data.get('categories', ''))[:100]}" if request.data.get('categories') else ""
+            fuzzy_keyword_log = f"fuzzy_keyword: {str(fuzzy_keyword)[:100]}" if fuzzy_keyword else ""
+            log_message = f"下載 TXT {regions_log}{' ;' if regions_log else ''}{categories}{' ;' if categories else ''}{fuzzy_keyword_log}"
+            log_user_activity(self.request.user, '圖資下載', log_message, 'SUCCESS', ip_address)
+
+            return response
+        except ValidationError as e:
+            raise  # DRF 會序列化為 JSON
+        except Exception as e:
+            return Response(
+                {"detail": f"下載失敗：{str(e)}", "code": "unexpected_error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
     def download_data(self, request):
         """查詢所有資料，供下載 CSV 或 TXT 使用，重用 create 方法的查詢邏輯"""
         regions = request.data.get('regions', request.data.get('zones', None))
@@ -993,10 +1156,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         query_data = {k: v for k, v in request.data.items() if k not in ['page', 'size']}
         query_key = hashlib.md5(str(query_data).encode()).hexdigest()
-        cached_results = cache.get(query_key)
-
-        if cached_results:
-            return cached_results
 
         valid_bim_models = set()
         region_dbids = set()
@@ -1150,43 +1309,13 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             'bim_model__sqlite_path'
         ).order_by('bim_model', 'dbid')
 
-        results = list(queryset)
-        cache.set(query_key, results, timeout=300)
-        return results
-
-    # 下載CSV檔案
-    @action(detail=False, methods=['post'])
-    def download_csv(self, request):
-        """下載查詢結果為 CSV 檔案"""
-        results = self.download_data(request)
-
-        output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=[
-            'id', 'dbid', 'value', 'display_name', 'root_dbid',
-            'bim_model__name', 'bim_model__version', 'bim_model__urn',
-            'bim_model__svf_path', 'bim_model__sqlite_path'
-        ], lineterminator='\n')
-        writer.writeheader()
-        for row in results:
-            writer.writerow(row)
-
-        response = HttpResponse(
-            content_type='text/csv',
-            headers={'Content-Disposition': 'attachment; filename="bim_objects.csv"'},
+        # 返回欄位
+        queryset = queryset.values(
+            'id', 'dbid', 'value', 'display_name', 'root_dbid', 'bim_model__name'
         )
-        response.write(output.getvalue().encode('utf-8'))
 
-        ip_address = request.META.get('REMOTE_ADDR')
-        regions = request.data.get('regions')
-        categories = request.data.get('categories')
-        fuzzy_keyword = request.data.get('fuzzy_keyword')
-        log_regions = f"regions: {json.dumps(regions)[:100]}" if regions else ""
-        log_cats = f"categories: {json.dumps(categories)[:100]}" if categories else ""
-        log_fuzzy = f"fuzzy_keyword: {json.dumps(fuzzy_keyword)[:100]}" if fuzzy_keyword else ""
-        log_message = f"下載 CSV {log_regions}{' ;' if log_regions else ''}{log_cats}{' ;' if log_cats else ''}{log_fuzzy}"
-        log_user_activity(self.request.user, '圖資下載', log_message, 'SUCCESS', ip_address)
-
-        return response
+        results = list(queryset)
+        return results
 
 
 class BimObjectViewSet_(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):

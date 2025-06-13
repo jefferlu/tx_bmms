@@ -147,7 +147,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     onChangeRegion() {
         this.selectedRole = undefined;
-        this.selectedLevel=undefined;
+        this.selectedLevel = undefined;
     }
 
     onChangeRole() {
@@ -276,7 +276,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             ...(this.keyword && { fuzzy_keyword: this.keyword }),
         };
 
-        const cacheKey = JSON.stringify(this.request);
+        // const cacheKey = JSON.stringify(this.request);
         // if (this._cache.has(cacheKey)) {
 
         //     this.objects = this._cache.get(cacheKey);
@@ -340,12 +340,104 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             });
     }
 
-    onDownloadCsv(){
-        console.log('download csv')
+    onDownloadCsv() {
+        this._processFunctionsService.downloadCsv(this.request).subscribe({
+            next: (blob: Blob) => {
+                // 使用固定檔名
+                const csvFilename = this._generateFileName('csv');
+
+                // 創建 Blob 並生成臨時 URL
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = csvFilename; // 使用固定檔名
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(downloadUrl); // 清理臨時 URL
+                this.isLoading = false;
+                this._changeDetectorRef.markForCheck();
+            },
+            error: (error) => {
+                this.isLoading = false;
+                this._changeDetectorRef.markForCheck();
+
+                // 檢查 Content-Type 是否為 JSON
+                const contentType = error.headers?.get('Content-Type') || '';
+                if (contentType.includes('application/json')) {
+                    // 如果是 JSON，解析錯誤訊息
+                    error.error.text().then((errorMessage: string) => {
+                        try {
+                            const errorJson = JSON.parse(errorMessage);
+                            this._toastService.open({
+                                message: errorJson.detail || errorJson.error || errorJson.message || '下載失敗，請稍後再試'
+                            });
+                        } catch (parseError) {
+                            this._toastService.open({ message: '下載失敗，無法解析錯誤訊息，請聯繫管理員' });
+                        }
+                    }).catch(() => {
+                        this._toastService.open({ message: '下載失敗，請聯繫管理員' });
+                    });
+                } else {
+                    // 非 JSON 回應（例如純文字或意外的 Blob）
+                    error.error.text().then((errorMessage: string) => {
+                        this._toastService.open({ message: errorMessage || '下載失敗，請聯繫管理員' });
+                    }).catch(() => {
+                        this._toastService.open({ message: '下載失敗，請聯繫管理員' });
+                    });
+                }
+            }
+        });
     }
 
-    onDownloadTxt(){
-        console.log('download txt')
+    onDownloadTxt() {
+        this._processFunctionsService.downloadTxt(this.request).subscribe({
+            next: (blob: Blob) => {
+                // 使用固定檔名
+                const txtFilename = this._generateFileName('txt');
+
+                // 創建 Blob 並生成臨時 URL
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = txtFilename; // 使用固定檔名
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(downloadUrl); // 清理臨時 URL
+                this.isLoading = false;
+                this._changeDetectorRef.markForCheck();
+            },
+            error: (error) => {
+                this.isLoading = false;
+                this._changeDetectorRef.markForCheck();
+
+                // 檢查 Content-Type 是否為 JSON
+                const contentType = error.headers?.get('Content-Type') || '';
+                if (contentType.includes('application/json')) {
+                    // 如果是 JSON，解析錯誤訊息
+                    error.error.text().then((errorMessage: string) => {
+                        try {
+                            const errorJson = JSON.parse(errorMessage);
+                            this._toastService.open({
+                                message: errorJson.detail || errorJson.error || errorJson.message || '下載失敗，請稍後再試'
+                            });
+                        } catch (parseError) {
+                            this._toastService.open({ message: '下載失敗，無法解析錯誤訊息，請聯繫管理員' });
+                        }
+                    }).catch(() => {
+                        this._toastService.open({ message: '下載失敗，請聯繫管理員' });
+                    });
+                } else {
+                    // 非 JSON 回應（例如純文字或意外的 Blob）
+                    error.error.text().then((errorMessage: string) => {
+                        this._toastService.open({ message: errorMessage || '下載失敗，請聯繫管理員' });
+                    }).catch(() => {
+                        this._toastService.open({ message: '下載失敗，請聯繫管理員' });
+                    });
+                }
+            }
+        });
     }
 
     onSaveCriteria() {
@@ -446,6 +538,28 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
+    }
+
+    // 取得下載檔名
+    private _generateFileName(extension: string): string {
+        const parts: string[] = [];
+
+        // 安全存取屬性，處理 undefined
+        if (this.selectedRegion?.code) {
+            parts.push(this.selectedRegion.code.replace(/[^a-zA-Z0-9-_]/g, '')); // 移除無效字符
+        }
+        if (this.selectedRole?.code) {
+            parts.push(this.selectedRole.code.replace(/[^a-zA-Z0-9-_]/g, ''));
+        }
+        if (this.selectedLevel?.label) {
+            parts.push(this.selectedLevel.label.replace(/[^a-zA-Z0-9-_]/g, ''));
+        }
+        if (this.keyword?.label) {
+            parts.push(this.keyword.label.replace(/[^a-zA-Z0-9-_]/g, ''));
+        }
+
+        // 若無有效部分，使用預設檔名
+        return parts.length > 0 ? `${parts.join('_')}.${extension}` : `bim_results.${extension}`;
     }
 
     // 格式化 criteria
