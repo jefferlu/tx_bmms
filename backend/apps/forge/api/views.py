@@ -673,6 +673,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             "code": "method_not_allowed"
         })
 
+    # 取得分頁查詢結果
     def create(self, request, *args, **kwargs):
         regions = request.data.get('regions', request.data.get('zones', None))
         categories = request.data.get('categories', None)
@@ -896,6 +897,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         log_user_activity(self.request.user, '圖資檢索', log_message, 'SUCCESS', ip_address)
         return response
 
+    # 下載BIM原始檔
     def get(self, request, *args, **kwargs):
         # 取得請求參數
         file_name = request.query_params.get('file_name')
@@ -954,6 +956,237 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 {"error": f"下載檔案時發生錯誤：{str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    # 取得所有查詢結果(共同函式)
+    def download_data(self, request):
+        """查詢所有資料，供下載 CSV 或 TXT 使用，重用 create 方法的查詢邏輯"""
+        regions = request.data.get('regions', request.data.get('zones', None))
+        categories = request.data.get('categories', None)
+        fuzzy_keyword = request.data.get('fuzzy_keyword', None)
+
+        if not regions:
+            raise ValidationError({
+                "detail": "請提供 'regions' 參數。",
+                "code": "missing_regions"
+            })
+
+        if not isinstance(regions, list):
+            raise ValidationError({
+                "regions": "必須是列表。",
+                "code": "invalid_regions_format"
+            })
+        if not regions:
+            raise ValidationError({
+                "regions": "不能為空列表。",
+                "code": "empty_regions"
+            })
+
+        if fuzzy_keyword:
+            if not isinstance(fuzzy_keyword, dict):
+                raise ValidationError({
+                    "fuzzy_keyword": "必須是物件，包含 label 和 display_name。",
+                    "code": "invalid_fuzzy_keyword_format"
+                })
+            label = fuzzy_keyword.get('label')
+            if label is None or (isinstance(label, str) and not label.strip()):
+                fuzzy_keyword = None
+
+        query_data = {k: v for k, v in request.data.items() if k not in ['page', 'size']}
+        query_key = hashlib.md5(str(query_data).encode()).hexdigest()
+        cached_results = cache.get(query_key)
+
+        if cached_results:
+            return cached_results
+
+        valid_bim_models = set()
+        region_dbids = set()
+        region_values = set()
+
+        for region in regions:
+            zone_id = region.get('zone_id')
+            role_id = region.get('role_id')
+            level = region.get('level')
+
+            if zone_id is not None and not isinstance(zone_id, int):
+                raise ValidationError({
+                    "zone_id": f"必須是整數或 null，收到：{zone_id}",
+                    "code": "invalid_zone_id"
+                })
+            if role_id is not None and not isinstance(role_id, int):
+                raise ValidationError({
+                    "role_id": f"必須是整數或 null，收到：{role_id}",
+                    "code": "invalid_role_id"
+                })
+            if level is not None and not isinstance(level, str):
+                raise ValidationError({
+                    "level": f"必須是字串或 null，收到：{level}",
+                    "code": "invalid_level"
+                })
+
+            bim_region_qs = models.BimRegion.objects.all()
+            if zone_id is not None:
+                bim_region_qs = bim_region_qs.filter(zone_id=zone_id)
+            if role_id is not None:
+                bim_region_qs = bim_region_qs.filter(role_id=role_id)
+            if level is not None:
+                bim_region_qs = bim_region_qs.filter(level=level)
+
+            bim_regions = bim_region_qs.values('bim_model_id', 'dbid', 'value')
+
+            if not bim_regions.exists():
+                raise ValidationError({
+                    "regions": f"無效的組合：zone_id={zone_id}, role_id={role_id}, level={level}",
+                    "code": "invalid_region_combination"
+                })
+
+            for bim_region in bim_regions:
+                bim_model_id = bim_region['bim_model_id']
+                dbid = bim_region['dbid']
+                value = bim_region['value'].strip()
+                if not models.BimModel.objects.filter(id=bim_model_id).exists():
+                    raise ValidationError({
+                        "bim_model_id": f"無效的 bim_model_id：{bim_model_id}",
+                        "code": "invalid_bim_model_id"
+                    })
+                valid_bim_models.add(bim_model_id)
+                region_dbids.add(dbid)
+                region_values.add(value)
+
+        filters = Q()
+        if not categories and not fuzzy_keyword:
+            if region_dbids and valid_bim_models and region_values:
+                filters &= Q(dbid__in=region_dbids) & Q(bim_model_id__in=valid_bim_models) & Q(
+                    display_name="Name") & Q(value__in=region_values)
+            else:
+                filters &= Q(dbid__in=[])
+        else:
+            if valid_bim_models:
+                filters &= Q(bim_model_id__in=valid_bim_models) & Q(root_dbid__in=region_dbids)
+
+            value_filters = Q()
+            if categories:
+                if not isinstance(categories, list):
+                    raise ValidationError({
+                        "categories": "必須是列表。",
+                        "code": "invalid_categories_format"
+                    })
+                if not categories:
+                    raise ValidationError({
+                        "categories": "不能為空列表。",
+                        "code": "empty_categories"
+                    })
+                for item in categories:
+                    if not isinstance(item, dict):
+                        raise ValidationError({
+                            "categories": f"元素必須是物件，收到：{item}",
+                            "code": "invalid_category_item"
+                        })
+                    display_name = item.get('display_name')
+                    value = item.get('value')
+                    if not isinstance(display_name, str) or not display_name.strip():
+                        raise ValidationError({
+                            "display_name": f"必須是非空字串，收到：{display_name}",
+                            "code": "invalid_display_name"
+                        })
+                    if not isinstance(value, str) or not value.strip():
+                        raise ValidationError({
+                            "value": f"必須是非空字串，收到：{value}",
+                            "code": "invalid_value"
+                        })
+                    value_filters |= (
+                        Q(display_name=display_name) &
+                        Q(value=value)
+                    )
+
+            fuzzy_filters = Q()
+            if fuzzy_keyword:
+                label = fuzzy_keyword.get('label')
+                display_name = fuzzy_keyword.get('display_name')
+
+                if not isinstance(label, str):
+                    raise ValidationError({
+                        "fuzzy_keyword.label": f"必須是字串，收到：{label}",
+                        "code": "invalid_fuzzy_label"
+                    })
+                label = label.strip()
+                if not label:
+                    raise ValidationError({
+                        "fuzzy_keyword.label": "label 不能為空字串。",
+                        "code": "empty_fuzzy_label"
+                    })
+
+                if display_name is not None and (not isinstance(display_name, str) or not display_name.strip()):
+                    raise ValidationError({
+                        "fuzzy_keyword.display_name": f"必須是空值或非空字串，收到：{display_name}",
+                        "code": "invalid_fuzzy_display_name"
+                    })
+
+                fuzzy_filters = (
+                    Q(value__trigram_similar=label) |
+                    Q(value__contains=label)
+                )
+                if display_name is not None:
+                    fuzzy_filters &= Q(display_name=display_name)
+                else:
+                    fuzzy_filters &= Q(display_name="Name")
+
+            if value_filters and fuzzy_filters:
+                filters &= (value_filters | fuzzy_filters)
+            elif value_filters:
+                filters &= value_filters
+            elif fuzzy_filters:
+                filters &= fuzzy_filters
+
+        queryset = models.BimObject.objects.filter(filters).select_related('bim_model').values(
+            'id',
+            'dbid',
+            'value',
+            'display_name',
+            'root_dbid',
+            'bim_model__name',
+            'bim_model__version',
+            'bim_model__urn',
+            'bim_model__svf_path',
+            'bim_model__sqlite_path'
+        ).order_by('bim_model', 'dbid')
+
+        results = list(queryset)
+        cache.set(query_key, results, timeout=300)
+        return results
+
+    # 下載CSV檔案
+    @action(detail=False, methods=['post'])
+    def download_csv(self, request):
+        """下載查詢結果為 CSV 檔案"""
+        results = self.download_data(request)
+
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=[
+            'id', 'dbid', 'value', 'display_name', 'root_dbid',
+            'bim_model__name', 'bim_model__version', 'bim_model__urn',
+            'bim_model__svf_path', 'bim_model__sqlite_path'
+        ], lineterminator='\n')
+        writer.writeheader()
+        for row in results:
+            writer.writerow(row)
+
+        response = HttpResponse(
+            content_type='text/csv',
+            headers={'Content-Disposition': 'attachment; filename="bim_objects.csv"'},
+        )
+        response.write(output.getvalue().encode('utf-8'))
+
+        ip_address = request.META.get('REMOTE_ADDR')
+        regions = request.data.get('regions')
+        categories = request.data.get('categories')
+        fuzzy_keyword = request.data.get('fuzzy_keyword')
+        log_regions = f"regions: {json.dumps(regions)[:100]}" if regions else ""
+        log_cats = f"categories: {json.dumps(categories)[:100]}" if categories else ""
+        log_fuzzy = f"fuzzy_keyword: {json.dumps(fuzzy_keyword)[:100]}" if fuzzy_keyword else ""
+        log_message = f"下載 CSV {log_regions}{' ;' if log_regions else ''}{log_cats}{' ;' if log_cats else ''}{log_fuzzy}"
+        log_user_activity(self.request.user, '圖資下載', log_message, 'SUCCESS', ip_address)
+
+        return response
 
 
 class BimObjectViewSet_(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
