@@ -344,7 +344,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this._processFunctionsService.downloadCsv(this.request).subscribe({
             next: (blob: Blob) => {
                 // 使用固定檔名
-                const csvFilename = this._generateFileName('csv');
+                const csvFilename = 'bim_results.csv';
 
                 // 創建 Blob 並生成臨時 URL
                 const downloadUrl = window.URL.createObjectURL(blob);
@@ -394,7 +394,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this._processFunctionsService.downloadTxt(this.request).subscribe({
             next: (blob: Blob) => {
                 // 使用固定檔名
-                const txtFilename = this._generateFileName('txt');
+                const txtFilename = 'bim_results.txt';
 
                 // 創建 Blob 並生成臨時 URL
                 const downloadUrl = window.URL.createObjectURL(blob);
@@ -538,28 +538,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
-    }
-
-    // 取得下載檔名
-    private _generateFileName(extension: string): string {
-        const parts: string[] = [];
-
-        // 安全存取屬性，處理 undefined
-        if (this.selectedRegion?.code) {
-            parts.push(this.selectedRegion.code.replace(/[^a-zA-Z0-9-_]/g, '')); // 移除無效字符
-        }
-        if (this.selectedRole?.code) {
-            parts.push(this.selectedRole.code.replace(/[^a-zA-Z0-9-_]/g, ''));
-        }
-        if (this.selectedLevel?.label) {
-            parts.push(this.selectedLevel.label.replace(/[^a-zA-Z0-9-_]/g, ''));
-        }
-        if (this.keyword?.label) {
-            parts.push(this.keyword.label.replace(/[^a-zA-Z0-9-_]/g, ''));
-        }
-
-        // 若無有效部分，使用預設檔名
-        return parts.length > 0 ? `${parts.join('_')}.${extension}` : `bim_results.${extension}`;
     }
 
     // 格式化 criteria
