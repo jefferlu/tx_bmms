@@ -344,7 +344,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this._processFunctionsService.downloadCsv(this.request).subscribe({
             next: (blob: Blob) => {
                 // 使用固定檔名
-                const csvFilename = 'bim_results.csv';
+                const csvFilename = 'BIM_Results.csv';
 
                 // 創建 Blob 並生成臨時 URL
                 const downloadUrl = window.URL.createObjectURL(blob);
@@ -394,7 +394,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this._processFunctionsService.downloadTxt(this.request).subscribe({
             next: (blob: Blob) => {
                 // 使用固定檔名
-                const txtFilename = 'bim_results.txt';
+                const txtFilename = 'BIM_Results.txt';
 
                 // 創建 Blob 並生成臨時 URL
                 const downloadUrl = window.URL.createObjectURL(blob);
