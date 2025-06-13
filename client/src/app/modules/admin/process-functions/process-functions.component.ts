@@ -147,6 +147,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     onChangeRegion() {
         this.selectedRole = undefined;
+        this.selectedLevel=undefined;
     }
 
     onChangeRole() {

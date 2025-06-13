@@ -518,11 +518,11 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         // 選定所有 dbIds
-        viewer.select(allSelections);
+        // viewer.select(allSelections);
 
         // 聚焦到所有選定的物件
         viewer.fitToView();
-        viewer.clearSelection();
+        // viewer.clearSelection();
     }
 
     private fitToLastModel(data: any[]): void {
