@@ -40,7 +40,7 @@ export class ProcessFunctionsService {
         );
     }
 
-    getSuggestions(): Observable<any> {
+    getCobieData(): Observable<any> {
         return this._appService.get('forge/bim-cobie-objects/distinct_name_value').pipe(
             tap((response: any) => { })
         );

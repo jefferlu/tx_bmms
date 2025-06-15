@@ -1,13 +1,16 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, ElementRef } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, ElementRef, TemplateRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
+import { PortalModule } from '@angular/cdk/portal';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { TreeSelectModule } from 'primeng/treeselect';
 import { AutoCompleteModule } from 'primeng/autocomplete';
+import { TabsModule } from 'primeng/tabs';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { ProcessFunctionsService } from './process-functions.service';
 import { FormsModule } from '@angular/forms';
@@ -19,13 +22,14 @@ import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.comp
 @Component({
     selector: 'app-process-functions',
     templateUrl: './process-functions.component.html',
+    styleUrl: './process-functions.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         FormsModule, NgTemplateOutlet,
         MatButtonModule, MatIconModule, MatMenuModule,
-        TableModule, TranslocoModule,
-        SelectModule, TreeSelectModule,
+        TableModule, TranslocoModule, TabsModule,
+        SelectModule, TreeSelectModule, OverlayModule, PortalModule,
         AutoCompleteModule, ApsViewerComponent
     ],
     standalone: true
@@ -33,6 +37,8 @@ import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.comp
 export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     @ViewChild('viewer') viewer: ApsViewerComponent;
+    @ViewChild('overlayContent') overlayContent: TemplateRef<any>;
+    @ViewChild('firstConditionGroup') firstConditionGroup: ElementRef;
 
     private _cache = new Map<string, any>();
     private _unsubscribeAll: Subject<void> = new Subject<void>();
@@ -56,7 +62,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     keyword: any;
     keywordItems: any[];
-    suggestions: any[];
+    cobies: any[];
     // selectedObjects: any[] = [];
 
     first: number = 0;
@@ -75,9 +81,17 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     isLoading: boolean = false;
 
+    overlayRef: OverlayRef | null;
+    isOverlayOpen = false;
+
+    conditions = [
+        { condition1: '', condition2: '', condition3: '' }, // 第一組，固定顯示
+    ];
+
     constructor(
         private _route: ActivatedRoute,
         private _changeDetectorRef: ChangeDetectorRef,
+        private overlay: Overlay,
         private _translocoService: TranslocoService,
         private _toastService: ToastService,
         private _processFunctionsService: ProcessFunctionsService
@@ -88,7 +102,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             next: (res: any) => {
                 // this.regions = this.transformRegions(res.data.regions);
                 this.regions = res.data.regions;
-                this.suggestions = res.data.suggestions;
+                this.cobies = res.data.cobies;
 
                 // res.data.conditions = this._transformData(res.data.conditions);
                 // const spaceNode = res.data.conditions.find(item => item.label === 'space');
@@ -163,7 +177,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     keywordSearch(event: any) {
         const query = event.query.toLowerCase();
-        this.keywordItems = this.suggestions.filter(item =>
+        this.keywordItems = this.cobies.filter(item =>
             item.label.toLowerCase().includes(query)
         );
     }
@@ -201,6 +215,70 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.rowsPerPage = event.rows || this.rowsPerPage;
         const page = this.first / this.rowsPerPage + 1;
         this.loadPage(page);
+    }
+
+    // 切換 overlay 的顯示
+    toggleOverlay() {
+        if (this.isOverlayOpen) {
+            this.closeOverlay();
+        } else {
+            this.openOverlay();
+        }
+    }
+
+    // 開啟 overlay
+    openOverlay() {
+        if (!this.firstConditionGroup) return;
+
+        this.overlayRef = this.overlay.create({
+            positionStrategy: this.overlay
+                .position()
+                .flexibleConnectedTo(this.firstConditionGroup)
+                .withPositions([
+                    {
+                        originX: 'start',
+                        originY: 'bottom',
+                        overlayX: 'start',
+                        overlayY: 'top',
+                    },
+                ])
+                .withPush(false)
+                .withViewportMargin(0)
+                .withDefaultOffsetY(0),
+            hasBackdrop: true,
+            backdropClass: 'cdk-overlay-transparent-backdrop',
+            width: this.firstConditionGroup.nativeElement.offsetWidth,
+        });
+
+        this.overlayRef.attach(this.overlayContent);
+        this.isOverlayOpen = true;
+
+        this.overlayRef.backdropClick().subscribe(() => this.closeOverlay());
+    }
+
+    // 關閉 overlay
+    closeOverlay() {
+        console.log('closeOverlay')
+        if (this.overlayRef) {
+            this.overlayRef.detach();
+            this.overlayRef = null;
+            this.isOverlayOpen = false;
+
+            this._changeDetectorRef.markForCheck();
+        }
+    }
+
+    // 添加新條件組
+    addConditionGroup() {
+        this.conditions.push({ condition1: '', condition2: '', condition3: '' });
+    }
+
+    // 移除條件組
+    removeConditionGroup(index: number) {
+        this.conditions.splice(index, 1);
+        if (this.conditions.length <= 1) {
+            this.closeOverlay(); // 如果只剩第一組，關閉 overlay
+        }
     }
 
     onSearch(): void {
@@ -306,7 +384,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                         this.objects = { count: res.count, results: res.results };
                         this._changeDetectorRef.detectChanges();
 
-                        this.viewer.refresh(this.objects.results);
+                        if (this.viewer) this.viewer.refresh(this.objects.results);
                         // this.selectedObjects = res.results;
                         // this._cache.set(cacheKey, this.objects);
                     } else {

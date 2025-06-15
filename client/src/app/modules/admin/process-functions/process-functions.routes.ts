@@ -12,7 +12,7 @@ export default [{
         data: () => forkJoin({
             regions: inject(ProcessFunctionsService).getRegions(),
             conditions: inject(ProcessFunctionsService).getConditions(),
-            suggestions: inject(ProcessFunctionsService).getSuggestions(),
+            cobies: inject(ProcessFunctionsService).getCobieData(),
         })
     }
 }] as Routes

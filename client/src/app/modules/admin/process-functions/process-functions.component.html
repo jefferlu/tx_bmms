@@ -1,78 +1,138 @@
 <div class="absolute inset-0 flex min-w-0 flex-col h-full overflow-hidden" *transloco="let t">
 
-    <div class="flex w-full p-2 border-b">
-        <div class="flex w-full flex-col sm:flex-row gap-4">
-            <!-- 區域 -->
-            <p-select class="md:w-80 w-full" [options]="regions" [(ngModel)]="selectedRegion" optionLabel="label" [checkmark]="true" [showClear]="true"
-                placeholder="選擇區域" (onChange)="onChangeRegion()" (onClear)="onClear()" />
+    <div #firstConditionGroup class="flex w-full border-b">
+        <p-tabs class="w-full" [value]="'advanced'">
+            <p-tablist>
+                <p-tab [value]="'basic'">{{ t('basic-search') }}</p-tab>
+                <p-tab [value]="'advanced'">{{ t('advanced-search') }}</p-tab>
+            </p-tablist>
+            <p-tabpanels>
+                <!-- 基本查詢 -->
+                <p-tabpanel [value]="'basic'">
+                    <div class="flex w-full flex-col sm:flex-row gap-4">
+                        <!-- 區域 -->
+                        <p-select class="md:w-80 w-full" [options]="regions" [(ngModel)]="selectedRegion" optionLabel="label" [checkmark]="true"
+                            [showClear]="true" placeholder="選擇區域" (onChange)="onChangeRegion()" (onClear)="onClear()" />
 
-            <p-select class="md:w-80 w-full" [options]="selectedRegion?.children" [(ngModel)]="selectedRole" optionLabel="label" [checkmark]="true"
-                [showClear]="true" placeholder="選擇空間/系統" emptyMessage="無資料" (onChange)="onChangeRole()" (onClear)="onClear()" />
+                        <p-select class="md:w-80 w-full" [options]="selectedRegion?.children" [(ngModel)]="selectedRole" optionLabel="label" [checkmark]="true"
+                            [showClear]="true" placeholder="選擇空間/系統" emptyMessage="無資料" (onChange)="onChangeRole()" (onClear)="onClear()" />
 
-            <p-select class="md:w-80 w-full" [options]="selectedRole?.children" [(ngModel)]="selectedLevel" optionLabel="label" [checkmark]="true"
-                [showClear]="true" placeholder="選擇樓層" emptyMessage="無資料" (onClear)="onClear()" />
+                        <p-select class="md:w-80 w-full" [options]="selectedRole?.children" [(ngModel)]="selectedLevel" optionLabel="label" [checkmark]="true"
+                            [showClear]="true" placeholder="選擇樓層" emptyMessage="無資料" (onClear)="onClear()" />
 
-            <!-- <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedRegions"
-                [options]="regions" placeholder="區域" (onNodeSelect)="onNodeSelect()" (onNodeUnselect)="onNodeSelect()"
-                (onClear)="onClear('region')">
-            </p-treeselect> -->
+                        <!-- <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedRegions"
+                        [options]="regions" placeholder="區域" (onNodeSelect)="onNodeSelect()" (onNodeUnselect)="onNodeSelect()"
+                        (onClear)="onClear('region')">
+                    </p-treeselect> -->
 
-            <!-- 空間 -->
-            <!-- <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedSpaces"
-                [options]="spaces" placeholder="空間" (onNodeSelect)="onNodeSelect()" (onNodeUnselect)="onNodeSelect()"
-                (onClear)="onClear('space')">
-                <ng-template pTemplate="option" let-node>
-                    <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
-                        {{ node.label }}
+                        <!-- 空間 -->
+                        <!-- <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedSpaces"
+                        [options]="spaces" placeholder="空間" (onNodeSelect)="onNodeSelect()" (onNodeUnselect)="onNodeSelect()"
+                        (onClear)="onClear('space')">
+                        <ng-template pTemplate="option" let-node>
+                            <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
+                                {{ node.label }}
+                            </div>
+                        </ng-template>
+                    </p-treeselect> -->
+
+                        <!-- 系統 -->
+                        <!-- <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedSystems"
+                        [options]="systems" placeholder="系統" (onNodeSelect)="onNodeSelect()" (onNodeUnselect)="onNodeSelect()"
+                        (onClear)="onClear('system')">
+                        <ng-template pTemplate="option" let-node>
+                            <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
+                                {{ node.label }}
+                            </div>
+                        </ng-template>
+                    </p-treeselect> -->
+
+                        <!-- 關鍵字查詢 -->
+                        <p-autocomplete inputStyleClass="sm:min-w-64" [suggestions]="keywordItems" field="label" [(ngModel)]="keyword"
+                            (completeMethod)="keywordSearch($event)" placeholder="請輸入關鍵字..." emptyMessage="無資料" />
+                        <!-- <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                        placeholder="請輸入關鍵字..." [(ngModel)]="keyword" /> -->
+
+                        <!-- Search -->
+                        <div class="ml-auto">
+                            <button mat-flat-button (click)="onSearch()">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                                <span class="ml-2">{{t('search')}}</span>
+                            </button>
+                        </div>
+                        <div>
+                            <button mat-flat-button [matMenuTriggerFor]="manageCriteria">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:cog-6-tooth'"></mat-icon>
+                                <span class="ml-2">{{t('manage-criteria')}}</span>
+                            </button>
+                            <mat-menu #manageCriteria="matMenu">
+                                <button mat-menu-item (click)="onSaveCriteria()">
+                                    <span class="flex items-center">
+                                        <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:bookmark-square'"></mat-icon>
+                                        <span>{{t('save-criteria')}}</span>
+                                    </span>
+                                </button>
+                                <button mat-menu-item (click)="onReadCriteria()">
+                                    <span class="flex items-center">
+                                        <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+                                        <span>{{t('read-criteria')}}</span>
+                                    </span>
+                                </button>
+                            </mat-menu>
+                        </div>
                     </div>
-                </ng-template>
-            </p-treeselect> -->
+                </p-tabpanel>
 
-            <!-- 系統 -->
-            <!-- <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedSystems"
-                [options]="systems" placeholder="系統" (onNodeSelect)="onNodeSelect()" (onNodeUnselect)="onNodeSelect()"
-                (onClear)="onClear('system')">
-                <ng-template pTemplate="option" let-node>
-                    <div (click)="node.children && node.children.length > 0 ? $event.stopPropagation() : null">
-                        {{ node.label }}
+                <!-- 進階查詢 -->
+                <p-tabpanel [value]="'advanced'">
+                    <div class="flex w-full flex-col sm:flex-row gap-4">
+                        <input type="text"
+                            class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                            placeholder="條件1..." [(ngModel)]="conditions[0].condition1" />
+                        <input type="text"
+                            class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                            placeholder="條件2..." [(ngModel)]="conditions[0].condition2" />
+                        <input type="text"
+                            class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                            placeholder="條件3..." [(ngModel)]="conditions[0].condition3" />
+                        <!-- 展開按鈕 -->
+                        <div>
+                            <button mat-icon-button color="accent" (click)="toggleOverlay()">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                            </button>
+                        </div>
+                        <!-- 搜尋和管理條件按鈕 -->
+                        <div class="ml-auto">
+                            <button mat-flat-button (click)="onSearch()">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                                <span class="ml-2">{{ t('search') }}</span>
+                            </button>
+                        </div>
+                        <div>
+                            <button mat-flat-button [matMenuTriggerFor]="manageCriteria">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:cog-6-tooth'"></mat-icon>
+                                <span class="ml-2">{{ t('manage-criteria') }}</span>
+                            </button>
+                            <mat-menu #manageCriteria="matMenu">
+                                <button mat-menu-item (click)="onSaveCriteria()">
+                                    <span class="flex items-center">
+                                        <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:bookmark-square'"></mat-icon>
+                                        <span>{{ t('save-criteria') }}</span>
+                                    </span>
+                                </button>
+                                <button mat-menu-item (click)="onReadCriteria()">
+                                    <span class="flex items-center">
+                                        <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+                                        <span>{{ t('read-criteria') }}</span>
+                                    </span>
+                                </button>
+                            </mat-menu>
+                        </div>
                     </div>
-                </ng-template>
-            </p-treeselect> -->
+                </p-tabpanel>
 
-            <!-- 關鍵字查詢 -->
-            <p-autocomplete inputStyleClass="sm:min-w-64" [suggestions]="keywordItems" field="label" [(ngModel)]="keyword"
-                (completeMethod)="keywordSearch($event)" placeholder="請輸入關鍵字..." emptyMessage="無資料" />
-            <!-- <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                placeholder="請輸入關鍵字..." [(ngModel)]="keyword" /> -->
-
-            <!-- Search -->
-            <div>
-                <button mat-flat-button (click)="onSearch()">
-                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
-                    <span class="ml-2">{{t('search')}}</span>
-                </button>
-            </div>
-            <div class="ml-auto">
-                <button mat-flat-button [matMenuTriggerFor]="manageCriteria">
-                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:cog-6-tooth'"></mat-icon>
-                    <span class="ml-2">{{t('manage-criteria')}}</span>
-                </button>
-                <mat-menu #manageCriteria="matMenu">
-                    <button mat-menu-item (click)="onSaveCriteria()">
-                        <span class="flex items-center">
-                            <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:bookmark-square'"></mat-icon>
-                            <span>{{t('save-criteria')}}</span>
-                        </span>
-                    </button>
-                    <button mat-menu-item (click)="onReadCriteria()">
-                        <span class="flex items-center">
-                            <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
-                            <span>{{t('read-criteria')}}</span>
-                        </span>
-                    </button>
-                </mat-menu>
-            </div>
-        </div>
+            </p-tabpanels>
+        </p-tabs>
     </div>
 
     <div class="mx-auto flex w-full h-full flex-wrap p-2 overflow-y-auto">
@@ -281,3 +341,27 @@
         </div>
     </ng-template>
 </div>
+
+<!-- Overlay 內容（第二組及後續條件） -->
+<ng-template cdkPortal #overlayContent="cdkPortal">
+    <div class="bg-default p-4 flex flex-col gap-4 w-full overflow-auto">
+        @for (conditionGroup of conditions.slice(1); track conditionGroup; let i = $index) {
+        <div class="flex w-full flex-col sm:flex-row gap-4">
+            <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                placeholder="條件1..." [(ngModel)]="conditionGroup.condition1" />
+            <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                placeholder="條件2..." [(ngModel)]="conditionGroup.condition2" />
+            <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                placeholder="條件3..." [(ngModel)]="conditionGroup.condition3" />
+            <!-- 移除按鈕 -->
+            <button mat-icon-button (click)="removeConditionGroup(i + 1)">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+            </button>            
+        </div>
+        }
+        <button mat-flat-button (click)="addConditionGroup()">
+            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus-circle'"></mat-icon>
+            <span class="ml-2">添加條件組</span>
+        </button>
+    </div>
+</ng-template>

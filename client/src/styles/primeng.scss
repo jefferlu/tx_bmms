@@ -291,3 +291,34 @@
     @apply text-default bg-slate-200 dark:bg-card;
   }
 }
+
+/* Tabs */
+.p-tablist-tab-list {
+  @apply dark:bg-transparent;
+  @apply dark:border-b-slate-200;
+}
+
+.p-tabpanels {
+  @apply dark:bg-transparent;
+}
+
+.p-tab {
+  @apply dark:border-b-transparent;
+}
+
+.p-tab:not(.p-tab-active):not(.p-disabled):hover {
+  @apply dark:border-b-transparent;
+}
+
+/* Panel */
+.p-panel {
+  @apply text-default dark:text-white dark:bg-card;
+  @apply dark:border-gray-300;
+}
+
+.p-panel-header {
+    @apply dark:text-white;
+}
+.p-button-text.p-button-secondary:not(:disabled):hover {
+    @apply dark:text-white dark:bg-slate-700;
+}
