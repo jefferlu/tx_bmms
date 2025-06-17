@@ -105,11 +105,11 @@
                         <!-- 範選條件 -->
                         @if(conditions[0].condition3?.value==='range'){
                         <input type="text"
-                            class="p-2 border rounded-md sm:min-w-40 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                            class="p-2 border rounded-md sm:w-[9.5rem] focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
                             [placeholder]="t('min-value')" [(ngModel)]="conditions[0].min_value" />
 
                         <input type="text"
-                            class="p-2 border rounded-md sm:min-w-40 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                            class="p-2 border rounded-md sm:w-[9.5rem] focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
                             [placeholder]="t('max-value')" [(ngModel)]="conditions[0].max_value" />
                         }
                         <!-- 單一條件 -->
@@ -380,10 +380,10 @@
                 appendTo="body" (onChange)="onOperatorChange($event, condition)" />
 
             @if(condition.condition3?.value==='range'){
-            <input type="text" class="p-2 border rounded-md sm:min-w-40 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+            <input type="text" class="p-2 border rounded-md sm:w-[9.5rem] focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
                 [placeholder]="t('min-value')" [(ngModel)]="condition.min_value" />
 
-            <input type="text" class="p-2 border rounded-md sm:min-w-40 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+            <input type="text" class="p-2 border rounded-md sm:w-[9.5rem] focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
                 [placeholder]="t('max-value')" [(ngModel)]="condition.max_value" />
             }
             <!-- 單一條件 -->
