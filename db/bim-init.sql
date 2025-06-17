@@ -5,7 +5,7 @@
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.5
 
--- Started on 2025-06-18 00:38:11
+-- Started on 2025-06-18 01:08:30
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6825,6 +6825,13 @@ COPY public.core_log_user_activity (id, function, action, "timestamp", status, i
 5598	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Name', 'operator': 'eq', 'value': '遠端控制器盤', 'type': 'string'}, {'display_name': 'COBie.Space.Name', 'operator': 'eq', 'value': '電纜整理室', 'type': 'string'}, {'display_name': 'COBie.Floor.Elevation', 'operator': 'gt', 'value': '70', 'type': 'number'}]	2025-06-17 16:31:33.567708+00	SUCCESS	127.0.0.1	2
 5599	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Name', 'operator': 'eq', 'value': '遠端控制器盤', 'type': 'string'}, {'display_name': 'COBie.Space.Name', 'operator': 'eq', 'value': '電纜整理室', 'type': 'string'}, {'display_name': 'COBie.Floor.Elevation', 'operator': 'gt', 'value': '70', 'type': 'number'}]	2025-06-17 16:32:12.390571+00	SUCCESS	127.0.0.1	2
 5600	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Name', 'operator': 'eq', 'value': '遠端控制器盤', 'type': 'string'}, {'display_name': 'COBie.Space.Name', 'operator': 'eq', 'value': '電纜整理室', 'type': 'string'}, {'display_name': 'COBie.Floor.Elevation', 'operator': 'gt', 'value': '70', 'type': 'number'}]	2025-06-17 16:33:12.012112+00	SUCCESS	127.0.0.1	2
+5601	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Name', 'operator': 'eq', 'value': '遠端控制器盤', 'type': 'string'}, {'display_name': 'COBie.Space.Name', 'operator': 'eq', 'value': '電纜整理室', 'type': 'string'}, {'display_name': 'COBie.Floor.Elevation', 'operator': 'gt', 'value': '70', 'type': 'number'}]	2025-06-17 16:44:14.567401+00	SUCCESS	127.0.0.1	2
+5602	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Name', 'operator': 'eq', 'value': '遠端控制器盤', 'type': 'string'}, {'display_name': 'COBie.Space.Name', 'operator': 'eq', 'value': '電纜整理室', 'type': 'string'}, {'display_name': 'COBie.Floor.Elevation', 'operator': 'gt', 'value': '70', 'type': 'number'}]	2025-06-17 16:44:21.55048+00	SUCCESS	127.0.0.1	2
+5603	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Name', 'operator': 'eq', 'value': '遠端控制器盤', 'type': 'string'}, {'display_name': 'COBie.Space.Name', 'operator': 'eq', 'value': '電纜整理室', 'type': 'string'}, {'display_name': 'COBie.Floor.Elevation', 'operator': 'gt', 'value': '70', 'type': 'number'}]	2025-06-17 16:44:38.660161+00	SUCCESS	127.0.0.1	2
+5604	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Name', 'operator': 'eq', 'value': '遠端控制器盤', 'type': 'string'}, {'display_name': 'COBie.Space.Name', 'operator': 'eq', 'value': '電纜整理室', 'type': 'string'}, {'display_name': 'COBie.Floor.Elevation', 'operator': 'gt', 'value': '70', 'type': 'number'}]	2025-06-17 16:47:20.966214+00	SUCCESS	127.0.0.1	2
+5605	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Name', 'operator': 'eq', 'value': '遠端控制器盤', 'type': 'string'}, {'display_name': 'COBie.Space.Name', 'operator': 'eq', 'value': '電纜整理室', 'type': 'string'}, {'display_name': 'COBie.Floor.Elevation', 'operator': 'gt', 'value': '70', 'type': 'number'}]	2025-06-17 16:47:23.9691+00	SUCCESS	127.0.0.1	2
+5606	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Name', 'operator': 'eq', 'value': '遠端控制器盤', 'type': 'string'}, {'display_name': 'COBie.Space.Name', 'operator': 'eq', 'value': '電纜整理室', 'type': 'string'}, {'display_name': 'COBie.Floor.Elevation', 'operator': 'gt', 'value': '70', 'type': 'number'}]	2025-06-17 16:47:56.211014+00	SUCCESS	127.0.0.1	2
+5607	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Name', 'operator': 'eq', 'value': '遠端控制器盤', 'type': 'string'}, {'display_name': 'COBie.Space.Name', 'operator': 'eq', 'value': '電纜整理室', 'type': 'string'}, {'display_name': 'COBie.Floor.Elevation', 'operator': 'gt', 'value': '70', 'type': 'number'}]	2025-06-17 16:57:21.253835+00	SUCCESS	127.0.0.1	2
 \.
 
 
@@ -6915,7 +6922,6 @@ COPY public.core_translation (id, key, value, locale_id) FROM stdin;
 6539	version	Version	1
 6540	worng-email-format	Please enter a valid email address	1
 6541	wrong-email-password	Wrong username or password	1
-6542	download-current-locale-file	Download the current locale data file?	1
 6543	download-success	Download successful	1
 6544	sync-translation-success	Successfully synchronized {{count}} translation entries	1
 6545	3d-model-viewer	3D模型檢視器	2
@@ -6964,6 +6970,7 @@ COPY public.core_translation (id, key, value, locale_id) FROM stdin;
 6589	confirm-action	確認操作	2
 6590	confirm-execution	您確定要執行這個動作嗎？	2
 6591	create	新增	2
+6542	download-current-locale-file	Download the locale data file?	1
 6592	create-success	項目已成功新增	2
 6593	database-management	資料庫管理	2
 6594	database-management-desc	可進行資料庫備份及還原作業	2
@@ -7157,7 +7164,6 @@ COPY public.core_translation (id, key, value, locale_id) FROM stdin;
 6492	permission-group-management	Permission Group Management	1
 6493	permission-group-management-desc	Can add, delete, and modify user permission groups	1
 6494	previous-backup-version	Previous Backup Version	1
-6689	download-current-locale-file	是否下載目前語系資料檔?	2
 6690	download-success	下載成功	2
 6691	sync-translation-success	成功同步 {{count}} 筆語系資料	2
 6549	advanced-search	進階查詢	2
@@ -7180,6 +7186,15 @@ COPY public.core_translation (id, key, value, locale_id) FROM stdin;
 6707	max-value	最大值	2
 6708	condition-value	Condition value	1
 6709	condition-value	條件值	2
+6710	clear-criteria	Clear criteria	1
+6711	clear-criteria	清除條件	2
+6712	clear-criteria-confirm	Are you sure you want to clear the page and saved criteria?	1
+6713	clear-criteria-confirm	確認是否清除頁面及儲存的條件？	2
+6714	bim-criteria-cleared	Page and saved criteria have been cleared	1
+6715	bim-criteria-cleared	已清除頁面及儲存的條件	2
+6689	download-current-locale-file	確認是否下載語系資料檔?	2
+6716	upload-failed	Upload failed	1
+6717	upload-failed	上傳失敗	2
 \.
 
 
@@ -7192,7 +7207,7 @@ COPY public.core_translation (id, key, value, locale_id) FROM stdin;
 COPY public.core_userprofile (id, company_id, user_id, bim_criteria) FROM stdin;
 2	1	1	{}
 3	1	3	{}
-1	1	2	{"tab": "advanced", "page": 1, "conditions": [{"operators": [{"label": "等於", "value": "eq"}, {"label": "包含", "value": "contains"}], "condition1": {"label": "10W 號角式揚聲器(L級)", "description": "10W 號角式揚聲器(L級) (COBie.Component.Name)", "display_name": "COBie.Component.Name"}, "condition2": {"label": "字串", "value": "string"}, "condition3": {"label": "等於", "value": "eq"}, "condition4": "遠端控制器盤"}, {"operators": [{"label": "等於", "value": "eq"}, {"label": "包含", "value": "contains"}], "condition1": {"label": "11號車站集水坑", "description": "11號車站集水坑 (COBie.Space.Name)", "display_name": "COBie.Space.Name"}, "condition2": {"label": "字串", "value": "string"}, "condition3": {"label": "等於", "value": "eq"}, "condition4": "電纜整理室"}, {"max_value": "", "min_value": "", "operators": [{"label": "=", "value": "eq"}, {"label": ">", "value": "gt"}, {"label": "<", "value": "lt"}, {"label": ">=", "value": "gte"}, {"label": "<=", "value": "lte"}, {"label": "範圍", "value": "range"}], "condition1": {"label": "0", "description": "0 (COBie.Floor.Elevation)", "display_name": "COBie.Floor.Elevation"}, "condition2": {"label": "數值", "value": "number"}, "condition3": {"label": ">", "value": "gt"}, "condition4": "70"}, {"max_value": "15", "min_value": "14", "operators": [{"label": "=", "value": "eq"}, {"label": ">", "value": "gt"}, {"label": "<", "value": "lt"}, {"label": ">=", "value": "gte"}, {"label": "<=", "value": "lte"}, {"label": "範圍", "value": "range"}], "condition1": {"label": "0", "description": "0 (COBie.Floor.Height)", "display_name": "COBie.Floor.Height"}, "condition2": {"label": "數值", "value": "number"}, "condition3": {"label": "範圍", "value": "range"}, "condition4": ""}]}
+1	1	2	{}
 \.
 
 
@@ -7508,6 +7523,18 @@ COPY public.django_admin_log (id, action_time, object_id, object_repr, action_fl
 303	2025-06-17 16:09:57.11283+00	6707	zh - max-value	1	[{"added": {}}]	16	2
 304	2025-06-17 16:26:48.745795+00	6708	en - condition-value	1	[{"added": {}}]	16	2
 305	2025-06-17 16:26:58.668761+00	6709	zh - condition-value	1	[{"added": {}}]	16	2
+306	2025-06-17 16:43:02.728033+00	6710	en - clear-criteria	1	[{"added": {}}]	16	2
+307	2025-06-17 16:44:10.342028+00	6711	zh - clear-criteria	1	[{"added": {}}]	16	2
+308	2025-06-17 16:47:13.962447+00	6711	zh - clear-criteria	2	[{"changed": {"fields": ["Value"]}}]	16	2
+309	2025-06-17 16:53:15.679724+00	6712	en - clear-criteria-confirm	1	[{"added": {}}]	16	2
+310	2025-06-17 16:53:31.586593+00	6713	zh - clear-criteria-confirm	1	[{"added": {}}]	16	2
+311	2025-06-17 16:55:55.054665+00	6714	en - bim-criteria-cleared	1	[{"added": {}}]	16	2
+312	2025-06-17 16:56:18.146829+00	6715	zh - bim-criteria-cleared	1	[{"added": {}}]	16	2
+313	2025-06-17 17:04:17.82408+00	6542	en - download-current-locale-file	2	[{"changed": {"fields": ["Value"]}}]	16	2
+314	2025-06-17 17:04:28.158127+00	6689	zh - download-current-locale-file	2	[{"changed": {"fields": ["Value"]}}]	16	2
+315	2025-06-17 17:04:53.745151+00	6689	zh - download-current-locale-file	2	[{"changed": {"fields": ["Value"]}}]	16	2
+316	2025-06-17 17:06:58.930017+00	6716	en - upload-failed	1	[{"added": {}}]	16	2
+317	2025-06-17 17:07:07.879482+00	6717	zh - upload-failed	1	[{"added": {}}]	16	2
 \.
 
 
@@ -12717,6 +12744,20 @@ COPY public.token_blacklist_blacklistedtoken (id, blacklisted_at, token_id) FROM
 4762	2025-06-17 16:31:31.792152+00	4807
 4763	2025-06-17 16:32:10.715662+00	4808
 4764	2025-06-17 16:33:10.319961+00	4809
+4765	2025-06-17 16:44:13.513965+00	4810
+4766	2025-06-17 16:44:20.495383+00	4811
+4767	2025-06-17 16:44:37.641769+00	4812
+4768	2025-06-17 16:47:19.944811+00	4813
+4769	2025-06-17 16:47:55.076825+00	4814
+4770	2025-06-17 16:57:20.138845+00	4815
+4771	2025-06-17 16:57:43.840657+00	4816
+4772	2025-06-17 16:57:49.6509+00	4817
+4773	2025-06-17 17:00:16.031425+00	4818
+4774	2025-06-17 17:01:06.931617+00	4819
+4775	2025-06-17 17:01:36.758755+00	4820
+4776	2025-06-17 17:04:31.241065+00	4821
+4777	2025-06-17 17:04:55.339426+00	4822
+4778	2025-06-17 17:07:10.398324+00	4823
 \.
 
 
@@ -17533,6 +17574,20 @@ COPY public.token_blacklist_outstandingtoken (id, token, created_at, expires_at,
 4807	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc2OTg3NCwiaWF0IjoxNzUwMTc3ODc0LCJqdGkiOiJkNDY0ZTg5NTMyOTI0NjM4YmNjZjYwYmQ4NzM5NGVlZiIsInVzZXJfaWQiOjJ9.fWrXu7nOsvOUh0sjM7MYqT8NmZki5-rbk9pfOXpn-wY	\N	2025-07-17 16:31:14+00	\N	d464e89532924638bccf60bd87394eef
 4808	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc2OTg5MSwiaWF0IjoxNzUwMTc3ODkxLCJqdGkiOiJhMjIyOTRiYjkxNWU0MzRmODM0NDUyYzRjOGEzNTQ4OSIsInVzZXJfaWQiOjJ9.kdoX1cUlX6lappmXkkKADTdYa4JNApY574cR5Sty3Yc	\N	2025-07-17 16:31:31+00	\N	a22294bb915e434f834452c4c8a35489
 4809	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc2OTkzMCwiaWF0IjoxNzUwMTc3OTMwLCJqdGkiOiI4ZjYzNjM5OTdjODg0MjRiYjNkZmMxMTZhODkxODhhNyIsInVzZXJfaWQiOjJ9.XTYvyS2w5IhJrRjbXP6ePmCPp_0ixLqSTKbdi_F3NqQ	\N	2025-07-17 16:32:10+00	\N	8f6363997c88424bb3dfc116a89188a7
+4810	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc2OTk5MCwiaWF0IjoxNzUwMTc3OTkwLCJqdGkiOiIxM2FjMWFlMjljZWQ0MzkzYmRhOGZlNWMzOWVjMzczOSIsInVzZXJfaWQiOjJ9.hTdrXCWNt6b-siKfVYmFHOyUMfkpa4dTCLniRnV3eNY	\N	2025-07-17 16:33:10+00	\N	13ac1ae29ced4393bda8fe5c39ec3739
+4811	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MDY1MywiaWF0IjoxNzUwMTc4NjUzLCJqdGkiOiIyNjMwYjliMDlmODQ0YjZjODljNDgzZmQ3MTdhOTU0YyIsInVzZXJfaWQiOjJ9.4BJa2wEfDQxSlIelO6LvcfgPYaJiVswPIcU3_ArxpL4	\N	2025-07-17 16:44:13+00	\N	2630b9b09f844b6c89c483fd717a954c
+4812	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MDY2MCwiaWF0IjoxNzUwMTc4NjYwLCJqdGkiOiJjMmUxYjQzYjkxM2E0NWU2YTBjY2U5MmY0MDcxMmY1NyIsInVzZXJfaWQiOjJ9.BhM0SgWbj-IcsKtBMrPVlpaTmcLAn1zuzLV_Ymhr7DQ	\N	2025-07-17 16:44:20+00	\N	c2e1b43b913a45e6a0cce92f40712f57
+4813	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MDY3NywiaWF0IjoxNzUwMTc4Njc3LCJqdGkiOiIzZDQxZWY3ZTdjNDM0MTI5OTFjMjA5ZDkzYTFmMDEzZCIsInVzZXJfaWQiOjJ9.3KLL8HgbVtjo82aKEHRj7zHxI9Vh-WWJ5PLk8jihB7Q	\N	2025-07-17 16:44:37+00	\N	3d41ef7e7c43412991c209d93a1f013d
+4814	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MDgzOSwiaWF0IjoxNzUwMTc4ODM5LCJqdGkiOiI0MDZiOGU0MDFmM2I0YjUyYTk3MzJmMWIwMjk0MDE4YSIsInVzZXJfaWQiOjJ9.tzTrubSVYOhjznFts4r6vHpE9CvNzGo6lwhk3BBJC1M	\N	2025-07-17 16:47:19+00	\N	406b8e401f3b4b52a9732f1b0294018a
+4815	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MDg3NSwiaWF0IjoxNzUwMTc4ODc1LCJqdGkiOiI3ZTFkYzk5NjZiNzk0MzU4YjBjYmM3NzI0NmI4ODZmMiIsInVzZXJfaWQiOjJ9.qpJM8qRSfNgP9QhY1IHmKQLzyKiKdUJHG3eBUYF1Bh4	\N	2025-07-17 16:47:55+00	\N	7e1dc9966b794358b0cbc77246b886f2
+4816	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MTQ0MCwiaWF0IjoxNzUwMTc5NDQwLCJqdGkiOiJiZjFjNDkwMGQ1Yjc0OGNjYjIwNTc4ZTFiYmUwN2JlMSIsInVzZXJfaWQiOjJ9.VRukgrkeKkSJM2wDs7IH1xNqyftXqckNSdHck-u2NZk	\N	2025-07-17 16:57:20+00	\N	bf1c4900d5b748ccb20578e1bbe07be1
+4817	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MTQ2MywiaWF0IjoxNzUwMTc5NDYzLCJqdGkiOiJmZWI1ZTlmNzY1OTM0ODAzYTU5MDQzOTFiZTBhNjY1ZSIsInVzZXJfaWQiOjJ9.CdD6dXnXgOcHvTsk3rnD2_90qtKYkJw-GchSWwi3yag	\N	2025-07-17 16:57:43+00	\N	feb5e9f765934803a5904391be0a665e
+4818	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MTQ2OSwiaWF0IjoxNzUwMTc5NDY5LCJqdGkiOiJkMTc2NWZjOGNiZTc0YzViYWM1ZWU0NDk2YzVhOTYwMCIsInVzZXJfaWQiOjJ9.e_Y3Q-WMiv9OVoVeSy9YfpG1yICX6bbh7qA5NgtepKg	\N	2025-07-17 16:57:49+00	\N	d1765fc8cbe74c5bac5ee4496c5a9600
+4819	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MTYxNSwiaWF0IjoxNzUwMTc5NjE1LCJqdGkiOiI5NTRjN2E1MmJmY2E0ODJmODI4N2Q4ZGE0ODg3ZTcwOCIsInVzZXJfaWQiOjJ9.FU9AF_SzhW7QmIwxczw9-kvIIDGDPmNRlDf3p-dWftQ	\N	2025-07-17 17:00:15+00	\N	954c7a52bfca482f8287d8da4887e708
+4820	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MTY2NiwiaWF0IjoxNzUwMTc5NjY2LCJqdGkiOiIzYTFiNjNiYzVjMjA0NWJhOWNkMzQ1ZGQ2ODY0MWNlZCIsInVzZXJfaWQiOjJ9.LgXEKVkBmI1wPaNuJGIJ37faTCLnx28rofqR_sOkRWk	\N	2025-07-17 17:01:06+00	\N	3a1b63bc5c2045ba9cd345dd68641ced
+4821	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MTY5NiwiaWF0IjoxNzUwMTc5Njk2LCJqdGkiOiIxMzY3OGZkYWNhNWU0MjAwYjM4ZDMxZTRiYzA0MzdlNCIsInVzZXJfaWQiOjJ9.l_Z-QEbFw1_wOVzfggfMIgd-vjNRZd7dJdagDatkyyc	\N	2025-07-17 17:01:36+00	\N	13678fdaca5e4200b38d31e4bc0437e4
+4822	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MTg3MSwiaWF0IjoxNzUwMTc5ODcxLCJqdGkiOiI0YjZkODIyYjc2NTg0MzEzYmNjMGE3Y2Y3YTdiYmVjNSIsInVzZXJfaWQiOjJ9.9UnAWgNBGvu8wmHGoAJRuhrqEo0cbhehzn3Rxut1sjw	\N	2025-07-17 17:04:31+00	\N	4b6d822b76584313bcc0a7cf7a7bbec5
+4823	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1Mjc3MTg5NSwiaWF0IjoxNzUwMTc5ODk1LCJqdGkiOiI5M2JiODhhNmE2ZmM0MTMyYTk4YmM3MmFjODg3MWRlZSIsInVzZXJfaWQiOjJ9.sUPTVAcalM0RHNtowxnJaK2sM4SIT7prPSje4qNfhdg	\N	2025-07-17 17:04:55+00	\N	93bb88a6a6fc4132a98bc72ac8871dee
 \.
 
 
@@ -17632,7 +17687,7 @@ SELECT pg_catalog.setval('public.core_locale_id_seq', 2, true);
 -- Name: core_log_user_activity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.core_log_user_activity_id_seq', 5600, true);
+SELECT pg_catalog.setval('public.core_log_user_activity_id_seq', 5607, true);
 
 
 --
@@ -17659,7 +17714,7 @@ SELECT pg_catalog.setval('public.core_navigation_permissions_id_seq', 1, false);
 -- Name: core_translation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.core_translation_id_seq', 6709, true);
+SELECT pg_catalog.setval('public.core_translation_id_seq', 6717, true);
 
 
 --
@@ -17677,7 +17732,7 @@ SELECT pg_catalog.setval('public.core_userprofile_id_seq', 3, true);
 -- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.django_admin_log_id_seq', 305, true);
+SELECT pg_catalog.setval('public.django_admin_log_id_seq', 317, true);
 
 
 --
@@ -17776,7 +17831,7 @@ SELECT pg_catalog.setval('public.forge_zone_code_id_seq', 211, true);
 -- Name: token_blacklist_blacklistedtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 4764, true);
+SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 4778, true);
 
 
 --
@@ -17785,7 +17840,7 @@ SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 4764,
 -- Name: token_blacklist_outstandingtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 4809, true);
+SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 4823, true);
 
 
 --
@@ -18986,7 +19041,7 @@ REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2025-06-18 00:38:12
+-- Completed on 2025-06-18 01:08:31
 
 --
 -- PostgreSQL database dump complete
