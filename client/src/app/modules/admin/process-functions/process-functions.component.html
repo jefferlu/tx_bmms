@@ -78,6 +78,12 @@
                                         <span>{{t('read-criteria')}}</span>
                                     </span>
                                 </button>
+                                <button mat-menu-item (click)="onClearCriteria()">
+                                    <span class="flex items-center">
+                                        <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+                                        <span>{{t('clear-criteria')}}</span>
+                                    </span>
+                                </button>
                             </mat-menu>
                         </div>
                     </div>

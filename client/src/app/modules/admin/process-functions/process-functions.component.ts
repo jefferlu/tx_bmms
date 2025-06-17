@@ -18,6 +18,7 @@ import { ActivatedRoute } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
 import { NgTemplateOutlet } from '@angular/common';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
+import { GtsConfirmationService } from '@gts/services/confirmation';
 
 @Component({
     selector: 'app-process-functions',
@@ -119,6 +120,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         private _changeDetectorRef: ChangeDetectorRef,
         private overlay: Overlay,
         private _translocoService: TranslocoService,
+        private _gtsConfirmationService: GtsConfirmationService,
         private _toastService: ToastService,
         private _processFunctionsService: ProcessFunctionsService
     ) { }
@@ -382,6 +384,14 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         if (this.conditions.length <= 1) {
             this.closeOverlay(); // 如果只剩第一組，關閉 overlay
         }
+    }
+
+    removeAllConditinGroup() {
+        this.conditions = [
+            { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], },// 主畫面條件組
+            { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], }, // overlay條件組
+        ];
+        this.closeOverlay();
     }
 
     onSearch(): void {
@@ -731,7 +741,12 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     this._toastService.open({ message: `${this._translocoService.translate('bim-criteria-saved')}.` });
                 },
                 error: (error) => {
-                    console.error('Error saving BIM criteria:', error);
+                    error.error.text().then((errorMessage: string) => {
+                        const errorJson = JSON.parse(errorMessage);
+                        this._toastService.open({ message: errorJson.error || errorJson.message });
+                    }).catch(() => {
+                        console.log({ message: '發生錯誤，請聯繫管理員' });
+                    });
                 }
             });
     }
@@ -783,6 +798,40 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 this._changeDetectorRef.markForCheck();
             });
     }
+
+    onClearCriteria() {
+        let dialogRef = this._gtsConfirmationService.open({
+            title: this._translocoService.translate('confirm-action'),
+            message: this._translocoService.translate('clear-criteria-confirm'),
+            icon: { color: 'primary' },
+            actions: {
+                confirm: { label: this._translocoService.translate('confirm') },
+                cancel: { label: this._translocoService.translate('cancel') }
+            }
+
+        });
+
+        dialogRef.afterClosed().subscribe(res => {
+            if (res === 'confirmed') {
+                this._changeDetectorRef.markForCheck();
+                this._processFunctionsService.updateCriteria({}).subscribe({
+                    next: () => {
+                        this.removeAllConditinGroup();
+                        this._toastService.open({ message: `${this._translocoService.translate('bim-criteria-cleared')}.` });
+                    },
+                    error: (error) => {
+                        error.error.text().then((errorMessage: string) => {
+                            const errorJson = JSON.parse(errorMessage);
+                            this._toastService.open({ message: errorJson.error || errorJson.message });
+                        }).catch(() => {
+                            console.log({ message: '發生錯誤，請聯繫管理員' });
+                        });
+                    }
+                });
+            }
+        });
+    }
+
 
     updateCriteria() {
         // this.criteriaRegions = this.formatCriteria(this.selectedRegion);
