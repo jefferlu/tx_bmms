@@ -1,7 +1,7 @@
 <div class="absolute inset-0 flex min-w-0 flex-col h-full overflow-hidden" *transloco="let t">
 
     <div #firstConditionGroup class="flex w-full border-b">
-        <p-tabs class="w-full" [value]="'advanced'">
+        <p-tabs class="w-full" [value]="activeTab" (valueChange)="onTabChange($event)">
             <p-tablist>
                 <p-tab [value]="'basic'">{{ t('basic-search') }}</p-tab>
                 <p-tab [value]="'advanced'">{{ t('advanced-search') }}</p-tab>
@@ -48,7 +48,7 @@
                     </p-treeselect> -->
 
                         <!-- 關鍵字查詢 -->
-                        <p-autocomplete inputStyleClass="sm:min-w-64" [suggestions]="keywordItems" field="label" [(ngModel)]="keyword"
+                        <p-autocomplete inputStyleClass="sm:min-w-80" [suggestions]="keywordItems" field="label" [(ngModel)]="keyword"
                             (completeMethod)="keywordSearch($event)" placeholder="請輸入關鍵字..." emptyMessage="無資料" />
                         <!-- <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
                         placeholder="請輸入關鍵字..." [(ngModel)]="keyword" /> -->
@@ -86,15 +86,32 @@
                 <!-- 進階查詢 -->
                 <p-tabpanel [value]="'advanced'">
                     <div class="flex w-full flex-col sm:flex-row gap-4">
+
+                        <p-select class="md:w-80 w-full" [options]="conditionNames" [(ngModel)]="conditions[0].condition1" optionLabel="display_name"
+                            [filter]="true" placeholder="選擇COBie" [checkmark]="true" />
+
+                        <p-select class="md:w-40 w-full" [options]="conditionTypes" [(ngModel)]="conditions[0].condition2" optionLabel="label"
+                            placeholder="選擇類型" (onChange)="updateOperators(conditions[0])" />
+
+                        <p-select class="md:w-40 w-full" [options]="conditions[0].operators" [(ngModel)]="conditions[0].condition3" optionLabel="label"
+                            placeholder="選擇運算符" (onChange)="onOperatorChange($event, conditions[0])" />
+
+                        <!-- 範選條件 -->
+                        @if(conditions[0].condition3?.value==='range'){
                         <input type="text"
-                            class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                            placeholder="條件1..." [(ngModel)]="conditions[0].condition1" />
+                            class="p-2 border rounded-md sm:min-w-40 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                            [placeholder]="t('min-value')" [(ngModel)]="conditions[0].min_value" />
+
                         <input type="text"
-                            class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                            placeholder="條件2..." [(ngModel)]="conditions[0].condition2" />
+                            class="p-2 border rounded-md sm:min-w-40 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                            [placeholder]="t('max-value')" [(ngModel)]="conditions[0].max_value" />
+                        }
+                        <!-- 單一條件 -->
+                        @else{
                         <input type="text"
-                            class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                            placeholder="條件3..." [(ngModel)]="conditions[0].condition3" />
+                            class="p-2 border rounded-md sm:min-w-80 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                           [placeholder]="t('condition-value')+'...'" [(ngModel)]="conditions[0].condition4" />
+                        }
                         <!-- 展開按鈕 -->
                         <div>
                             <button mat-icon-button color="accent" (click)="toggleOverlay()">
@@ -343,25 +360,48 @@
 </div>
 
 <!-- Overlay 內容（第二組及後續條件） -->
-<ng-template cdkPortal #overlayContent="cdkPortal">
+<ng-template cdkPortal #overlayContent="cdkPortal" *transloco="let t">
     <div class="bg-default p-4 flex flex-col gap-4 w-full overflow-auto">
-        @for (conditionGroup of conditions.slice(1); track conditionGroup; let i = $index) {
+        @for (condition of conditions.slice(1); track con; let i = $index) {
         <div class="flex w-full flex-col sm:flex-row gap-4">
-            <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                placeholder="條件1..." [(ngModel)]="conditionGroup.condition1" />
-            <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                placeholder="條件2..." [(ngModel)]="conditionGroup.condition2" />
-            <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                placeholder="條件3..." [(ngModel)]="conditionGroup.condition3" />
+            <p-select class="md:w-80 w-full" [options]="conditionNames" [(ngModel)]="condition.condition1" optionLabel="display_name" [checkmark]="true"
+                [filter]="true" placeholder="選擇COBie" appendTo="body" />
+
+            <p-select class="md:w-40 w-full" [options]="conditionTypes" [(ngModel)]="condition.condition2" optionLabel="label" placeholder="選擇類型"
+                appendTo="body" (onChange)="updateOperators(condition)" />
+
+            <p-select class="md:w-40 w-full" [options]="condition.operators" [(ngModel)]="condition.condition3" optionLabel="label" placeholder="選擇運算符"
+                appendTo="body" (onChange)="onOperatorChange($event, condition)" />
+
+            @if(condition.condition3?.value==='range'){
+            <input type="text" class="p-2 border rounded-md sm:min-w-40 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                [placeholder]="t('min-value')" [(ngModel)]="condition.min_value" />
+
+            <input type="text" class="p-2 border rounded-md sm:min-w-40 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                [placeholder]="t('max-value')" [(ngModel)]="condition.max_value" />
+            }
+            <!-- 單一條件 -->
+            @else{
+            <input type="text" class="p-2 border rounded-md sm:min-w-80 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
+                [placeholder]="t('condition-value')+'...'" [(ngModel)]="condition.condition4" />
+            }
+
             <!-- 移除按鈕 -->
             <button mat-icon-button (click)="removeConditionGroup(i + 1)">
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
-            </button>            
+            </button>
         </div>
         }
-        <button mat-flat-button (click)="addConditionGroup()">
-            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus-circle'"></mat-icon>
-            <span class="ml-2">添加條件組</span>
-        </button>
+        <div class="flex justify-center gap-2">
+            <button mat-flat-button (click)="addConditionGroup()">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus-circle'"></mat-icon>
+                <span class="ml-2">添加條件組</span>
+            </button>
+            <!-- 新增：關閉按鈕 -->
+            <button mat-flat-button (click)="closeOverlay()">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+                <span class="ml-2">關閉</span>
+            </button>
+        </div>
     </div>
 </ng-template>

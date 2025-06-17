@@ -40,6 +40,12 @@ export class ProcessFunctionsService {
         );
     }
 
+    getAdvancedData(request: any) {
+        return this._appService.post('forge/bim-object/advanced', request).pipe(
+            tap((res: any) => { })
+        );
+    }
+
     getCobieData(): Observable<any> {
         return this._appService.get('forge/bim-cobie-objects/distinct_name_value').pipe(
             tap((response: any) => { })

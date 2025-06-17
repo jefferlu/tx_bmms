@@ -141,6 +141,7 @@ class BimObject(models.Model):
     dbid = models.IntegerField()
     display_name = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
+    numeric_value = models.FloatField(null=True, blank=True)
     root_dbid = models.IntegerField(null=True, blank=True)
 
     class Meta:
@@ -150,6 +151,7 @@ class BimObject(models.Model):
             models.Index(fields=['dbid']),
             models.Index(fields=['display_name']),
             models.Index(fields=['value']),
+            models.Index(fields=['numeric_value']),
             models.Index(fields=['bim_model', 'dbid', 'value']),
             models.Index(fields=['root_dbid']),
             GinIndex(fields=['value'], name='idx_bim_obj_val_trgm', opclasses=['gin_trgm_ops']),

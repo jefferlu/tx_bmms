@@ -1,0 +1,24 @@
+/* p-select */
+.p-select-overlay {
+  @apply text-base dark:text-white dark:bg-card;
+}
+
+.p-select-option {
+  @apply dark:text-white;
+}
+
+.p-select-option.p-select-option-selected.p-focus {
+  @apply dark:text-white dark:bg-slate-700;
+}
+
+.p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus {
+  @apply dark:text-white dark:bg-slate-700;
+}
+
+.p-select-option.p-select-option-selected {
+  @apply dark:text-white dark:bg-slate-700;
+}
+
+.p-select-option-check-icon {
+  @apply dark:text-white;
+}

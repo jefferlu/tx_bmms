@@ -588,6 +588,8 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         existing_objects.delete()
         send_progress('process-bimobject', 'Cleared old BimObject records due to version change.')
 
+    df_objects['numeric_value'] = pd.to_numeric(df_objects['value'], errors='coerce')
+
     batch_size = 10000
     bim_objects = [
         models.BimObject(
@@ -595,6 +597,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
             dbid=row.dbid,
             display_name=row.display_name,
             value=row.value,
+            numeric_value=row.numeric_value if not pd.isna(row.numeric_value) else None,
             root_dbid=root_dbid_mapping.get(row.dbid)  # 設置 root_dbid
         ) for row in df_objects.itertuples()
     ]
