@@ -166,7 +166,7 @@
                 <div class="flex-[5] bg-card rounded-md sm:flex-[5] md:flex-[5] overflow-y-hidden">
                     <p-table #dataTable class="w-full" [value]="this.objects?.results" [totalRecords]="this.objects?.count" [scrollable]="true"
                         scrollHeight="flex" selectionMode="multiple" [pageLinks]="1" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage"
-                        [first]="first" [paginator]="true" [lazy]="true" [lazyLoadOnInit]="false" [loading]="isLoading" [selection]="selectedObjects"
+                        [first]="0" [paginator]="true" [lazy]="true" [lazyLoadOnInit]="false" [loading]="isLoading" [selection]="selectedObjects"
                         (onLazyLoad)="onPageChange($event)" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
                         <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
                             <tr class="hover:bg-hover" [pSelectableRow]="item" [pSelectableRowIndex]="rowIndex">

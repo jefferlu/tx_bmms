@@ -106,7 +106,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         ],
     };
 
-    activeTab = 'advanced';
+    activeTab = 'basic';
     overlayRef: OverlayRef | null;
     isOverlayOpen = false;
 
@@ -818,6 +818,19 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                     next: () => {
                         this.removeAllConditinGroup();
                         this._toastService.open({ message: `${this._translocoService.translate('bim-criteria-cleared')}.` });
+
+                        // 預設選取第一個選項
+                        if (this.conditionNames.length > 0) {
+                            this.conditions[0].condition1 = this.conditionNames[0];
+                            this.conditions[1].condition1 = this.conditionNames[0];
+                        }
+                        if (this.conditionTypes.length > 0) {
+                            this.conditions[0].condition2 = this.conditionTypes[0];
+                            this.conditions[1].condition2 = this.conditionTypes[0];
+                        }
+                        this.conditions.forEach(condition => this.updateOperators(condition));
+
+                        this._changeDetectorRef.markForCheck();
                     },
                     error: (error) => {
                         error.error.text().then((errorMessage: string) => {
