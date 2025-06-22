@@ -1153,7 +1153,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             })
 
         valid_operators = {'gt', 'lt', 'gte', 'lte', 'eq', 'contains', 'range', 'like'}
-        dbid_filters = None  # 用於儲存所有條件組的 dbid 交集
+        dbid_model_filters = None  # 用於儲存所有條件組的 (dbid, bim_model_id) 交集
 
         for idx, condition in enumerate(conditions):
             if not isinstance(condition, dict):
@@ -1235,30 +1235,24 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         # 使用分號拆分多組關鍵字
                         keywords = [keyword.strip() for keyword in value.split(';') if keyword.strip()]
                         if keywords:
-                            # 構建 OR 查詢
                             q_objects = Q()
                             for keyword in keywords:
-                                q_objects |= Q(value__exact=keyword)  # 使用 exact 進行精確匹配
+                                q_objects |= Q(value__exact=keyword)
                             condition_filter &= q_objects
                         else:
-                            # 如果關鍵字列表為空，無效查詢
-                            condition_filter &= Q(value__isnull=True)  # 故意讓查詢無結果
+                            condition_filter &= Q(value__isnull=True)
                     else:
-                        # 單一關鍵字或無分號，直接精確匹配
                         condition_filter &= Q(value=value)
             elif operator == 'contains':
                 condition_filter = Q(display_name=display_name)
                 if type_hint == 'string' and value:
-                    # 使用分號拆分多組關鍵字
                     keywords = [keyword.strip() for keyword in value.split(';') if keyword.strip()]
                     if keywords:
-                        # 構建 OR 查詢
                         q_objects = Q()
                         for keyword in keywords:
                             q_objects |= (Q(value__contains=keyword) | Q(value__trigram_similar=keyword))
                         condition_filter &= q_objects
                     else:
-                        # 如果關鍵字列表為空，無效查詢
                         condition_filter &= Q(value__isnull=True)
                 else:
                     condition_filter &= (Q(value__contains=value) | Q(value__trigram_similar=value))
@@ -1271,8 +1265,8 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             else:
                 condition_filter = Q(display_name=display_name) & Q(**{f'value__{operator}': value})
 
-            # 獲取符合當前條件組的 dbid 集合
-            dbids = models.BimObject.objects.filter(condition_filter).values_list('dbid', flat=True).distinct()
+            # 獲取符合當前條件組的 (dbid, bim_model_id) 集合
+            dbids = models.BimObject.objects.filter(condition_filter).values_list('dbid', 'bim_model_id').distinct()
             if not dbids.exists():
                 # 創建空的查詢集並返回分頁響應
                 empty_queryset = models.BimObject.objects.none()
@@ -1280,20 +1274,20 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 paginated_empty_queryset = paginator.paginate_queryset(empty_queryset, request)
                 return paginator.get_paginated_response(paginated_empty_queryset)
 
-            # 更新 dbid 交集
-            if dbid_filters is None:
-                dbid_filters = set(dbids)
+            # 更新 (dbid, bim_model_id) 交集
+            if dbid_model_filters is None:
+                dbid_model_filters = set(dbids)
             else:
-                dbid_filters &= set(dbids)  # 取交集
+                dbid_model_filters &= set(dbids)  # 取交集
 
-        if not dbid_filters:
+        if not dbid_model_filters:
             # 如果交集為空，返回空分頁響應
             empty_queryset = models.BimObject.objects.none()
             paginator = self.pagination_class()
             paginated_empty_queryset = paginator.paginate_queryset(empty_queryset, request)
             return paginator.get_paginated_response(paginated_empty_queryset)
 
-        # 基於最終的 dbid 集合查詢完整記錄
+        # 基於最終的 (dbid, bim_model_id) 集合查詢完整記錄
         query_data = {k: v for k, v in request.data.items() if k not in ['page', 'size']}
         query_key = hashlib.md5(str(query_data).encode()).hexdigest()
         cached_results = cache.get(query_key)
@@ -1304,8 +1298,12 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             return paginator.get_paginated_response(serializer.data)
 
         # 查詢最終結果
+        q_objects = Q()
+        for dbid, bim_model_id in dbid_model_filters:
+            q_objects |= Q(dbid=dbid, bim_model_id=bim_model_id)
+        
         queryset = models.BimObject.objects.filter(
-            dbid__in=dbid_filters,
+            q_objects,
             display_name='Name'
         ).select_related('bim_model').values(
             'id',
