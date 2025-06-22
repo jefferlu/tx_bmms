@@ -917,8 +917,9 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 "code": "empty_conditions"
             })
 
-        valid_operators = {'gt', 'lt', 'gte', 'lte', 'eq', 'contains', 'range'}  # 新增 range
-        filters = Q()
+        valid_operators = {'gt', 'lt', 'gte', 'lte', 'eq', 'contains', 'range', 'like'}
+        dbid_filters = None  # 用於儲存所有條件組的 dbid 交集
+
         for idx, condition in enumerate(conditions):
             if not isinstance(condition, dict):
                 raise ValidationError({
@@ -968,7 +969,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 min_value = condition.get('min_value')
                 max_value = condition.get('max_value')
                 if min_value is None or max_value is None or \
-                    (isinstance(min_value, str) and not min_value.strip()) or \
+                        (isinstance(min_value, str) and not min_value.strip()) or \
                         (isinstance(max_value, str) and not max_value.strip()):
                     raise ValidationError({
                         f"conditions[{idx}]": f"min_value 和 max_value 必須是非空值，收到：{min_value}, {max_value}",
@@ -988,27 +989,48 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         "code": "invalid_numeric_value"
                     })
 
-            condition_filter = Q(display_name=display_name)
+            # 構建條件過濾器
+            condition_filter = Q()
             if operator == 'eq':
+                condition_filter = Q(display_name=display_name)
                 if type_hint == 'number':
                     condition_filter &= Q(numeric_value=numeric_value)
                 else:
                     condition_filter &= Q(value=value)
             elif operator == 'contains':
-                condition_filter &= (
+                condition_filter = Q(display_name=display_name) & (
                     Q(value__contains=value) |
                     Q(value__trigram_similar=value)
                 )
+            elif operator == 'like':
+                condition_filter = Q(display_name__iexact=display_name)  # 使用 iexact 進行不區分大小寫的精確匹配
             elif operator == 'range':
-                condition_filter &= Q(numeric_value__range=(min_value, max_value))
+                condition_filter = Q(display_name=display_name) & Q(numeric_value__range=(min_value, max_value))
             elif type_hint == 'number' and operator in {'gt', 'lt', 'gte', 'lte'}:
-                condition_filter &= Q(**{f'numeric_value__{operator}': numeric_value})
+                condition_filter = Q(display_name=display_name) & Q(**{f'numeric_value__{operator}': numeric_value})
             else:
-                condition_filter &= Q(**{f'value__{operator}': value})
+                condition_filter = Q(display_name=display_name) & Q(**{f'value__{operator}': value})
 
-            filters |= condition_filter  # 保持 OR 邏輯
+            # 獲取符合當前條件組的 dbid 集合
+            dbids = models.BimObject.objects.filter(condition_filter).values_list('dbid', flat=True).distinct()
+            if not dbids.exists():
+               # 創建空的查詢集
+                empty_queryset = models.BimObject.objects.none()
+                paginator = self.pagination_class()
+                paginated_empty_queryset = paginator.paginate_queryset(empty_queryset, request)
+                return paginator.get_paginated_response(empty_queryset)
 
-        # 快取、查詢、分頁和日誌邏輯保持不變
+            # 更新 dbid 交集
+            if dbid_filters is None:
+                dbid_filters = set(dbids)
+            else:
+                dbid_filters &= set(dbids)  # 取交集
+
+        if not dbid_filters:
+            # 如果交集為空，返回空結果
+            return self.pagination_class().get_paginated_response([])
+
+        # 基於最終的 dbid 集合查詢完整記錄
         query_data = {k: v for k, v in request.data.items() if k not in ['page', 'size']}
         query_key = hashlib.md5(str(query_data).encode()).hexdigest()
         cached_results = cache.get(query_key)
@@ -1018,13 +1040,18 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             serializer = self.get_serializer(page_queryset, many=True)
             return paginator.get_paginated_response(serializer.data)
 
-        queryset = models.BimObject.objects.filter(filters).select_related('bim_model').values(
+        # 查詢最終結果
+        queryset = models.BimObject.objects.filter(
+            dbid__in=dbid_filters,
+            display_name='Name'  # 直接過濾 display_name='Name'
+        ).select_related('bim_model').values(
             'id',
             'dbid',
             'value',
             'display_name',
             'root_dbid',
             'numeric_value',
+            'parent_id',  # 新增 parent_id
             'bim_model__name',
             'bim_model__version',
             'bim_model__urn',
@@ -1033,7 +1060,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         ).order_by('bim_model', 'dbid')
 
         results = list(queryset)
-        # cache.set(query_key, results, timeout=300)
+        cache.set(query_key, results, timeout=300)
 
         paginator = self.pagination_class()
         page_queryset = paginator.paginate_queryset(results, request)
@@ -1107,86 +1134,207 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             )
 
     @action(detail=False, methods=['post'])
-    def download_csv(self, request):
-        """下載查詢結果為 CSV 檔案，使用 pandas 和 FileResponse"""
-        try:
-            # 從 request.data 獲取參數
-            regions = request.data.get('regions', request.data.get('zones', None))
-            fuzzy_keyword = request.data.get('fuzzy_keyword', None)
+    def advanced(self, request, *args, **kwargs):
+        conditions = request.data.get('conditions', None)
+        if not conditions:
+            raise ValidationError({
+                "detail": "請提供 'conditions' 參數。",
+                "code": "missing_conditions"
+            })
+        if not isinstance(conditions, list):
+            raise ValidationError({
+                "conditions": "必須是列表。",
+                "code": "invalid_conditions_format"
+            })
+        if not conditions:
+            raise ValidationError({
+                "conditions": "不能為空列表。",
+                "code": "empty_conditions"
+            })
 
-            if not isinstance(regions, list):
+        valid_operators = {'gt', 'lt', 'gte', 'lte', 'eq', 'contains', 'range', 'like'}
+        dbid_filters = None  # 用於儲存所有條件組的 dbid 交集
+
+        for idx, condition in enumerate(conditions):
+            if not isinstance(condition, dict):
                 raise ValidationError({
-                    "regions": "必須是列表。",
-                    "code": "invalid_regions_format"
+                    "conditions": f"第 {idx} 個條件必須是物件，收到：{condition}",
+                    "code": "invalid_condition_item"
                 })
 
-            # 獲取查詢結果
-            results = self.download_data(request)
+            display_name = condition.get('display_name')
+            operator = condition.get('operator')
+            value = condition.get('value')
+            type_hint = condition.get('type', 'string')
 
-            # 檢查是否有資料
-            buffer = io.BytesIO()
-            if not results:
-                # 返回空的 CSV 檔案
-                buffer.write('id,dbid,value,display_name,root_dbid,bim_model__name\n'.encode('utf-8-sig'))
-                buffer.seek(0)
-                response = FileResponse(
-                    buffer,
-                    as_attachment=True,
-                    filename='bim_objects.csv',  # 固定檔名
-                    content_type='text/csv'
-                )
-            else:
-                # 分塊生成 CSV
-                chunk_size = 10000
-                chunk_data = []
-                first_chunk = True
+            if not isinstance(display_name, str) or not display_name.strip():
+                raise ValidationError({
+                    f"conditions[{idx}].display_name": f"必須是非空字串，收到：{display_name}",
+                    "code": "invalid_display_name"
+                })
+            if not isinstance(operator, str) or operator not in valid_operators:
+                raise ValidationError({
+                    f"conditions[{idx}].operator": f"必須是 {valid_operators} 之一，收到：{operator}",
+                    "code": "invalid_operator"
+                })
 
-                for record in results:
-                    chunk_data.append(record)
-                    if len(chunk_data) >= chunk_size:
-                        # 處理一批資料
-                        df = pd.DataFrame.from_records(chunk_data)
-                        df.columns = ['id', 'dbid', 'value', 'display_name', 'root_dbid', 'bim_model__name']
-                        if first_chunk:
-                            df.to_csv(buffer, index=False, encoding='utf-8-sig')
-                            first_chunk = False
+            # 驗證數值類型
+            numeric_value = None
+            if type_hint == 'number' and operator in {'gt', 'lt', 'gte', 'lte', 'eq'}:
+                if value is None or (isinstance(value, str) and not value.strip()):
+                    raise ValidationError({
+                        f"conditions[{idx}].value": f"必須是非空值，收到：{value}",
+                        "code": "invalid_value"
+                    })
+                try:
+                    numeric_value = float(value)
+                except ValueError:
+                    raise ValidationError({
+                        f"conditions[{idx}].value": f"當 type 為 number 且 operator 為 {operator} 時，value 必須是數值，收到：{value}",
+                        "code": "invalid_numeric_value"
+                    })
+
+            # 驗證 range 運算符
+            if operator == 'range':
+                if type_hint != 'number':
+                    raise ValidationError({
+                        f"conditions[{idx}].operator": f"range 僅適用於 type=number，收到：{type_hint}",
+                        "code": "invalid_operator"
+                    })
+                min_value = condition.get('min_value')
+                max_value = condition.get('max_value')
+                if min_value is None or max_value is None or \
+                        (isinstance(min_value, str) and not min_value.strip()) or \
+                        (isinstance(max_value, str) and not max_value.strip()):
+                    raise ValidationError({
+                        f"conditions[{idx}]": f"min_value 和 max_value 必須是非空值，收到：{min_value}, {max_value}",
+                        "code": "invalid_range_value"
+                    })
+                try:
+                    min_value = float(min_value)
+                    max_value = float(max_value)
+                    if min_value > max_value:
+                        raise ValidationError({
+                            f"conditions[{idx}]": f"min_value ({min_value}) 必須小於或等於 max_value ({max_value})",
+                            "code": "invalid_range"
+                        })
+                except ValueError:
+                    raise ValidationError({
+                        f"conditions[{idx}]": f"min_value 和 max_value 必須是有效數值，收到：{min_value}, {max_value}",
+                        "code": "invalid_numeric_value"
+                    })
+
+            # 構建條件過濾器
+            condition_filter = Q()
+            if operator == 'eq':
+                condition_filter = Q(display_name=display_name)
+                if type_hint == 'number':
+                    condition_filter &= Q(numeric_value=numeric_value)
+                else:
+                    if value and isinstance(value, str) and ';' in value:
+                        # 使用分號拆分多組關鍵字
+                        keywords = [keyword.strip() for keyword in value.split(';') if keyword.strip()]
+                        if keywords:
+                            # 構建 OR 查詢
+                            q_objects = Q()
+                            for keyword in keywords:
+                                q_objects |= Q(value__exact=keyword)  # 使用 exact 進行精確匹配
+                            condition_filter &= q_objects
                         else:
-                            df.to_csv(buffer, index=False, encoding='utf-8-sig', header=False)
-                        chunk_data = []  # 清空 chunk
-
-                # 處理剩餘的資料
-                if chunk_data:
-                    df = pd.DataFrame.from_records(chunk_data)
-                    df.columns = ['id', 'dbid', 'value', 'display_name', 'root_dbid', 'bim_model__name']
-                    if first_chunk:
-                        df.to_csv(buffer, index=False, encoding='utf-8-sig')
+                            # 如果關鍵字列表為空，無效查詢
+                            condition_filter &= Q(value__isnull=True)  # 故意讓查詢無結果
                     else:
-                        df.to_csv(buffer, index=False, encoding='utf-8-sig', header=False)
+                        # 單一關鍵字或無分號，直接精確匹配
+                        condition_filter &= Q(value=value)
+            elif operator == 'contains':
+                condition_filter = Q(display_name=display_name)
+                if type_hint == 'string' and value:
+                    # 使用分號拆分多組關鍵字
+                    keywords = [keyword.strip() for keyword in value.split(';') if keyword.strip()]
+                    if keywords:
+                        # 構建 OR 查詢
+                        q_objects = Q()
+                        for keyword in keywords:
+                            q_objects |= (Q(value__contains=keyword) | Q(value__trigram_similar=keyword))
+                        condition_filter &= q_objects
+                    else:
+                        # 如果關鍵字列表為空，無效查詢
+                        condition_filter &= Q(value__isnull=True)
+                else:
+                    condition_filter &= (Q(value__contains=value) | Q(value__trigram_similar=value))
+            elif operator == 'like':
+                condition_filter = Q(display_name__iexact=display_name)
+            elif operator == 'range':
+                condition_filter = Q(display_name=display_name) & Q(numeric_value__range=(min_value, max_value))
+            elif type_hint == 'number' and operator in {'gt', 'lt', 'gte', 'lte'}:
+                condition_filter = Q(display_name=display_name) & Q(**{f'numeric_value__{operator}': numeric_value})
+            else:
+                condition_filter = Q(display_name=display_name) & Q(**{f'value__{operator}': value})
 
-                buffer.seek(0)
-                response = FileResponse(
-                    buffer,
-                    as_attachment=True,
-                    filename='bim_objects.csv',  # 固定檔名
-                    content_type='text/csv'
-                )
+            # 獲取符合當前條件組的 dbid 集合
+            dbids = models.BimObject.objects.filter(condition_filter).values_list('dbid', flat=True).distinct()
+            if not dbids.exists():
+                # 創建空的查詢集並返回分頁響應
+                empty_queryset = models.BimObject.objects.none()
+                paginator = self.pagination_class()
+                paginated_empty_queryset = paginator.paginate_queryset(empty_queryset, request)
+                return paginator.get_paginated_response(paginated_empty_queryset)
 
-            # 記錄日誌
-            ip_address = request.META.get('REMOTE_ADDR')
-            regions_log = f"regions: {str(regions)[:100]}" if regions else ""
-            categories = f"categories: {str(request.data.get('categories', ''))[:100]}" if request.data.get('categories') else ""
-            fuzzy_keyword_log = f"fuzzy_keyword: {str(fuzzy_keyword)[:100]}" if fuzzy_keyword else ""
-            log_message = f"下載 CSV {regions_log}{' ;' if regions_log else ''}{categories}{' ;' if categories else ''}{fuzzy_keyword_log}"
-            log_user_activity(self.request.user, '圖資下載', log_message, 'SUCCESS', ip_address)
+            # 更新 dbid 交集
+            if dbid_filters is None:
+                dbid_filters = set(dbids)
+            else:
+                dbid_filters &= set(dbids)  # 取交集
 
-            return response
-        except ValidationError as e:
-            raise  # DRF 會序列化為 JSON
-        except Exception as e:
-            return Response(
-                {"detail": f"下載失敗：{str(e)}", "code": "unexpected_error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        if not dbid_filters:
+            # 如果交集為空，返回空分頁響應
+            empty_queryset = models.BimObject.objects.none()
+            paginator = self.pagination_class()
+            paginated_empty_queryset = paginator.paginate_queryset(empty_queryset, request)
+            return paginator.get_paginated_response(paginated_empty_queryset)
+
+        # 基於最終的 dbid 集合查詢完整記錄
+        query_data = {k: v for k, v in request.data.items() if k not in ['page', 'size']}
+        query_key = hashlib.md5(str(query_data).encode()).hexdigest()
+        cached_results = cache.get(query_key)
+        if cached_results:
+            paginator = self.pagination_class()
+            page_queryset = paginator.paginate_queryset(cached_results, request)
+            serializer = self.get_serializer(page_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        # 查詢最終結果
+        queryset = models.BimObject.objects.filter(
+            dbid__in=dbid_filters,
+            display_name='Name'
+        ).select_related('bim_model').values(
+            'id',
+            'dbid',
+            'value',
+            'display_name',
+            'root_dbid',
+            'numeric_value',
+            'parent_id',
+            'bim_model__name',
+            'bim_model__version',
+            'bim_model__urn',
+            'bim_model__svf_path',
+            'bim_model__sqlite_path'
+        ).order_by('bim_model', 'dbid')
+
+        results = list(queryset)
+        cache.set(query_key, results, timeout=300)
+
+        paginator = self.pagination_class()
+        page_queryset = paginator.paginate_queryset(results, request)
+        serializer = self.get_serializer(page_queryset, many=True)
+        response = paginator.get_paginated_response(serializer.data)
+
+        ip_address = request.META.get('REMOTE_ADDR')
+        log_conditions = f"conditions: {conditions[:3]}" if conditions else ""
+        log_message = f"進階查詢 {log_conditions}"
+        log_user_activity(self.request.user, '圖資進階檢索', log_message, 'SUCCESS', ip_address)
+        return response
 
     @action(detail=False, methods=['post'])
     def download_txt(self, request):

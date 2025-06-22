@@ -143,6 +143,7 @@ class BimObject(models.Model):
     value = models.CharField(max_length=255)
     numeric_value = models.FloatField(null=True, blank=True)
     root_dbid = models.IntegerField(null=True, blank=True)
+    parent_id = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = "forge_bim_object"
@@ -154,6 +155,7 @@ class BimObject(models.Model):
             models.Index(fields=['numeric_value']),
             models.Index(fields=['bim_model', 'dbid', 'value']),
             models.Index(fields=['root_dbid']),
+            models.Index(fields=['parent_id']),
             GinIndex(fields=['value'], name='idx_bim_obj_val_trgm', opclasses=['gin_trgm_ops']),
         ]
 

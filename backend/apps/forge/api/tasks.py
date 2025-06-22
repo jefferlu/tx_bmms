@@ -598,7 +598,8 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
             display_name=row.display_name,
             value=row.value,
             numeric_value=row.numeric_value if not pd.isna(row.numeric_value) else None,
-            root_dbid=root_dbid_mapping.get(row.dbid)  # 設置 root_dbid
+            root_dbid=root_dbid_mapping.get(row.dbid),  # 設置 root_dbid
+            parent_id=hierarchy_dict.get(row.dbid)  # 從 hierarchy_dict 設置 parent_id
         ) for row in df_objects.itertuples()
     ]
     total = len(bim_objects)
