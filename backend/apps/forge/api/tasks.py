@@ -535,13 +535,13 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
     # 構建 hierarchy_dict
     for row in df_hierarchy.itertuples():
         hierarchy_dict[row.entity_id] = row.related_id
-        new_hierarchies.append(
-            models.BimObjectHierarchy(
-                bim_model_id=bim_model_id,
-                entity_id=row.entity_id,
-                parent_id=row.related_id
-            )
-        )
+        # new_hierarchies.append(
+        #     models.BimObjectHierarchy(
+        #         bim_model_id=bim_model_id,
+        #         entity_id=row.entity_id,
+        #         parent_id=row.related_id
+        #     )
+        # )
 
     # 計算每個 entity_id 的 root_dbid
     root_dbid_mapping = {}
@@ -549,18 +549,19 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
         root_dbid = find_root_dbid(entity_id, hierarchy_dict, bim_region_dbids)
         root_dbid_mapping[entity_id] = root_dbid
 
-    with transaction.atomic():
-        deleted_count = models.BimObjectHierarchy.objects.filter(bim_model_id=bim_model_id).delete()[0]
-        send_progress('cleanup-bimobjecthierarchy',
-                      f'Deleted {deleted_count} BimObjectHierarchy records for bim_model_id={bim_model_id}.')
+    # Update BimObjectHierarchy
+    # with transaction.atomic():
+    #     deleted_count = models.BimObjectHierarchy.objects.filter(bim_model_id=bim_model_id).delete()[0]
+    #     send_progress('cleanup-bimobjecthierarchy',
+    #                   f'Deleted {deleted_count} BimObjectHierarchy records for bim_model_id={bim_model_id}.')
 
-        if new_hierarchies:
-            batch_size = 10000
-            for i in range(0, len(new_hierarchies), batch_size):
-                batch = new_hierarchies[i:i + batch_size]
-                models.BimObjectHierarchy.objects.bulk_create(batch)
-                send_progress('process-bimobjecthierarchy',
-                              f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
+    #     if new_hierarchies:
+    #         batch_size = 10000
+    #         for i in range(0, len(new_hierarchies), batch_size):
+    #             batch = new_hierarchies[i:i + batch_size]
+    #             models.BimObjectHierarchy.objects.bulk_create(batch)
+    #             send_progress('process-bimobjecthierarchy',
+    #                           f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
 
     # Step 4: Update BimObject with root_dbid
     existing_objects = models.BimObject.objects.filter(bim_model=bim_model)
