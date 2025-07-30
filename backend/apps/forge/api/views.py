@@ -13,13 +13,13 @@ from collections import defaultdict
 
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from django.db.models import Subquery, OuterRef, Prefetch, Q
+from django.db.models import Subquery, OuterRef, Prefetch, Q, F, Value, CharField
 from django.http import FileResponse, StreamingHttpResponse
 from django.utils.encoding import smart_str
 
 from django.db import connection, transaction
 from django.contrib.postgres.aggregates import ArrayAgg, JSONBAgg
-from django.db.models.functions import JSONObject
+from django.db.models.functions import JSONObject, Coalesce
 from django.core.cache import cache
 from django.conf import settings
 
@@ -1301,7 +1301,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
         q_objects = Q()
         for dbid, bim_model_id in dbid_model_filters:
             q_objects |= Q(dbid=dbid, bim_model_id=bim_model_id)
-        
+
         queryset = models.BimObject.objects.filter(
             q_objects,
             display_name='Name'
@@ -1892,12 +1892,24 @@ class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelView
                 display_name__startswith='COBie.'
             ).values('display_name', 'value').distinct().order_by('display_name')
 
+            # 與 BimCobie 表進行 LEFT JOIN
+            queryset = queryset.annotate(
+                description=Coalesce(
+                    Subquery(
+                        models.BimCobie.objects.filter(name=OuterRef('display_name')).values('description')[:1]
+                    ),
+                    Value(''),  # 如果無映射，預設為空字串
+                    output_field=CharField()
+                )
+            )
+
             # 將查詢結果轉為列表並添加 description 欄位
             data = [
                 {
                     'display_name': item['display_name'],
                     'label': item['value'],
-                    'description': f"{item['value']} ({item['display_name']})"
+                    'description': item['description'] or item['display_name'],
+                    # 'description': f"{item['value']} ({item['display_name']})"
                 }
                 for item in queryset
             ]

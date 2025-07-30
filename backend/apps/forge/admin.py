@@ -43,3 +43,9 @@ class BimModelAdmin(admin.ModelAdmin):
 class BimObjectAdmin(admin.ModelAdmin):
     list_display = ('bim_model', 'dbid', 'display_name', 'value', 'root_dbid',)
     search_fields = ('display_name', 'value')
+
+
+@admin.register(models.BimCobie)
+class BimCobieAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'is_active',)
+    search_fields = ('name', 'description')

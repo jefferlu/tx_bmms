@@ -161,3 +161,15 @@ class BimObject(models.Model):
 
     def __str__(self):
         return f"{self.value} (dbid: {self.dbid})"
+
+
+class BimCobie(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.CharField(max_length=255)  # 對應的中文名稱，例如 "樓層名稱"
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "forge_bim_cobie"
+        indexes = [
+            models.Index(fields=['name']),
+        ]

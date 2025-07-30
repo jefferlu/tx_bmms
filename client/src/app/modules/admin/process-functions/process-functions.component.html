@@ -93,8 +93,24 @@
                 <p-tabpanel [value]="'advanced'">
                     <div class="flex w-full flex-col sm:flex-row gap-4">
 
-                        <p-select class="md:w-80 w-full" [options]="conditionNames" [(ngModel)]="conditions[0].condition1" optionLabel="display_name"
-                            [filter]="true" placeholder="選擇COBie" [checkmark]="true" />
+                        <p-select class="md:w-80 w-full" [options]="conditionNames" [(ngModel)]="conditions[0].condition1" optionLabel="description"
+                            [filter]="true" placeholder="選擇COBie" [checkmark]="true">
+                            <!-- 自訂選擇後的顯示內容 -->
+                            <ng-template #selectedItem let-selectedOption>
+                                @if(selectedOption){
+                                <span class="font-medium">{{ selectedOption.description }}</span>&nbsp;
+                                <span class="text-sm text-gray-400">{{ selectedOption.display_name }}</span>
+                                }
+                            </ng-template>
+
+                            <!-- 自訂下拉選單中的選項內容 -->
+                            <ng-template let-option #item>
+                                <div class="flex flex-col">
+                                    <span class="font-medium">{{ option.description }}</span>
+                                    <span class="text-sm text-gray-400">{{ option.display_name }}</span>
+                                </div>
+                            </ng-template>
+                        </p-select>
 
                         <p-select class="md:w-40 w-full" [options]="conditionTypes" [(ngModel)]="conditions[0].condition2" optionLabel="label"
                             placeholder="選擇類型" (onChange)="updateOperators(conditions[0])" />
@@ -116,7 +132,7 @@
                         @else{
                         <input type="text"
                             class="p-2 border rounded-md sm:min-w-80 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                           [placeholder]="t('condition-value')+'...'" [(ngModel)]="conditions[0].condition4" />
+                            [placeholder]="t('condition-value')+'...'" [(ngModel)]="conditions[0].condition4" />
                         }
                         <!-- 展開按鈕 -->
                         <div>
@@ -370,8 +386,24 @@
     <div class="bg-default p-4 flex flex-col gap-4 w-full overflow-auto">
         @for (condition of conditions.slice(1); track con; let i = $index) {
         <div class="flex w-full flex-col sm:flex-row gap-4">
-            <p-select class="md:w-80 w-full" [options]="conditionNames" [(ngModel)]="condition.condition1" optionLabel="display_name" [checkmark]="true"
-                [filter]="true" placeholder="選擇COBie" appendTo="body" />
+            <p-select class="md:w-80 w-full" [options]="conditionNames" [(ngModel)]="condition.condition1" optionLabel="description" [checkmark]="true"
+                [filter]="true" placeholder="選擇COBie" appendTo="body">
+                <!-- 自訂選擇後的顯示內容 -->
+                <ng-template #selectedItem let-selectedOption>
+                    @if(selectedOption){
+                    <span class="font-medium">{{ selectedOption.description }}</span>&nbsp;
+                    <span class="text-sm text-gray-400">{{ selectedOption.display_name }}</span>
+                    }
+                </ng-template>
+
+                <!-- 自訂下拉選單中的選項內容 -->
+                <ng-template let-option #item>
+                    <div class="flex flex-col">
+                        <span class="font-medium">{{ option.description }}</span>
+                        <span class="text-sm text-gray-400">{{ option.display_name }}</span>
+                    </div>
+                </ng-template>
+            </p-select>
 
             <p-select class="md:w-40 w-full" [options]="conditionTypes" [(ngModel)]="condition.condition2" optionLabel="label" placeholder="選擇類型"
                 appendTo="body" (onChange)="updateOperators(condition)" />

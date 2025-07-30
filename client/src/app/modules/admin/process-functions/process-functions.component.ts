@@ -135,7 +135,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 this.conditionNames = this.cobies.filter((item, index, self) =>
                     index === self.findIndex(i => i.display_name === item.display_name)
                 );
-
+                console.log(this.conditionNames)
                 // 預設選取第一個選項
                 if (this.conditionNames.length > 0) {
                     this.conditions[0].condition1 = this.conditionNames[0];
