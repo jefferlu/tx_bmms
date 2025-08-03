@@ -83,6 +83,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     isLoading: boolean = false;
 
     conditionNames: any[];
+    cobieMap: { [key: string]: string } = {};
+
     // 條件2選項：字串、數值
     conditionTypes = [
         { label: this._translocoService.translate('string'), value: 'string' },
@@ -135,7 +137,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 // 從定義表取得cobie定義
                 this.conditionNames = res.data.cobieDef;
 
-                // 從資料集取得cobie定義
+                // 轉換為 key-value 物件
+                this.cobieMap = this.conditionNames.reduce((map, item) => {
+                    map[item.display_name] = item.description;
+                    return map;
+                }, {} as { [key: string]: string });
+
+                // 從資料集取得cobie定義(old)
                 // this.conditionNames = this.cobies.filter((item, index, self) =>
                 //     index === self.findIndex(i => i.display_name === item.display_name)
                 // );
