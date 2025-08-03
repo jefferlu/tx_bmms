@@ -132,10 +132,14 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 this.regions = res.data.regions;
                 this.cobies = res.data.cobies;
 
-                this.conditionNames = this.cobies.filter((item, index, self) =>
-                    index === self.findIndex(i => i.display_name === item.display_name)
-                );
-                console.log(this.conditionNames)
+                // 從定義表取得cobie定義
+                this.conditionNames = res.data.cobieDef;
+
+                // 從資料集取得cobie定義
+                // this.conditionNames = this.cobies.filter((item, index, self) =>
+                //     index === self.findIndex(i => i.display_name === item.display_name)
+                // );
+
                 // 預設選取第一個選項
                 if (this.conditionNames.length > 0) {
                     this.conditions[0].condition1 = this.conditionNames[0];

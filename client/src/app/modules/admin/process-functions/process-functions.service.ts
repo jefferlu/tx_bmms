@@ -52,6 +52,12 @@ export class ProcessFunctionsService {
         );
     }
 
+    getCobieDef(): Observable<any> {
+        return this._appService.get('forge/bim-cobie').pipe(
+            tap((response: any) => { })
+        );
+    }
+
     downloadCsv(request: any) {
         return this._appService.post('forge/bim-object/download_csv', request, { responseType: 'blob' }).pipe(
             tap((res: any) => { })

@@ -13,6 +13,7 @@ export default [{
             regions: inject(ProcessFunctionsService).getRegions(),
             conditions: inject(ProcessFunctionsService).getConditions(),
             cobies: inject(ProcessFunctionsService).getCobieData(),
+            cobieDef: inject(ProcessFunctionsService).getCobieDef(),
         })
     }
 }] as Routes

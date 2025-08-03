@@ -91,9 +91,18 @@ class BimObjectSerializer(serializers.Serializer):
     class Meta:
         fields = ['id', 'dbid', 'value', 'display_name', 'name', 'version', 'urn', 'svf_path', 'sqlite_path']
 
+
 class BimCobieObjectSerializer(serializers.ModelSerializer):
     bim_model = BimModelSerializer(read_only=True)
 
     class Meta:
         model = models.BimObject
         fields = ['id', 'bim_model', 'dbid', 'display_name', 'value']
+
+
+class BimCobieSerializer(serializers.ModelSerializer):
+    display_name = serializers.CharField(source='name')
+
+    class Meta:
+        model = models.BimCobie
+        fields = ['display_name', 'description']

@@ -20,6 +20,7 @@ router.register(r'bim-regions', views.BimRegionViewSet)
 router.register(r'bim-model', views.BimModelViewSet)
 router.register(r'bim-object', views.BimObjectViewSet, basename='bim-object')
 router.register(r'bim-cobie-objects', views.BimCobieObjectViewSet)
+router.register(r'bim-cobie', views.BimCobieViewSet)
 
 urlpatterns = [
     re_path(r'^auth/?$', views.AuthView.as_view(), name='auth'),

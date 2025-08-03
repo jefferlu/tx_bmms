@@ -2243,3 +2243,8 @@ class BimSqliteDownloadView(APIView):
                 {"error": f"下載 SQLite 檔案時發生錯誤：{str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class BimCobieViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = models.BimCobie.objects.filter(is_active=True).order_by('name')
+    serializer_class = serializers.BimCobieSerializer
