@@ -849,10 +849,12 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         "code": "invalid_fuzzy_display_name"
                     })
 
-                fuzzy_filters = (
-                    Q(value__trigram_similar=label) |
-                    Q(value__contains=label)
-                )
+                fuzzy_filters = Q(value__contains=label)
+                # 關閉三元組相似度查詢
+                # fuzzy_filters = (
+                #     Q(value__trigram_similar=label) |
+                #     Q(value__contains=label)
+                # )
                 if display_name is not None:
                     fuzzy_filters &= Q(display_name=display_name)
                 else:
@@ -1251,12 +1253,26 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                     if keywords:
                         q_objects = Q()
                         for keyword in keywords:
-                            q_objects |= (Q(value__contains=keyword) | Q(value__trigram_similar=keyword))
+                            q_objects |= Q(value__contains=keyword)
                         condition_filter &= q_objects
                     else:
                         condition_filter &= Q(value__isnull=True)
                 else:
-                    condition_filter &= (Q(value__contains=value) | Q(value__trigram_similar=value))
+                    condition_filter &= Q(value__contains=value)
+            # 關閉三元組相似度查詢
+            # elif operator == 'contains':
+            #     condition_filter = Q(display_name=display_name)
+            #     if type_hint == 'string' and value:
+            #         keywords = [keyword.strip() for keyword in value.split(';') if keyword.strip()]
+            #         if keywords:
+            #             q_objects = Q()
+            #             for keyword in keywords:
+            #                 q_objects |= (Q(value__contains=keyword) | Q(value__trigram_similar=keyword))
+            #             condition_filter &= q_objects
+            #         else:
+            #             condition_filter &= Q(value__isnull=True)
+            #     else:
+            #         condition_filter &= (Q(value__contains=value) | Q(value__trigram_similar=value))
             elif operator == 'like':
                 condition_filter = Q(display_name__iexact=display_name)
             elif operator == 'range':
