@@ -48,8 +48,25 @@
                     </p-treeselect> -->
 
                         <!-- 關鍵字查詢 -->
-                        <p-autocomplete inputStyleClass="sm:min-w-80" [suggestions]="keywordItems" field="label" [(ngModel)]="keyword"
-                            (completeMethod)="keywordSearch($event)" placeholder="請輸入關鍵字..." emptyMessage="無資料" />
+                        <p-autocomplete inputStyleClass="sm:min-w-80" [suggestions]="keywordItems" [(ngModel)]="keyword"
+                            (completeMethod)="keywordSearch($event)" placeholder="請輸入關鍵字..." emptyMessage="無資料">
+
+                            <!-- 自訂下拉選單中的選項內容 -->
+                            <ng-template #item let-item>
+                                <div class="flex items-center gap-2">
+                                    <!-- <div>{{ item.label }}</div> -->
+                                    <!-- <div class="text-sm text-slate-500">{{ item.display_name }}</div> -->
+                                    <!-- <div class="">
+                                        {{ this.cobieMap[item.display_name] || "未定義" }}
+                                        <span class="text-sm text-slate-500 font-medium italic"> {{item.display_name}}</span>
+                                    </div> -->
+                                    <div class="flex flex-col">
+                                        <span class="font-medium">{{ item.label }}</span>
+                                        <span class="text-sm text-gray-400">{{ this.cobieMap[item.display_name] || "未定義" }} {{ item.display_name }}</span>
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </p-autocomplete>
                         <!-- <input type="text" class="p-2 border rounded-md sm:min-w-64 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
                         placeholder="請輸入關鍵字..." [(ngModel)]="keyword" /> -->
 
@@ -104,7 +121,7 @@
                             </ng-template>
 
                             <!-- 自訂下拉選單中的選項內容 -->
-                            <ng-template let-option #item>
+                            <ng-template #item let-option>
                                 <div class="flex flex-col">
                                     <span class="font-medium">{{ option.description }}</span>
                                     <span class="text-sm text-gray-400">{{ option.display_name }}</span>
@@ -273,7 +290,7 @@
                         @if(this.criteriaKeyword){
                         <div class="flex mt-2 px-4">
                             <mat-icon class="mr-2 mt-0.5 icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
-                            <div>關鍵字：{{ criteriaKeyword }}</div>
+                            <div>關鍵字：{{ criteriaKeyword.label }} <span class="text-sm text-slate-500 font-medium italic"> {{criteriaKeyword.display_name}}</span></div>
                         </div>
                         }
 

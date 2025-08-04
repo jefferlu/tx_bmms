@@ -236,6 +236,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.keywordItems = this.cobies.filter(item =>
             item.label.toLowerCase().includes(query)
         );
+        console.log(this.keywordItems)
     }
     // onClear(tag: string) {
     //     this.request = {};
@@ -865,7 +866,8 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.criteriaRegion = this.selectedRegion ? this.selectedRegion.label : undefined;
         this.criteriaRole = this.selectedRole ? this.selectedRole.label : undefined;
         this.criteriaLevel = this.selectedLevel ? this.selectedLevel.label : undefined;
-        this.criteriaKeyword = this.keyword ? this.keyword.label : undefined;
+        // this.criteriaKeyword = this.keyword ? this.keyword.label : undefined;
+        this.criteriaKeyword=this.keyword;
     }
 
     // 處理從 ApsViewerComponent 發送的節點屬性
