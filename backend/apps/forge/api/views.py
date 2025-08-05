@@ -1904,42 +1904,73 @@ class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelView
     @action(detail=False, methods=['get'])
     def distinct_name_value(self, request):
         try:
-            # 查詢以 'COBie.' 開頭的唯一 display_name 和 value，並按 display_name 排序
-            queryset = models.BimObject.objects.filter(
+            # 先取得唯一 display_name 和 value，且 display_name 以 "COBie." 開頭
+            distinct_pairs = models.BimObject.objects.filter(
                 display_name__startswith='COBie.'
             ).values('display_name', 'value').distinct().order_by('display_name')
 
-            # 與 BimCobie 表進行 LEFT JOIN
-            queryset = queryset.annotate(
-                description=Coalesce(
-                    Subquery(
-                        models.BimCobie.objects.filter(name=OuterRef('display_name')).values('description')[:1]
-                    ),
-                    Value(''),  # 如果無映射，預設為空字串
-                    output_field=CharField()
-                )
+            # 查詢所有有效的 BimCobie 並轉成 dict 方便在 Python 中映射描述
+            cobie_description_map = dict(
+                models.BimCobie.objects.filter(is_active=True).values_list('name', 'description')
             )
 
-            # 將查詢結果轉為列表並添加 description 欄位
-            data = [
-                {
+            data = []
+            for item in distinct_pairs:
+                description = cobie_description_map.get(item['display_name'], '') or item['display_name']
+                data.append({
                     'display_name': item['display_name'],
                     'label': item['value'],
-                    'description': item['description'] or item['display_name'],
-                    # 'description': f"{item['value']} ({item['display_name']})"
-                }
-                for item in queryset
-            ]
+                    'description': description,
+                })
 
             return Response(data, status=200)
 
         except Exception as e:
-            # 記錄錯誤日誌
             logger.error(f"Error fetching distinct name-value pairs: {str(e)}", exc_info=True)
             return Response(
                 {"error": "伺服器內部錯誤，請聯繫管理員"},
                 status=500
             )
+
+    # @action(detail=False, methods=['get'])
+    # def distinct_name_value(self, request):
+    #     try:
+    #         # 查詢以 'COBie.' 開頭的唯一 display_name 和 value，並按 display_name 排序
+    #         queryset = models.BimObject.objects.filter(
+    #             display_name__startswith='COBie.'
+    #         ).values('display_name', 'value').distinct().order_by('display_name')
+
+    #         # 與 BimCobie 表進行 LEFT JOIN
+    #         queryset = queryset.annotate(
+    #             description=Coalesce(
+    #                 Subquery(
+    #                     models.BimCobie.objects.filter(name=OuterRef('display_name')).values('description')[:1]
+    #                 ),
+    #                 Value(''),  # 如果無映射，預設為空字串
+    #                 output_field=CharField()
+    #             )
+    #         )
+
+    #         # 將查詢結果轉為列表並添加 description 欄位
+    #         data = [
+    #             {
+    #                 'display_name': item['display_name'],
+    #                 'label': item['value'],
+    #                 'description': item['description'] or item['display_name'],
+    #                 # 'description': f"{item['value']} ({item['display_name']})"
+    #             }
+    #             for item in queryset
+    #         ]
+
+    #         return Response(data, status=200)
+
+    #     except Exception as e:
+    #         # 記錄錯誤日誌
+    #         logger.error(f"Error fetching distinct name-value pairs: {str(e)}", exc_info=True)
+    #         return Response(
+    #             {"error": "伺服器內部錯誤，請聯繫管理員"},
+    #             status=500
+    #         )
 
     @action(detail=False, methods=['get'])
     def distinct_name(self, request):

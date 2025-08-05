@@ -152,6 +152,7 @@ class BimObject(models.Model):
             models.Index(fields=['dbid']),
             models.Index(fields=['display_name']),
             models.Index(fields=['value']),
+            models.Index(fields=['display_name', 'value']),
             models.Index(fields=['numeric_value']),
             models.Index(fields=['bim_model', 'dbid', 'value']),
             models.Index(fields=['root_dbid']),
