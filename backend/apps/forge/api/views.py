@@ -729,6 +729,10 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             role_id = region.get('role_id')
             level = region.get('level')
 
+             # 如果 zone_id, role_id, level 都是 None，跳過這個 region
+            if zone_id is None and role_id is None and level is None:
+                continue
+
             if zone_id is not None and not isinstance(zone_id, int):
                 raise ValidationError({
                     "zone_id": f"必須是整數或 null，收到：{zone_id}",
@@ -857,8 +861,8 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 # )
                 if display_name is not None:
                     fuzzy_filters &= Q(display_name=display_name)
-                else:
-                    fuzzy_filters &= Q(display_name="Name")  # 當 display_name 為 null 或未提供時，預設為 "Name"
+                # else:
+                #     fuzzy_filters &= Q(display_name="Name")  # 當 display_name 為 null 或未提供時，預設為 "Name"
 
             # 結合 filters
             if value_filters and fuzzy_filters:
@@ -868,6 +872,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             elif fuzzy_filters:
                 filters &= fuzzy_filters
 
+        print('-->',filters)
         # 查詢 BimObject
         queryset = models.BimObject.objects.filter(filters).select_related('bim_model').values(
             'id',
@@ -1592,14 +1597,16 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
                         "code": "invalid_fuzzy_display_name"
                     })
 
-                fuzzy_filters = (
-                    Q(value__trigram_similar=label) |
-                    Q(value__contains=label)
-                )
+                fuzzy_filters = Q(value__contains=label)
+                # 關閉三元組相似度查詢
+                # fuzzy_filters = (
+                #     Q(value__trigram_similar=label) |
+                #     Q(value__contains=label)
+                # )
                 if display_name is not None:
                     fuzzy_filters &= Q(display_name=display_name)
-                else:
-                    fuzzy_filters &= Q(display_name="Name")
+                # else:
+                #     fuzzy_filters &= Q(display_name="Name")  # 當 display_name 為 null 或未提供時，預設為 "Name"
 
             if value_filters and fuzzy_filters:
                 filters &= (value_filters | fuzzy_filters)
@@ -1628,274 +1635,6 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         results = list(queryset)
         return results
-
-
-class BimObjectViewSet_(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    serializer_class = serializers.BimObjectSerializer
-    pagination_class = StandardResultsSetPagination
-
-    def list(self, request, *args, **kwargs):
-        raise ValidationError({
-            "detail": "此端點僅支援 POST 請求，請使用 POST 方法查詢資料。",
-            "code": "method_not_allowed"
-        })
-
-    def create(self, request, *args, **kwargs):
-        regions = request.data.get('regions', request.data.get('zones', None))
-        categories = request.data.get('categories', None)
-        fuzzy_keyword = request.data.get('fuzzy_keyword', None)
-
-        if not (regions or categories or fuzzy_keyword):
-            raise ValidationError({
-                "detail": "請提供至少一個查詢參數 'regions'、'categories' 或 'fuzzy_keyword'。",
-                "code": "missing_parameters"
-            })
-
-        # 快取完整結果
-        query_data = {k: v for k, v in request.data.items() if k not in ['page', 'size']}
-        query_key = hashlib.md5(str(query_data).encode()).hexdigest()
-        cached_results = cache.get(query_key)
-        if cached_results:
-            paginator = self.pagination_class()
-            page_queryset = paginator.paginate_queryset(cached_results, request)
-            serializer = self.get_serializer(page_queryset, many=True)
-            return paginator.get_paginated_response(serializer.data)
-
-        filters = Q()
-        hierarchy_dbids = []
-        valid_bim_models = set()
-
-        # 處理 regions
-        if regions:
-            if not isinstance(regions, list):
-                raise ValidationError({
-                    "regions": "必須是列表。",
-                    "code": "invalid_regions_format"
-                })
-            if not regions:
-                raise ValidationError({
-                    "regions": "不能為空列表。",
-                    "code": "empty_regions"
-                })
-
-            for region in regions:
-                bim_model = region.get('bim_model')
-                dbids = region.get('dbids')
-                if not isinstance(bim_model, int):
-                    raise ValidationError({
-                        "bim_model": f"必須是整數，收到：{bim_model}",
-                        "code": "invalid_bim_model"
-                    })
-                if not isinstance(dbids, list) or not all(isinstance(dbid, int) for dbid in dbids):
-                    raise ValidationError({
-                        "dbids": f"必須是整數列表，收到：{dbids}",
-                        "code": "invalid_dbids_format"
-                    })
-                if not dbids:
-                    raise ValidationError({
-                        "dbids": f"不能為空列表，bim_model：{bim_model}",
-                        "code": "empty_dbids"
-                    })
-                valid_bim_models.add(bim_model)
-                if not models.BimModel.objects.filter(id=bim_model).exists():
-                    raise ValidationError({
-                        "bim_model": f"無效的 bim_model：{bim_model}",
-                        "code": "invalid_bim_model_id"
-                    })
-
-                # 分批處理 dbids
-                batch_size = 5
-                for i in range(0, len(dbids), batch_size):
-                    batch_dbids = dbids[i:i + batch_size]
-                    cache_key = f"hierarchy_{bim_model}_{hashlib.md5(str(sorted(batch_dbids)).encode()).hexdigest()}"
-                    cached_dbids = cache.get(cache_key)
-                    if cached_dbids:
-                        hierarchy_dbids.extend(cached_dbids)
-                        continue
-                    with connection.cursor() as cursor:
-                        cursor.execute("""
-                            WITH RECURSIVE hierarchy AS (
-                                SELECT entity_id, 1 AS depth
-                                FROM forge_bim_object_hierarchy
-                                WHERE bim_model_id = %s AND parent_id = ANY(%s)
-                                UNION
-                                SELECT h.entity_id, hr.depth + 1
-                                FROM forge_bim_object_hierarchy h
-                                INNER JOIN hierarchy hr ON h.parent_id = hr.entity_id
-                                WHERE h.bim_model_id = %s AND hr.depth < 5
-                            )
-                            SELECT entity_id FROM hierarchy
-                            WHERE depth <= 5
-                            UNION
-                            SELECT unnest(%s) AS entity_id
-                        """, [bim_model, batch_dbids, bim_model, batch_dbids])
-                        result = cursor.fetchall()
-                        new_dbids = [row[0] for row in result]
-                        if len(new_dbids) > 10000:
-                            raise ValidationError({
-                                "dbids": f"查詢結果過大，hierarchy_dbids 數量：{len(new_dbids)}，請選擇較少節點",
-                                "code": "hierarchy_too_large"
-                            })
-                        hierarchy_dbids.extend(new_dbids)
-                        cache.set(cache_key, new_dbids, timeout=3600)
-
-            hierarchy_dbids = list(set(hierarchy_dbids))
-            if hierarchy_dbids:
-                filters &= Q(dbid__in=hierarchy_dbids)
-            else:
-                filters &= Q(dbid__in=[])
-
-        # 處理 categories
-        value_filters = Q()
-        if categories:
-            if not isinstance(categories, list):
-                raise ValidationError({
-                    "categories": "必須是列表。",
-                    "code": "invalid_categories_format"
-                })
-            if not categories:
-                raise ValidationError({
-                    "categories": "不能為空列表。",
-                    "code": "empty_categories"
-                })
-            for item in categories:
-                if not isinstance(item, dict):
-                    raise ValidationError({
-                        "categories": f"元素必須是物件，收到：{item}",
-                        "code": "invalid_category_item"
-                    })
-                display_name = item.get('display_name')
-                value = item.get('value')
-                if not isinstance(display_name, str) or not display_name.strip():
-                    raise ValidationError({
-                        "display_name": f"必須是非空字串，收到：{display_name}",
-                        "code": "invalid_display_name"
-                    })
-                if not isinstance(value, str) or not value.strip():
-                    raise ValidationError({
-                        "value": f"必須是非空字串，收到：{value}",
-                        "code": "invalid_value"
-                    })
-                # 不檢查 bim_model，僅基於 display_name 和 value 構建條件
-                value_filters |= (
-                    Q(display_name=display_name) &
-                    Q(value=value)
-                )
-
-        # 處理 fuzzy_keyword
-        fuzzy_filters = Q()
-        if fuzzy_keyword:
-            if not isinstance(fuzzy_keyword, str):
-                raise ValidationError({
-                    "fuzzy_keyword": "必須是字串。",
-                    "code": "invalid_fuzzy_keyword"
-                })
-            if not fuzzy_keyword.strip():
-                raise ValidationError({
-                    "fuzzy_keyword": "不能為空字串。",
-                    "code": "empty_fuzzy_keyword"
-                })
-            fuzzy_filters = (Q(value__trigram_similar=fuzzy_keyword) | Q(value__contains=fuzzy_keyword))
-
-        # 結合 filters
-        if value_filters and fuzzy_filters:
-            filters &= (value_filters | fuzzy_filters)
-        elif value_filters:
-            filters &= value_filters
-        elif fuzzy_filters:
-            filters &= fuzzy_filters
-
-        # 僅對 regions 應用 bim_model_id 限制
-        if valid_bim_models:
-            filters &= Q(bim_model_id__in=valid_bim_models)
-
-        queryset = models.BimObject.objects.filter(filters).select_related('bim_model').values(
-            'id',
-            'dbid',
-            'value',
-            'display_name',
-            'bim_model__name',
-            'bim_model__version',
-            'bim_model__urn',
-            'bim_model__svf_path',
-            'bim_model__sqlite_path'
-        ).order_by('bim_model', 'dbid')
-
-        # 快取結果
-        results = list(queryset)
-        cache.set(query_key, results, timeout=300)
-
-        paginator = self.pagination_class()
-        page_queryset = paginator.paginate_queryset(results, request)
-        serializer = self.get_serializer(page_queryset, many=True)
-        response = paginator.get_paginated_response(serializer.data)
-
-        ip_address = request.META.get('REMOTE_ADDR')
-        log_regions = f"regions: {regions[:10]}" if regions else ""
-        log_cats = f"categories: {categories[:10]}" if categories else ""
-        log_fuzzy = f"fuzzy_keyword: {fuzzy_keyword}" if fuzzy_keyword else ""
-        log_message = f"查詢 {log_regions}{' ; ' if log_regions else ''}{log_cats}{' ; ' if log_cats else ''}{log_fuzzy}"
-        log_user_activity(self.request.user, '圖資檢索', log_message, 'SUCCESS', ip_address)
-        return response
-
-    def get(self, request, *args, **kwargs):
-        # 取得請求參數
-        file_name = request.query_params.get('file_name')
-        version = request.query_params.get('version')
-
-        # 驗證輸入
-        if not file_name or not version:
-            return Response(
-                {"error": "必須提供 file_name 和 version 參數"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 檢查檔案名稱格式
-        if not re.match(r'^([^-\n]+-){7}[^-\n]+$', file_name):
-            return Response(
-                {"error": f"無效的檔案名稱格式：'{file_name}'。預期格式：XX-XXXX-XXX-XX-XXX-XX-XX-XXXXX"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 檢查版本號是否為正整數
-        try:
-            version = int(version)
-            if version <= 0:
-                raise ValueError
-        except ValueError:
-            return Response(
-                {"error": "版本號必須為正整數"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 提取檔案主名稱和副檔名
-        file_base_name = file_name.rsplit('.', 1)[0] if '.' in file_name else file_name
-        file_extension = file_name.rsplit('.', 1)[1] if '.' in file_name else ''
-
-        # 構建版本檔案路徑
-        base_path = 'uploads'
-        ver_dir = os.path.join(settings.MEDIA_ROOT, base_path, file_base_name, 'ver').replace(os.sep, '/')
-        versioned_file_name = f"{file_base_name}_{version}.{file_extension}" if file_extension else f"{file_base_name}_{version}"
-        versioned_file_path = os.path.join(ver_dir, versioned_file_name).replace(os.sep, '/')
-        storage_versioned_file_path = f'{base_path}/{file_base_name}/ver/{versioned_file_name}'
-
-        # 檢查檔案是否存在
-        if not default_storage.exists(storage_versioned_file_path):
-            return Response(
-                {"error": f"版本 {version} 的檔案 '{file_name}' 不存在"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        try:
-            # 開啟檔案並回傳 FileResponse
-            file = default_storage.open(storage_versioned_file_path, 'rb')
-            response = FileResponse(file, as_attachment=True, filename=file_name)
-            return response
-        except Exception as e:
-            return Response(
-                {"error": f"下載檔案時發生錯誤：{str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
 
 
 class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
