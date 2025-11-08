@@ -168,6 +168,7 @@ class BimCobie(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.CharField(max_length=255)  # 對應的中文名稱，例如 "樓層名稱"
     is_active = models.BooleanField(default=True)
+    required_status = models.BooleanField(default=False)
 
     class Meta:
         db_table = "forge_bim_cobie"
