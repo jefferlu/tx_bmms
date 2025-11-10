@@ -123,6 +123,13 @@ class ObjectView(APIView):
 
     def delete(self, request, name=None):
         try:
+            if name is None:
+                return Response({'error': 'Name is required'}, status=400)
+
+            # 防止路徑遍歷
+            if '..' in name or name.startswith('/') or name.startswith('\\'):
+                return Response({'error': 'Invalid file name'}, status=400)
+            
             client_id, client_secret = get_aps_credentials(request.user)
             bucket_key = get_aps_bucket(client_id, client_secret)
 
@@ -729,7 +736,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             role_id = region.get('role_id')
             level = region.get('level')
 
-             # 如果 zone_id, role_id, level 都是 None，跳過這個 region
+            # 如果 zone_id, role_id, level 都是 None，跳過這個 region
             if zone_id is None and role_id is None and level is None:
                 continue
 
@@ -872,7 +879,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
             elif fuzzy_filters:
                 filters &= fuzzy_filters
 
-        print('-->',filters)
+        print('-->', filters)
         # 查詢 BimObject
         queryset = models.BimObject.objects.filter(filters).select_related('bim_model').values(
             'id',

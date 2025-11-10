@@ -25,8 +25,8 @@ router.register(r'bim-cobie', views.BimCobieViewSet)
 urlpatterns = [
     re_path(r'^auth/?$', views.AuthView.as_view(), name='auth'),
     re_path(r'^buckets/?$', views.BucketView.as_view(), name='buckets'),
-    re_path(r'^objects/?$', views.ObjectView.as_view(), name='objects'),
-    re_path(r'^objects/(?P<name>[\w\-.()%\s]+)$', views.ObjectView.as_view(), name='objects-delete'),
+    re_path(r'^objects/?$', views.ObjectView.as_view(), name='objects'),    
+    re_path(r'^objects/(?P<name>.+)$', views.ObjectView.as_view(), name='objects-delete'),
     re_path(r'^compare-sqlite/?$', views.CompareSqliteView.as_view(), name='compare-sqlite'),
     re_path(r'^bim-data-import/?$', views.BimDataImportView.as_view(), name='bim-data-import'),
     re_path(r'^bim-data-revert/?$', views.BimDataRevertView.as_view(), name='bim-data-reload'),
