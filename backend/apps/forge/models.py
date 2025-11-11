@@ -7,6 +7,7 @@ class ZoneCode(models.Model):
     code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = "forge_zone_code"
@@ -21,6 +22,7 @@ class RoleCode(models.Model):
     code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = "forge_role_code"
@@ -35,6 +37,7 @@ class LevelCode(models.Model):
     code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = "forge_level_code"
@@ -49,6 +52,7 @@ class FileTypeCode(models.Model):
     code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = "forge_file_type_code"
