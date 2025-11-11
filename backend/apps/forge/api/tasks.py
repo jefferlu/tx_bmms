@@ -467,7 +467,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                 except models.ZoneCode.DoesNotExist:
                     missing_zones.add(zone_code)
                     logger.warning(f"ZoneCode '{zone_code}' not found for value: {row.value} in file '{file_name}'")
-                    continue
+                    # continue # 保留 zone_obj=None 寫入資料表，供稽核用
 
             role_obj = None
             if role_code:
@@ -476,7 +476,7 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
                 except models.RoleCode.DoesNotExist:
                     missing_roles.add(role_code)
                     logger.warning(f"RoleCode '{role_code}' not found for value: {row.value} in file '{file_name}'")
-                    continue
+                    # continue
 
             new_bim_regions.append(
                 models.BimRegion(
@@ -564,22 +564,48 @@ def _process_categories_and_objects(sqlite_path, bim_model_id, file_name, send_p
     #                           f'Created {i + len(batch)} of {len(new_hierarchies)} BimObjectHierarchy records.')
 
     # Step 4: Update BimObject with root_dbid
+
+    # COBie定義白名單
+    valid_display_names = set(
+        models.BimCobie.objects.filter(is_active=True)
+        .values_list('name', flat=True)
+    )
+    # 動態產生 IN (?, ?, ...) 佔位符
+    placeholders = ','.join(['?'] * len(valid_display_names))
+
     existing_objects = models.BimObject.objects.filter(bim_model=bim_model)
     # if not existing_objects.exists() or bim_model.version != bim_model.last_processed_version:
     send_progress('extract-bimobject', 'Extracting BimObject from SQLite...')
-    object_query = """
+    # object_query = """
+    #     SELECT
+    #         eav.entity_id AS dbid,
+    #         attrs.display_name AS display_name,
+    #         CAST(vals.value AS TEXT) AS value
+    #     FROM _objects_eav eav
+    #     JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
+    #     JOIN _objects_val vals ON vals.id = eav.value_id
+    #     WHERE vals.value IS NOT NULL AND attrs.display_name IS NOT NULL
+    #         AND TRIM(CAST(vals.value AS TEXT)) != ''
+    # """
+    object_query = f"""
         SELECT 
             eav.entity_id AS dbid,
             attrs.display_name AS display_name,
-            CAST(vals.value AS TEXT) AS value
+            NULLIF(TRIM(CAST(vals.value AS TEXT)), '') AS value
         FROM _objects_eav eav
         JOIN _objects_attr attrs ON attrs.id = eav.attribute_id
         JOIN _objects_val vals ON vals.id = eav.value_id
-        WHERE vals.value IS NOT NULL AND attrs.display_name IS NOT NULL
-            AND TRIM(CAST(vals.value AS TEXT)) != ''
+        WHERE 
+            attrs.display_name IN ({placeholders})
+            OR 
+            (
+                attrs.display_name NOT IN ({placeholders})
+                AND NULLIF(TRIM(CAST(vals.value AS TEXT)), '') IS NOT NULL
+            )
     """
     try:
-        df_objects = pd.read_sql_query(object_query, conn)
+        # df_objects = pd.read_sql_query(object_query, conn)
+        df_objects = pd.read_sql_query(object_query, conn, params=list(valid_display_names) * 2)
     except Exception as e:
         logger.error(f"Failed to extract BimObject: {str(e)}")
         df_objects = pd.DataFrame(columns=['dbid', 'display_name', 'value'])
