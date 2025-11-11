@@ -60,7 +60,8 @@ class FileTypeCode(models.Model):
         indexes = [models.Index(fields=['code'])]
 
     def __str__(self):
-        return f"{self.code} - {self.name_zh}"
+        return f"{self.code} - {self.description}"
+
 
 
 class BimModel(models.Model):
