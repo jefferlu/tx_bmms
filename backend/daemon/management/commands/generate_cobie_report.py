@@ -69,6 +69,7 @@ class Command(BaseCommand):
                 '符合條件筆數': filled,
                 '資料內容錯誤筆數': error_count,
                 '總筆數': total,
+                '符合率': f"{filled/total*100:.1f}%" if total > 0 else "--"  # 新增！
             })
 
             if error_count > 0:
@@ -134,7 +135,7 @@ class Command(BaseCommand):
                     '檔案名稱': file_name,
                     '錯誤欄位': '檔名格式',
                     '實際值': f'{total_parts}段',
-                    '應填值': '應為9段'
+                    '錯誤原因': '應為9段'
                 })
                 continue  # 不檢查其他欄位
 
@@ -156,7 +157,7 @@ class Command(BaseCommand):
                     '檔案名稱': file_name,
                     '錯誤欄位': '區域代碼',
                     '實際值': zone_val,
-                    '應填值': '主檔定義'
+                    '錯誤原因': '未定義'
                 })
 
             # 樓層代碼
@@ -169,7 +170,7 @@ class Command(BaseCommand):
                     '檔案名稱': file_name,
                     '錯誤欄位': '樓層代碼',
                     '實際值': level_val,
-                    '應填值': '主檔定義'
+                    '錯誤原因': '未定義'
                 })
 
             # 檔案類型
@@ -182,7 +183,7 @@ class Command(BaseCommand):
                     '檔案名稱': file_name,
                     '錯誤欄位': '檔案類型',
                     '實際值': type_val,
-                    '應填值': '主檔定義'
+                    '錯誤原因': '未定義'
                 })
 
             # 專業角色
@@ -195,7 +196,7 @@ class Command(BaseCommand):
                     '檔案名稱': file_name,
                     '錯誤欄位': '專業角色',
                     '實際值': role_val,
-                    '應填值': '主檔定義'
+                    '錯誤原因': '未定義'
                 })
 
         # 整理總表
