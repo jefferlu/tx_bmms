@@ -5,8 +5,8 @@ from mptt.models import MPTTModel, TreeForeignKey
 
 class ZoneCode(models.Model):
     code = models.CharField(max_length=10, unique=True)
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=255)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = "forge_zone_code"
@@ -19,8 +19,8 @@ class ZoneCode(models.Model):
 
 class RoleCode(models.Model):
     code = models.CharField(max_length=10, unique=True)
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=255)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = "forge_role_code"
@@ -33,8 +33,8 @@ class RoleCode(models.Model):
 
 class LevelCode(models.Model):
     code = models.CharField(max_length=10, unique=True)
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=255)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = "forge_level_code"
@@ -47,8 +47,8 @@ class LevelCode(models.Model):
 
 class FileTypeCode(models.Model):
     code = models.CharField(max_length=10, unique=True)
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=255)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = "forge_file_type_code"

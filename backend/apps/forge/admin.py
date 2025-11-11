@@ -5,12 +5,22 @@ from . import models
 
 @admin.register(models.ZoneCode)
 class ZoneCodeAdmin(admin.ModelAdmin):
-    list_display = ('code', 'description',)
+    list_display = ('code', 'name', 'description',)
 
 
 @admin.register(models.RoleCode)
 class RoleCodeAdmin(admin.ModelAdmin):
-    list_display = ('code', 'description',)
+    list_display = ('code', 'name', 'description',)
+
+
+@admin.register(models.LevelCode)
+class LevelCodeAdmin(admin.ModelAdmin):
+    list_display = ('code', 'name', 'description',)
+
+
+@admin.register(models.FileTypeCode)
+class FileTypeCodeAdmin(admin.ModelAdmin):
+    list_display = ('code', 'name', 'description',)
 
 
 @admin.register(models.BimCondition)
