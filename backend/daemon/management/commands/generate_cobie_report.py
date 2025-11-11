@@ -10,14 +10,15 @@ from openpyxl.styles import Font
 
 
 def parse_filename(value):
-    """從 BimRegion.value 解析出 9 個欄位"""
+    """解析檔名，回傳 dict（9段）或 None（格式錯誤）"""
     if not value:
-        return {}
-    # 取最後一個檔案名
+        return None
     filename = value.split('/')[-1].rsplit('.', 1)[0]
     parts = filename.split('-')
-    if len(parts) < 9:
-        return {}
+
+    if len(parts) != 9:
+        return None  # 只有 9 段才解析
+
     return {
         'Project': parts[0],
         'Tender': parts[1],
@@ -101,11 +102,17 @@ class Command(BaseCommand):
                         'dbid': obj.dbid,
                     })
 
-        # ==================== 2. 檔案命名規範稽核（從 value 解析） ====================
-        naming_summary = {}
+        # ==================== 2. 檔案命名規範稽核 ====================
+        naming_summary = {
+            '區域代碼': {'total': 0, 'error': 0},
+            '樓層代碼': {'total': 0, 'error': 0},
+            '檔案類型': {'total': 0, 'error': 0},
+            '專業角色': {'total': 0, 'error': 0},
+            '檔名格式': {'total': 0, 'error': 0},  # 新增
+        }
         naming_details = []
 
-        # 主檔（只取 is_active=True）
+        # 主檔
         valid_zones = set(ZoneCode.objects.filter(is_active=True).values_list('code', flat=True))
         valid_levels = set(LevelCode.objects.filter(is_active=True).values_list('code', flat=True))
         valid_types = set(FileTypeCode.objects.filter(is_active=True).values_list('code', flat=True))
@@ -114,71 +121,82 @@ class Command(BaseCommand):
         regions = BimRegion.objects.select_related('bim_model').all()
 
         for region in regions:
-            parsed = parse_filename(region.value)
-            if not parsed:
-                continue
-
             file_name = region.value.split('/')[-1].rsplit('.', 1)[0]
+            parts = file_name.split('-')
+            total_parts = len(parts)
 
-            # 檢查 Zone
-            zone_val = parsed.get('Zone')
-            if zone_val:
-                naming_summary.setdefault('區域代碼', {'total': 0, 'error': 0})
-                naming_summary['區域代碼']['total'] += 1
-                if zone_val not in valid_zones:
-                    naming_summary['區域代碼']['error'] += 1
-                    naming_details.append({
-                        '模型名稱': region.bim_model.name,
-                        '檔案名稱': file_name,
-                        '錯誤欄位': '區域代碼',
-                        '實際值': zone_val,
-                        '錯誤原因': '主檔未定義'
-                    })
+            # --- 檔名格式檢查（所有檔案都計入）---
+            naming_summary['檔名格式']['total'] += 1
+            if total_parts != 9:
+                naming_summary['檔名格式']['error'] += 1
+                naming_details.append({
+                    '模型名稱': region.bim_model.name,
+                    '檔案名稱': file_name,
+                    '錯誤欄位': '檔名格式',
+                    '實際值': f'{total_parts}段',
+                    '應填值': '應為9段'
+                })
+                continue  # 不檢查其他欄位
 
-            # 檢查 Level
-            level_val = parsed.get('Level')
-            if level_val:
-                naming_summary.setdefault('樓層代碼', {'total': 0, 'error': 0})
-                naming_summary['樓層代碼']['total'] += 1
-                if level_val not in valid_levels:
-                    naming_summary['樓層代碼']['error'] += 1
-                    naming_details.append({
-                        '模型名稱': region.bim_model.name,
-                        '檔案名稱': file_name,
-                        '錯誤欄位': '樓層代碼',
-                        '實際值': level_val,
-                        '錯誤原因': '主檔未定義'
-                    })
+            # --- 只有 9 段才解析 ---
+            parsed = {
+                'Zone': parts[2],
+                'Level': parts[3],
+                'Type': parts[5],
+                'Role': parts[6],
+            }
 
-            # 檢查 FileType
-            type_val = parsed.get('Type')
-            if type_val:
-                naming_summary.setdefault('檔案類型', {'total': 0, 'error': 0})
-                naming_summary['檔案類型']['total'] += 1
-                if type_val not in valid_types:
-                    naming_summary['檔案類型']['error'] += 1
-                    naming_details.append({
-                        '模型名稱': region.bim_model.name,
-                        '檔案名稱': file_name,
-                        '錯誤欄位': '檔案類型',
-                        '實際值': type_val,
-                        '錯誤原因': '主檔未定義'
-                    })
+            # 區域代碼
+            zone_val = parsed['Zone']
+            naming_summary['區域代碼']['total'] += 1
+            if zone_val not in valid_zones:
+                naming_summary['區域代碼']['error'] += 1
+                naming_details.append({
+                    '模型名稱': region.bim_model.name,
+                    '檔案名稱': file_name,
+                    '錯誤欄位': '區域代碼',
+                    '實際值': zone_val,
+                    '應填值': '主檔定義'
+                })
 
-            # 檢查 Role
-            role_val = parsed.get('Role')
-            if role_val:
-                naming_summary.setdefault('專業角色', {'total': 0, 'error': 0})
-                naming_summary['專業角色']['total'] += 1
-                if role_val not in valid_roles:
-                    naming_summary['專業角色']['error'] += 1
-                    naming_details.append({
-                        '模型名稱': region.bim_model.name,
-                        '檔案名稱': file_name,
-                        '錯誤欄位': '專業角色',
-                        '實際值': role_val,
-                        '錯誤原因': '主檔未定義'
-                    })
+            # 樓層代碼
+            level_val = parsed['Level']
+            naming_summary['樓層代碼']['total'] += 1
+            if level_val not in valid_levels:
+                naming_summary['樓層代碼']['error'] += 1
+                naming_details.append({
+                    '模型名稱': region.bim_model.name,
+                    '檔案名稱': file_name,
+                    '錯誤欄位': '樓層代碼',
+                    '實際值': level_val,
+                    '應填值': '主檔定義'
+                })
+
+            # 檔案類型
+            type_val = parsed['Type']
+            naming_summary['檔案類型']['total'] += 1
+            if type_val not in valid_types:
+                naming_summary['檔案類型']['error'] += 1
+                naming_details.append({
+                    '模型名稱': region.bim_model.name,
+                    '檔案名稱': file_name,
+                    '錯誤欄位': '檔案類型',
+                    '實際值': type_val,
+                    '應填值': '主檔定義'
+                })
+
+            # 專業角色
+            role_val = parsed['Role']
+            naming_summary['專業角色']['total'] += 1
+            if role_val not in valid_roles:
+                naming_summary['專業角色']['error'] += 1
+                naming_details.append({
+                    '模型名稱': region.bim_model.name,
+                    '檔案名稱': file_name,
+                    '錯誤欄位': '專業角色',
+                    '實際值': role_val,
+                    '應填值': '主檔定義'
+                })
 
         # 整理總表
         naming_summary_data = []
@@ -203,9 +221,8 @@ class Command(BaseCommand):
         with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
             pd.DataFrame(naming_summary_data).to_excel(writer, sheet_name='命名規範總表', index=False)
             pd.DataFrame(naming_details or [{'訊息': '無錯誤資料'}]).to_excel(writer, sheet_name='命名錯誤明細', index=False)
-            pd.DataFrame(report_data).to_excel(writer, sheet_name='COBie規範總表', index=False)
-            pd.DataFrame(error_details or [{'訊息': '無錯誤資料'}]).to_excel(writer, sheet_name='COBie錯誤明細', index=False)
-            
+            pd.DataFrame(report_data).to_excel(writer, sheet_name='COBie總表', index=False)
+            pd.DataFrame(error_details or [{'訊息': '無錯誤資料'}]).to_excel(writer, sheet_name='COBie明細', index=False)
 
             for sheet_name in writer.book.sheetnames:
                 ws = writer.book[sheet_name]
@@ -214,5 +231,5 @@ class Command(BaseCommand):
                         cell.font = jhenghei_font if cell.row > 1 else bold_font
 
         self.stdout.write(self.style.SUCCESS(f"整合報表產生：{excel_path}"))
-        self.stdout.write(f"COBie: {len(report_data)} 欄位，{len(error_details)} 筆錯誤")
-        self.stdout.write(f"命名規範: {len(naming_details)} 筆錯誤")
+        self.stdout.write(f"總檔案數：{len(regions)} 筆（含 .nwd 主檔）")
+        self.stdout.write(f"檔名格式錯誤：{naming_summary['檔名格式']['error']} 筆")
