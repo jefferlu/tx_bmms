@@ -5,10 +5,12 @@ from mptt.models import MPTTModel, TreeForeignKey
 
 class ZoneCode(models.Model):
     code = models.CharField(max_length=10, unique=True)
+    name = models.CharField(max_length=100)
     description = models.CharField(max_length=255)
 
     class Meta:
         db_table = "forge_zone_code"
+        ordering = ['code']
         indexes = [models.Index(fields=['code'])]
 
     def __str__(self):
@@ -17,14 +19,44 @@ class ZoneCode(models.Model):
 
 class RoleCode(models.Model):
     code = models.CharField(max_length=10, unique=True)
+    name = models.CharField(max_length=100)
     description = models.CharField(max_length=255)
 
     class Meta:
         db_table = "forge_role_code"
+        ordering = ['code']
         indexes = [models.Index(fields=['code'])]
 
     def __str__(self):
         return f"{self.code} - {self.description}"
+
+
+class LevelCode(models.Model):
+    code = models.CharField(max_length=10, unique=True)
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = "forge_level_code"
+        ordering = ['code']
+        indexes = [models.Index(fields=['code'])]
+
+    def __str__(self):
+        return f"{self.code} - {self.description}"
+
+
+class FileTypeCode(models.Model):
+    code = models.CharField(max_length=10, unique=True)
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = "forge_file_type_code"
+        ordering = ['code']
+        indexes = [models.Index(fields=['code'])]
+
+    def __str__(self):
+        return f"{self.code} - {self.name_zh}"
 
 
 class BimModel(models.Model):
@@ -140,7 +172,7 @@ class BimObject(models.Model):
     bim_model = models.ForeignKey('BimModel', on_delete=models.CASCADE, related_name='bim_objects')
     dbid = models.IntegerField()
     display_name = models.CharField(max_length=255)
-    value = models.CharField(max_length=255)
+    value = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     numeric_value = models.FloatField(null=True, blank=True)
     root_dbid = models.IntegerField(null=True, blank=True)
     parent_id = models.IntegerField(null=True, blank=True)
@@ -165,10 +197,12 @@ class BimObject(models.Model):
 
 
 class BimCobie(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    description = models.CharField(max_length=255)  # 對應的中文名稱，例如 "樓層名稱"
-    is_active = models.BooleanField(default=True)
+    name = models.CharField(max_length=255, unique=True, verbose_name="COBie欄位(英文)")
+    description = models.CharField(max_length=255, verbose_name="COBie欄位(中文)")
     required_status = models.BooleanField(default=False)
+    example = models.CharField(max_length=255, blank=True, null=True, verbose_name="範例")
+    note = models.TextField(blank=True, null=True, verbose_name="備註")
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = "forge_bim_cobie"
