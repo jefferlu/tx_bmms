@@ -204,7 +204,7 @@ class Command(BaseCommand):
         for field, stats in naming_summary.items():
             total = stats['total']
             error = stats['error']
-            rate = f"{(total - error)/total*100:.1f}%" if total else "N/A"
+            rate = f"{(total - error)/total*100:.1f}%" if total else "--"
             naming_summary_data.append({
                 '欄位名稱': field,
                 '總筆數': total,
