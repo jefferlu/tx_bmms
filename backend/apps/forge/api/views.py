@@ -523,7 +523,11 @@ class BimConditionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class BimRegionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.BimRegionSerializer
-    queryset = models.BimRegion.objects.all().select_related('zone', 'role', 'bim_model')
+    # queryset = models.BimRegion.objects.all().select_related('zone', 'role', 'bim_model')
+    queryset = models.BimRegion.objects \
+        .select_related('zone', 'role', 'bim_model') \
+        .filter(zone__isnull=False, role__isnull=False) \
+        .order_by('zone__code', 'role__code', 'level')
 
     # 樹狀結構:分區(zone)->空間/系統(role)->樓層(level)
     def list(self, request, *args, **kwargs):
@@ -549,6 +553,7 @@ class BimRegionViewSet(viewsets.ReadOnlyModelViewSet):
 
             # 初始化角色層
             if role_key not in zone_groups[zone_key]['children']:
+                print(role)
                 zone_groups[zone_key]['children'][role_key] = {
                     'label': f'{role.description} ({role.code})',
                     'id': role.id,
@@ -578,54 +583,7 @@ class BimRegionViewSet(viewsets.ReadOnlyModelViewSet):
             zone_data['children'] = roles_data
             tree_data.append(zone_data)
 
-        return Response(tree_data)
-
-    #  樹狀結構:分區(zone)->樓層(level)
-    # def list(self, request, *args, **kwargs):
-    #     queryset = self.get_queryset()
-
-    #     # 按 zone_id 分組並構建樹狀結構
-    #     zone_groups = {}
-    #     for region in queryset:
-    #         zone = region.zone
-    #         zone_key = zone.id
-    #         if zone_key not in zone_groups:
-    #             zone_groups[zone_key] = {
-    #                 'key': zone.id,
-    #                 'label': zone.description,
-    #                 'code': zone.code,
-    #                 'levels': {}
-    #             }
-
-    #         level = region.level
-    #         if level not in zone_groups[zone_key]['levels']:
-    #             zone_groups[zone_key]['levels'][level] = []
-
-    #         zone_groups[zone_key]['levels'][level].append({
-    #             'bim_model_id': region.bim_model_id,
-    #             'dbid': region.dbid
-    #         })
-
-    #     # 構建樹狀數據
-    #     tree_data = []
-    #     for zone_key, group in sorted(zone_groups.items(), key=lambda x: x[1]['code']):
-    #         levels_data = [
-    #             {
-    #                 'key': level,
-    #                 'label': level,
-    #                 'data': models
-    #             }
-    #             for level, models in sorted(group['levels'].items())
-    #         ]
-    #         tree_data.append({
-    #             'key': group['key'],
-    #             'label': group['label'],
-    #             'code': group['code'],
-    #             'children': levels_data
-    #         })
-
-    #     serializer = self.get_serializer(tree_data, many=True)
-    #     return Response(serializer.data)
+        return Response(tree_data)    
 
 
 class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
