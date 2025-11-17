@@ -57,5 +57,5 @@ class BimObjectAdmin(admin.ModelAdmin):
 
 @admin.register(models.BimCobie)
 class BimCobieAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'required_status', 'is_active',)
+    list_display = ('name', 'description', 'status', 'is_active',)
     search_fields = ('name', 'description')

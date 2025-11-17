@@ -202,9 +202,17 @@ class BimObject(models.Model):
 
 
 class BimCobie(models.Model):
+    # 狀態選擇
+    STATUS_CHOICES = [
+        ('required', '必填'),
+        ('optional', '選填'),
+        ('auto', '軟體自動代入'),
+        ('undefined', '未定義'),
+    ]
+
     name = models.CharField(max_length=255, unique=True, verbose_name="COBie欄位(英文)")
     description = models.CharField(max_length=255, verbose_name="COBie欄位(中文)")
-    required_status = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='undefined', verbose_name="填寫狀態")
     example = models.CharField(max_length=255, blank=True, null=True, verbose_name="範例")
     note = models.TextField(blank=True, null=True, verbose_name="備註")
     is_active = models.BooleanField(default=True)
@@ -213,4 +221,5 @@ class BimCobie(models.Model):
         db_table = "forge_bim_cobie"
         indexes = [
             models.Index(fields=['name']),
+            models.Index(fields=['status']),
         ]
