@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict flEXq8qA7VfdSEYzerQnbRPdE19QQFyJuy8UY44mzodmtlHZrnJ9Kg3XA0qzk9M
+\restrict 8GausFJrdCgUlwqADxCcd34YrXeQxMN8zZ7RhoiW9Icf4zhBwr4cX8TJQQXCSFR
 
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 18.0
 
--- Started on 2025-11-11 20:31:53
+-- Started on 2025-11-17 13:28:55
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -40,7 +40,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 
 
 --
--- TOC entry 3831 (class 0 OID 0)
+-- TOC entry 3832 (class 0 OID 0)
 -- Dependencies: 2
 -- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: 
 --
@@ -724,9 +724,9 @@ CREATE TABLE public.forge_bim_cobie (
     name character varying(255) NOT NULL,
     description character varying(255) NOT NULL,
     is_active boolean NOT NULL,
-    required_status boolean NOT NULL,
     example character varying(255),
-    note text
+    note text,
+    status character varying(20) NOT NULL
 );
 
 
@@ -1077,7 +1077,7 @@ ALTER TABLE public.token_blacklist_outstandingtoken ALTER COLUMN id ADD GENERATE
 
 
 --
--- TOC entry 3764 (class 0 OID 16472)
+-- TOC entry 3765 (class 0 OID 16472)
 -- Dependencies: 218
 -- Data for Name: account_user; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1090,7 +1090,7 @@ COPY public.account_user (id, password, last_login, is_superuser, first_name, la
 
 
 --
--- TOC entry 3765 (class 0 OID 16477)
+-- TOC entry 3766 (class 0 OID 16477)
 -- Dependencies: 219
 -- Data for Name: account_user_groups; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1100,7 +1100,7 @@ COPY public.account_user_groups (id, user_id, group_id) FROM stdin;
 
 
 --
--- TOC entry 3768 (class 0 OID 16482)
+-- TOC entry 3769 (class 0 OID 16482)
 -- Dependencies: 222
 -- Data for Name: account_user_user_permissions; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1110,7 +1110,7 @@ COPY public.account_user_user_permissions (id, user_id, permission_id) FROM stdi
 
 
 --
--- TOC entry 3770 (class 0 OID 16486)
+-- TOC entry 3771 (class 0 OID 16486)
 -- Dependencies: 224
 -- Data for Name: admin_interface_theme; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1122,7 +1122,7 @@ COPY public.admin_interface_theme (id, name, active, title, title_visible, logo,
 
 
 --
--- TOC entry 3772 (class 0 OID 16494)
+-- TOC entry 3773 (class 0 OID 16494)
 -- Dependencies: 226
 -- Data for Name: auth_group; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1137,7 +1137,7 @@ COPY public.auth_group (id, name) FROM stdin;
 
 
 --
--- TOC entry 3774 (class 0 OID 16498)
+-- TOC entry 3775 (class 0 OID 16498)
 -- Dependencies: 228
 -- Data for Name: auth_group_permissions; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1147,7 +1147,7 @@ COPY public.auth_group_permissions (id, group_id, permission_id) FROM stdin;
 
 
 --
--- TOC entry 3776 (class 0 OID 16502)
+-- TOC entry 3777 (class 0 OID 16502)
 -- Dependencies: 230
 -- Data for Name: auth_permission; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1297,7 +1297,7 @@ COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
 
 
 --
--- TOC entry 3778 (class 0 OID 16506)
+-- TOC entry 3779 (class 0 OID 16506)
 -- Dependencies: 232
 -- Data for Name: core_aps_credentials; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1308,7 +1308,7 @@ COPY public.core_aps_credentials (id, client_id, client_secret, created_at, upda
 
 
 --
--- TOC entry 3780 (class 0 OID 16512)
+-- TOC entry 3781 (class 0 OID 16512)
 -- Dependencies: 234
 -- Data for Name: core_company; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1319,7 +1319,7 @@ COPY public.core_company (id, name) FROM stdin;
 
 
 --
--- TOC entry 3782 (class 0 OID 16516)
+-- TOC entry 3783 (class 0 OID 16516)
 -- Dependencies: 236
 -- Data for Name: core_locale; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -1331,7 +1331,7 @@ COPY public.core_locale (id, lang, name, is_active) FROM stdin;
 
 
 --
--- TOC entry 3784 (class 0 OID 16520)
+-- TOC entry 3785 (class 0 OID 16520)
 -- Dependencies: 238
 -- Data for Name: core_log_user_activity; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -6359,6 +6359,7 @@ COPY public.core_log_user_activity (id, function, action, "timestamp", status, i
 5051	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-15 06:34:49.706437+00	SUCCESS	127.0.0.1	2
 5052	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-15 06:35:30.743627+00	SUCCESS	127.0.0.1	2
 5053	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-15 06:38:17.070564+00	SUCCESS	127.0.0.1	2
+5856	模型匯入	匯入T3-TP01-XXX-XX-XXX-M3-XX-00001.nwd	2025-11-11 13:05:25.328501+00	SUCCESS	127.0.0.1	2
 5054	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-15 06:40:53.51182+00	SUCCESS	127.0.0.1	2
 5055	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-15 06:46:42.552998+00	SUCCESS	127.0.0.1	2
 5056	圖資檢索	查詢 regions: [{'zone_id': 184, 'role_id': 1, 'level': '2F'}] ;fuzzy_keyword: {'label': '電氣設備', 'display_name': None}	2025-06-15 06:46:57.350424+00	SUCCESS	127.0.0.1	2
@@ -7052,6 +7053,7 @@ COPY public.core_log_user_activity (id, function, action, "timestamp", status, i
 5744	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-08-03 09:20:22.180841+00	SUCCESS	127.0.0.1	2
 5745	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-08-03 09:32:30.354618+00	SUCCESS	127.0.0.1	2
 5746	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.Space', 'label': '通風機房', 'description': '空間名稱'}	2025-08-03 09:33:28.057475+00	SUCCESS	127.0.0.1	2
+5853	模型匯入	匯入T3-TP21A-XXX-XX-XXX-M3-XX-00001.nwd	2025-11-11 13:05:23.648074+00	SUCCESS	127.0.0.1	2
 5747	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-08-03 09:34:12.937514+00	SUCCESS	127.0.0.1	2
 5748	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '通風機房', 'display_name': None}	2025-08-03 09:34:24.349283+00	SUCCESS	127.0.0.1	2
 5749	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '通風機房', 'display_name': None}	2025-08-03 09:35:02.874407+00	SUCCESS	127.0.0.1	2
@@ -7079,6 +7081,7 @@ COPY public.core_log_user_activity (id, function, action, "timestamp", status, i
 5771	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-08-04 08:49:20.613971+00	SUCCESS	127.0.0.1	2
 5772	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-08-04 08:55:09.565808+00	SUCCESS	127.0.0.1	2
 5773	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'label': '通風機房', 'display_name': None}	2025-08-04 08:57:58.269738+00	SUCCESS	127.0.0.1	2
+5854	模型匯入	匯入T3-TP25-XXX-XX-XXX-M3-XX-00001.nwd	2025-11-11 13:05:24.48157+00	SUCCESS	127.0.0.1	2
 5775	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-08-04 09:00:15.465961+00	SUCCESS	127.0.0.1	2
 5776	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.Space', 'label': '通風機房', 'description': '空間名稱'}	2025-08-04 09:00:22.499483+00	SUCCESS	127.0.0.1	2
 5777	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.Space', 'label': '通風機房', 'description': '空間名稱'}	2025-08-04 09:00:42.375375+00	SUCCESS	127.0.0.1	2
@@ -7119,6 +7122,7 @@ COPY public.core_log_user_activity (id, function, action, "timestamp", status, i
 5812	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Type.WarrantyGuarantorParts', 'label': '亞力', 'description': 'COBie.Type.WarrantyGuarantorParts'}	2025-08-08 09:16:13.346069+00	SUCCESS	127.0.0.1	2
 5813	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.TagNumber', 'label': '亞力', 'description': '設備編號'}	2025-08-08 09:16:34.111886+00	SUCCESS	127.0.0.1	2
 5814	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.TagNumber', 'label': '亞力', 'description': '設備編號'}	2025-08-08 09:16:49.184163+00	SUCCESS	127.0.0.1	2
+5855	模型匯入	匯入T3-TP16-XXX-XX-XXX-M3-XX-00001.nwd	2025-11-11 13:05:24.743441+00	SUCCESS	127.0.0.1	2
 5815	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.TagNumber', 'label': '亞力', 'description': '設備編號'}	2025-08-08 09:17:06.707474+00	SUCCESS	127.0.0.1	2
 5816	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.TagNumber', 'label': '亞力', 'description': '設備編號'}	2025-08-08 09:17:23.886042+00	SUCCESS	127.0.0.1	2
 5817	圖資檢索	查詢 regions: [{'zone_id': None, 'role_id': None, 'level': None}] ;fuzzy_keyword: {'display_name': 'COBie.Component.TagNumber', 'label': '亞力', 'description': '設備編號'}	2025-08-08 09:18:13.437336+00	SUCCESS	127.0.0.1	2
@@ -7157,11 +7161,15 @@ COPY public.core_log_user_activity (id, function, action, "timestamp", status, i
 5850	模型匯入	匯入T3-TP25-XXX-XX-XXX-M3-XX-00001.nwd	2025-11-11 11:24:56.785136+00	SUCCESS	127.0.0.1	2
 5851	模型匯入	匯入T3-TP16-XXX-XX-XXX-M3-XX-00001.nwd	2025-11-11 11:24:56.889273+00	SUCCESS	127.0.0.1	2
 5852	模型匯入	匯入T3-TP01-XXX-XX-XXX-M3-XX-00001.nwd	2025-11-11 11:24:57.619886+00	SUCCESS	127.0.0.1	2
+5857	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-11-16 15:44:21.402807+00	SUCCESS	127.0.0.1	2
+5858	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-11-16 15:44:41.007482+00	SUCCESS	127.0.0.1	2
+5859	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-11-16 15:48:16.965555+00	SUCCESS	127.0.0.1	2
+5860	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-11-17 02:09:24.25961+00	SUCCESS	127.0.0.1	2
 \.
 
 
 --
--- TOC entry 3786 (class 0 OID 16526)
+-- TOC entry 3787 (class 0 OID 16526)
 -- Dependencies: 240
 -- Data for Name: core_navigation; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -7184,7 +7192,7 @@ COPY public.core_navigation (id, title_locale, subtitle_locale, type, icon, link
 
 
 --
--- TOC entry 3788 (class 0 OID 16536)
+-- TOC entry 3789 (class 0 OID 16536)
 -- Dependencies: 242
 -- Data for Name: core_navigation_permissions; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -7194,7 +7202,7 @@ COPY public.core_navigation_permissions (id, navigation_id, permission_id) FROM 
 
 
 --
--- TOC entry 3790 (class 0 OID 16540)
+-- TOC entry 3791 (class 0 OID 16540)
 -- Dependencies: 244
 -- Data for Name: core_translation; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -7524,7 +7532,7 @@ COPY public.core_translation (id, key, value, locale_id) FROM stdin;
 
 
 --
--- TOC entry 3792 (class 0 OID 16546)
+-- TOC entry 3793 (class 0 OID 16546)
 -- Dependencies: 246
 -- Data for Name: core_userprofile; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -7537,7 +7545,7 @@ COPY public.core_userprofile (id, company_id, user_id, bim_criteria) FROM stdin;
 
 
 --
--- TOC entry 3794 (class 0 OID 16552)
+-- TOC entry 3795 (class 0 OID 16552)
 -- Dependencies: 248
 -- Data for Name: django_admin_log; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -7967,7 +7975,7 @@ COPY public.django_admin_log (id, action_time, object_id, object_repr, action_fl
 
 
 --
--- TOC entry 3796 (class 0 OID 16559)
+-- TOC entry 3797 (class 0 OID 16559)
 -- Dependencies: 250
 -- Data for Name: django_content_type; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8010,7 +8018,7 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 
 
 --
--- TOC entry 3798 (class 0 OID 16563)
+-- TOC entry 3799 (class 0 OID 16563)
 -- Dependencies: 252
 -- Data for Name: django_migrations; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8132,11 +8140,12 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 115	forge	0050_alter_rolecode_options_alter_zonecode_options_and_more	2025-11-11 07:27:57.502753+00
 116	forge	0051_alter_filetypecode_description_and_more	2025-11-11 07:33:41.719971+00
 117	forge	0052_filetypecode_is_active_levelcode_is_active_and_more	2025-11-11 07:43:32.201167+00
+118	forge	0053_remove_bimcobie_required_status_bimcobie_status_and_more	2025-11-17 03:02:51.892252+00
 \.
 
 
 --
--- TOC entry 3800 (class 0 OID 16569)
+-- TOC entry 3801 (class 0 OID 16569)
 -- Dependencies: 254
 -- Data for Name: django_session; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8168,7 +8177,7 @@ p0al7nhn79xoy4xxjp8v9gc5c99jyo62	.eJxVjM0OwiAQhN-FsyGyZWnx6L3PQHb5kaqBpLQn47srSQ
 
 
 --
--- TOC entry 3801 (class 0 OID 16574)
+-- TOC entry 3802 (class 0 OID 16574)
 -- Dependencies: 255
 -- Data for Name: forge_bim_category; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8178,76 +8187,73 @@ COPY public.forge_bim_category (id, value, display_name, condition_id, bim_model
 
 
 --
--- TOC entry 3820 (class 0 OID 25497)
+-- TOC entry 3821 (class 0 OID 25497)
 -- Dependencies: 274
 -- Data for Name: forge_bim_cobie; Type: TABLE DATA; Schema: public; Owner: bmms
 --
 
-COPY public.forge_bim_cobie (id, name, description, is_active, required_status, example, note) FROM stdin;
-24	COBie.Type.ReviewData	送審資料	t	f	ooo送審資料.pdf	url填寫該設備之送審資料檔案名稱 / url to key in the file name of facility's review data
-4	COBie.Space.Name	空間名稱	t	f	\N	\N
-5	COBie.Space.FloorName	樓層名稱	t	f	\N	\N
-6	COBie.Space.RoomTag	房間編號	t	f	\N	\N
-7	COBie.Space.GrossArea	總面積	t	f	\N	\N
-8	COBie.Space.NetArea	淨面積	t	f	\N	\N
-33	COBie.Component.BarCode	條碼	t	f	\N	\N
-1	COBie.Floor.Name	樓層名稱	t	t	1F	定義樓層後軟體將自動代入 / Define ref. level and then auto brought-in by system
-2	COBie.Floor.Elevation	高程	t	t	20	繪製完樓層軟體將自動代入 / After setting floors then auto brought-in by system
-3	COBie.Floor.Height	高度	t	t	30	\N
-9	COBie.Type.Name	設備名稱	t	t	雙開防火門	放置設備後軟體將自動代入 / After setting facility then auto brought-in by system
-10	COBie.Type.Category	設備類別	t	f	11 11 11 11	Ominiclass
-11	COBie.Type.ExpectedLife	使用年限	t	f	8年	\N
-12	COBie.Type.Manufacturer	製造廠商	t	t	xx企業有限公司	\N
-13	COBie.Type.ModelNumber	產品型號	t	t	HD-001	\N
-14	COBie.Type.WarrantyGuarantorLabor	保固廠商	t	t	xx企業有限公司	\N
-15	COBie.Type.WarrantyDurationLabor	保固時程	t	t	0-5	\N
-16	COBie.Type.WarrantyDurationUnit	保固時程單位	t	t	年	請填寫契約規定之時間單位(年/月) / Please use the time unit of the contract (year/month)
-17	COBie.Type.Finish	竣工點交日期	t	t	2017/7/12	\N
-18	COBie.Type.Warranty GuarantorLab Phone	保固廠商電話	t	t	02-1234-8888	\N
-19	COBie.Type.Maintenance frequency	保養頻率	t	t	03年01次	填寫格式：年/月/週 oo次 / Format: yyyy/mm/dd oo times
-20	COBie.Type.Operation Manual	操作維護手冊	t	t	ooo操作保養手冊.pdf	url填寫該設備之操作保養手冊檔案名稱 / url to key in the file name of facility's maintenance manual
-21	COBie.Type.TestReport	測試報告	t	f	ooo測試報告.pdf	url填寫該設備之測試報告檔案名稱 / url to key in the file name of facility's test report
-22	COBie.Type.Factory certificate	出廠證明	t	f	ooo出廠證明.pdf	url填寫該設備之出廠證明檔案名稱 / url to key in the file name of facility's facility certificate
-23	COBie.Type.Catalogue	設備型錄	t	t	ooo型錄.pdf	url填寫該設備之型錄檔案名稱 / url to key in the file name of facility's catalogue
-25	COBie.Type.CheckForm	巡檢表單	t	f	ooo檢查表單.pdf	url填寫該設備之建議巡檢表單檔案名稱 / url to key in the file name of facility's check form
-26	COBie.Type.Construction drawing	施工圖說	t	f	ooo圖.pdf	url填寫該設備之圖說檔案名稱 / url to key in the file name of facility's drawing
-27	COBie.Type.Photos	照片	t	f	ooo照片.jpg	url填寫該設備之規範檔案名稱 / url to key in the file name of facility's construction specification
-46	COBie.Type.Test Report	測試報告	t	f	"ooo測試報告.pdf"	url填寫該設備之出廠證明檔案名稱 / url to key in the file name of facility's facility certificate
-47	COBie.Type.Review Data	送審資料	t	f	ooo送審資料.pdf	url填寫該設備之送審資料檔案名稱 / url to key in the file name of facility's review data
-28	COBie.Component.Name	設備名稱	t	t	雙開防火門	放置元件後軟體將自動代入 / After setting components then auto brought-in by system
-29	COBie.Component.Floor	樓層名稱	t	t	1F	放置元件後軟體將自動代入 / After setting components then auto brought-in by system
-30	COBie.Component.Space	空間名稱	t	t	走廊	放置元件後軟體將自動代入 / After setting components then auto brought-in by system
-31	COBie.Component.TypeName	類型名稱	t	t	75mmx200mm	\N
-32	COBie.Component.AssetIdentifier	資產識別碼	t	f	\N	僅建欄位免填資訊(由管理機關自行填列) / Create column only (keyin data by the client)
-34	COBie.Component.InstallationDate	安裝日期	t	f	2025/01/01	\N
-35	COBie.Component.TagNumber	設備編號	t	f	211790	\N
-36	COBie.Component.WarrantyStartDate	保固起始日期	t	f	2025/01/01	僅建欄位免填資訊(由管理機關更換設備時自行填列) / Create column only (keyin data by the management when the equipment changed)
-37	COBie.Component.SerialNumber	產品序號	t	f	17AB85212	\N
-38	COBie.Contact.Company	聯繫公司	t	t	xx營造	建模廠商 / Modelling contractor
-39	COBie.Contact.Phone	聯繫電話	t	t	02-12345678	建模廠商電話 / Contact of the Modelling contractor
-40	COBie.Facility.ProjectName	專案名稱	t	t	EGC能源中心	請填入工程標案名稱或建物名稱 / Please keyin the construction name or building name
-41	COBie.Facility.SiteName	基地名稱	t	t	桃園市**區**段**地號	請填入地號 / Please keyin land serial no.
-42	COBie.Facility.LinearUnits	長度單位	t	t	公釐	軟體設定單位後將自動代入 / After setting unit auto brought-in by system
-43	COBie.Facility.AreaUnits	面積單位	t	t	平方公尺	軟體設定單位後將自動代入 / After setting unit auto brought-in by system
-44	COBie.Facility.VolumeUnits	體積單位	t	t	立方公尺	軟體設定單位後將自動代入 / After setting unit auto brought-in by system
-45	COBie.Facility.CurrencyUnit	貨幣單位	t	t	台幣	軟體設定單位後將自動代入 / After setting unit auto brought-in by system
-50	COBie.Component.Area	未定義	f	f	\N	\N
-51	COBie.Component.Description	未定義	f	f	\N	\N
-52	COBie.Component.Length	未定義	f	f	\N	\N
-53	COBie.CreatedBy	未定義	f	f	\N	\N
-54	COBie.CreatedOn	未定義	f	f	\N	\N
-55	COBie.Space.UsableHeight	未定義	f	f	\N	\N
-48	COBie.Type.Check Form	巡檢表單	t	f	ooo檢查表單.pdf	url填寫該設備之建議巡檢表單檔案名稱 / url to key in the file name of facility's check form
-49	COBie.Type.Construction specification	施工規範	t	f	ooo規範.pdf	url填入該設備之照片檔案名稱 / url to key in the file name of facility's photo
-56	COBie.Type	未定義	f	f	\N	\N
-57	COBie.Type.Area	未定義	f	f	\N	\N
-58	COBie.Type.AssetType	未定義	f	f	\N	\N
-59	Name	名稱	f	f	\N	\N
+COPY public.forge_bim_cobie (id, name, description, is_active, example, note, status) FROM stdin;
+28	COBie.Component.Name	設備名稱	t	雙開防火門	放置元件後軟體將自動代入 / After setting components then auto brought-in by system	required
+29	COBie.Component.Floor	樓層名稱	t	1F	放置元件後軟體將自動代入 / After setting components then auto brought-in by system	auto
+21	COBie.Type.Test Report	測試報告	t	ooo測試報告.pdf	url填寫該設備之測試報告檔案名稱 / url to key in the file name of facility's test report	optional
+30	COBie.Component.Space	空間名稱	t	走廊	放置元件後軟體將自動代入 / After setting components then auto brought-in by system	auto
+4	COBie.Space.Name	空間名稱	t	\N	\N	undefined
+5	COBie.Space.FloorName	樓層名稱	t	\N	\N	undefined
+6	COBie.Space.RoomTag	房間編號	t	\N	\N	undefined
+7	COBie.Space.GrossArea	總面積	t	\N	\N	undefined
+8	COBie.Space.NetArea	淨面積	t	\N	\N	undefined
+31	COBie.Component.TypeName	類型名稱	t	75mmx200mm	\N	required
+32	COBie.Component.AssetIdentifier	資產識別碼	t	\N	僅建欄位免填資訊(由管理機關自行填列) / Create column only (keyin data by the client)	optional
+33	COBie.Component.BarCode	條碼	t	\N	\N	optional
+34	COBie.Component.InstallationDate	安裝日期	t	2025/01/01	\N	optional
+35	COBie.Component.TagNumber	設備編號	t	211790	\N	optional
+36	COBie.Component.WarrantyStartDate	保固起始日期	t	2025/01/01	僅建欄位免填資訊(由管理機關更換設備時自行填列) / Create column only (keyin data by the management when the equipment changed)	optional
+37	COBie.Component.SerialNumber	產品序號	t	17AB85212	\N	optional
+38	COBie.Contact.Company	聯繫公司	t	xx營造	建模廠商 / Modelling contractor	required
+39	COBie.Contact.Phone	聯繫電話	t	02-12345678	建模廠商電話 / Contact of the Modelling contractor	required
+40	COBie.Facility.Project Name	專案名稱	t	EGC能源中心	請填入工程標案名稱或建物名稱 / Please keyin the construction name or building name	required
+41	COBie.Facility.Site Name	基地名稱	t	桃園市**區**段**地號	請填入地號 / Please keyin land serial no.	required
+42	COBie.Facility.Linear Units	長度單位	t	公釐	軟體設定單位後將自動代入 / After setting unit auto brought-in by system	required
+43	COBie.Facility.Area Units	面積單位	t	平方公尺	軟體設定單位後將自動代入 / After setting unit auto brought-in by system	required
+44	COBie.Facility.Volume Units	體積單位	t	立方公尺	軟體設定單位後將自動代入 / After setting unit auto brought-in by system	required
+45	COBie.Facility.Currency Unit	貨幣單位	t	台幣	軟體設定單位後將自動代入 / After setting unit auto brought-in by system	required
+2	COBie.Floor.Elevation	高程	t	20	繪製完樓層軟體將自動代入 / After setting floors then auto brought-in by system	required
+9	COBie.Type.Name	設備名稱	t	雙開防火門	放置設備後軟體將自動代入 / After setting facility then auto brought-in by system	required
+10	COBie.Type.Category	設備類別	t	11 11 11 11	Ominiclass	optional
+50	COBie.Component.Area	未定義	f	\N	\N	undefined
+51	COBie.Component.Description	未定義	f	\N	\N	undefined
+52	COBie.Component.Length	未定義	f	\N	\N	undefined
+53	COBie.CreatedBy	未定義	f	\N	\N	undefined
+54	COBie.CreatedOn	未定義	f	\N	\N	undefined
+55	COBie.Space.UsableHeight	未定義	f	\N	\N	undefined
+1	COBie.Floor.Name	樓層名稱	t	1F	定義樓層後軟體將自動代入 / Define ref. level and then auto brought-in by system	required
+3	COBie.Floor.Height	高度	t	30	\N	required
+11	COBie.Type.ExpectedLife	使用年限	t	8年	\N	optional
+12	COBie.Type.Manufacturer	製造廠商	t	xx企業有限公司	\N	required
+13	COBie.Type.ModelNumber	產品型號	t	HD-001	\N	required
+19	COBie.Type.Maintenance frequency	保養頻率	t	03年01次	填寫格式：年/月/週 oo次 / Format: yyyy/mm/dd oo times	required
+20	COBie.Type.Operation Manual	操作維護手冊	t	ooo操作保養手冊.pdf	url填寫該設備之操作保養手冊檔案名稱 / url to key in the file name of facility's maintenance manual	required
+22	COBie.Type.Factory certificate	出廠證明	t	ooo出廠證明.pdf	url填寫該設備之出廠證明檔案名稱 / url to key in the file name of facility's facility certificate	optional
+23	COBie.Type.Catalogue	設備型錄	t	ooo型錄.pdf	url填寫該設備之型錄檔案名稱 / url to key in the file name of facility's catalogue	required
+56	COBie.Type	未定義	f	\N	\N	undefined
+57	COBie.Type.Area	未定義	f	\N	\N	undefined
+58	COBie.Type.AssetType	未定義	f	\N	\N	undefined
+59	Name	名稱	f	\N	\N	undefined
+14	COBie.Type.WarrantyGuarantorLabor	保固廠商	t	xx企業有限公司	\N	required
+15	COBie.Type.WarrantyDurationLabor	保固時程	t	0-5	\N	required
+16	COBie.Type.WarrantyDurationUnit	保固時程單位	t	年	請填寫契約規定之時間單位(年/月) / Please use the time unit of the contract (year/month)	required
+17	COBie.Type.Finish	竣工點交日期	t	2017/7/12	\N	required
+18	COBie.Type.WarrantyGuarantorLabPhone	保固廠商電話	t	02-1234-8888	\N	required
+26	COBie.Type.Construction drawing	施工圖說	t	ooo圖.pdf	url填寫該設備之圖說檔案名稱 / url to key in the file name of facility's drawing	optional
+27	COBie.Type.Photos	照片	t	ooo照片.jpg	url填寫該設備之規範檔案名稱 / url to key in the file name of facility's construction specification	optional
+49	COBie.Type.Construction specification	施工規範	t	ooo規範.pdf	url填入該設備之照片檔案名稱 / url to key in the file name of facility's photo	optional
+24	COBie.Type.Review Data	送審資料	t	ooo送審資料.pdf	url填寫該設備之送審資料檔案名稱 / url to key in the file name of facility's review data	optional
+25	COBie.Type.Check Form	巡檢表單	t	ooo檢查表單.pdf	url填寫該設備之建議巡檢表單檔案名稱 / url to key in the file name of facility's check form	optional
 \.
 
 
 --
--- TOC entry 3803 (class 0 OID 16580)
+-- TOC entry 3804 (class 0 OID 16580)
 -- Dependencies: 257
 -- Data for Name: forge_bim_condition; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8286,7 +8292,7 @@ COPY public.forge_bim_condition (id, name, display_name, value, description, is_
 
 
 --
--- TOC entry 3805 (class 0 OID 16590)
+-- TOC entry 3806 (class 0 OID 16590)
 -- Dependencies: 259
 -- Data for Name: forge_bim_model; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8296,7 +8302,7 @@ COPY public.forge_bim_model (id, name, urn, version, updated_at, created_at, las
 
 
 --
--- TOC entry 3807 (class 0 OID 16596)
+-- TOC entry 3808 (class 0 OID 16596)
 -- Dependencies: 261
 -- Data for Name: forge_bim_object; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8306,7 +8312,7 @@ COPY public.forge_bim_object (id, dbid, display_name, value, bim_model_id, root_
 
 
 --
--- TOC entry 3809 (class 0 OID 16606)
+-- TOC entry 3810 (class 0 OID 16606)
 -- Dependencies: 263
 -- Data for Name: forge_bim_region; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8316,7 +8322,7 @@ COPY public.forge_bim_region (id, level, value, dbid, bim_model_id, zone_id, rol
 
 
 --
--- TOC entry 3822 (class 0 OID 49873)
+-- TOC entry 3823 (class 0 OID 49873)
 -- Dependencies: 276
 -- Data for Name: forge_file_type_code; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8345,7 +8351,7 @@ COPY public.forge_file_type_code (id, code, name, description, is_active) FROM s
 
 
 --
--- TOC entry 3824 (class 0 OID 49881)
+-- TOC entry 3825 (class 0 OID 49881)
 -- Dependencies: 278
 -- Data for Name: forge_level_code; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8369,7 +8375,7 @@ COPY public.forge_level_code (id, code, name, description, is_active) FROM stdin
 
 
 --
--- TOC entry 3811 (class 0 OID 16610)
+-- TOC entry 3812 (class 0 OID 16610)
 -- Dependencies: 265
 -- Data for Name: forge_role_code; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8427,7 +8433,7 @@ COPY public.forge_role_code (id, code, description, name, is_active) FROM stdin;
 
 
 --
--- TOC entry 3813 (class 0 OID 16614)
+-- TOC entry 3814 (class 0 OID 16614)
 -- Dependencies: 267
 -- Data for Name: forge_zone_code; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8544,7 +8550,7 @@ COPY public.forge_zone_code (id, code, description, name, is_active) FROM stdin;
 
 
 --
--- TOC entry 3815 (class 0 OID 16618)
+-- TOC entry 3816 (class 0 OID 16618)
 -- Dependencies: 269
 -- Data for Name: token_blacklist_blacklistedtoken; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -8781,11 +8787,28 @@ COPY public.token_blacklist_blacklistedtoken (id, blacklisted_at, token_id) FROM
 5052	2025-11-11 08:19:25.032203+00	5102
 5053	2025-11-11 11:24:17.887217+00	5103
 5054	2025-11-11 11:24:19.667818+00	5104
+5055	2025-11-11 13:02:09.180104+00	5105
+5056	2025-11-16 15:20:45.022311+00	5106
+5057	2025-11-16 15:20:52.023866+00	5107
+5058	2025-11-16 15:34:50.040773+00	5108
+5059	2025-11-16 15:44:19.786014+00	5109
+5060	2025-11-16 15:44:39.488927+00	5110
+5061	2025-11-16 15:44:53.216731+00	5111
+5062	2025-11-16 15:45:00.973808+00	5112
+5063	2025-11-16 15:45:07.946756+00	5113
+5064	2025-11-16 15:45:14.607367+00	5114
+5065	2025-11-16 15:47:07.540081+00	5115
+5066	2025-11-16 15:47:31.739013+00	5116
+5067	2025-11-16 15:47:42.088871+00	5117
+5068	2025-11-16 15:47:52.599724+00	5118
+5069	2025-11-16 15:48:15.391887+00	5119
+5070	2025-11-16 15:48:53.717956+00	5120
+5071	2025-11-17 02:09:22.517804+00	5121
 \.
 
 
 --
--- TOC entry 3817 (class 0 OID 16622)
+-- TOC entry 3818 (class 0 OID 16622)
 -- Dependencies: 271
 -- Data for Name: token_blacklist_outstandingtoken; Type: TABLE DATA; Schema: public; Owner: bmms
 --
@@ -9025,11 +9048,28 @@ COPY public.token_blacklist_outstandingtoken (id, token, created_at, expires_at,
 5102	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTM3OTAxOSwiaWF0IjoxNzYyNzg3MDE5LCJqdGkiOiJjMDY0NTU0NGZmZDU0YmU3OGQyMzMyZmJjMDhlNTZiOCIsInVzZXJfaWQiOjJ9.xg1pOesQsVAlJsafbhesLET16na3sGpagsciqBD-VkI	\N	2025-12-10 15:03:39+00	\N	c0645544ffd54be78d2332fbc08e56b8
 5103	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTQ0MTE2NCwiaWF0IjoxNzYyODQ5MTY0LCJqdGkiOiI3ZGMyZTYzYWYyZGE0YjAyYTZhNTg4MjZiMDUyN2E2MSIsInVzZXJfaWQiOjJ9.J1m31l-txQ79875fk_pJArCNfXr6pBuLzX9EmMjvEX8	\N	2025-12-11 08:19:24+00	\N	7dc2e63af2da4b02a6a58826b0527a61
 5104	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTQ1MjI1NywiaWF0IjoxNzYyODYwMjU3LCJqdGkiOiJlODcxOWRkYTA4MjE0ZjJlOWVlNzFiZjViMDkyMTA1MCIsInVzZXJfaWQiOjJ9.jyUxVhWc-kEJbh8t7sLilkFyPXGgCE-A2JCGmlSsB6c	\N	2025-12-11 11:24:17+00	\N	e8719dda08214f2e9ee71bf5b0921050
+5105	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTQ1NjgwOCwiaWF0IjoxNzYyODY0ODA4LCJqdGkiOiI5NWM5NzcxYWFjZGY0ZmI2YTk5YWI2MzA5YjVmNTg4MCIsInVzZXJfaWQiOjJ9.uZQRkx4YhqH5RFdQIrTMIxLr6ytNgTRpdIigysyAO5Q	\N	2025-12-11 12:40:08+00	\N	95c9771aacdf4fb6a99ab6309b5f5880
+5106	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTQ1ODEyOSwiaWF0IjoxNzYyODY2MTI5LCJqdGkiOiIzNThiNTFmZWRhMWU0MzU4OWRiMmIwYWJkYTY5NWZiMSIsInVzZXJfaWQiOjJ9.Iu5KMEgG7xWips01Y_Hwa4eUymohNRWFOE7eBnC8790	\N	2025-12-11 13:02:09+00	\N	358b51feda1e43589db2b0abda695fb1
+5107	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTg5ODQ0NCwiaWF0IjoxNzYzMzA2NDQ0LCJqdGkiOiJiMGQ1MWU2ZWY3NWI0ZjY4YTBiOGFmMzM0YjJlODg2OCIsInVzZXJfaWQiOjJ9.2plRtHGyn8ReQmrTscXfYO2C5BQ9p_N-CC5ZqYuBgAA	\N	2025-12-16 15:20:44+00	\N	b0d51e6ef75b4f68a0b8af334b2e8868
+5108	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTg5ODQ1MSwiaWF0IjoxNzYzMzA2NDUxLCJqdGkiOiJlNGQwMGZhOTM4MWQ0MTdlYjM5YmM3MjZjN2YyODZkYiIsInVzZXJfaWQiOjJ9.3TJ6eNvr4v_br8OtpfX1bFJohZvAKDlW7YD9LSwb02s	\N	2025-12-16 15:20:51+00	\N	e4d00fa9381d417eb39bc726c7f286db
+5109	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTg5OTI4OSwiaWF0IjoxNzYzMzA3Mjg5LCJqdGkiOiJjYWFkMmE1ZTk4MTg0MTFkYTdhMjEyMjdhNGExMzk4MiIsInVzZXJfaWQiOjJ9.vNrkzNOlas8mkyzbtuu7xwwv0eML082KZzUVZVl8PSE	\N	2025-12-16 15:34:49+00	\N	caad2a5e9818411da7a21227a4a13982
+5110	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTg5OTg1OSwiaWF0IjoxNzYzMzA3ODU5LCJqdGkiOiJjOTUzYWVlZGI3YTk0OTYyOThjY2U4MWM0OTZkNjY5ZCIsInVzZXJfaWQiOjJ9.Wi_dBxaz7V0pfxt9-v1YSktuuGSyex3COCMDGVU8Oew	\N	2025-12-16 15:44:19+00	\N	c953aeedb7a9496298cce81c496d669d
+5111	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTg5OTg3OSwiaWF0IjoxNzYzMzA3ODc5LCJqdGkiOiJhNzZiNWMxMjVhYzI0NTdiYWJkODI3MzI1ZTliNGNmYiIsInVzZXJfaWQiOjJ9.RjSTiGQc08b_MpxJybfJvKhMqAU-pL2Osm9XJkbJK8Q	\N	2025-12-16 15:44:39+00	\N	a76b5c125ac2457babd827325e9b4cfb
+5112	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTg5OTg5MywiaWF0IjoxNzYzMzA3ODkzLCJqdGkiOiI3OGFlMGJkMmRlYmU0NDRjOWM2MzBhZTBlNzA5MzIxZiIsInVzZXJfaWQiOjJ9.0fOp7L71mmFbiHl5I1aIbbDmaP4D0dBIhpZicZ7ZCFw	\N	2025-12-16 15:44:53+00	\N	78ae0bd2debe444c9c630ae0e709321f
+5113	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTg5OTkwMCwiaWF0IjoxNzYzMzA3OTAwLCJqdGkiOiIxMDJhN2QyZDA2YmQ0ZjZjODBiMmZiYjk3YTI5MDNlNiIsInVzZXJfaWQiOjJ9.wzgdkgwTZXrqX0FzQ9jC3LtZZ4IKQbZtmoUob692kPU	\N	2025-12-16 15:45:00+00	\N	102a7d2d06bd4f6c80b2fbb97a2903e6
+5114	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTg5OTkwNywiaWF0IjoxNzYzMzA3OTA3LCJqdGkiOiJiMjE1YjgzOTAzZjY0ZjllOWJmN2NhNjA2YmQzYjQ1ZCIsInVzZXJfaWQiOjJ9.knRn1XdvUGZcA5HCYFZbcNF6MJSFAWofs3tqgYgtB4c	\N	2025-12-16 15:45:07+00	\N	b215b83903f64f9e9bf7ca606bd3b45d
+5115	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTg5OTkxNCwiaWF0IjoxNzYzMzA3OTE0LCJqdGkiOiIyNzA3Yjc1ZTU3M2Y0ZjUyOWY5YWExZGZjYTZjOGJkMSIsInVzZXJfaWQiOjJ9.ozpj34boXNudoerc0r_r5RBVufCU14-uUI8xtxm2gSM	\N	2025-12-16 15:45:14+00	\N	2707b75e573f4f529f9aa1dfca6c8bd1
+5116	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTkwMDAyNywiaWF0IjoxNzYzMzA4MDI3LCJqdGkiOiJhMzg2NWYzNGJmZDg0ZmNjYjNlZGMwYWNjYTA4MTAzNyIsInVzZXJfaWQiOjJ9.TLnV6fQBxo4speqtUlX8hARJdG2HL1QGcLOkfNmh7uY	\N	2025-12-16 15:47:07+00	\N	a3865f34bfd84fccb3edc0acca081037
+5117	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTkwMDA1MSwiaWF0IjoxNzYzMzA4MDUxLCJqdGkiOiJhNDdkMjRiN2VjMDk0NjA4YTJkN2MyNTg1M2Y5ZmIwMiIsInVzZXJfaWQiOjJ9.t50fkUd_9d8-sInQPewkI4Uz69qvOO1dD07T4nJriKw	\N	2025-12-16 15:47:31+00	\N	a47d24b7ec094608a2d7c25853f9fb02
+5118	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTkwMDA2MSwiaWF0IjoxNzYzMzA4MDYxLCJqdGkiOiI1OTc1NGJhZTlhN2Y0M2E5YTNmOTQzNmI3ZWZhOWNkMCIsInVzZXJfaWQiOjJ9.WieNH5nAJNqgS9yaBrdhv86yuTcWOsEhh8cx-tVOuxQ	\N	2025-12-16 15:47:41+00	\N	59754bae9a7f43a9a3f9436b7efa9cd0
+5119	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTkwMDA3MiwiaWF0IjoxNzYzMzA4MDcyLCJqdGkiOiI3MjNlMDQxOGNiZjA0OTJmYjdmNzI1MTJhNTg5ZGJmOSIsInVzZXJfaWQiOjJ9.Xq7fASyb-bB8M6tbDzVce3xgmO-gd0PPYttDbrCOvJU	\N	2025-12-16 15:47:52+00	\N	723e0418cbf0492fb7f72512a589dbf9
+5120	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTkwMDA5NSwiaWF0IjoxNzYzMzA4MDk1LCJqdGkiOiI0YjhmOGI5MDUzZGU0OTc3ODFlOWI3YjQ1NDc5NDk4ZSIsInVzZXJfaWQiOjJ9.qPHSwzxJFWi7amarKhWdKRsp3kcybMlx9mC6tPpmfSw	\N	2025-12-16 15:48:15+00	\N	4b8f8b9053de497781e9b7b45479498e
+5121	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NTkwMDEzMywiaWF0IjoxNzYzMzA4MTMzLCJqdGkiOiIyZGFjZGFmZTRkOGQ0NjlmYmRmMzE1OGJhOGY1YjUyNSIsInVzZXJfaWQiOjJ9.ZdXzlRkxojP-y4dVqRW08K0zjSVaEz4HzlkjdzX5eME	\N	2025-12-16 15:48:53+00	\N	2dacdafe4d8d469fbdf3158ba8f5b525
 \.
 
 
 --
--- TOC entry 3832 (class 0 OID 0)
+-- TOC entry 3833 (class 0 OID 0)
 -- Dependencies: 220
 -- Name: account_user_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9038,7 +9078,7 @@ SELECT pg_catalog.setval('public.account_user_groups_id_seq', 1, false);
 
 
 --
--- TOC entry 3833 (class 0 OID 0)
+-- TOC entry 3834 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: account_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9047,7 +9087,7 @@ SELECT pg_catalog.setval('public.account_user_id_seq', 3, true);
 
 
 --
--- TOC entry 3834 (class 0 OID 0)
+-- TOC entry 3835 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: account_user_user_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9056,7 +9096,7 @@ SELECT pg_catalog.setval('public.account_user_user_permissions_id_seq', 1, false
 
 
 --
--- TOC entry 3835 (class 0 OID 0)
+-- TOC entry 3836 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: admin_interface_theme_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9065,7 +9105,7 @@ SELECT pg_catalog.setval('public.admin_interface_theme_id_seq', 2, true);
 
 
 --
--- TOC entry 3836 (class 0 OID 0)
+-- TOC entry 3837 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: auth_group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9074,7 +9114,7 @@ SELECT pg_catalog.setval('public.auth_group_id_seq', 5, true);
 
 
 --
--- TOC entry 3837 (class 0 OID 0)
+-- TOC entry 3838 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: auth_group_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9083,7 +9123,7 @@ SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
 
 
 --
--- TOC entry 3838 (class 0 OID 0)
+-- TOC entry 3839 (class 0 OID 0)
 -- Dependencies: 231
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9092,7 +9132,7 @@ SELECT pg_catalog.setval('public.auth_permission_id_seq', 140, true);
 
 
 --
--- TOC entry 3839 (class 0 OID 0)
+-- TOC entry 3840 (class 0 OID 0)
 -- Dependencies: 233
 -- Name: core_aps_credentials_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9101,7 +9141,7 @@ SELECT pg_catalog.setval('public.core_aps_credentials_id_seq', 1, false);
 
 
 --
--- TOC entry 3840 (class 0 OID 0)
+-- TOC entry 3841 (class 0 OID 0)
 -- Dependencies: 235
 -- Name: core_company_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9110,7 +9150,7 @@ SELECT pg_catalog.setval('public.core_company_id_seq', 1, false);
 
 
 --
--- TOC entry 3841 (class 0 OID 0)
+-- TOC entry 3842 (class 0 OID 0)
 -- Dependencies: 237
 -- Name: core_locale_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9119,16 +9159,16 @@ SELECT pg_catalog.setval('public.core_locale_id_seq', 2, true);
 
 
 --
--- TOC entry 3842 (class 0 OID 0)
+-- TOC entry 3843 (class 0 OID 0)
 -- Dependencies: 239
 -- Name: core_log_user_activity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.core_log_user_activity_id_seq', 5852, true);
+SELECT pg_catalog.setval('public.core_log_user_activity_id_seq', 5860, true);
 
 
 --
--- TOC entry 3843 (class 0 OID 0)
+-- TOC entry 3844 (class 0 OID 0)
 -- Dependencies: 241
 -- Name: core_navigation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9137,7 +9177,7 @@ SELECT pg_catalog.setval('public.core_navigation_id_seq', 13, true);
 
 
 --
--- TOC entry 3844 (class 0 OID 0)
+-- TOC entry 3845 (class 0 OID 0)
 -- Dependencies: 243
 -- Name: core_navigation_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9146,7 +9186,7 @@ SELECT pg_catalog.setval('public.core_navigation_permissions_id_seq', 1, false);
 
 
 --
--- TOC entry 3845 (class 0 OID 0)
+-- TOC entry 3846 (class 0 OID 0)
 -- Dependencies: 245
 -- Name: core_translation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9155,7 +9195,7 @@ SELECT pg_catalog.setval('public.core_translation_id_seq', 6717, true);
 
 
 --
--- TOC entry 3846 (class 0 OID 0)
+-- TOC entry 3847 (class 0 OID 0)
 -- Dependencies: 247
 -- Name: core_userprofile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9164,7 +9204,7 @@ SELECT pg_catalog.setval('public.core_userprofile_id_seq', 3, true);
 
 
 --
--- TOC entry 3847 (class 0 OID 0)
+-- TOC entry 3848 (class 0 OID 0)
 -- Dependencies: 249
 -- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9173,7 +9213,7 @@ SELECT pg_catalog.setval('public.django_admin_log_id_seq', 420, true);
 
 
 --
--- TOC entry 3848 (class 0 OID 0)
+-- TOC entry 3849 (class 0 OID 0)
 -- Dependencies: 251
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9182,25 +9222,25 @@ SELECT pg_catalog.setval('public.django_content_type_id_seq', 33, true);
 
 
 --
--- TOC entry 3849 (class 0 OID 0)
+-- TOC entry 3850 (class 0 OID 0)
 -- Dependencies: 253
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 117, true);
-
-
---
--- TOC entry 3850 (class 0 OID 0)
--- Dependencies: 256
--- Name: forge_bim_category_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
---
-
-SELECT pg_catalog.setval('public.forge_bim_category_id_seq', 17932, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 118, true);
 
 
 --
 -- TOC entry 3851 (class 0 OID 0)
+-- Dependencies: 256
+-- Name: forge_bim_category_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
+--
+
+SELECT pg_catalog.setval('public.forge_bim_category_id_seq', 18107, true);
+
+
+--
+-- TOC entry 3852 (class 0 OID 0)
 -- Dependencies: 273
 -- Name: forge_bim_cobie_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9209,7 +9249,7 @@ SELECT pg_catalog.setval('public.forge_bim_cobie_id_seq', 59, true);
 
 
 --
--- TOC entry 3852 (class 0 OID 0)
+-- TOC entry 3853 (class 0 OID 0)
 -- Dependencies: 258
 -- Name: forge_bim_condition_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9218,34 +9258,34 @@ SELECT pg_catalog.setval('public.forge_bim_condition_id_seq', 45, true);
 
 
 --
--- TOC entry 3853 (class 0 OID 0)
+-- TOC entry 3854 (class 0 OID 0)
 -- Dependencies: 260
 -- Name: forge_bim_model_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.forge_bim_model_id_seq', 130, true);
-
-
---
--- TOC entry 3854 (class 0 OID 0)
--- Dependencies: 262
--- Name: forge_bim_object_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
---
-
-SELECT pg_catalog.setval('public.forge_bim_object_id_seq', 228166508, true);
+SELECT pg_catalog.setval('public.forge_bim_model_id_seq', 134, true);
 
 
 --
 -- TOC entry 3855 (class 0 OID 0)
--- Dependencies: 264
--- Name: forge_bim_region_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
+-- Dependencies: 262
+-- Name: forge_bim_object_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.forge_bim_region_id_seq', 2494, true);
+SELECT pg_catalog.setval('public.forge_bim_object_id_seq', 236617556, true);
 
 
 --
 -- TOC entry 3856 (class 0 OID 0)
+-- Dependencies: 264
+-- Name: forge_bim_region_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
+--
+
+SELECT pg_catalog.setval('public.forge_bim_region_id_seq', 2542, true);
+
+
+--
+-- TOC entry 3857 (class 0 OID 0)
 -- Dependencies: 275
 -- Name: forge_file_type_code_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9254,7 +9294,7 @@ SELECT pg_catalog.setval('public.forge_file_type_code_id_seq', 20, true);
 
 
 --
--- TOC entry 3857 (class 0 OID 0)
+-- TOC entry 3858 (class 0 OID 0)
 -- Dependencies: 277
 -- Name: forge_level_code_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9263,7 +9303,7 @@ SELECT pg_catalog.setval('public.forge_level_code_id_seq', 14, true);
 
 
 --
--- TOC entry 3858 (class 0 OID 0)
+-- TOC entry 3859 (class 0 OID 0)
 -- Dependencies: 266
 -- Name: forge_role_code_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9272,7 +9312,7 @@ SELECT pg_catalog.setval('public.forge_role_code_id_seq', 49, true);
 
 
 --
--- TOC entry 3859 (class 0 OID 0)
+-- TOC entry 3860 (class 0 OID 0)
 -- Dependencies: 268
 -- Name: forge_zone_code_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
@@ -9281,21 +9321,21 @@ SELECT pg_catalog.setval('public.forge_zone_code_id_seq', 213, true);
 
 
 --
--- TOC entry 3860 (class 0 OID 0)
+-- TOC entry 3861 (class 0 OID 0)
 -- Dependencies: 270
 -- Name: token_blacklist_blacklistedtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 5054, true);
+SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 5071, true);
 
 
 --
--- TOC entry 3861 (class 0 OID 0)
+-- TOC entry 3862 (class 0 OID 0)
 -- Dependencies: 272
 -- Name: token_blacklist_outstandingtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 5104, true);
+SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 5121, true);
 
 
 --
@@ -9605,7 +9645,7 @@ ALTER TABLE ONLY public.forge_bim_category
 
 
 --
--- TOC entry 3578 (class 2606 OID 25505)
+-- TOC entry 3579 (class 2606 OID 25505)
 -- Name: forge_bim_cobie forge_bim_cobie_name_key; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -9614,7 +9654,7 @@ ALTER TABLE ONLY public.forge_bim_cobie
 
 
 --
--- TOC entry 3580 (class 2606 OID 25503)
+-- TOC entry 3581 (class 2606 OID 25503)
 -- Name: forge_bim_cobie forge_bim_cobie_pkey; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -9668,7 +9708,7 @@ ALTER TABLE ONLY public.forge_bim_region
 
 
 --
--- TOC entry 3584 (class 2606 OID 49879)
+-- TOC entry 3585 (class 2606 OID 49879)
 -- Name: forge_file_type_code forge_file_type_code_code_key; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -9677,7 +9717,7 @@ ALTER TABLE ONLY public.forge_file_type_code
 
 
 --
--- TOC entry 3586 (class 2606 OID 49877)
+-- TOC entry 3587 (class 2606 OID 49877)
 -- Name: forge_file_type_code forge_file_type_code_pkey; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -9686,7 +9726,7 @@ ALTER TABLE ONLY public.forge_file_type_code
 
 
 --
--- TOC entry 3590 (class 2606 OID 49887)
+-- TOC entry 3591 (class 2606 OID 49887)
 -- Name: forge_level_code forge_level_code_code_key; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -9695,7 +9735,7 @@ ALTER TABLE ONLY public.forge_level_code
 
 
 --
--- TOC entry 3592 (class 2606 OID 49885)
+-- TOC entry 3593 (class 2606 OID 49885)
 -- Name: forge_level_code forge_level_code_pkey; Type: CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10032,6 +10072,14 @@ CREATE INDEX forge_bim_c_parent__466d97_idx ON public.forge_bim_condition USING 
 
 
 --
+-- TOC entry 3576 (class 1259 OID 50049)
+-- Name: forge_bim_c_status_8f3cff_idx; Type: INDEX; Schema: public; Owner: bmms
+--
+
+CREATE INDEX forge_bim_c_status_8f3cff_idx ON public.forge_bim_cobie USING btree (status);
+
+
+--
 -- TOC entry 3509 (class 1259 OID 16757)
 -- Name: forge_bim_c_value_ed5b2f_idx; Type: INDEX; Schema: public; Owner: bmms
 --
@@ -10064,7 +10112,7 @@ CREATE INDEX forge_bim_category_condition_id_2e52fa79 ON public.forge_bim_catego
 
 
 --
--- TOC entry 3576 (class 1259 OID 25506)
+-- TOC entry 3577 (class 1259 OID 25506)
 -- Name: forge_bim_cobie_name_5dda2ec8_like; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -10240,7 +10288,7 @@ CREATE INDEX forge_bim_region_zone_id_3755200f ON public.forge_bim_region USING 
 
 
 --
--- TOC entry 3581 (class 1259 OID 49889)
+-- TOC entry 3582 (class 1259 OID 49889)
 -- Name: forge_file__code_8be65e_idx; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -10248,7 +10296,7 @@ CREATE INDEX forge_file__code_8be65e_idx ON public.forge_file_type_code USING bt
 
 
 --
--- TOC entry 3582 (class 1259 OID 49888)
+-- TOC entry 3583 (class 1259 OID 49888)
 -- Name: forge_file_type_code_code_7d44605c_like; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -10256,7 +10304,7 @@ CREATE INDEX forge_file_type_code_code_7d44605c_like ON public.forge_file_type_c
 
 
 --
--- TOC entry 3587 (class 1259 OID 49891)
+-- TOC entry 3588 (class 1259 OID 49891)
 -- Name: forge_level_code_b5e99b_idx; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -10264,7 +10312,7 @@ CREATE INDEX forge_level_code_b5e99b_idx ON public.forge_level_code USING btree 
 
 
 --
--- TOC entry 3588 (class 1259 OID 49890)
+-- TOC entry 3589 (class 1259 OID 49890)
 -- Name: forge_level_code_code_23295ecd_like; Type: INDEX; Schema: public; Owner: bmms
 --
 
@@ -10328,7 +10376,7 @@ CREATE INDEX token_blacklist_outstandingtoken_user_id_83bc629a ON public.token_b
 
 
 --
--- TOC entry 3593 (class 2606 OID 16787)
+-- TOC entry 3594 (class 2606 OID 16787)
 -- Name: account_user_groups account_user_groups_group_id_6c71f749_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10337,7 +10385,7 @@ ALTER TABLE ONLY public.account_user_groups
 
 
 --
--- TOC entry 3594 (class 2606 OID 16792)
+-- TOC entry 3595 (class 2606 OID 16792)
 -- Name: account_user_groups account_user_groups_user_id_14345e7b_fk_account_user_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10346,7 +10394,7 @@ ALTER TABLE ONLY public.account_user_groups
 
 
 --
--- TOC entry 3595 (class 2606 OID 16797)
+-- TOC entry 3596 (class 2606 OID 16797)
 -- Name: account_user_user_permissions account_user_user_pe_permission_id_66c44191_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10355,7 +10403,7 @@ ALTER TABLE ONLY public.account_user_user_permissions
 
 
 --
--- TOC entry 3596 (class 2606 OID 16802)
+-- TOC entry 3597 (class 2606 OID 16802)
 -- Name: account_user_user_permissions account_user_user_pe_user_id_cc42d270_fk_account_u; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10364,7 +10412,7 @@ ALTER TABLE ONLY public.account_user_user_permissions
 
 
 --
--- TOC entry 3597 (class 2606 OID 16807)
+-- TOC entry 3598 (class 2606 OID 16807)
 -- Name: auth_group_permissions auth_group_permissio_permission_id_84c5c92e_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10373,7 +10421,7 @@ ALTER TABLE ONLY public.auth_group_permissions
 
 
 --
--- TOC entry 3598 (class 2606 OID 16812)
+-- TOC entry 3599 (class 2606 OID 16812)
 -- Name: auth_group_permissions auth_group_permissions_group_id_b120cbf9_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10382,7 +10430,7 @@ ALTER TABLE ONLY public.auth_group_permissions
 
 
 --
--- TOC entry 3599 (class 2606 OID 16817)
+-- TOC entry 3600 (class 2606 OID 16817)
 -- Name: auth_permission auth_permission_content_type_id_2f476e4b_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10391,7 +10439,7 @@ ALTER TABLE ONLY public.auth_permission
 
 
 --
--- TOC entry 3600 (class 2606 OID 16822)
+-- TOC entry 3601 (class 2606 OID 16822)
 -- Name: core_aps_credentials core_aps_credentials_company_id_6b8fbd23_fk_core_company_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10400,7 +10448,7 @@ ALTER TABLE ONLY public.core_aps_credentials
 
 
 --
--- TOC entry 3601 (class 2606 OID 16827)
+-- TOC entry 3602 (class 2606 OID 16827)
 -- Name: core_log_user_activity core_log_user_activity_user_id_746d4714_fk_account_user_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10409,7 +10457,7 @@ ALTER TABLE ONLY public.core_log_user_activity
 
 
 --
--- TOC entry 3602 (class 2606 OID 16832)
+-- TOC entry 3603 (class 2606 OID 16832)
 -- Name: core_navigation core_navigation_parent_id_0a0ee36b_fk_core_navigation_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10418,7 +10466,7 @@ ALTER TABLE ONLY public.core_navigation
 
 
 --
--- TOC entry 3603 (class 2606 OID 16837)
+-- TOC entry 3604 (class 2606 OID 16837)
 -- Name: core_navigation_permissions core_navigation_perm_navigation_id_5025399d_fk_core_navi; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10427,7 +10475,7 @@ ALTER TABLE ONLY public.core_navigation_permissions
 
 
 --
--- TOC entry 3604 (class 2606 OID 16842)
+-- TOC entry 3605 (class 2606 OID 16842)
 -- Name: core_navigation_permissions core_navigation_perm_permission_id_dfacc148_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10436,7 +10484,7 @@ ALTER TABLE ONLY public.core_navigation_permissions
 
 
 --
--- TOC entry 3605 (class 2606 OID 16847)
+-- TOC entry 3606 (class 2606 OID 16847)
 -- Name: core_translation core_translation_locale_id_af238300_fk_core_locale_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10445,7 +10493,7 @@ ALTER TABLE ONLY public.core_translation
 
 
 --
--- TOC entry 3606 (class 2606 OID 16852)
+-- TOC entry 3607 (class 2606 OID 16852)
 -- Name: core_userprofile core_userprofile_company_id_f3f7e395_fk_core_company_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10454,7 +10502,7 @@ ALTER TABLE ONLY public.core_userprofile
 
 
 --
--- TOC entry 3607 (class 2606 OID 16857)
+-- TOC entry 3608 (class 2606 OID 16857)
 -- Name: core_userprofile core_userprofile_user_id_5141ad90_fk_account_user_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10463,7 +10511,7 @@ ALTER TABLE ONLY public.core_userprofile
 
 
 --
--- TOC entry 3608 (class 2606 OID 16862)
+-- TOC entry 3609 (class 2606 OID 16862)
 -- Name: django_admin_log django_admin_log_content_type_id_c4bce8eb_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10472,7 +10520,7 @@ ALTER TABLE ONLY public.django_admin_log
 
 
 --
--- TOC entry 3609 (class 2606 OID 16867)
+-- TOC entry 3610 (class 2606 OID 16867)
 -- Name: django_admin_log django_admin_log_user_id_c564eba6_fk_account_user_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10481,7 +10529,7 @@ ALTER TABLE ONLY public.django_admin_log
 
 
 --
--- TOC entry 3610 (class 2606 OID 16872)
+-- TOC entry 3611 (class 2606 OID 16872)
 -- Name: forge_bim_category forge_bim_category_bim_model_id_8d459ec5_fk_forge_bim_model_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10490,7 +10538,7 @@ ALTER TABLE ONLY public.forge_bim_category
 
 
 --
--- TOC entry 3611 (class 2606 OID 16877)
+-- TOC entry 3612 (class 2606 OID 16877)
 -- Name: forge_bim_category forge_bim_category_condition_id_2e52fa79_fk_forge_bim; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10499,7 +10547,7 @@ ALTER TABLE ONLY public.forge_bim_category
 
 
 --
--- TOC entry 3612 (class 2606 OID 16882)
+-- TOC entry 3613 (class 2606 OID 16882)
 -- Name: forge_bim_condition forge_bim_condition_parent_id_1d52eec8_fk_forge_bim; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10508,7 +10556,7 @@ ALTER TABLE ONLY public.forge_bim_condition
 
 
 --
--- TOC entry 3613 (class 2606 OID 16887)
+-- TOC entry 3614 (class 2606 OID 16887)
 -- Name: forge_bim_object forge_bim_object_bim_model_id_bd2e006e_fk_forge_bim_model_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10517,7 +10565,7 @@ ALTER TABLE ONLY public.forge_bim_object
 
 
 --
--- TOC entry 3614 (class 2606 OID 16897)
+-- TOC entry 3615 (class 2606 OID 16897)
 -- Name: forge_bim_region forge_bim_region_bim_model_id_a2552f1d_fk_forge_bim_model_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10526,7 +10574,7 @@ ALTER TABLE ONLY public.forge_bim_region
 
 
 --
--- TOC entry 3615 (class 2606 OID 16902)
+-- TOC entry 3616 (class 2606 OID 16902)
 -- Name: forge_bim_region forge_bim_region_role_id_849e7778_fk_forge_role_code_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10535,7 +10583,7 @@ ALTER TABLE ONLY public.forge_bim_region
 
 
 --
--- TOC entry 3616 (class 2606 OID 16907)
+-- TOC entry 3617 (class 2606 OID 16907)
 -- Name: forge_bim_region forge_bim_region_zone_id_3755200f_fk_forge_zone_code_id; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10544,7 +10592,7 @@ ALTER TABLE ONLY public.forge_bim_region
 
 
 --
--- TOC entry 3617 (class 2606 OID 16912)
+-- TOC entry 3618 (class 2606 OID 16912)
 -- Name: token_blacklist_blacklistedtoken token_blacklist_blacklistedtoken_token_id_3cc7fe56_fk; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10553,7 +10601,7 @@ ALTER TABLE ONLY public.token_blacklist_blacklistedtoken
 
 
 --
--- TOC entry 3618 (class 2606 OID 16917)
+-- TOC entry 3619 (class 2606 OID 16917)
 -- Name: token_blacklist_outstandingtoken token_blacklist_outs_user_id_83bc629a_fk_account_u; Type: FK CONSTRAINT; Schema: public; Owner: bmms
 --
 
@@ -10562,7 +10610,7 @@ ALTER TABLE ONLY public.token_blacklist_outstandingtoken
 
 
 --
--- TOC entry 3830 (class 0 OID 0)
+-- TOC entry 3831 (class 0 OID 0)
 -- Dependencies: 6
 -- Name: SCHEMA public; Type: ACL; Schema: -; Owner: bmms
 --
@@ -10571,11 +10619,11 @@ REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2025-11-11 20:31:54
+-- Completed on 2025-11-17 13:28:56
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict flEXq8qA7VfdSEYzerQnbRPdE19QQFyJuy8UY44mzodmtlHZrnJ9Kg3XA0qzk9M
+\unrestrict 8GausFJrdCgUlwqADxCcd34YrXeQxMN8zZ7RhoiW9Icf4zhBwr4cX8TJQQXCSFR
 
