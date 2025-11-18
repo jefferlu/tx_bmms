@@ -35,6 +35,9 @@ is_readable('./vendor/autoload.php') && require './vendor/autoload.php';
 
 // // elFinder autoload
 require './autoload.php';
+
+// JWT Authentication
+require './jwt_auth.php';
 // ===============================================
 
 // // Enable FTP connector netmount
@@ -141,17 +144,39 @@ function access($attr, $path, $data, $volume, $isDir, $relpath) {
 		:  null;                                 // else elFinder decide it itself
 }
 
+// 從環境變量讀取配置
+$corsOrigin = getenv('CORS_ALLOWED_ORIGINS') ?: 'http://localhost:4200';
+$jwtSecretKey = getenv('DJANGO_SECRET_KEY');
+
+if (empty($jwtSecretKey)) {
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode(array('error' => 'Server configuration error: JWT secret key not set'));
+    exit();
+}
+
 // 設置 CORS 標頭
-header('Access-Control-Allow-Origin: http://localhost:4200'); // 設定允許的來源
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS'); // 設定允許的 HTTP 方法
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With'); // 允許 X-Requested-With 標頭
-header('Access-Control-Allow-Credentials: true'); // 允許帶有憑證（例如 Cookie）的請求
+header('Access-Control-Allow-Origin: ' . $corsOrigin);
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Credentials: true');
 
 // 當請求為 OPTIONS 時，返回 200 並結束請求
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
 }
+
+// JWT 認證檢查
+$jwtAuth = new JWTAuth($jwtSecretKey);
+$currentUser = $jwtAuth->authenticateRequest();
+
+if (!$currentUser) {
+    $jwtAuth->sendUnauthorizedResponse('Authentication required');
+}
+
+// 將用戶信息存儲在全局變量中，供access control使用
+$GLOBALS['current_user'] = $currentUser;
 
 // Documentation for connector options:
 // https://github.com/Studio-42/elFinder/wiki/Connector-configuration-options

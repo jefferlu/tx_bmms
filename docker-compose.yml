@@ -102,6 +102,8 @@ services:
             - internal_network
         environment:
             - TZ=Asia/Taipei
+            - DJANGO_SECRET_KEY=django-insecure-=qxo)i^(3nhpn@=dfdfw^$du=jiayia=955h4gjnqj59do=#bu
+            - CORS_ALLOWED_ORIGINS=https://bmms.gtsoftec.com
         volumes:
             - media_files:/app/media-files
 

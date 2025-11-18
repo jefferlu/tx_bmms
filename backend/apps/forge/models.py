@@ -152,7 +152,9 @@ class BimRegion(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.zone.code} - {self.level} (dbid: {self.dbid})"
+        zone_code = self.zone.code if self.zone else 'N/A'
+        role_code = self.role.code if self.role else 'N/A'
+        return f"{zone_code}-{role_code}-{self.level} (dbid: {self.dbid})"
 
 
 class BimObjectHierarchy(models.Model):

@@ -33,6 +33,7 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from django_auto_prefetching import AutoPrefetchViewSetMixin
 
@@ -57,6 +58,8 @@ logger = logging.getLogger(__name__)
 
 
 class AuthView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         try:
             client_id, client_secret = get_aps_credentials(request.user)
@@ -75,6 +78,7 @@ class AuthView(APIView):
     tags=['APS']
 )
 class BucketView(APIView):
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         try:
@@ -97,6 +101,7 @@ class BucketView(APIView):
     tags=['APS']
 )
 class ObjectView(APIView):
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         try:
@@ -144,6 +149,8 @@ class ObjectView(APIView):
 
 
 class CompareSqliteView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def compare_models_without_metadata(self, model_1_db, model_2_db):
         """比較兩個模型，忽略時間戳和其他元數據欄位"""
         try:
@@ -210,6 +217,7 @@ class CompareSqliteView(APIView):
 )
 class BimDataImportView(APIView):
     parser_classes = (MultiPartParser, FormParser)
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
         client_id, client_secret = get_aps_credentials(request.user)
@@ -282,6 +290,8 @@ class BimDataImportView(APIView):
 
 
 class BimDataRevertView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request, *args, **kwargs):
         file_name = request.data.get('file_name')
         if not file_name:
@@ -419,6 +429,8 @@ class BimDataRevertView(APIView):
     tags=['APS']
 )
 class BimDataReloadView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request, *args, **kwargs):
         client_id, client_secret = get_aps_credentials(request.user)
         bucket_key = get_aps_bucket(client_id, client_secret)
@@ -447,6 +459,8 @@ class BimDataReloadView(APIView):
 
 
 class BimUpdateCategoriesView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request, *args, **kwargs):
         """
         POST 請求，異步更新多個檔案的 BimCategory 和 BimObject。
@@ -508,6 +522,7 @@ class BimUpdateCategoriesView(APIView):
 
 
 class BimConditionViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticated,)
     serializer_class = serializers.BimConditionSerializer
     # Preload all active conditions and their categories
     queryset = models.BimCondition.objects.filter(is_active=True).order_by('order').prefetch_related(
@@ -522,6 +537,7 @@ class BimConditionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class BimRegionViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticated,)
     serializer_class = serializers.BimRegionSerializer
     # queryset = models.BimRegion.objects.all().select_related('zone', 'role', 'bim_model')
     queryset = models.BimRegion.objects \
@@ -588,6 +604,7 @@ class BimRegionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
     """ 只查詢 BIMModel """
+    permission_classes = (IsAuthenticated,)
     queryset = models.BimModel.objects.all()  # 直接查詢 BimModel，不依賴 BimConversion
     serializer_class = serializers.BimModelSerializer
 
@@ -629,6 +646,7 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 
 class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticated,)
     serializer_class = serializers.BimObjectSerializer
     pagination_class = StandardResultsSetPagination
 
@@ -1603,6 +1621,7 @@ class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticated,)
     queryset = models.BimObject.objects.all()
 
     @action(detail=False, methods=['get'])
@@ -1801,6 +1820,8 @@ class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelView
 
 
 class BimObjectDbidView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, *args, **kwargs):
         # 從 GET 請求參數獲取 file_name 和 value
         model_name = request.query_params.get('model_name')
@@ -1826,6 +1847,7 @@ class BimObjectDbidView(APIView):
 
 
 class BimOriginalFileDownloadView(APIView):
+    permission_classes = (IsAuthenticated,)
     """
     下載 media-root/uploads 目錄下的 BIM 檔案
     前端需傳入 file_name 參數，例如 T3-TP01-XXX-XX-XXX-M3-XX-00001.nwd
@@ -1912,6 +1934,7 @@ class BimOriginalFileDownloadView(APIView):
 
 
 class BimSqliteDownloadView(APIView):
+    permission_classes = (IsAuthenticated,)
     """
     下載 media-root/sqlite 目錄下的 SQLite 檔案
     前端需傳入 file_name 參數，例如 T3-TP01-XXX-XX-XXX-M3-XX-00001.nwd
@@ -1998,5 +2021,6 @@ class BimSqliteDownloadView(APIView):
 
 
 class BimCobieViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticated,)
     queryset = models.BimCobie.objects.filter(is_active=True).order_by('name')
     serializer_class = serializers.BimCobieSerializer

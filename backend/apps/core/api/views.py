@@ -373,9 +373,18 @@ class NavigationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
 
 
 class LocaleViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
-    permission_classes = ()
     queryset = models.Locale.objects.filter(is_active=True,).order_by('id')
     serializer_class = serializers.LocaleSerializer
+
+    def get_permissions(self):
+        """
+        允許未認證用戶讀取語言列表，但只有管理員可以修改
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
 
 
 class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
@@ -576,11 +585,13 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
 
 
 class ApsCredentialsViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
-    permission_classes = ()
+    permission_classes = (IsAuthenticated,)
     queryset = models.ApsCredentials.objects.all()
     serializer_class = serializers.ApsCredentialsSerializer
 
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return models.ApsCredentials.objects.none()
         return models.ApsCredentials.objects.filter(company=self.request.user.user_profile.company)
 
     def update(self, request, *args, **kwargs):
@@ -601,7 +612,7 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 
 class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    permission_classes = []
+    permission_classes = [IsAdminUser]  # 只有管理員可以查看審計日誌
     queryset = models.LogUserActivity.objects.all().order_by('-timestamp')  # 按 timestamp 降序
     serializer_class = serializers.LogUserActivitySerializer
     pagination_class = StandardResultsSetPagination
