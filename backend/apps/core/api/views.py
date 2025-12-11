@@ -391,6 +391,16 @@ class TranslationViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     serializer_class = serializers.TranslationSerializer
     queryset = models.Translation.objects.all().order_by('id')
 
+    def get_permissions(self):
+        """
+        允許未認證用戶讀取翻譯資料（網頁初始化需要），但只有管理員可以修改
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
+
     def list(self, request):
         try:
             lang = request.GET.get('lang', 'en').lower()
