@@ -148,6 +148,26 @@ redis:
         retries: 3
 ```
 
+### VerneMQ 配置修復 (2025-12-11)
+
+**問題**：VerneMQ 容器啟動失敗，錯誤訊息 "Error generating config with cuttlefish"
+
+**原因**：環境變數格式和某些配置項不兼容
+
+**解決方案**：
+1. ✅ 將環境變數從 list 格式 (`- KEY=VALUE`) 改為 map 格式 (`KEY: "VALUE"`)
+2. ✅ 移除 `DOCKER_VERNEMQ_LOG__CONSOLE__FILE` (文件路徑配置)
+3. ✅ 移除 `DOCKER_VERNEMQ_PERSISTENCE_DIR` (持久化配置)
+4. ✅ 簡化為核心必要配置
+
+**保留的配置**：
+- ACCEPT_EULA: yes
+- ALLOW_ANONYMOUS: on
+- LISTENER__TCP__DEFAULT: 0.0.0.0:1883
+- LISTENER__WS__DEFAULT: 0.0.0.0:8083
+- LOG__CONSOLE__LEVEL: info
+- 效能限制設定
+
 ### 下一步驟
 
 **Phase 0 剩餘任務:**
