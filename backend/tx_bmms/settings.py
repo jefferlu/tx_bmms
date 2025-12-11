@@ -52,6 +52,25 @@ REDIS = {
     'DB': 1 if DEBUG else 0
 }
 
+# MQTT Broker 設定 (VerneMQ)
+MQTT_BROKER_HOST = os.getenv('MQTT_BROKER_HOST', 'localhost' if DEBUG else 'vernemq')
+MQTT_BROKER_PORT = int(os.getenv('MQTT_BROKER_PORT', 1883))
+MQTT_BROKER_WS_PORT = int(os.getenv('MQTT_BROKER_WS_PORT', 8083))
+MQTT_BROKER_USERNAME = os.getenv('MQTT_BROKER_USERNAME', '')
+MQTT_BROKER_PASSWORD = os.getenv('MQTT_BROKER_PASSWORD', '')
+MQTT_KEEPALIVE = int(os.getenv('MQTT_KEEPALIVE', 60))
+MQTT_CLIENT_ID_PREFIX = os.getenv('MQTT_CLIENT_ID_PREFIX', 'tx_bmms')
+
+# Redis 配置 (用於 MQTT client 和 Sensor data)
+REDIS_HOST = os.getenv('REDIS_HOST', REDIS['HOST'])
+REDIS_PORT = int(os.getenv('REDIS_PORT', REDIS['PORT']))
+REDIS_DB = int(os.getenv('REDIS_DB', REDIS['DB']))
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', '')
+
+# Sensor Data 設定
+SENSOR_DATA_SAVE_TO_DB = os.getenv('SENSOR_DATA_SAVE_TO_DB', 'False').lower() == 'true'
+SENSOR_DATA_RETENTION_HOURS = int(os.getenv('SENSOR_DATA_RETENTION_HOURS', 168))
+
 # CORS definition
 CORS_ALLOW_ALL_ORIGINS = True
 
