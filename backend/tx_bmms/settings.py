@@ -52,8 +52,8 @@ REDIS = {
     'DB': 1 if DEBUG else 0
 }
 
-# MQTT Broker 設定 (VerneMQ)
-MQTT_BROKER_HOST = os.getenv('MQTT_BROKER_HOST', 'localhost' if DEBUG else 'vernemq')
+# MQTT Broker 設定 (使用外部 VerneMQ - giantcld.com)
+MQTT_BROKER_HOST = os.getenv('MQTT_BROKER_HOST', 'giantcld.com')
 MQTT_BROKER_PORT = int(os.getenv('MQTT_BROKER_PORT', 1883))
 MQTT_BROKER_WS_PORT = int(os.getenv('MQTT_BROKER_WS_PORT', 8083))
 MQTT_BROKER_USERNAME = os.getenv('MQTT_BROKER_USERNAME', '')

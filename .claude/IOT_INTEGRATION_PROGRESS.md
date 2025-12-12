@@ -28,15 +28,10 @@
 
 #### 1. 更新 docker-compose.yml
 
-**新增服務:**
-- ✅ VerneMQ MQTT Broker
-  - Image: `vernemq/vernemq:latest`
-  - Container: `bmms_vernemq`
-  - Ports:
-    - `1883`: MQTT TCP (標準協議)
-    - `8083`: MQTT WebSocket (瀏覽器連線)
-  - 持久化: `vernemq_data`, `vernemq_log`
-  - 健康檢查: 已配置
+**架構調整:**
+- ✅ 使用外部 MQTT Broker (`giantcld.com:1883`)
+- ✅ 移除本地 VerneMQ 容器
+- ✅ 簡化 Docker 服務依賴
 
 **增強服務:**
 - ✅ Redis
@@ -47,26 +42,23 @@
 
 **更新環境變數:**
 - ✅ Backend 服務
-  - 新增 MQTT 相關環境變數 (MQTT_BROKER_HOST, PORT, etc.)
+  - MQTT_BROKER_HOST: `giantcld.com` (外部 MQTT 服務)
+  - MQTT_BROKER_PORT: `1883`
+  - MQTT_BROKER_WS_PORT: `8083`
   - 新增 Redis 相關環境變數
   - 新增 Sensor Data 設定
 
 - ✅ Celery 服務
-  - 新增 MQTT 和 Redis 環境變數
-  - 新增 vernemq 依賴
+  - MQTT_BROKER_HOST: `giantcld.com`
+  - MQTT_BROKER_PORT: `1883`
+  - 新增 Redis 環境變數
 
 **新增 Volumes:**
 - ✅ `redis_data`: Redis 持久化數據
-- ✅ `vernemq_data`: VerneMQ 持久化數據
-- ✅ `vernemq_log`: VerneMQ 日誌
 
 #### 2. 建立目錄結構
 
 ```bash
-✅ vernemq/
-   ├── log/      # VerneMQ 日誌目錄
-   └── data/     # VerneMQ 持久化數據
-
 ✅ redis/
    └── data/     # Redis AOF 持久化文件
 ```
@@ -75,19 +67,18 @@
 
 | 文件 | 狀態 | 說明 |
 |------|------|------|
-| `docker-compose.yml` | ✅ 已修改 | 新增 VerneMQ 服務，增強 Redis，更新環境變數 |
-| `vernemq/log/` | ✅ 已創建 | VerneMQ 日誌目錄 |
-| `vernemq/data/` | ✅ 已創建 | VerneMQ 數據目錄 |
+| `docker-compose.yml` | ✅ 已修改 | 移除本地 VerneMQ，配置外部 MQTT，增強 Redis |
+| `backend/tx_bmms/settings.py` | ✅ 已修改 | 更新 MQTT_BROKER_HOST 為 giantcld.com |
 | `redis/data/` | ✅ 已創建 | Redis 數據目錄 |
 
 ### 詳細變更說明
 
 #### docker-compose.yml 變更內容
 
-**Backend 服務新增環境變數:**
+**Backend 服務環境變數 (使用外部 MQTT):**
 ```yaml
-# MQTT Settings
-- MQTT_BROKER_HOST=vernemq
+# MQTT Settings (使用外部 MQTT Broker)
+- MQTT_BROKER_HOST=giantcld.com
 - MQTT_BROKER_PORT=1883
 - MQTT_BROKER_WS_PORT=8083
 - MQTT_BROKER_USERNAME=
@@ -106,32 +97,13 @@
 - SENSOR_DATA_RETENTION_HOURS=168
 ```
 
-**VerneMQ 服務配置:**
+**移除的服務依賴:**
 ```yaml
-vernemq:
-    image: vernemq/vernemq:latest
-    container_name: bmms_vernemq
-    restart: always
-    hostname: vernemq
-    environment:
-        - DOCKER_VERNEMQ_ACCEPT_EULA=yes
-        - DOCKER_VERNEMQ_ALLOW_ANONYMOUS=on
-        - DOCKER_VERNEMQ_LISTENER__TCP__DEFAULT=0.0.0.0:1883
-        - DOCKER_VERNEMQ_LISTENER__WS__DEFAULT=0.0.0.0:8083
-        - DOCKER_VERNEMQ_LOG__CONSOLE__LEVEL=info
-        - DOCKER_VERNEMQ_MAX_CLIENT_ID_SIZE=100
-        - DOCKER_VERNEMQ_PERSISTENCE=on
-    ports:
-        - "1883:1883"  # MQTT TCP
-        - "8083:8083"  # MQTT WebSocket
-    volumes:
-        - vernemq_log:/vernemq/log
-        - vernemq_data:/vernemq/data
-    healthcheck:
-        test: ["CMD", "vernemq", "ping"]
-        interval: 30s
-        timeout: 10s
-        retries: 3
+# Backend 和 Celery 不再依賴本地 vernemq
+depends_on:
+    - postgres
+    - redis
+    # - vernemq  # 已移除
 ```
 
 **Redis 服務增強:**
@@ -148,33 +120,48 @@ redis:
         retries: 3
 ```
 
-### VerneMQ 配置修復 (2025-12-11)
+### 架構調整：使用外部 MQTT Broker (2025-12-11)
 
-**問題**：VerneMQ 容器啟動失敗，錯誤訊息 "Error generating config with cuttlefish"
+**變更說明**：
+專案改用現有的外部 MQTT Broker 服務，不再在 docker-compose 中啟動本地 VerneMQ 容器。
 
-**原因**：環境變數格式和某些配置項不兼容
+**外部 MQTT Broker 資訊**：
+- Host: `giantcld.com`
+- Port: `1883` (MQTT TCP)
+- WebSocket Port: `8083`
+- 匿名連線: 已啟用
 
-**解決方案**：
-1. ✅ 將環境變數從 list 格式 (`- KEY=VALUE`) 改為 map 格式 (`KEY: "VALUE"`)
-2. ✅ 移除 `DOCKER_VERNEMQ_LOG__CONSOLE__FILE` (文件路徑配置)
-3. ✅ 移除 `DOCKER_VERNEMQ_PERSISTENCE_DIR` (持久化配置)
-4. ✅ 簡化為核心必要配置
+**移除的配置**：
+1. ✅ docker-compose.yml 中的 `vernemq` 服務
+2. ✅ volumes 中的 `vernemq_data` 和 `vernemq_log`
+3. ✅ backend 和 celery 的 `depends_on: vernemq`
+4. ✅ 本地 vernemq 目錄 (vernemq/log, vernemq/data)
 
-**保留的配置**：
-- ACCEPT_EULA: yes
-- ALLOW_ANONYMOUS: on
-- LISTENER__TCP__DEFAULT: 0.0.0.0:1883
-- LISTENER__WS__DEFAULT: 0.0.0.0:8083
-- LOG__CONSOLE__LEVEL: info
-- 效能限制設定
+**更新的配置**：
+1. ✅ Backend 環境變數 `MQTT_BROKER_HOST: giantcld.com`
+2. ✅ Celery 環境變數 `MQTT_BROKER_HOST: giantcld.com`
+3. ✅ Django settings.py 默認值改為 `giantcld.com`
+
+**優點**：
+- ✅ 簡化專案架構
+- ✅ 減少 Docker 容器數量
+- ✅ 使用穩定的生產環境 MQTT 服務
+- ✅ 避免本地 VerneMQ 配置問題
 
 ### 下一步驟
 
-**Phase 0 剩餘任務:**
-- [ ] 啟動 Docker 服務
-- [ ] 驗證 VerneMQ 連線
-- [ ] 驗證 Redis 連線
-- [ ] 測試 MQTT 發布/訂閱
+**Phase 0 狀態:**
+- ✅ Docker 環境設定完成
+- ✅ Redis 服務配置完成
+- ✅ 外部 MQTT Broker 配置完成
+- [ ] (可選) 測試外部 MQTT 連線
+
+**測試外部 MQTT 連線 (可選):**
+```bash
+# 使用 mosquitto_pub/sub 測試
+mosquitto_sub -h giantcld.com -p 1883 -t "test/topic" -v
+mosquitto_pub -h giantcld.com -p 1883 -t "test/topic" -m "Hello MQTT"
+```
 
 **準備進入 Phase 1:**
 - [ ] 建立 Django `sensors` app

@@ -31,8 +31,8 @@ services:
             - HOST=postgres
             - PORT=5432
             - TZ=Asia/Taipei
-            # MQTT Settings
-            - MQTT_BROKER_HOST=vernemq
+            # MQTT Settings (使用外部 MQTT Broker)
+            - MQTT_BROKER_HOST=giantcld.com
             - MQTT_BROKER_PORT=1883
             - MQTT_BROKER_WS_PORT=8083
             - MQTT_BROKER_USERNAME=
@@ -55,7 +55,6 @@ services:
         depends_on:
             - postgres
             - redis
-            - vernemq
         ports:
             - "8100:80"
 
@@ -74,8 +73,8 @@ services:
             - HOST=postgres
             - PORT=5432
             - TZ=Asia/Taipei
-            # MQTT Settings
-            - MQTT_BROKER_HOST=vernemq
+            # MQTT Settings (使用外部 MQTT Broker)
+            - MQTT_BROKER_HOST=giantcld.com
             - MQTT_BROKER_PORT=1883
             # Redis Settings
             - REDIS_HOST=redis
@@ -89,7 +88,6 @@ services:
         depends_on:
             - redis
             - postgres
-            - vernemq
 
     redis:
         image: redis:7-alpine
@@ -141,43 +139,6 @@ services:
         volumes:
             - media_files:/app/media-files
 
-    vernemq:
-        image: vernemq/vernemq:latest
-        container_name: bmms_vernemq
-        restart: always
-        hostname: vernemq
-        networks:
-            - internal_network
-        environment:
-            # 接受 EULA
-            DOCKER_VERNEMQ_ACCEPT_EULA: "yes"
-            # 允許匿名連線 (開發環境: on, 生產環境應改為: off)
-            DOCKER_VERNEMQ_ALLOW_ANONYMOUS: "on"
-            # MQTT TCP Listener (標準 MQTT 協議)
-            DOCKER_VERNEMQ_LISTENER__TCP__DEFAULT: "0.0.0.0:1883"
-            # MQTT WebSocket Listener (瀏覽器使用)
-            DOCKER_VERNEMQ_LISTENER__WS__DEFAULT: "0.0.0.0:8083"
-            # Log 設定
-            DOCKER_VERNEMQ_LOG__CONSOLE__LEVEL: "info"
-            # 效能設定
-            DOCKER_VERNEMQ_MAX_CLIENT_ID_SIZE: "100"
-            DOCKER_VERNEMQ_MAX_OFFLINE_MESSAGES: "1000"
-            DOCKER_VERNEMQ_MAX_ONLINE_MESSAGES: "1000"
-            # 時區
-            TZ: "Asia/Taipei"
-        ports:
-            - "1883:1883"  # MQTT TCP
-            - "8083:8083"  # MQTT WebSocket
-        volumes:
-            - vernemq_log:/vernemq/log
-            - vernemq_data:/vernemq/data
-        healthcheck:
-            test: ["CMD", "vernemq", "ping"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 40s
-
     flower:
         build: backend
         container_name: bmms_flower
@@ -204,8 +165,6 @@ volumes:
     postgresql_data:
     flower_data:
     redis_data:
-    vernemq_data:
-    vernemq_log:
 
 networks:
     internal_network:
