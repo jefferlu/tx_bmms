@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from sensors.models import Sensor
+from apps.sensors.models import Sensor
 
 
 class Command(BaseCommand):

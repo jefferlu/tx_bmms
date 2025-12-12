@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class SensorsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'sensors'
+    name = 'apps.sensors'
     verbose_name = '感測器管理'
 
     def ready(self):
