@@ -28,6 +28,7 @@ flower = "*"
 pandas = "*"
 xlsxwriter = "*"
 openpyxl = "*"
+paho-mqtt = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"
