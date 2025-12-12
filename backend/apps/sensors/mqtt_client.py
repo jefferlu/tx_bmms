@@ -91,7 +91,7 @@ class MQTTClient:
             topic = msg.topic
             payload = msg.payload.decode('utf-8')
 
-            logger.info(f"Received message on topic '{topic}': {payload}")
+            logger.debug(f"Received message on topic '{topic}': {payload}")
 
             # 解析 JSON 數據
             try:
@@ -163,7 +163,7 @@ class MQTTClient:
                     timestamp=timezone.now()
                 )
 
-            logger.info(f"Processed data for sensor {sensor.sensor_id}: {value} {sensor.unit}")
+            logger.debug(f"Processed data for sensor {sensor.sensor_id}: {value} {sensor.unit}")
 
         except Sensor.DoesNotExist:
             logger.warning(f"No active sensor found for topic: {topic}")
