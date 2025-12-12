@@ -168,6 +168,7 @@ INSTALLED_APPS = [
     'apps.account',
     'apps.core',
     'apps.forge',
+    'sensors',
 ]
 
 MIDDLEWARE = [

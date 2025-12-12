@@ -26,6 +26,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/core/', include('apps.core.api.urls')),
     path('api/forge/', include('apps.forge.api.urls')),
+    path('api/sensors/', include('sensors.urls')),
 
     # openapi
     path('schema/', SpectacularAPIView.as_view(), name='schema'),

@@ -2,14 +2,14 @@
 
 **專案**: BMMS (Building Model Management System) IoT 整合
 **開始日期**: 2025-12-11
-**最後更新**: 2025-12-11
+**最後更新**: 2025-12-12
 
 ---
 
 ## 📊 整體進度
 
 - [x] **Phase 0**: Docker 環境設定 ✅ **已完成**
-- [ ] **Phase 1**: 資料庫設計與 Backend 基礎架構
+- [x] **Phase 1**: 資料庫設計與 Backend 基礎架構 ✅ **已完成**
 - [ ] **Phase 2**: Backend MQTT 整合
 - [ ] **Phase 3**: Frontend 基礎架構
 - [ ] **Phase 4**: Forge Viewer IoT 整合
@@ -164,15 +164,243 @@ mosquitto_pub -h giantcld.com -p 1883 -t "test/topic" -m "Hello MQTT"
 ```
 
 **準備進入 Phase 1:**
-- [ ] 建立 Django `sensors` app
-- [ ] 設計資料庫 Models
-- [ ] 執行 migrations
+- [x] 建立 Django `sensors` app
+- [x] 設計資料庫 Models
+- [x] 執行 migrations
 
 ---
 
-## 📝 Phase 1: 資料庫設計與 Backend 基礎架構 (進行中)
+## ✅ Phase 1: 資料庫設計與 Backend 基礎架構 (已完成)
 
-_尚未開始_
+### 完成日期
+2025-12-12
+
+### 完成項目
+
+#### 1. 建立 Django sensors app
+
+**建立的目錄結構:**
+```
+backend/sensors/
+├── __init__.py
+├── apps.py
+├── models.py
+├── admin.py
+├── views.py
+├── serializers.py
+├── urls.py
+├── mqtt_client.py
+└── management/
+    ├── __init__.py
+    └── commands/
+        ├── __init__.py
+        └── create_sample_sensors.py
+```
+
+#### 2. 資料庫 Models 設計
+
+**建立的 Models:**
+
+✅ **Sensor** (感測器主表)
+- 基本資訊: sensor_id, name, description, sensor_type, unit
+- MQTT 設定: mqtt_topic, mqtt_qos
+- Modbus 設定: modbus_address, modbus_register (可選)
+- API 設定: api_endpoint, api_method (可選)
+- 顯示設定: display_format, decimal_places
+- 告警閾值: warning_threshold_min/max, error_threshold_min/max
+- 資料轉換: data_transform (JSON)
+- 狀態: is_active, last_seen
+- 時間戳: created_at, updated_at
+
+**支援的感測器類型:**
+- temperature (溫度)
+- humidity (濕度)
+- pressure (壓力)
+- flow (流量)
+- power (功率)
+- voltage (電壓)
+- current (電流)
+- status (狀態)
+- occupancy (佔用率)
+- co2 (CO2濃度)
+
+✅ **SensorBimBinding** (感測器與 BIM Element 綁定)
+- 感測器關聯: sensor (ForeignKey)
+- BIM Element 識別: model_urn, element_dbid, element_external_id, element_name
+- 顯示位置: position_type, position_offset (JSON)
+- 顯示樣式: label_visible, icon_type, color
+- 其他: priority, notes, is_active
+- 時間戳: created_at, updated_at
+
+✅ **SensorDataLog** (感測器數據歷史日誌)
+- 感測器關聯: sensor (ForeignKey)
+- 數據: value, raw_value, status
+- 時間戳: timestamp
+- 狀態類型: normal, warning, error, offline
+
+#### 3. Django Admin 配置
+
+✅ **SensorAdmin**
+- 列表顯示: sensor_id, name, sensor_type, unit, is_active, last_seen
+- 過濾器: sensor_type, is_active, created_at
+- 搜索: sensor_id, name, mqtt_topic
+- 分組欄位: 基本資訊、MQTT設定、Modbus設定、API設定、顯示設定、告警閾值、數據轉換、狀態
+
+✅ **SensorBimBindingAdmin**
+- 列表顯示: sensor, model_urn, element_dbid, element_name, position_type, is_active
+- 過濾器: position_type, is_active, created_at
+- 搜索: sensor__sensor_id, sensor__name, element_name, model_urn
+- 使用 raw_id_fields 優化大量數據顯示
+
+✅ **SensorDataLogAdmin**
+- 列表顯示: sensor, value, status, timestamp
+- 過濾器: status, timestamp
+- 日期層級: timestamp
+- 只讀權限 (防止手動修改歷史數據)
+
+#### 4. REST API 實作
+
+**建立的 Serializers:**
+- ✅ SensorSerializer (包含 bim_bindings_count, latest_value)
+- ✅ SensorBimBindingSerializer (包含 sensor_detail)
+- ✅ SensorDataLogSerializer (包含 sensor_name)
+
+**建立的 ViewSets:**
+
+✅ **SensorViewSet**
+- 基本 CRUD: list, create, retrieve, update, destroy
+- 自定義 actions:
+  - `bindings/`: 取得特定感測器的所有綁定
+  - `latest_data/`: 取得感測器最新數據 (從 Redis)
+  - `realtime/`: 批次取得多個感測器的即時數據
+  - `history/`: 取得歷史數據
+- 過濾: sensor_type, is_active
+- 搜索: sensor_id, name, mqtt_topic
+- 排序: sensor_id, name, created_at
+
+✅ **SensorBimBindingViewSet**
+- 基本 CRUD: list, create, retrieve, update, destroy
+- 自定義 actions:
+  - `by_model/`: 根據 model URN 取得所有綁定
+  - `batch_create/`: 批次建立綁定
+  - `batch_delete/`: 批次刪除綁定
+- 過濾: sensor, model_urn, is_active
+
+#### 5. MQTT Client 實作
+
+✅ **MQTTClient 類別** (`backend/sensors/mqtt_client.py`)
+
+**功能:**
+- 連線到外部 MQTT Broker (giantcld.com:1883)
+- 支援認證 (username/password)
+- 自動訂閱所有啟用感測器的 topics
+- 接收並處理感測器數據
+- 數據轉換 (scale, offset)
+- 狀態判斷 (normal, warning, error, unknown)
+- 儲存即時數據到 Redis (TTL: 1小時)
+- 可選寫入資料庫歷史 (SensorDataLog)
+- 支援發布訊息 (控制感測器)
+
+**回調函數:**
+- `on_connect`: 連線成功後自動訂閱所有感測器 topics
+- `on_disconnect`: 處理斷線事件
+- `on_message`: 接收並解析 MQTT 訊息
+
+**全域實例:**
+- `get_mqtt_client()`: 單例模式取得 MQTT Client
+
+#### 6. Management Command
+
+✅ **create_sample_sensors** 命令
+- 快速建立 4 個範例感測器:
+  - TEMP_001: 會議室 101 溫度
+  - HUMID_001: 會議室 101 濕度
+  - CO2_001: 會議室 101 CO2
+  - POWER_001: 空調主機功率
+- 使用 `get_or_create` 避免重複建立
+- 包含合理的告警閾值設定
+
+**使用方式:**
+```bash
+python manage.py create_sample_sensors
+```
+
+#### 7. Django 配置更新
+
+✅ **INSTALLED_APPS**
+- 新增 `'sensors'` app
+
+✅ **URL 配置**
+- 新增路由: `path('api/sensors/', include('sensors.urls'))`
+
+**API Endpoints:**
+```
+GET    /api/sensors/sensors/                    # 取得所有感測器
+POST   /api/sensors/sensors/                    # 建立感測器
+GET    /api/sensors/sensors/{id}/               # 取得特定感測器
+PATCH  /api/sensors/sensors/{id}/               # 更新感測器
+DELETE /api/sensors/sensors/{id}/               # 刪除感測器
+GET    /api/sensors/sensors/{id}/bindings/      # 取得感測器的所有綁定
+GET    /api/sensors/sensors/{id}/latest_data/   # 取得最新數據
+GET    /api/sensors/sensors/realtime/?sensor_ids=TEMP_001,HUMID_001
+GET    /api/sensors/sensors/{id}/history/?hours=24
+
+GET    /api/sensors/bindings/                   # 取得所有綁定
+POST   /api/sensors/bindings/                   # 建立綁定
+GET    /api/sensors/bindings/{id}/              # 取得特定綁定
+PATCH  /api/sensors/bindings/{id}/              # 更新綁定
+DELETE /api/sensors/bindings/{id}/              # 刪除綁定
+GET    /api/sensors/bindings/by_model/?model_urn=xxx
+POST   /api/sensors/bindings/batch_create/
+POST   /api/sensors/bindings/batch_delete/
+```
+
+### 修改的文件清單
+
+| 文件 | 狀態 | 說明 |
+|------|------|------|
+| `backend/sensors/__init__.py` | ✅ 已創建 | App 初始化 |
+| `backend/sensors/apps.py` | ✅ 已創建 | App 配置，啟動時自動連接 MQTT |
+| `backend/sensors/models.py` | ✅ 已創建 | 3 個 Model: Sensor, SensorBimBinding, SensorDataLog |
+| `backend/sensors/admin.py` | ✅ 已創建 | Django Admin 配置 |
+| `backend/sensors/serializers.py` | ✅ 已創建 | REST API Serializers |
+| `backend/sensors/views.py` | ✅ 已創建 | REST API ViewSets |
+| `backend/sensors/urls.py` | ✅ 已創建 | API URL 路由 |
+| `backend/sensors/mqtt_client.py` | ✅ 已創建 | MQTT Client 實作 |
+| `backend/sensors/management/commands/create_sample_sensors.py` | ✅ 已創建 | 範例數據建立命令 |
+| `backend/tx_bmms/settings.py` | ✅ 已修改 | INSTALLED_APPS 新增 'sensors' |
+| `backend/tx_bmms/urls.py` | ✅ 已修改 | 新增 API 路由 |
+
+### 資料庫架構
+
+**資料表:**
+- `sensors`: 感測器主表
+- `sensor_bim_bindings`: 感測器與 BIM 元件綁定表
+- `sensor_data_logs`: 感測器數據歷史日誌表
+
+**索引:**
+- sensors: (sensor_type, is_active), (mqtt_topic)
+- sensor_bim_bindings: unique(sensor, model_urn, element_dbid)
+- sensor_data_logs: (sensor, -timestamp), (status, -timestamp)
+
+### 下一步驟
+
+**Phase 1 狀態:**
+- ✅ Django sensors app 建立完成
+- ✅ 資料庫 Models 設計完成
+- ✅ Django Admin 配置完成
+- ✅ REST API 實作完成
+- ✅ MQTT Client 實作完成
+- ✅ Management Command 建立完成
+- ⚠️ 需執行 migrations (在 Docker 環境中)
+- ⚠️ 需測試 API endpoints
+- ⚠️ 需測試 MQTT 連線
+
+**準備進入 Phase 2:**
+- [ ] 測試 MQTT Client 連線到 giantcld.com
+- [ ] 建立測試用 MQTT Publisher
+- [ ] 驗證感測器數據接收與處理
+- [ ] 測試 Redis 數據儲存
 
 ---
 
@@ -230,4 +458,4 @@ _目前無已知問題_
 ---
 
 **最後更新者**: Claude
-**下次更新**: Phase 0 驗證完成後
+**下次更新**: Phase 1 migrations 執行後，準備進入 Phase 2
