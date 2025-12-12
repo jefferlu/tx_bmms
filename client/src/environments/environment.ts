@@ -7,8 +7,22 @@ export const environment = {
     host: 'http://localhost:8000/',
     // host: 'assets',
     api: 'http://localhost:8000/api',
+    apiUrl: 'http://localhost:8000/api',  // 新增: 標準化 API URL
     websocket: 'ws://localhost:8000',
     elfinder: 'https://bmms.giantcld.com',
+    // MQTT Broker 設定 (IoT 感測器)
+    mqtt: {
+        host: 'giantcld.com',
+        port: 8083,                        // WebSocket 端口
+        protocol: 'ws' as 'ws' | 'wss',    // 開發環境使用 ws
+        reconnectPeriod: 5000,             // 5秒重連
+        keepalive: 60                      // 60秒心跳
+    },
+    // 感測器設定
+    sensor: {
+        updateInterval: 5000,              // 更新間隔 (毫秒)
+        retentionHours: 168                // 資料保留時間 (7天)
+    },
     local_storage: {
         user: 'tx_bmms_user',
         language: 'tx_bmms_languages',

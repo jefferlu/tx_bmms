@@ -2,7 +2,7 @@
 
 **專案**: BMMS (Building Model Management System) IoT 整合
 **開始日期**: 2025-12-11
-**最後更新**: 2025-12-12
+**最後更新**: 2025-12-12 (Phase 3 完成)
 
 ---
 
@@ -11,7 +11,7 @@
 - [x] **Phase 0**: Docker 環境設定 ✅ **已完成**
 - [x] **Phase 1**: 資料庫設計與 Backend 基礎架構 ✅ **已完成**
 - [x] **Phase 2**: Backend MQTT 整合與測試工具 ✅ **已完成**
-- [ ] **Phase 3**: Frontend 基礎架構
+- [x] **Phase 3**: Frontend 基礎架構 ✅ **已完成**
 - [ ] **Phase 4**: Forge Viewer IoT 整合
 - [ ] **Phase 5**: 即時數據處理
 - [ ] **Phase 6**: 進階功能
@@ -599,10 +599,305 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
 - ⚠️ 需建立範例感測器數據 (`create_sample_sensors`)
 
 **準備進入 Phase 3:**
-- [ ] 建立 Frontend Sensor Service
-- [ ] 建立 MQTT WebSocket Service (前端直接連接)
+- [x] 建立 Frontend Sensor Service
+- [x] 建立 MQTT WebSocket Service (前端直接連接)
 - [ ] 實作感測器管理頁面
-- [ ] 設定 Frontend 環境變數
+- [x] 設定 Frontend 環境變數
+
+---
+
+## ✅ Phase 3: Frontend 基礎架構 (已完成)
+
+### 完成日期
+2025-12-12
+
+### 完成項目
+
+#### 1. TypeScript 型別定義
+
+✅ **client/src/app/core/services/sensors/sensor.types.ts**
+
+**建立的介面:**
+- `Sensor`: 感測器主要資料結構 (30+ 欄位)
+- `SensorData`: 感測器數據結構
+- `SensorDataLog`: 歷史數據日誌
+- `SensorBimBinding`: BIM 元件綁定資料
+- `SensorType`: 感測器類型 enum (temperature, humidity, co2, power 等)
+- `SensorDataStatus`: 數據狀態 (normal, warning, error, offline)
+- `PositionType`: BIM 位置類型 (center, top, bottom, custom)
+- 查詢與批次操作的 Request/Response 介面
+
+**特色:**
+- 完整的型別安全
+- 支援所有 Backend API 的資料結構
+- 包含 MQTT 訊息格式定義
+- 支援批次操作介面
+
+#### 2. Angular Sensor Service
+
+✅ **client/src/app/core/services/sensors/sensor.service.ts**
+
+**功能:**
+- 完整的 CRUD 操作 (create, read, update, delete)
+- 即時數據查詢 (`getRealtimeData`, `getSensorHistory`)
+- BIM 綁定管理 (`getSensorBindings`, `batchCreateBindings`, `batchDeleteBindings`)
+- 狀態管理 (使用 `BehaviorSubject`)
+- 錯誤處理與日誌記錄
+
+**API Methods:**
+```typescript
+// 基本 CRUD
+getSensors(params?: SensorQueryParams): Observable<Sensor[]>
+getSensor(id: number): Observable<Sensor>
+createSensor(sensor: Partial<Sensor>): Observable<Sensor>
+updateSensor(id: number, sensor: Partial<Sensor>): Observable<Sensor>
+deleteSensor(id: number): Observable<void>
+
+// 即時數據
+getRealtimeData(sensorIds: string[]): Observable<RealtimeDataResult>
+getSensorHistory(sensorId: number, hours?: number): Observable<SensorDataLog[]>
+
+// BIM 綁定
+getSensorBindings(sensorId: number): Observable<SensorBimBinding[]>
+getBindingsByModel(modelUrn: string): Observable<SensorBimBinding[]>
+batchCreateBindings(request: BatchCreateBindingsRequest): Observable<BatchCreateBindingsResponse>
+batchDeleteBindings(request: BatchDeleteBindingsRequest): Observable<BatchDeleteBindingsResponse>
+```
+
+**狀態管理:**
+```typescript
+// Observable streams
+sensors$: Observable<Sensor[]>
+realtimeData$: Observable<RealtimeDataResult>
+```
+
+#### 3. MQTT WebSocket Service
+
+✅ **client/src/app/core/services/mqtt/mqtt.service.ts**
+
+**功能:**
+- 連接到外部 MQTT Broker (giantcld.com:8083 WebSocket)
+- 訂閱/取消訂閱 topics
+- 發布訊息
+- 連線狀態管理
+- 訊息流管理 (使用 RxJS)
+- 自動重連機制
+
+**核心 Methods:**
+```typescript
+// 連線管理
+connect(options: MqttConnectionOptions): Promise<void>
+disconnect(): Promise<void>
+
+// 訂閱管理
+subscribe(topic: string, qos?: 0 | 1 | 2): Promise<void>
+unsubscribe(topic: string): Promise<void>
+subscribeMultiple(topics: string[], qos?: 0 | 1 | 2): Promise<void>
+
+// 發布訊息
+publish(topic: string, message: any, qos?: 0 | 1 | 2): Promise<void>
+```
+
+**Observable Streams:**
+```typescript
+messages$: Observable<MqttMessage>       // 所有 MQTT 訊息
+connected$: Observable<boolean>           // 連線狀態
+getMessagesForTopic(topic: string): Observable<MqttMessage>  // 特定 topic 訊息
+```
+
+**特色:**
+- 基於 `mqtt` npm package
+- Promise 與 Observable 混合使用
+- 支援多 topic 訂閱
+- 訊息過濾與分流
+- 自動重連 (5秒間隔)
+
+#### 4. 環境配置
+
+✅ **client/src/environments/environment.ts**
+
+**新增配置:**
+```typescript
+export const environment = {
+    production: false,
+    apiUrl: 'http://localhost:8000/api',  // Backend API URL
+
+    // MQTT Broker 設定 (IoT 感測器)
+    mqtt: {
+        host: 'giantcld.com',
+        port: 8083,                        // WebSocket port
+        protocol: 'ws' as 'ws' | 'wss',    // 開發環境使用 ws
+        reconnectPeriod: 5000,             // 5秒重連
+        keepalive: 60                      // 60秒心跳
+    },
+
+    // 感測器設定
+    sensor: {
+        updateInterval: 5000,              // 更新間隔 (5秒)
+        retentionHours: 168                // 資料保留時間 (7天)
+    },
+
+    // ... 其他現有配置
+};
+```
+
+**生產環境配置建議** (environment.prod.ts):
+- `mqtt.protocol`: 使用 `'wss'` (Secure WebSocket)
+- `mqtt.port`: 使用 `8084` 或對應的 WSS port
+- `apiUrl`: 設定為生產環境的 API URL
+
+#### 5. npm 依賴
+
+✅ **安裝 mqtt package**
+```bash
+npm install mqtt --save
+```
+
+**版本:**
+- mqtt: ~5.x (最新穩定版)
+
+**用途:**
+- 前端直接連接 MQTT Broker (WebSocket)
+- 訂閱感測器 topics 接收即時數據
+- 無需透過 Backend 中轉，降低延遲
+
+#### 6. 服務匯出配置
+
+✅ **client/src/app/core/services/sensors/index.ts**
+```typescript
+export * from './sensor.types';
+export * from './sensor.service';
+```
+
+✅ **client/src/app/core/services/mqtt/index.ts**
+```typescript
+export * from './mqtt.service';
+```
+
+### 修改的文件清單
+
+| 文件 | 狀態 | 說明 |
+|------|------|------|
+| `client/src/app/core/services/sensors/sensor.types.ts` | ✅ 已創建 | TypeScript 型別定義 |
+| `client/src/app/core/services/sensors/sensor.service.ts` | ✅ 已創建 | Angular HTTP Service |
+| `client/src/app/core/services/sensors/index.ts` | ✅ 已創建 | 匯出配置 |
+| `client/src/app/core/services/mqtt/mqtt.service.ts` | ✅ 已創建 | MQTT WebSocket Service |
+| `client/src/app/core/services/mqtt/index.ts` | ✅ 已創建 | 匯出配置 |
+| `client/src/environments/environment.ts` | ✅ 已修改 | 新增 MQTT 和 Sensor 配置 |
+| `client/package.json` | ✅ 已修改 | 新增 mqtt 依賴 |
+
+### 架構設計
+
+**服務分離:**
+- `SensorService`: 處理 HTTP API 請求 (CRUD, 查詢, 批次操作)
+- `MqttService`: 處理 WebSocket 即時數據流 (訂閱, 發布)
+
+**資料流:**
+```
+Backend REST API ← HTTP → SensorService → Component
+                                            ↓
+MQTT Broker ← WebSocket → MqttService ──→ Component
+```
+
+**優點:**
+- 職責分明，易於維護
+- 即時數據透過 WebSocket，低延遲
+- 歷史數據透過 HTTP API，穩定可靠
+- 支援離線模式 (HTTP API 可快取)
+
+### 使用範例
+
+#### 在 Component 中使用 SensorService
+
+```typescript
+import { Component, OnInit } from '@angular/core';
+import { SensorService, Sensor } from '@core/services/sensors';
+
+@Component({
+  selector: 'app-sensor-list',
+  template: `...`
+})
+export class SensorListComponent implements OnInit {
+  sensors$ = this.sensorService.sensors$;
+
+  constructor(private sensorService: SensorService) {}
+
+  ngOnInit() {
+    // 載入所有感測器
+    this.sensorService.getSensors({ is_active: true }).subscribe();
+
+    // 取得即時數據
+    this.sensorService.getRealtimeData(['TEMP_001', 'HUMID_001']).subscribe(
+      data => console.log('即時數據:', data)
+    );
+  }
+}
+```
+
+#### 在 Component 中使用 MqttService
+
+```typescript
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { MqttService } from '@core/services/mqtt';
+import { environment } from '@environments/environment';
+
+@Component({
+  selector: 'app-realtime-monitor',
+  template: `...`
+})
+export class RealtimeMonitorComponent implements OnInit, OnDestroy {
+  connected$ = this.mqttService.connected$;
+  messages$ = this.mqttService.messages$;
+
+  constructor(private mqttService: MqttService) {}
+
+  async ngOnInit() {
+    // 連接到 MQTT Broker
+    await this.mqttService.connect({
+      host: environment.mqtt.host,
+      port: environment.mqtt.port,
+      protocol: environment.mqtt.protocol,
+      reconnectPeriod: environment.mqtt.reconnectPeriod,
+      keepalive: environment.mqtt.keepalive
+    });
+
+    // 訂閱感測器 topics
+    await this.mqttService.subscribeMultiple([
+      'sensors/temperature/+',
+      'sensors/humidity/+',
+      'sensors/co2/+'
+    ]);
+
+    // 訂閱特定 topic 的訊息
+    this.mqttService.getMessagesForTopic('sensors/temperature/room_101')
+      .subscribe(msg => {
+        console.log('溫度數據:', msg.payload);
+      });
+  }
+
+  async ngOnDestroy() {
+    await this.mqttService.disconnect();
+  }
+}
+```
+
+### 下一步驟
+
+**Phase 3 狀態:**
+- ✅ TypeScript 型別定義完成
+- ✅ Sensor HTTP Service 完成
+- ✅ MQTT WebSocket Service 完成
+- ✅ 環境配置完成
+- ✅ npm 依賴安裝完成
+- ⚠️ 需整合到實際 Components (Phase 4)
+- ⚠️ 需實作 Forge Viewer IoT 整合 (Phase 4)
+
+**準備進入 Phase 4:**
+- [ ] 建立 Forge Viewer IoT Extension
+- [ ] 實作感測器標記 (Markers) 在 3D 模型上
+- [ ] 綁定感測器數據到 BIM 元件
+- [ ] 實作即時數據更新動畫
+- [ ] 建立感測器狀態視覺化 (顏色、圖示)
 
 ---
 
@@ -660,4 +955,4 @@ _目前無已知問題_
 ---
 
 **最後更新者**: Claude
-**下次更新**: Phase 1 migrations 執行後，準備進入 Phase 2
+**下次更新**: 準備進入 Phase 4 (Forge Viewer IoT 整合)

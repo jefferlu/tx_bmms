@@ -27,6 +27,7 @@
     "crypto-js": "^4.2.0",
     "diff-match-patch-ts": "^0.6.0",
     "lodash-es": "^4.17.21",
+    "mqtt": "^5.14.1",
     "ngx-cookie-service": "^19.1.0",
     "ngx-diff": "^10.0.0",
     "ngx-spinner": "^17.0.0",
