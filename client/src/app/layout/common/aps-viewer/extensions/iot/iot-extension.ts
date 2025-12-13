@@ -1,7 +1,7 @@
 import { Injector } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { SensorService, Sensor, SensorBimBinding, MqttService, SensorData } from '@core/services/sensors';
-import { environment } from '@environments/environment';
+import { SensorService, Sensor, SensorBimBinding, MqttService, SensorData } from 'app/core/services/sensors';
+import { environment } from 'environments/environment';
 import { IotPanel } from './iot-panel';
 import { SensorMarker } from './sensor-marker';
 

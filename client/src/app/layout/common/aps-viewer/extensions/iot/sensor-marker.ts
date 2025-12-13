@@ -1,4 +1,4 @@
-import { SensorData, SensorDataStatus } from '@core/services/sensors';
+import { SensorData, SensorDataStatus } from 'app/core/services/sensors';
 
 declare const THREE: any;
 

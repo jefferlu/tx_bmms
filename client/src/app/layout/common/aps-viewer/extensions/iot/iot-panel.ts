@@ -1,6 +1,6 @@
 import { Injector } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
-import { SensorService, Sensor, SensorData } from '@core/services/sensors';
+import { SensorService, Sensor, SensorData } from 'app/core/services/sensors';
 
 declare const Autodesk: any;
 
