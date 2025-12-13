@@ -8,6 +8,7 @@ import { debounce } from 'lodash';
 import { SearchPanel } from './buttons/search-panel';
 import { DownloadExcel } from './buttons/download-excel';
 import { DownloadSqlite } from './buttons/download-sqlite';
+import './extensions/iot/iot-extension'; // 載入 IoT Extension
 
 declare const Autodesk: any;
 declare const ApsXLS: any;
@@ -715,6 +716,9 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
                             this.viewer.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
                                 this.addAggregatedButton();
+
+                                // 載入 IoT Extension
+                                this.loadIotExtension();
                             });
 
                             this.loadModels(data);
@@ -766,6 +770,9 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
                     this.viewer.addEventListener(Autodesk.Viewing.TOOLBAR_CREATED_EVENT, () => {
                         this.addAggregatedButton();
+
+                        // 載入 IoT Extension
+                        this.loadIotExtension();
                     });
 
                     this.loadModels(data);
@@ -1182,6 +1189,27 @@ export class ApsViewerComponent implements OnInit, AfterViewInit, OnDestroy {
         subToolbar.addControl(downloadButton);
         subToolbar.addControl(exportButton);
         viewer.toolbar.addControl(subToolbar);
+    }
+
+    /**
+     * 載入 IoT Extension
+     */
+    private loadIotExtension(): void {
+        const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+
+        if (!viewer) {
+            console.error('Viewer 尚未準備好');
+            return;
+        }
+
+        // 載入 IoT Extension，並傳遞 Angular Injector
+        viewer.loadExtension('IotExtension', {
+            injector: this._injector
+        }).then(() => {
+            console.log('IoT Extension loaded successfully');
+        }).catch((error: any) => {
+            console.error('Failed to load IoT Extension:', error);
+        });
     }
 
     private getViewerLanguage(lang: string): string {

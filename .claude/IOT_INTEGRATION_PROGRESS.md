@@ -2,7 +2,7 @@
 
 **專案**: BMMS (Building Model Management System) IoT 整合
 **開始日期**: 2025-12-11
-**最後更新**: 2025-12-12 (Phase 3 完成)
+**最後更新**: 2025-12-13 (Phase 4 完成)
 
 ---
 
@@ -12,7 +12,7 @@
 - [x] **Phase 1**: 資料庫設計與 Backend 基礎架構 ✅ **已完成**
 - [x] **Phase 2**: Backend MQTT 整合與測試工具 ✅ **已完成**
 - [x] **Phase 3**: Frontend 基礎架構 ✅ **已完成**
-- [ ] **Phase 4**: Forge Viewer IoT 整合
+- [x] **Phase 4**: Forge Viewer IoT 整合 ✅ **已完成**
 - [ ] **Phase 5**: 即時數據處理
 - [ ] **Phase 6**: 進階功能
 - [ ] **Phase 7**: 測試與優化
@@ -893,11 +893,289 @@ export class RealtimeMonitorComponent implements OnInit, OnDestroy {
 - ⚠️ 需實作 Forge Viewer IoT 整合 (Phase 4)
 
 **準備進入 Phase 4:**
-- [ ] 建立 Forge Viewer IoT Extension
-- [ ] 實作感測器標記 (Markers) 在 3D 模型上
-- [ ] 綁定感測器數據到 BIM 元件
-- [ ] 實作即時數據更新動畫
-- [ ] 建立感測器狀態視覺化 (顏色、圖示)
+- [x] 建立 Forge Viewer IoT Extension
+- [x] 實作感測器標記 (Markers) 在 3D 模型上
+- [x] 綁定感測器數據到 BIM 元件
+- [x] 實作即時數據更新動畫
+- [x] 建立感測器狀態視覺化 (顏色、圖示)
+
+---
+
+## ✅ Phase 4: Forge Viewer IoT 整合 (已完成)
+
+### 完成日期
+2025-12-13
+
+### 完成項目
+
+#### 1. 感測器標記類別 (SensorMarker)
+
+✅ **client/src/app/layout/common/aps-viewer/extensions/iot/sensor-marker.ts**
+
+**功能:**
+- 在 3D 模型上創建感測器標記（使用 THREE.js 球體）
+- 根據感測器狀態顯示不同顏色
+  - 正常: 綠色 (#00ff00)
+  - 警告: 橙色 (#ffa500)
+  - 錯誤: 紅色 (#ff0000)
+  - 離線: 灰色 (#808080)
+- 支援脈動動畫（警告/錯誤狀態）
+- 支援高亮顯示
+- 支援顯示/隱藏切換
+- 可配置位置偏移
+
+**核心方法:**
+```typescript
+updateData(data: SensorData): void          // 更新感測器數據和視覺狀態
+animate(deltaTime: number): void            // 動畫更新（脈動效果）
+highlight(enabled: boolean): void           // 高亮標記
+setVisible(visible: boolean): void          // 設置可見性
+dispose(): void                             // 清理資源
+```
+
+**視覺化:**
+- 使用 THREE.SphereGeometry 創建 3D 標記
+- 使用 Viewer overlay 系統管理標記
+- 支援透明度和動畫效果
+
+#### 2. IoT 管理面板 (IotPanel)
+
+✅ **client/src/app/layout/common/aps-viewer/extensions/iot/iot-panel.ts**
+
+**功能:**
+- 繼承自 `Autodesk.Viewing.UI.DockingPanel`
+- 顯示感測器列表（可搜索、過濾）
+- 即時顯示感測器數據和狀態
+- 工具欄按鈕（刷新、切換標記顯示）
+- 點擊感測器卡片聚焦到對應 BIM 元件
+
+**UI 組件:**
+- **工具欄**: 刷新按鈕、切換標記顯示按鈕
+- **搜索欄**: 文字搜索、類型過濾下拉選單
+- **感測器列表**: 動態渲染的感測器卡片
+  - 感測器名稱和 ID
+  - 即時數據顯示（數值 + 單位）
+  - 狀態指示器（圓點顏色）
+  - 類型標籤
+
+**核心方法:**
+```typescript
+loadSensors(): void                                      // 載入感測器列表
+filterSensors(): void                                    // 過濾感測器
+updateSensorData(sensorId: string, data: SensorData)    // 更新即時數據顯示
+toggleMarkers(): void                                    // 切換標記可見性
+```
+
+**樣式:**
+- 使用 Tailwind CSS
+- 響應式設計
+- 支援拖動調整大小
+
+#### 3. IoT Extension (IotExtension)
+
+✅ **client/src/app/layout/common/aps-viewer/extensions/iot/iot-extension.ts**
+
+**功能:**
+- 繼承自 `Autodesk.Viewing.Extension`
+- 整合 SensorService 和 MqttService
+- 管理所有感測器標記
+- 處理感測器與 BIM 元件綁定
+- 訂閱 MQTT 訊息並更新標記
+- 創建工具欄按鈕和 IoT 面板
+
+**核心流程:**
+
+**初始化:**
+```typescript
+1. load() - Extension 載入
+2. initializeMqtt() - 連接 MQTT Broker
+3. createToolbarButton() - 創建工具欄按鈕
+4. subscribeMultiple(['sensors/+/+']) - 訂閱所有感測器 topics
+```
+
+**載入感測器:**
+```typescript
+1. loadSensorsForCurrentModel(modelUrn) - 載入當前模型的感測器
+2. getBindingsByModel(urn) - 獲取綁定數據
+3. processBindings(bindings) - 處理綁定
+4. createMarkerForBinding(binding) - 為每個綁定創建標記
+5. getElementPosition(dbId) - 計算 BIM 元件中心位置
+```
+
+**即時更新:**
+```typescript
+1. onMqttMessage(message) - 接收 MQTT 訊息
+2. 解析 SensorData
+3. marker.updateData(data) - 更新標記視覺狀態
+4. panel.updateSensorData() - 更新面板顯示
+```
+
+**核心方法:**
+```typescript
+loadSensorsForCurrentModel(modelUrn?: string): void    // 載入感測器
+focusOnSensor(sensorId: string): void                  // 聚焦到感測器
+setMarkersVisible(visible: boolean): void              // 設置標記可見性
+update(deltaTime: number): void                        // 動畫更新（可選）
+```
+
+**依賴注入:**
+- 通過 options 接收 Angular Injector
+- 使用 Injector 獲取 SensorService 和 MqttService
+- 支援 Angular 服務的完整功能
+
+#### 4. ApsViewerComponent 整合
+
+✅ **client/src/app/layout/common/aps-viewer/aps-viewer.component.ts**
+
+**修改:**
+- 導入 IoT Extension: `import './extensions/iot/iot-extension'`
+- 在 `TOOLBAR_CREATED_EVENT` 後載入 Extension
+- 創建 `loadIotExtension()` 方法
+- 支援 Local 和 OSS 兩種模式
+
+**載入邏輯:**
+```typescript
+private loadIotExtension(): void {
+    const viewer = this.isLocalMode ? this.viewer : this.viewer.viewer;
+
+    viewer.loadExtension('IotExtension', {
+        injector: this._injector  // 傳遞 Angular Injector
+    }).then(() => {
+        console.log('IoT Extension loaded successfully');
+    });
+}
+```
+
+**載入時機:**
+- Local 模式: `loadAggregatedView()` → TOOLBAR_CREATED_EVENT → loadIotExtension()
+- OSS 模式: `loadAggregatedView_oss()` → TOOLBAR_CREATED_EVENT → loadIotExtension()
+
+### 修改的文件清單
+
+| 文件 | 狀態 | 說明 |
+|------|------|------|
+| `client/src/app/layout/common/aps-viewer/extensions/iot/sensor-marker.ts` | ✅ 已創建 | 感測器標記類別 |
+| `client/src/app/layout/common/aps-viewer/extensions/iot/iot-panel.ts` | ✅ 已創建 | IoT 管理面板 |
+| `client/src/app/layout/common/aps-viewer/extensions/iot/iot-extension.ts` | ✅ 已創建 | IoT Extension 主類別 |
+| `client/src/app/layout/common/aps-viewer/extensions/iot/index.ts` | ✅ 已創建 | 匯出配置 |
+| `client/src/app/layout/common/aps-viewer/aps-viewer.component.ts` | ✅ 已修改 | 註冊和載入 IoT Extension |
+| `client/src/app/core/services/sensors/index.ts` | ✅ 已修改 | 匯出 MqttService |
+
+### 架構設計
+
+**Extension 架構:**
+```
+IotExtension (Autodesk.Viewing.Extension)
+    ├── IotPanel (Autodesk.Viewing.UI.DockingPanel)
+    │   ├── 感測器列表 UI
+    │   ├── 搜索和過濾
+    │   └── 即時數據顯示
+    │
+    ├── SensorMarker[] (THREE.js objects)
+    │   ├── 3D 標記渲染
+    │   ├── 狀態視覺化
+    │   └── 動畫效果
+    │
+    ├── SensorService (Angular Service)
+    │   ├── 獲取感測器列表
+    │   ├── 獲取 BIM 綁定
+    │   └── API 查詢
+    │
+    └── MqttService (Angular Service)
+        ├── MQTT Broker 連接
+        ├── Topic 訂閱
+        └── 即時訊息流
+```
+
+**數據流:**
+```
+MQTT Broker (giantcld.com:8083)
+    ↓ WebSocket
+MqttService.messages$
+    ↓ RxJS Observable
+IotExtension.onMqttMessage()
+    ↓ 解析 SensorData
+    ├─→ SensorMarker.updateData() → 更新 3D 標記視覺狀態
+    └─→ IotPanel.updateSensorData() → 更新 UI 顯示
+
+Backend API (http://localhost:8000/api/sensors/)
+    ↓ HTTP
+SensorService
+    ↓
+IotExtension.loadSensorsForCurrentModel()
+    ↓
+創建 SensorMarker 並綁定到 BIM 元件
+```
+
+### 使用流程
+
+#### 1. 開啟 Viewer 並載入模型
+```typescript
+// ApsViewerComponent 自動載入 IoT Extension
+// Extension 自動連接 MQTT Broker
+```
+
+#### 2. 開啟 IoT 面板
+```
+點擊 Viewer 工具欄上的 IoT 按鈕 → 開啟 IoT Panel
+```
+
+#### 3. 載入感測器
+```typescript
+// Extension 自動載入當前模型的感測器綁定
+// 在 3D 模型上創建標記
+```
+
+#### 4. 即時數據更新
+```
+MQTT 訊息到達 → 標記顏色/動畫更新 → Panel 顯示最新數據
+```
+
+#### 5. 互動操作
+```
+- 點擊 Panel 中的感測器 → 聚焦到對應 BIM 元件
+- 搜索/過濾感測器
+- 切換標記顯示/隱藏
+- 刷新感測器列表
+```
+
+### 技術亮點
+
+**1. Angular 與 Forge Viewer 整合**
+- 通過 Injector 傳遞 Angular 服務到 Extension
+- Extension 內部使用 Angular 的 RxJS 和 Dependency Injection
+
+**2. 即時數據視覺化**
+- WebSocket MQTT 連接，低延遲
+- THREE.js 3D 標記，直觀顯示位置
+- 顏色編碼狀態，一目了然
+- 脈動動畫提示異常
+
+**3. BIM 元件綁定**
+- 自動計算 BIM 元件中心位置
+- 支援位置偏移配置
+- 點擊聚焦功能
+
+**4. 擴展性設計**
+- 標記類別獨立，易於擴展
+- Panel 使用 Tailwind CSS，易於修改樣式
+- Extension 模組化，易於維護
+
+### 下一步驟
+
+**Phase 4 狀態:**
+- ✅ IoT Extension 實作完成
+- ✅ 感測器標記系統完成
+- ✅ IoT 管理面板完成
+- ✅ 整合到 ApsViewerComponent
+- ⚠️ 需要測試完整流程
+- ⚠️ 需要建立感測器綁定數據
+
+**準備進入 Phase 5:**
+- [ ] 實作歷史數據查詢和圖表顯示
+- [ ] 實作告警系統
+- [ ] 實作感測器數據匯出
+- [ ] 優化效能（大量感測器場景）
 
 ---
 
@@ -955,4 +1233,4 @@ _目前無已知問題_
 ---
 
 **最後更新者**: Claude
-**下次更新**: 準備進入 Phase 4 (Forge Viewer IoT 整合)
+**下次更新**: 準備進入 Phase 5 (即時數據處理與進階功能)
