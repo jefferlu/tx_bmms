@@ -14,7 +14,7 @@ export class SensorMarker {
     private mesh: any;
     private label: any;
     private overlay: any;
-    private position: THREE.Vector3;
+    private position: any;
     private currentData: SensorData | null = null;
 
     // 狀態顏色配置
@@ -25,7 +25,7 @@ export class SensorMarker {
         offline: 0x808080    // 灰色
     };
 
-    constructor(viewer: any, sensorId: string, dbId: number, modelUrn: string, position: THREE.Vector3) {
+    constructor(viewer: any, sensorId: string, dbId: number, modelUrn: string, position: any) {
         this.viewer = viewer;
         this.sensorId = sensorId;
         this.dbId = dbId;
@@ -227,7 +227,7 @@ export class SensorMarker {
     /**
      * 獲取位置
      */
-    public getPosition(): THREE.Vector3 {
+    public getPosition(): any {
         return this.position;
     }
 }

@@ -292,7 +292,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     /**
      * 獲取 BIM 元件的中心位置
      */
-    private getElementPosition(dbId: number): THREE.Vector3 | null {
+    private getElementPosition(dbId: number): any {
         const fragList = this.viewer.model.getFragmentList();
         const tree = this.viewer.model.getInstanceTree();
 
