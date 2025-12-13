@@ -1,25 +1,13 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Subject, Observable, BehaviorSubject } from 'rxjs';
 import { MqttMessage } from '../sensors/sensor.types';
+import mqtt from 'mqtt';
 
 /**
  * MQTT WebSocket Service
  *
- * 注意: 需要安装 mqtt 库
- * npm install mqtt --save
- *
- * 或者使用 paho-mqtt:
- * npm install paho-mqtt --save
+ * 使用 MQTT.js 連接到 MQTT Broker (WebSocket)
  */
-
-// 動態導入 MQTT (避免在未安裝時出錯)
-declare const require: any;
-let mqtt: any;
-try {
-    mqtt = require('mqtt');
-} catch (e) {
-    console.warn('MQTT library not found. Please install: npm install mqtt');
-}
 
 export interface MqttConnectionOptions {
     host: string;
@@ -51,10 +39,6 @@ export class MqttService implements OnDestroy {
      * 連接到 MQTT Broker
      */
     connect(options: MqttConnectionOptions): Promise<void> {
-        if (!mqtt) {
-            return Promise.reject(new Error('MQTT library not installed'));
-        }
-
         if (this.client && this.isConnected()) {
             console.log('Already connected to MQTT broker');
             return Promise.resolve();
