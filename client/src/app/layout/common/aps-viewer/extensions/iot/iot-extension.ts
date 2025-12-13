@@ -1,6 +1,7 @@
 import { Injector } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { SensorService, Sensor, SensorBimBinding, MqttService, SensorData } from 'app/core/services/sensors';
+import { SensorService, Sensor, SensorBimBinding, SensorData } from 'app/core/services/sensors';
+import { MqttService } from 'app/core/services/mqtt';
 import { environment } from 'environments/environment';
 import { IotPanel } from './iot-panel';
 import { SensorMarker } from './sensor-marker';
@@ -35,8 +36,19 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             return;
         }
 
-        this.sensorService = this.injector.get(SensorService);
-        this.mqttService = this.injector.get(MqttService);
+        try {
+            this.sensorService = this.injector.get(SensorService);
+            this.mqttService = this.injector.get(MqttService);
+
+            if (!this.sensorService) {
+                console.error('Failed to get SensorService from Injector');
+            }
+            if (!this.mqttService) {
+                console.error('Failed to get MqttService from Injector');
+            }
+        } catch (error) {
+            console.error('Failed to inject services:', error);
+        }
     }
 
     /**
@@ -67,7 +79,9 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         }
 
         // 斷開 MQTT 連接
-        this.mqttService.disconnect();
+        if (this.mqttService) {
+            this.mqttService.disconnect();
+        }
 
         // 清理標記
         this.clearAllMarkers();
@@ -87,6 +101,12 @@ export class IotExtension extends Autodesk.Viewing.Extension {
      */
     private async initializeMqtt(): Promise<void> {
         try {
+            // 檢查 mqttService 是否已初始化
+            if (!this.mqttService) {
+                console.error('MqttService not available');
+                return;
+            }
+
             // 連接到 MQTT Broker
             await this.mqttService.connect({
                 host: environment.mqtt.host,
@@ -96,7 +116,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                 keepalive: environment.mqtt.keepalive
             });
 
-            console.log('MQTT connected');
+            console.log('MQTT connected successfully');
 
             // 訂閱所有感測器 topics
             await this.mqttService.subscribeMultiple([
@@ -110,6 +130,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
         } catch (error) {
             console.error('MQTT initialization failed:', error);
+            console.error('Error details:', error);
         }
     }
 
