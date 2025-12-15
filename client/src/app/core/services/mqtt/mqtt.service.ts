@@ -48,6 +48,14 @@ export class MqttService implements OnDestroy {
         return new Promise((resolve, reject) => {
             const protocol = options.protocol || 'ws';
             const path = options.path || '/';
+
+            // 配置驗證：檢查 protocol 和 port 是否匹配（VerneMQ 標準）
+            if (protocol === 'ws' && options.port === 8084) {
+                console.warn('⚠️ 配置警告: ws:// 協議通常使用端口 8083，但配置為 8084');
+            } else if (protocol === 'wss' && options.port === 8083) {
+                console.warn('⚠️ 配置警告: wss:// 協議通常使用端口 8084，但配置為 8083');
+            }
+
             const url = `${protocol}://${options.host}:${options.port}${path}`;
 
             const connectOptions = {

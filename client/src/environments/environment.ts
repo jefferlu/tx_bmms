@@ -13,7 +13,7 @@ export const environment = {
     // MQTT Broker 設定 (IoT 感測器)
     mqtt: {
         host: 'giantcld.com',
-        port: 8083,                        // WebSocket 端口
+        port: 8083,                        // WebSocket 端口 (ws: 8083, wss: 8084)
         protocol: 'ws' as 'ws' | 'wss',    // 開發環境使用 ws
         path: '/mqtt',                     // VerneMQ/EMQX 需要 /mqtt 路徑
         reconnectPeriod: 5000,             // 5秒重連
