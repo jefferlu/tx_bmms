@@ -13,6 +13,7 @@ export interface MqttConnectionOptions {
     host: string;
     port: number;
     protocol?: 'ws' | 'wss';
+    path?: string;  // WebSocket 路徑，例如 '/mqtt' (VerneMQ/EMQX) 或 '/' (Mosquitto)
     clientId?: string;
     username?: string;
     password?: string;
@@ -46,7 +47,8 @@ export class MqttService implements OnDestroy {
 
         return new Promise((resolve, reject) => {
             const protocol = options.protocol || 'ws';
-            const url = `${protocol}://${options.host}:${options.port}`;
+            const path = options.path || '/';
+            const url = `${protocol}://${options.host}:${options.port}${path}`;
 
             const connectOptions = {
                 clientId: options.clientId || `tx_bmms_web_${Math.random().toString(16).substr(2, 8)}`,

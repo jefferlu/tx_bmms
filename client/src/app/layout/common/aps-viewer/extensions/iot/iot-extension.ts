@@ -112,6 +112,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                 host: environment.mqtt.host,
                 port: environment.mqtt.port,
                 protocol: environment.mqtt.protocol,
+                path: environment.mqtt.path,
                 reconnectPeriod: environment.mqtt.reconnectPeriod,
                 keepalive: environment.mqtt.keepalive
             });

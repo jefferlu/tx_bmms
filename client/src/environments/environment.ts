@@ -15,6 +15,7 @@ export const environment = {
         host: 'giantcld.com',
         port: 8083,                        // WebSocket 端口
         protocol: 'ws' as 'ws' | 'wss',    // 開發環境使用 ws
+        path: '/mqtt',                     // VerneMQ/EMQX 需要 /mqtt 路徑
         reconnectPeriod: 5000,             // 5秒重連
         keepalive: 60                      // 60秒心跳
     },
