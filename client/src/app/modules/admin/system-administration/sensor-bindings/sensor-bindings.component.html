@@ -1,0 +1,254 @@
+<div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full" *transloco="let t">
+    <div class="mx-auto flex w-full h-full flex-wrap p-6">
+        <div class="flex flex-auto flex-col h-full sm:col-span-2 lg:col-span-3">
+
+            <!-- Header -->
+            <div class="flex flex-row items-center justify-between pt-6 pb-2">
+                <!-- Title -->
+                <div class="text-3xl font-extrabold leading-none tracking-tight">
+                    感測器綁定管理
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-2">
+                    <button mat-flat-button (click)="loadBindings()">
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+                        <span class="ml-2">重新整理</span>
+                    </button>
+                    <button mat-flat-button color="primary" (click)="openNewDialog()">
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                        <span class="ml-2">新增綁定</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex h-full overflow-y-auto bg-card rounded-md">
+                <p-table
+                    class="w-full"
+                    [value]="bindings"
+                    [scrollable]="true"
+                    scrollHeight="flex"
+                    [styleClass]="'p-datatable-lg'"
+                    [loading]="isLoading">
+                    <ng-template pTemplate="header">
+                        <tr class="border-b-2">
+                            <th class="w-20 py-4 pl-8">NO</th>
+                            <th class="w-60">感測器</th>
+                            <th class="w-40">模型 URN</th>
+                            <th class="w-30 text-center">元件 DB ID</th>
+                            <th class="w-40">元件名稱</th>
+                            <th class="w-30 text-center">位置類型</th>
+                            <th class="w-30 text-center">狀態</th>
+                            <th class="w-40 text-center">操作</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-binding let-index="rowIndex">
+                        <tr class="hover:bg-hover">
+                            <td class="pl-8">{{index + 1}}</td>
+                            <td>{{getSensorName(binding.sensor)}}</td>
+                            <td class="text-xs">{{binding.model_urn}}</td>
+                            <td class="text-center">{{binding.element_dbid}}</td>
+                            <td>{{binding.element_name || '-'}}</td>
+                            <td class="text-center">
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                    [ngClass]="{
+                                        'bg-blue-100 text-blue-800': binding.position_type === 'center',
+                                        'bg-green-100 text-green-800': binding.position_type === 'top',
+                                        'bg-yellow-100 text-yellow-800': binding.position_type === 'bottom',
+                                        'bg-purple-100 text-purple-800': binding.position_type === 'custom'
+                                    }">
+                                    {{binding.position_type}}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                    [ngClass]="{
+                                        'bg-green-100 text-green-800': binding.is_active,
+                                        'bg-gray-100 text-gray-800': !binding.is_active
+                                    }">
+                                    {{binding.is_active ? '啟用' : '停用'}}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <button
+                                    mat-icon-button
+                                    (click)="openEditDialog(binding)"
+                                    matTooltip="編輯">
+                                    <mat-icon class="text-blue-500" [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                                </button>
+                                <button
+                                    mat-icon-button
+                                    (click)="deleteBinding(binding)"
+                                    matTooltip="刪除">
+                                    <mat-icon class="text-red-500" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                </button>
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="8" class="text-center py-8">
+                                <div class="flex flex-col items-center justify-center text-secondary">
+                                    <mat-icon class="icon-size-24" [svgIcon]="'heroicons_outline:inbox'"></mat-icon>
+                                    <div class="mt-4 text-xl font-semibold">尚無綁定資料</div>
+                                    <div class="mt-2 text-sm text-gray-500">點擊「新增綁定」按鈕開始建立感測器與 BIM 元件的綁定</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 編輯/新增對話框 -->
+    <p-dialog
+        [(visible)]="displayDialog"
+        [header]="isEditMode ? '編輯綁定' : '新增綁定'"
+        [modal]="true"
+        [style]="{width: '600px'}"
+        [draggable]="false"
+        [resizable]="false">
+        <div class="flex flex-col gap-4 p-4">
+            <!-- 感測器選擇 -->
+            <div class="flex flex-col gap-2">
+                <label class="font-semibold">感測器 *</label>
+                <p-dropdown
+                    [(ngModel)]="currentBinding.sensor"
+                    [options]="sensors"
+                    optionLabel="name"
+                    optionValue="id"
+                    placeholder="選擇感測器"
+                    [filter]="true"
+                    filterBy="name,sensor_id"
+                    [showClear]="true"
+                    appendTo="body"
+                    styleClass="w-full">
+                    <ng-template pTemplate="selectedItem" let-option>
+                        <div *ngIf="option">
+                            {{option.name}} ({{option.sensor_id}})
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="item" let-option>
+                        <div>
+                            <div class="font-semibold">{{option.name}}</div>
+                            <div class="text-xs text-gray-500">{{option.sensor_id}}</div>
+                        </div>
+                    </ng-template>
+                </p-dropdown>
+            </div>
+
+            <!-- 模型 URN -->
+            <div class="flex flex-col gap-2">
+                <label class="font-semibold">模型 URN *</label>
+                <input
+                    type="text"
+                    pInputText
+                    [(ngModel)]="currentBinding.model_urn"
+                    placeholder="輸入模型 URN"
+                    class="w-full" />
+            </div>
+
+            <!-- 元件 DB ID -->
+            <div class="flex flex-col gap-2">
+                <label class="font-semibold">元件 DB ID *</label>
+                <input
+                    type="number"
+                    pInputText
+                    [(ngModel)]="currentBinding.element_dbid"
+                    placeholder="輸入元件 DB ID"
+                    class="w-full" />
+            </div>
+
+            <!-- 元件名稱 -->
+            <div class="flex flex-col gap-2">
+                <label class="font-semibold">元件名稱</label>
+                <input
+                    type="text"
+                    pInputText
+                    [(ngModel)]="currentBinding.element_name"
+                    placeholder="輸入元件名稱 (選填)"
+                    class="w-full" />
+            </div>
+
+            <!-- 位置類型 -->
+            <div class="flex flex-col gap-2">
+                <label class="font-semibold">位置類型</label>
+                <p-dropdown
+                    [(ngModel)]="currentBinding.position_type"
+                    [options]="positionTypeOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="選擇位置類型"
+                    appendTo="body"
+                    styleClass="w-full">
+                </p-dropdown>
+            </div>
+
+            <!-- 標籤顯示 -->
+            <div class="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    [(ngModel)]="currentBinding.label_visible"
+                    id="labelVisible"
+                    class="cursor-pointer" />
+                <label for="labelVisible" class="font-semibold cursor-pointer">顯示標籤</label>
+            </div>
+
+            <!-- 優先級 -->
+            <div class="flex flex-col gap-2">
+                <label class="font-semibold">優先級</label>
+                <input
+                    type="number"
+                    pInputText
+                    [(ngModel)]="currentBinding.priority"
+                    placeholder="0"
+                    class="w-full" />
+            </div>
+
+            <!-- 啟用狀態 -->
+            <div class="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    [(ngModel)]="currentBinding.is_active"
+                    id="isActive"
+                    class="cursor-pointer" />
+                <label for="isActive" class="font-semibold cursor-pointer">啟用</label>
+            </div>
+
+            <!-- 備註 -->
+            <div class="flex flex-col gap-2">
+                <label class="font-semibold">備註</label>
+                <textarea
+                    pInputText
+                    [(ngModel)]="currentBinding.notes"
+                    placeholder="輸入備註 (選填)"
+                    rows="3"
+                    class="w-full">
+                </textarea>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <div class="flex justify-end gap-2">
+                <p-button
+                    label="取消"
+                    severity="secondary"
+                    (onClick)="cancelDialog()">
+                </p-button>
+                <p-button
+                    label="儲存"
+                    (onClick)="saveBinding()">
+                </p-button>
+            </div>
+        </ng-template>
+    </p-dialog>
+
+    <!-- Toast Messages -->
+    <p-toast></p-toast>
+
+    <!-- Confirmation Dialog -->
+    <p-confirmDialog></p-confirmDialog>
+</div>

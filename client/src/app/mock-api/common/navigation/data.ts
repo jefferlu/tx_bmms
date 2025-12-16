@@ -1204,9 +1204,40 @@ export const compactNavigation: GtsNavigationItem[] = [
     {
         id: 'system-administration',
         title: '系統管理',
-        type: 'basic',
+        type: 'collapsable',
         icon: 'heroicons_outline:cog-6-tooth',
-        link: '/system-administration',
+        children: [
+            {
+                id: 'system-administration.bim-management',
+                title: 'BIM 管理',
+                type: 'basic',
+                link: '/system-administration/bim-management',
+            },
+            {
+                id: 'system-administration.sensor-bindings',
+                title: '感測器綁定',
+                type: 'basic',
+                link: '/system-administration/sensor-bindings',
+            },
+            {
+                id: 'system-administration.aps-credentials',
+                title: 'APS 憑證',
+                type: 'basic',
+                link: '/system-administration/aps-credentials',
+            },
+            {
+                id: 'system-administration.backup-restore',
+                title: '備份還原',
+                type: 'basic',
+                link: '/system-administration/backup-restore',
+            },
+            {
+                id: 'system-administration.system-activity-log',
+                title: '系統活動記錄',
+                type: 'basic',
+                link: '/system-administration/system-activity-log',
+            },
+        ],
     },   
     // {
     //     id: 'setup',

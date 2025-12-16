@@ -164,6 +164,74 @@ export class IotPanel extends Autodesk.Viewing.UI.DockingPanel {
     }
 
     /**
+     * 載入所有感測器 (未選擇元件時)
+     */
+    public loadAllSensors(): void {
+        this.loadSensors();
+    }
+
+    /**
+     * 載入指定元件的感測器 (選擇元件時)
+     */
+    public loadSensorsForElement(elementDbId: number, modelUrn: string): void {
+        // 取得該元件的所有感測器綁定
+        const bindings = this.extension.getBindingsForElement(elementDbId, modelUrn);
+
+        if (bindings.length === 0) {
+            // 沒有綁定，顯示提示訊息
+            this.showNoBindingMessage();
+        } else {
+            // 有綁定，載入並顯示這些感測器
+            const sensorIds = bindings.map(b => b.sensor);
+            this.loadSensorsByIds(sensorIds);
+        }
+    }
+
+    /**
+     * 根據 ID 列表載入感測器
+     */
+    private loadSensorsByIds(sensorIds: number[]): void {
+        this._sensorService.getSensors({ is_active: true }).subscribe({
+            next: (allSensors) => {
+                // 過濾出綁定的感測器
+                this.sensors = allSensors.filter(s => sensorIds.includes(s.id));
+                this.filterSensors();
+            },
+            error: (err) => {
+                console.error('載入感測器失敗:', err);
+            }
+        });
+    }
+
+    /**
+     * 顯示無綁定訊息
+     */
+    private showNoBindingMessage(): void {
+        this.sensors = [];
+        this.sensorListContainer.innerHTML = '';
+
+        const messageContainer = document.createElement('div');
+        messageContainer.className = 'flex flex-col items-center justify-center h-full text-center p-8';
+
+        const icon = document.createElement('div');
+        icon.className = 'text-6xl mb-4';
+        icon.innerHTML = '🔌';
+        messageContainer.appendChild(icon);
+
+        const message = document.createElement('div');
+        message.className = 'text-lg font-semibold text-gray-700 mb-2';
+        message.innerText = '實體未綁定 sensor';
+        messageContainer.appendChild(message);
+
+        const hint = document.createElement('div');
+        hint.className = 'text-sm text-gray-500';
+        hint.innerText = '請在系統管理中設定感測器綁定';
+        messageContainer.appendChild(hint);
+
+        this.sensorListContainer.appendChild(messageContainer);
+    }
+
+    /**
      * 過濾感測器
      */
     private filterSensors(): void {

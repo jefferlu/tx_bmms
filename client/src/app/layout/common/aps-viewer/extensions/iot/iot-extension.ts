@@ -25,6 +25,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     private mqttSubscription: Subscription | null = null;
     private isInitialized: boolean = false;
     private currentModelUrn: string | null = null;
+    private selectedElementDbId: number | null = null;
 
     constructor(viewer: any, options: any) {
         super(viewer, options);
@@ -62,6 +63,12 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
         // 創建工具欄按鈕
         this.createToolbarButton();
+
+        // 監聽元件選擇事件
+        this.viewer.addEventListener(
+            Autodesk.Viewing.SELECTION_CHANGED_EVENT,
+            this.onSelectionChanged.bind(this)
+        );
 
         console.log('IoT Extension loaded');
         return true;
@@ -195,6 +202,18 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     }
 
     /**
+     * 處理元件選擇變化
+     */
+    private onSelectionChanged(event: any): void {
+        const selection = this.viewer.getSelection();
+        if (selection && selection.length > 0) {
+            this.selectedElementDbId = selection[0];
+        } else {
+            this.selectedElementDbId = null;
+        }
+    }
+
+    /**
      * 切換面板顯示
      */
     private togglePanel(): void {
@@ -203,6 +222,12 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         }
 
         if (this.iotPanel) {
+            // 傳遞當前選擇的元件到面板
+            if (this.selectedElementDbId !== null) {
+                this.iotPanel.loadSensorsForElement(this.selectedElementDbId, this.currentModelUrn || '');
+            } else {
+                this.iotPanel.loadAllSensors();
+            }
             this.iotPanel.setVisible(!this.iotPanel.isVisible());
         }
 
@@ -277,6 +302,23 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         });
 
         console.log(`Loaded ${bindings.length} sensor bindings`);
+    }
+
+    /**
+     * 取得指定元件的感測器綁定
+     */
+    public getBindingsForElement(elementDbId: number, modelUrn: string): SensorBimBinding[] {
+        const elementBindings: SensorBimBinding[] = [];
+
+        this.bindings.forEach((bindingList, sensorId) => {
+            bindingList.forEach(binding => {
+                if (binding.element_dbid === elementDbId && binding.model_urn === modelUrn) {
+                    elementBindings.push(binding);
+                }
+            });
+        });
+
+        return elementBindings;
     }
 
     /**
