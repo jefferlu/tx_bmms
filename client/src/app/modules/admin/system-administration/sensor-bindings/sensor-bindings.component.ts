@@ -1,40 +1,43 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation, ViewChild } from '@angular/core';
+import { CommonModule, NgTemplateOutlet } from '@angular/common';
+import { FormsModule, NgForm, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { TranslocoModule } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
-import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { MessageService, ConfirmationService } from 'primeng/api';
-import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, forkJoin } from 'rxjs';
+import { Subject, takeUntil, forkJoin, finalize } from 'rxjs';
 import { SensorService, Sensor, SensorBimBinding } from 'app/core/services/sensors';
+import { ToastService } from 'app/layout/common/toast/toast.service';
+import { GtsMediaWatcherService } from '@gts/services/media-watcher';
+import { GtsConfirmationService } from '@gts/services/confirmation';
 
 @Component({
     selector: 'app-sensor-bindings',
     standalone: true,
     imports: [
         CommonModule,
+        NgTemplateOutlet,
+        FormsModule,
+        ReactiveFormsModule,
         MatButtonModule,
         MatIconModule,
         MatProgressSpinnerModule,
+        MatSidenavModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatDividerModule,
+        MatCheckboxModule,
         TranslocoModule,
-        TableModule,
-        DialogModule,
-        InputTextModule,
-        DropdownModule,
-        ButtonModule,
-        ToastModule,
-        ConfirmDialogModule,
-        FormsModule
+        TableModule
     ],
-    providers: [MessageService, ConfirmationService],
     templateUrl: './sensor-bindings.component.html',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,14 +51,21 @@ import { SensorService, Sensor, SensorBimBinding } from 'app/core/services/senso
     `]
 })
 export class SensorBindingsComponent implements OnInit, OnDestroy {
+    @ViewChild('matDrawer', { static: true }) matDrawer: MatDrawer;
+    @ViewChild('ngForm') ngForm: NgForm;
+
+    drawerMode: 'side' | 'over';
+    form: UntypedFormGroup;
+
+    page: any = {
+        bindings: [],
+        sensors: [],
+        record: {}
+    };
+
     bindings: SensorBimBinding[] = [];
     sensors: Sensor[] = [];
     isLoading: boolean = false;
-    displayDialog: boolean = false;
-    isEditMode: boolean = false;
-
-    // 當前編輯的綁定
-    currentBinding: Partial<SensorBimBinding> = {};
 
     // 位置類型選項
     positionTypeOptions = [
@@ -69,13 +79,49 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
 
     constructor(
         private _sensorService: SensorService,
-        private _messageService: MessageService,
-        private _confirmationService: ConfirmationService,
-        private _changeDetectorRef: ChangeDetectorRef
+        private _toastService: ToastService,
+        private _changeDetectorRef: ChangeDetectorRef,
+        private _formBuilder: UntypedFormBuilder,
+        private _gtsMediaWatcherService: GtsMediaWatcherService,
+        private _gtsConfirmationService: GtsConfirmationService
     ) {}
 
     ngOnInit(): void {
+        // 監聽螢幕尺寸變化
+        this._gtsMediaWatcherService.onMediaChange$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(({ matchingAliases }) => {
+                if (matchingAliases.includes('lg')) {
+                    this.drawerMode = 'side';
+                } else {
+                    this.drawerMode = 'over';
+                }
+                this._changeDetectorRef.markForCheck();
+            });
+
+        // 載入資料
         this.loadData();
+
+        // 建立表單
+        this.form = this._formBuilder.group({
+            sensor: [null, Validators.required],
+            model_urn: ['', Validators.required],
+            element_dbid: [null, Validators.required],
+            element_name: [''],
+            element_external_id: [''],
+            position_type: ['center'],
+            position_offset: this._formBuilder.group({
+                x: [0],
+                y: [0],
+                z: [0]
+            }),
+            label_visible: [true],
+            icon_type: [''],
+            color: [''],
+            priority: [0],
+            notes: [''],
+            is_active: [true]
+        });
     }
 
     ngOnDestroy(): void {
@@ -96,6 +142,8 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this._unsubscribeAll))
         .subscribe({
             next: (result) => {
+                this.page.bindings = result.bindings;
+                this.page.sensors = result.sensors;
                 this.bindings = result.bindings;
                 this.sensors = result.sensors;
                 this.isLoading = false;
@@ -103,11 +151,7 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
             },
             error: (error) => {
                 console.error('Failed to load data:', error);
-                this._messageService.add({
-                    severity: 'error',
-                    summary: '錯誤',
-                    detail: '載入資料失敗'
-                });
+                this._toastService.open({ message: '載入資料失敗' });
                 this.isLoading = false;
                 this._changeDetectorRef.markForCheck();
             }
@@ -115,148 +159,151 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * 重新載入綁定列表
+     * 打開 Drawer (新增或編輯)
      */
-    loadBindings(): void {
-        this.loadData();
+    onOpenDrawer(event?: any): void {
+        this.page.record = event?.data || {};
+
+        // 編輯模式
+        if (this.page.record.id) {
+            this.form.patchValue(this.page.record);
+        }
+        // 新增模式
+        else {
+            this.ngForm?.resetForm();
+            this.form.patchValue({
+                position_type: 'center',
+                label_visible: true,
+                priority: 0,
+                is_active: true,
+                position_offset: { x: 0, y: 0, z: 0 }
+            });
+        }
+
+        this.matDrawer.open();
+        this._changeDetectorRef.markForCheck();
     }
 
     /**
-     * 打開新增對話框
+     * 關閉 Drawer
      */
-    openNewDialog(): void {
-        this.isEditMode = false;
-        this.currentBinding = {
-            position_type: 'center',
-            label_visible: true,
-            priority: 0,
-            is_active: true
-        };
-        this.displayDialog = true;
-    }
-
-    /**
-     * 打開編輯對話框
-     */
-    openEditDialog(binding: SensorBimBinding): void {
-        this.isEditMode = true;
-        this.currentBinding = { ...binding };
-        this.displayDialog = true;
+    onCloseDrawer(): void {
+        this.matDrawer.close();
+        this._changeDetectorRef.markForCheck();
     }
 
     /**
      * 儲存綁定
      */
-    saveBinding(): void {
-        if (!this.validateBinding()) {
+    onSave(): void {
+        if (this.form.invalid) {
+            this._toastService.open({ message: '請填寫必填欄位' });
             return;
         }
 
         this.isLoading = true;
         this._changeDetectorRef.markForCheck();
 
-        const operation = this.isEditMode
-            ? this._sensorService.updateBinding(this.currentBinding.id!, this.currentBinding)
-            : this._sensorService.createBinding(this.currentBinding);
+        const formValue = this.form.value;
 
-        operation.pipe(takeUntil(this._unsubscribeAll))
-            .subscribe({
-                next: () => {
-                    this._messageService.add({
-                        severity: 'success',
-                        summary: '成功',
-                        detail: this.isEditMode ? '綁定已更新' : '綁定已建立'
-                    });
-                    this.displayDialog = false;
-                    this._changeDetectorRef.markForCheck();
-                    this.loadBindings();
-                },
-                error: (error) => {
-                    console.error('Failed to save binding:', error);
-                    this._messageService.add({
-                        severity: 'error',
-                        summary: '錯誤',
-                        detail: '儲存綁定失敗'
-                    });
-                    this.isLoading = false;
-                    this._changeDetectorRef.markForCheck();
-                }
-            });
-    }
+        // 編輯模式
+        if (this.page.record.id) {
+            const request = {
+                id: this.page.record.id,
+                ...formValue
+            };
 
-    /**
-     * 驗證綁定資料
-     */
-    validateBinding(): boolean {
-        if (!this.currentBinding.sensor) {
-            this._messageService.add({
-                severity: 'warn',
-                summary: '警告',
-                detail: '請選擇感測器'
-            });
-            return false;
+            this._sensorService.updateBinding(request.id, request)
+                .pipe(
+                    finalize(() => {
+                        this.isLoading = false;
+                        this._changeDetectorRef.markForCheck();
+                    }),
+                    takeUntil(this._unsubscribeAll)
+                )
+                .subscribe({
+                    next: () => {
+                        this._toastService.open({ message: '綁定已更新' });
+                        this.onCloseDrawer();
+                        this.loadData();
+                    },
+                    error: (error) => {
+                        console.error('Failed to update binding:', error);
+                        this._toastService.open({ message: '更新綁定失敗' });
+                    }
+                });
         }
-
-        if (!this.currentBinding.model_urn) {
-            this._messageService.add({
-                severity: 'warn',
-                summary: '警告',
-                detail: '請輸入模型 URN'
-            });
-            return false;
+        // 新增模式
+        else {
+            this._sensorService.createBinding(formValue)
+                .pipe(
+                    finalize(() => {
+                        this.isLoading = false;
+                        this._changeDetectorRef.markForCheck();
+                    }),
+                    takeUntil(this._unsubscribeAll)
+                )
+                .subscribe({
+                    next: () => {
+                        this._toastService.open({ message: '綁定已建立' });
+                        this.ngForm?.resetForm();
+                        this.loadData();
+                    },
+                    error: (error) => {
+                        console.error('Failed to create binding:', error);
+                        this._toastService.open({ message: '建立綁定失敗' });
+                    }
+                });
         }
-
-        if (!this.currentBinding.element_dbid) {
-            this._messageService.add({
-                severity: 'warn',
-                summary: '警告',
-                detail: '請輸入元件 DB ID'
-            });
-            return false;
-        }
-
-        return true;
     }
 
     /**
      * 刪除綁定
      */
-    deleteBinding(binding: SensorBimBinding): void {
-        this._confirmationService.confirm({
-            message: `確定要刪除此綁定嗎？`,
-            header: '確認刪除',
-            icon: 'pi pi-exclamation-triangle',
-            acceptLabel: '確定',
-            rejectLabel: '取消',
-            accept: () => {
-                this.isLoading = true;
-                this._changeDetectorRef.markForCheck();
-
-                this._sensorService.deleteBinding(binding.id)
-                    .pipe(takeUntil(this._unsubscribeAll))
-                    .subscribe({
-                        next: () => {
-                            this._messageService.add({
-                                severity: 'success',
-                                summary: '成功',
-                                detail: '綁定已刪除'
-                            });
-                            this._changeDetectorRef.markForCheck();
-                            this.loadBindings();
-                        },
-                        error: (error) => {
-                            console.error('Failed to delete binding:', error);
-                            this._messageService.add({
-                                severity: 'error',
-                                summary: '錯誤',
-                                detail: '刪除綁定失敗'
-                            });
-                            this.isLoading = false;
-                            this._changeDetectorRef.markForCheck();
-                        }
-                    });
+    onDelete(): void {
+        const dialogRef = this._gtsConfirmationService.open({
+            title: '確認刪除',
+            message: '確定要刪除此綁定嗎？',
+            icon: { color: 'warn' },
+            actions: {
+                confirm: { label: '刪除', color: 'warn' },
+                cancel: { label: '取消' }
             }
         });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result === 'confirmed') {
+                this.delete();
+            }
+        });
+    }
+
+    /**
+     * 執行刪除
+     */
+    delete(): void {
+        this.isLoading = true;
+        this._changeDetectorRef.markForCheck();
+
+        this._sensorService.deleteBinding(this.page.record.id)
+            .pipe(
+                finalize(() => {
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                    this.onCloseDrawer();
+                }),
+                takeUntil(this._unsubscribeAll)
+            )
+            .subscribe({
+                next: () => {
+                    this._toastService.open({ message: '綁定已刪除' });
+                    this.loadData();
+                },
+                error: (error) => {
+                    console.error('Failed to delete binding:', error);
+                    this._toastService.open({ message: '刪除綁定失敗' });
+                }
+            });
     }
 
     /**
@@ -267,11 +314,7 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
         return sensor ? sensor.name : `Sensor #${sensorId}`;
     }
 
-    /**
-     * 取消對話框
-     */
-    cancelDialog(): void {
-        this.displayDialog = false;
-        this.currentBinding = {};
+    trackByFn(index: number, item: any): any {
+        return item.id || index;
     }
 }
