@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,7 +13,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { SensorService, Sensor, SensorBimBinding } from 'app/core/services/sensors';
 
 @Component({
@@ -36,6 +36,8 @@ import { SensorService, Sensor, SensorBimBinding } from 'app/core/services/senso
     ],
     providers: [MessageService, ConfirmationService],
     templateUrl: './sensor-bindings.component.html',
+    encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     styles: [`
         :host {
             display: flex;
@@ -68,12 +70,12 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
     constructor(
         private _sensorService: SensorService,
         private _messageService: MessageService,
-        private _confirmationService: ConfirmationService
+        private _confirmationService: ConfirmationService,
+        private _changeDetectorRef: ChangeDetectorRef
     ) {}
 
     ngOnInit(): void {
-        this.loadBindings();
-        this.loadSensors();
+        this.loadData();
     }
 
     ngOnDestroy(): void {
@@ -82,43 +84,41 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * 載入所有綁定
+     * 使用 forkJoin 同時載入綁定和感測器資料
      */
-    loadBindings(): void {
+    loadData(): void {
         this.isLoading = true;
-        this._sensorService.getBindings()
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe({
-                next: (bindings) => {
-                    this.bindings = bindings;
-                    this.isLoading = false;
-                },
-                error: (error) => {
-                    console.error('Failed to load bindings:', error);
-                    this._messageService.add({
-                        severity: 'error',
-                        summary: '錯誤',
-                        detail: '載入綁定失敗'
-                    });
-                    this.isLoading = false;
-                }
-            });
+
+        forkJoin({
+            bindings: this._sensorService.getBindings(),
+            sensors: this._sensorService.getSensors({ is_active: true })
+        })
+        .pipe(takeUntil(this._unsubscribeAll))
+        .subscribe({
+            next: (result) => {
+                this.bindings = result.bindings;
+                this.sensors = result.sensors;
+                this.isLoading = false;
+                this._changeDetectorRef.markForCheck();
+            },
+            error: (error) => {
+                console.error('Failed to load data:', error);
+                this._messageService.add({
+                    severity: 'error',
+                    summary: '錯誤',
+                    detail: '載入資料失敗'
+                });
+                this.isLoading = false;
+                this._changeDetectorRef.markForCheck();
+            }
+        });
     }
 
     /**
-     * 載入所有感測器
+     * 重新載入綁定列表
      */
-    loadSensors(): void {
-        this._sensorService.getSensors({ is_active: true })
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe({
-                next: (sensors) => {
-                    this.sensors = sensors;
-                },
-                error: (error) => {
-                    console.error('Failed to load sensors:', error);
-                }
-            });
+    loadBindings(): void {
+        this.loadData();
     }
 
     /**
@@ -153,6 +153,7 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
         }
 
         this.isLoading = true;
+        this._changeDetectorRef.markForCheck();
 
         const operation = this.isEditMode
             ? this._sensorService.updateBinding(this.currentBinding.id!, this.currentBinding)
@@ -167,6 +168,7 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
                         detail: this.isEditMode ? '綁定已更新' : '綁定已建立'
                     });
                     this.displayDialog = false;
+                    this._changeDetectorRef.markForCheck();
                     this.loadBindings();
                 },
                 error: (error) => {
@@ -177,6 +179,7 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
                         detail: '儲存綁定失敗'
                     });
                     this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
                 }
             });
     }
@@ -227,6 +230,8 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
             rejectLabel: '取消',
             accept: () => {
                 this.isLoading = true;
+                this._changeDetectorRef.markForCheck();
+
                 this._sensorService.deleteBinding(binding.id)
                     .pipe(takeUntil(this._unsubscribeAll))
                     .subscribe({
@@ -236,6 +241,7 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
                                 summary: '成功',
                                 detail: '綁定已刪除'
                             });
+                            this._changeDetectorRef.markForCheck();
                             this.loadBindings();
                         },
                         error: (error) => {
@@ -246,6 +252,7 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
                                 detail: '刪除綁定失敗'
                             });
                             this.isLoading = false;
+                            this._changeDetectorRef.markForCheck();
                         }
                     });
             }
