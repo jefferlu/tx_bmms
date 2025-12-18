@@ -1,6 +1,6 @@
 import { Injector } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
-import { SensorService, Sensor, SensorData } from 'app/core/services/sensors';
+import { SensorService, Sensor, SensorData, PositionType } from 'app/core/services/sensors';
 
 declare const Autodesk: any;
 
@@ -126,7 +126,7 @@ export class IotPanel extends Autodesk.Viewing.UI.DockingPanel {
     /**
      * 創建選中元件資訊區域
      */
-    private createSelectedElementSection(): HTMLElement {
+    private createSelectedElementSection(): HTMLDivElement {
         const section = document.createElement('div');
         section.className = 'mb-4 border-2 border-blue-300 rounded-lg p-3 bg-blue-50';
         section.style.display = 'none'; // 初始隱藏
@@ -542,7 +542,7 @@ export class IotPanel extends Autodesk.Viewing.UI.DockingPanel {
             model_urn: this.selectedElementInfo.urn,
             element_dbid: this.selectedElementInfo.dbId,
             element_name: this.selectedElementInfo.name,
-            position_type: 'center',
+            position_type: 'center' as PositionType,
             label_visible: true,
             priority: 0,
             is_active: true,
