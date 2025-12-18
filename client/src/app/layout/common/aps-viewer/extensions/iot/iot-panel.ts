@@ -21,6 +21,16 @@ export class IotPanel extends Autodesk.Viewing.UI.DockingPanel {
     private refreshButton: HTMLButtonElement;
     private toggleMarkersButton: HTMLButtonElement;
 
+    // 新增：選中元件相關
+    private selectedElementContainer: HTMLDivElement;
+    private selectedElementInfo: {
+        dbId: number;
+        name: string;
+        urn: string;
+    } | null = null;
+    private quickBindSensorSelect: HTMLSelectElement;
+    private quickBindButton: HTMLButtonElement;
+
     private sensors: Sensor[] = [];
     private realtimeData: { [sensorId: string]: SensorData } = {};
     private markersVisible: boolean = true;
@@ -56,6 +66,10 @@ export class IotPanel extends Autodesk.Viewing.UI.DockingPanel {
         // 工具欄
         const toolbar = this.createToolbar();
         content.appendChild(toolbar);
+
+        // 選中元件資訊區域
+        this.selectedElementContainer = this.createSelectedElementSection();
+        content.appendChild(this.selectedElementContainer);
 
         // 搜索和過濾
         const searchBar = this.createSearchBar();
@@ -107,6 +121,67 @@ export class IotPanel extends Autodesk.Viewing.UI.DockingPanel {
         toolbar.appendChild(buttonGroup);
 
         return toolbar;
+    }
+
+    /**
+     * 創建選中元件資訊區域
+     */
+    private createSelectedElementSection(): HTMLElement {
+        const section = document.createElement('div');
+        section.className = 'mb-4 border-2 border-blue-300 rounded-lg p-3 bg-blue-50';
+        section.style.display = 'none'; // 初始隱藏
+
+        // 標題
+        const title = document.createElement('div');
+        title.className = 'text-sm font-bold text-blue-800 mb-2 flex items-center';
+        title.innerHTML = '📍 選中元件資訊';
+        section.appendChild(title);
+
+        // 元件資訊顯示
+        const infoDisplay = document.createElement('div');
+        infoDisplay.id = 'element-info-display';
+        infoDisplay.className = 'text-xs space-y-1 mb-3';
+        section.appendChild(infoDisplay);
+
+        // 快速綁定區域
+        const bindSection = document.createElement('div');
+        bindSection.className = 'space-y-2';
+
+        // 選擇感測器下拉選單
+        const bindLabel = document.createElement('div');
+        bindLabel.className = 'text-xs font-semibold text-gray-700';
+        bindLabel.innerText = '快速綁定感測器：';
+        bindSection.appendChild(bindLabel);
+
+        this.quickBindSensorSelect = document.createElement('select');
+        this.quickBindSensorSelect.className = 'w-full border rounded px-2 py-1 text-sm';
+        bindSection.appendChild(this.quickBindSensorSelect);
+
+        // 按鈕組
+        const buttonGroup = document.createElement('div');
+        buttonGroup.className = 'flex space-x-2';
+
+        // 快速綁定按鈕
+        this.quickBindButton = document.createElement('button');
+        this.quickBindButton.type = 'button';
+        this.quickBindButton.innerHTML = '🔗 綁定到此元件';
+        this.quickBindButton.className = 'flex-1 px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 font-medium';
+        this.quickBindButton.onclick = () => this.onQuickBind();
+        buttonGroup.appendChild(this.quickBindButton);
+
+        // 複製資訊按鈕
+        const copyButton = document.createElement('button');
+        copyButton.type = 'button';
+        copyButton.innerHTML = '📋';
+        copyButton.title = '複製元件資訊';
+        copyButton.className = 'px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600';
+        copyButton.onclick = () => this.copyElementInfo();
+        buttonGroup.appendChild(copyButton);
+
+        bindSection.appendChild(buttonGroup);
+        section.appendChild(bindSection);
+
+        return section;
     }
 
     /**
@@ -384,6 +459,161 @@ export class IotPanel extends Autodesk.Viewing.UI.DockingPanel {
             occupancy: '佔用率'
         };
         return typeNames[type] || type;
+    }
+
+    /**
+     * 更新選中元件資訊
+     */
+    public updateSelectedElement(elementInfo: { dbId: number; name: string; urn: string } | null): void {
+        this.selectedElementInfo = elementInfo;
+
+        if (!elementInfo) {
+            // 隱藏選中元件區域
+            this.selectedElementContainer.style.display = 'none';
+            return;
+        }
+
+        // 顯示選中元件區域
+        this.selectedElementContainer.style.display = 'block';
+
+        // 更新元件資訊顯示
+        const infoDisplay = document.getElementById('element-info-display');
+        if (infoDisplay) {
+            infoDisplay.innerHTML = `
+                <div class="flex justify-between">
+                    <span class="font-semibold text-gray-700">名稱：</span>
+                    <span class="text-gray-900">${elementInfo.name}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-semibold text-gray-700">DBID：</span>
+                    <span class="text-gray-900">${elementInfo.dbId}</span>
+                </div>
+                <div class="break-all">
+                    <span class="font-semibold text-gray-700">URN：</span>
+                    <span class="text-gray-900 text-xs">${elementInfo.urn}</span>
+                </div>
+            `;
+        }
+
+        // 更新感測器下拉選單
+        this.updateSensorSelectOptions();
+    }
+
+    /**
+     * 更新感測器下拉選單選項
+     */
+    private updateSensorSelectOptions(): void {
+        // 清空現有選項
+        this.quickBindSensorSelect.innerHTML = '';
+
+        // 添加預設選項
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.text = '-- 選擇感測器 --';
+        this.quickBindSensorSelect.appendChild(defaultOption);
+
+        // 添加所有感測器選項
+        this.sensors.forEach(sensor => {
+            const option = document.createElement('option');
+            option.value = sensor.id.toString();
+            option.text = `${sensor.name} (${sensor.sensor_id})`;
+            this.quickBindSensorSelect.appendChild(option);
+        });
+    }
+
+    /**
+     * 快速綁定
+     */
+    private onQuickBind(): void {
+        if (!this.selectedElementInfo) {
+            alert('請先選擇一個 BIM 元件');
+            return;
+        }
+
+        const sensorId = this.quickBindSensorSelect.value;
+        if (!sensorId) {
+            alert('請選擇要綁定的感測器');
+            return;
+        }
+
+        // 創建綁定
+        const binding = {
+            sensor: parseInt(sensorId),
+            model_urn: this.selectedElementInfo.urn,
+            element_dbid: this.selectedElementInfo.dbId,
+            element_name: this.selectedElementInfo.name,
+            position_type: 'center',
+            label_visible: true,
+            priority: 0,
+            is_active: true,
+            position_offset: { x: 0, y: 0, z: 0 }
+        };
+
+        this._sensorService.createBinding(binding).subscribe({
+            next: () => {
+                alert('✅ 綁定成功！');
+                // 重新載入綁定資料
+                this.extension.loadSensorsForCurrentModel();
+                // 重置下拉選單
+                this.quickBindSensorSelect.value = '';
+            },
+            error: (err) => {
+                console.error('綁定失敗:', err);
+                alert('❌ 綁定失敗：' + (err.error?.message || '未知錯誤'));
+            }
+        });
+    }
+
+    /**
+     * 複製元件資訊
+     */
+    private copyElementInfo(): void {
+        if (!this.selectedElementInfo) {
+            return;
+        }
+
+        const info = `名稱: ${this.selectedElementInfo.name}
+DBID: ${this.selectedElementInfo.dbId}
+URN: ${this.selectedElementInfo.urn}`;
+
+        // 使用 Clipboard API 複製
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(info).then(() => {
+                alert('📋 元件資訊已複製到剪貼簿');
+            }).catch(err => {
+                console.error('複製失敗:', err);
+                this.fallbackCopyTextToClipboard(info);
+            });
+        } else {
+            this.fallbackCopyTextToClipboard(info);
+        }
+    }
+
+    /**
+     * 備用複製方法 (適用於較舊的瀏覽器)
+     */
+    private fallbackCopyTextToClipboard(text: string): void {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                alert('📋 元件資訊已複製到剪貼簿');
+            } else {
+                alert('複製失敗，請手動複製');
+            }
+        } catch (err) {
+            console.error('複製失敗:', err);
+            alert('複製失敗，請手動複製');
+        }
+
+        document.body.removeChild(textArea);
     }
 
     /**

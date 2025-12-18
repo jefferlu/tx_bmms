@@ -26,6 +26,12 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     private isInitialized: boolean = false;
     private currentModelUrn: string | null = null;
     private selectedElementDbId: number | null = null;
+    private selectedElementInfo: {
+        dbId: number;
+        name: string;
+        urn: string;
+    } | null = null;
+    private isInSelectionMode: boolean = false;
 
     constructor(viewer: any, options: any) {
         super(viewer, options);
@@ -69,6 +75,11 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             Autodesk.Viewing.SELECTION_CHANGED_EVENT,
             this.onSelectionChanged.bind(this)
         );
+
+        // 監聽來自 sensor-bindings 頁面的選擇模式事件
+        window.addEventListener('sensor-binding-select-mode', ((event: CustomEvent) => {
+            this.isInSelectionMode = event.detail.active;
+        }) as EventListener);
 
         console.log('IoT Extension loaded');
         return true;
@@ -207,9 +218,33 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     private onSelectionChanged(event: any): void {
         const selection = this.viewer.getSelection();
         if (selection && selection.length > 0) {
-            this.selectedElementDbId = selection[0];
+            const dbId = selection[0];
+            this.selectedElementDbId = dbId;
+
+            // 獲取元件詳細資訊
+            this.getElementInfo(dbId).then(info => {
+                this.selectedElementInfo = info;
+
+                // 如果在選擇模式下，發送選擇事件給 sensor-bindings 頁面
+                if (this.isInSelectionMode) {
+                    window.dispatchEvent(new CustomEvent('viewer-element-selected', {
+                        detail: info
+                    }));
+                }
+
+                // 如果面板已開啟，更新顯示
+                if (this.iotPanel && this.iotPanel.isVisible()) {
+                    this.iotPanel.updateSelectedElement(info);
+                }
+            });
         } else {
             this.selectedElementDbId = null;
+            this.selectedElementInfo = null;
+
+            // 如果面板已開啟，清除選中元件資訊
+            if (this.iotPanel && this.iotPanel.isVisible()) {
+                this.iotPanel.updateSelectedElement(null);
+            }
         }
     }
 
@@ -319,6 +354,39 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         });
 
         return elementBindings;
+    }
+
+    /**
+     * 獲取當前選中元件的資訊
+     */
+    public getSelectedElementInfo(): {
+        dbId: number;
+        name: string;
+        urn: string;
+    } | null {
+        return this.selectedElementInfo;
+    }
+
+    /**
+     * 獲取元件詳細資訊
+     */
+    private async getElementInfo(dbId: number): Promise<{
+        dbId: number;
+        name: string;
+        urn: string;
+    }> {
+        const tree = this.viewer.model.getInstanceTree();
+        const urn = this.currentModelUrn || this.viewer.model.getData().urn;
+
+        return new Promise((resolve) => {
+            tree.getNodeName(dbId, (name: string) => {
+                resolve({
+                    dbId,
+                    name: name || `Element ${dbId}`,
+                    urn
+                });
+            });
+        });
     }
 
     /**

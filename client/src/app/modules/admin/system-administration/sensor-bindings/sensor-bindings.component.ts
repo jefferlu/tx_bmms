@@ -66,6 +66,7 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
     bindings: SensorBimBinding[] = [];
     sensors: Sensor[] = [];
     isLoading: boolean = false;
+    isSelectingFromViewer: boolean = false;
 
     // 位置類型選項
     positionTypeOptions = [
@@ -76,6 +77,7 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
     ];
 
     private _unsubscribeAll: Subject<void> = new Subject<void>();
+    private _viewerSelectionHandler: any;
 
     constructor(
         private _sensorService: SensorService,
@@ -122,11 +124,24 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
             notes: [''],
             is_active: [true]
         });
+
+        // 監聽來自 Viewer 的元件選擇事件
+        this._viewerSelectionHandler = (event: any) => {
+            if (this.isSelectingFromViewer && event.detail) {
+                this.onViewerElementSelected(event.detail);
+            }
+        };
+        window.addEventListener('viewer-element-selected', this._viewerSelectionHandler);
     }
 
     ngOnDestroy(): void {
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
+
+        // 移除事件監聽器
+        if (this._viewerSelectionHandler) {
+            window.removeEventListener('viewer-element-selected', this._viewerSelectionHandler);
+        }
     }
 
     /**
@@ -316,5 +331,45 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
 
     trackByFn(index: number, item: any): any {
         return item.id || index;
+    }
+
+    /**
+     * 從 Viewer 選擇元件
+     */
+    onSelectFromViewer(): void {
+        this.isSelectingFromViewer = true;
+        this._changeDetectorRef.markForCheck();
+
+        // 發送事件通知 Viewer 進入選擇模式
+        window.dispatchEvent(new CustomEvent('sensor-binding-select-mode', {
+            detail: { active: true }
+        }));
+
+        this._toastService.open({ message: '請在 3D 模型中選擇元件...' });
+    }
+
+    /**
+     * 處理從 Viewer 選擇的元件
+     */
+    onViewerElementSelected(elementInfo: { dbId: number; name: string; urn: string }): void {
+        // 填充表單
+        this.form.patchValue({
+            model_urn: elementInfo.urn,
+            element_dbid: elementInfo.dbId,
+            element_name: elementInfo.name
+        });
+
+        // 取消選擇模式
+        this.isSelectingFromViewer = false;
+        this._changeDetectorRef.markForCheck();
+
+        // 通知 Viewer 退出選擇模式
+        window.dispatchEvent(new CustomEvent('sensor-binding-select-mode', {
+            detail: { active: false }
+        }));
+
+        this._toastService.open({
+            message: `已選擇元件: ${elementInfo.name} (DBID: ${elementInfo.dbId})`
+        });
     }
 }
