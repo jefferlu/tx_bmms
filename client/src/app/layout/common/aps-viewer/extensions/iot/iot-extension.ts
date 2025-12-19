@@ -65,11 +65,42 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             this.onSelectionChanged.bind(this)
         );
 
+        // 監聽模型載入完成事件
+        this.viewer.addEventListener(
+            Autodesk.Viewing.GEOMETRY_LOADED_EVENT,
+            () => {
+                console.log('Model geometry loaded');
+                // 設置當前模型 URN
+                if (this.viewer.model) {
+                    try {
+                        const modelData = this.viewer.model.getData();
+                        this.currentModelUrn = modelData ? modelData.urn : null;
+                        console.log('Current model URN:', this.currentModelUrn);
+                    } catch (e) {
+                        console.error('Failed to get model URN:', e);
+                    }
+                }
+                // 載入當前模型的綁定
+                this.loadSensorsForCurrentModel();
+            }
+        );
+
         // 載入感測器列表
         this.loadSensors();
 
-        // 載入當前模型的綁定
-        this.loadSensorsForCurrentModel();
+        // 如果模型已經載入，立即載入綁定
+        if (this.viewer.model) {
+            try {
+                const modelData = this.viewer.model.getData();
+                this.currentModelUrn = modelData ? modelData.urn : null;
+                console.log('Current model URN (immediate):', this.currentModelUrn);
+                if (this.currentModelUrn) {
+                    this.loadSensorsForCurrentModel();
+                }
+            } catch (e) {
+                console.error('Failed to get model URN on load:', e);
+            }
+        }
 
         console.log('IoT Extension loaded');
         return true;
@@ -129,6 +160,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             // 獲取元件詳細資訊
             this.getElementInfo(dbId).then(info => {
                 this.selectedElementInfo = info;
+                console.log('Element info updated:', info);
+            }).catch(err => {
+                console.error('Failed to get element info:', err);
+                this.selectedElementInfo = null;
             });
         } else {
             this.selectedElementDbId = null;
@@ -428,17 +463,53 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         name: string;
         urn: string;
     }> {
-        const tree = this.viewer.model.getInstanceTree();
-        const urn = this.currentModelUrn || this.viewer.model.getData().urn;
+        return new Promise((resolve, reject) => {
+            try {
+                // 檢查 viewer 和 model 是否存在
+                if (!this.viewer || !this.viewer.model) {
+                    console.error('Viewer or model not available');
+                    reject(new Error('Viewer or model not available'));
+                    return;
+                }
 
-        return new Promise((resolve) => {
-            tree.getNodeName(dbId, (name: string) => {
-                resolve({
-                    dbId,
-                    name: name || `Element ${dbId}`,
-                    urn
+                const model = this.viewer.model;
+                const tree = model.getInstanceTree();
+
+                if (!tree) {
+                    console.error('Instance tree not available');
+                    reject(new Error('Instance tree not available'));
+                    return;
+                }
+
+                // 獲取 URN
+                let urn = this.currentModelUrn;
+                if (!urn) {
+                    try {
+                        const modelData = model.getData();
+                        urn = modelData ? modelData.urn : null;
+                    } catch (e) {
+                        console.error('Failed to get model URN:', e);
+                    }
+                }
+
+                if (!urn) {
+                    console.error('Model URN not available');
+                    reject(new Error('Model URN not available'));
+                    return;
+                }
+
+                // 獲取元件名稱
+                tree.getNodeName(dbId, (name: string) => {
+                    resolve({
+                        dbId,
+                        name: name || `Element ${dbId}`,
+                        urn
+                    });
                 });
-            });
+            } catch (error) {
+                console.error('Error in getElementInfo:', error);
+                reject(error);
+            }
         });
     }
 
