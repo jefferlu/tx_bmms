@@ -1,6 +1,5 @@
 import { Injector } from '@angular/core';
-import { SensorService, Sensor, SensorBimBinding, SensorData } from 'app/core/services/sensors';
-import { IotPanel } from './iot-panel';
+import { SensorService, Sensor, SensorBimBinding, PositionType } from 'app/core/services/sensors';
 import { SensorMarker } from './sensor-marker';
 
 declare const Autodesk: any;
@@ -8,13 +7,12 @@ declare const THREE: any;
 
 /**
  * IoT Extension for Autodesk Forge Viewer
- * 整合感測器數據到 BIM 模型中
+ * 提供感測器綁定功能
  */
 export class IotExtension extends Autodesk.Viewing.Extension {
     private injector: Injector;
     private sensorService: SensorService;
 
-    private iotPanel: IotPanel | null = null;
     private markers: Map<string, SensorMarker> = new Map();
     private bindings: Map<string, SensorBimBinding[]> = new Map();
 
@@ -26,6 +24,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         name: string;
         urn: string;
     } | null = null;
+
+    // 綁定對話框元素
+    private bindingDialog: HTMLDivElement | null = null;
+    private sensors: Sensor[] = [];
 
     constructor(viewer: any, options: any) {
         super(viewer, options);
@@ -63,6 +65,12 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             this.onSelectionChanged.bind(this)
         );
 
+        // 載入感測器列表
+        this.loadSensors();
+
+        // 載入當前模型的綁定
+        this.loadSensorsForCurrentModel();
+
         console.log('IoT Extension loaded');
         return true;
     }
@@ -76,10 +84,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         // 清理標記
         this.clearAllMarkers();
 
-        // 移除面板
-        if (this.iotPanel) {
-            this.iotPanel.uninitialize();
-            this.iotPanel = null;
+        // 移除對話框
+        if (this.bindingDialog) {
+            this.bindingDialog.remove();
+            this.bindingDialog = null;
         }
 
         console.log('IoT Extension unloaded');
@@ -99,13 +107,13 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         // 創建按鈕組
         const iotGroup = new Autodesk.Viewing.UI.ControlGroup('iot-toolbar-group');
 
-        // 創建 IoT 按鈕
-        const iotButton = new Autodesk.Viewing.UI.Button('iot-panel-button');
-        iotButton.setToolTip('IoT 感測器');
-        iotButton.setIcon('adsk-icon-iot');
-        iotButton.onClick = () => this.togglePanel();
+        // 創建綁定按鈕
+        const bindButton = new Autodesk.Viewing.UI.Button('iot-bind-button');
+        bindButton.setToolTip('綁定感測器');
+        bindButton.setIcon('adsk-icon-iot');
+        bindButton.onClick = () => this.showBindingDialog();
 
-        iotGroup.addControl(iotButton);
+        iotGroup.addControl(bindButton);
         toolbar.addControl(iotGroup);
     }
 
@@ -121,61 +129,216 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             // 獲取元件詳細資訊
             this.getElementInfo(dbId).then(info => {
                 this.selectedElementInfo = info;
-
-                // 如果面板已開啟，更新顯示
-                if (this.iotPanel && this.iotPanel.isVisible()) {
-                    this.iotPanel.updateSelectedElement(info);
-                }
             });
         } else {
             this.selectedElementDbId = null;
             this.selectedElementInfo = null;
-
-            // 如果面板已開啟，清除選中元件資訊
-            if (this.iotPanel && this.iotPanel.isVisible()) {
-                this.iotPanel.updateSelectedElement(null);
-            }
         }
     }
 
     /**
-     * 切換面板顯示
+     * 顯示綁定對話框
      */
-    private togglePanel(): void {
-        if (!this.iotPanel) {
-            this.createPanel();
+    private showBindingDialog(): void {
+        if (!this.selectedElementInfo) {
+            alert('請先選擇一個 BIM 元件');
+            return;
         }
 
-        if (this.iotPanel) {
-            // 傳遞當前選擇的元件到面板
-            if (this.selectedElementDbId !== null) {
-                this.iotPanel.loadSensorsForElement(this.selectedElementDbId, this.currentModelUrn || '');
-            } else {
-                this.iotPanel.loadAllSensors();
-            }
-            this.iotPanel.setVisible(!this.iotPanel.isVisible());
+        // 如果對話框已存在，先移除
+        if (this.bindingDialog) {
+            this.bindingDialog.remove();
         }
 
-        // 首次打開面板時載入感測器
-        if (!this.isInitialized) {
-            this.loadSensorsForCurrentModel();
-            this.isInitialized = true;
-        }
+        // 創建對話框
+        this.createBindingDialog();
     }
 
     /**
-     * 創建 IoT 面板
+     * 創建綁定對話框
      */
-    private createPanel(): void {
-        const container = this.viewer.container;
-        this.iotPanel = new IotPanel(
-            this.viewer,
-            this,
-            container,
-            'iot-panel',
-            'IoT 感測器',
-            this.injector
-        );
+    private createBindingDialog(): void {
+        // 創建對話框容器
+        const dialog = document.createElement('div');
+        dialog.className = 'iot-binding-dialog';
+        dialog.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 10000;
+            min-width: 400px;
+            max-width: 500px;
+        `;
+
+        // 標題
+        const title = document.createElement('h3');
+        title.textContent = '綁定感測器到元件';
+        title.style.cssText = 'margin: 0 0 20px 0; font-size: 18px; font-weight: 600; color: #333;';
+        dialog.appendChild(title);
+
+        // 元件資訊區域
+        const infoSection = document.createElement('div');
+        infoSection.style.cssText = 'background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 20px;';
+        infoSection.innerHTML = `
+            <div style="font-size: 12px; color: #666; margin-bottom: 8px; font-weight: 600;">選中的元件資訊</div>
+            <div style="font-size: 13px; margin-bottom: 4px;"><strong>名稱：</strong>${this.selectedElementInfo!.name}</div>
+            <div style="font-size: 13px; margin-bottom: 4px;"><strong>DBID：</strong>${this.selectedElementInfo!.dbId}</div>
+            <div style="font-size: 11px; word-break: break-all;"><strong>URN：</strong>${this.selectedElementInfo!.urn}</div>
+        `;
+        dialog.appendChild(infoSection);
+
+        // 感測器選擇區域
+        const sensorLabel = document.createElement('label');
+        sensorLabel.textContent = '選擇感測器：';
+        sensorLabel.style.cssText = 'display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #333;';
+        dialog.appendChild(sensorLabel);
+
+        const sensorSelect = document.createElement('select');
+        sensorSelect.style.cssText = `
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        `;
+
+        // 添加空選項
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = '-- 請選擇感測器 --';
+        sensorSelect.appendChild(emptyOption);
+
+        // 添加感測器選項
+        this.sensors.forEach(sensor => {
+            const option = document.createElement('option');
+            option.value = sensor.id.toString();
+            option.textContent = `${sensor.name} (${sensor.sensor_id})`;
+            sensorSelect.appendChild(option);
+        });
+        dialog.appendChild(sensorSelect);
+
+        // 按鈕區域
+        const buttonGroup = document.createElement('div');
+        buttonGroup.style.cssText = 'display: flex; gap: 12px; justify-content: flex-end;';
+
+        // 取消按鈕
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = '取消';
+        cancelButton.style.cssText = `
+            padding: 8px 20px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        `;
+        cancelButton.onclick = () => {
+            dialog.remove();
+            this.bindingDialog = null;
+        };
+        buttonGroup.appendChild(cancelButton);
+
+        // 綁定按鈕
+        const bindButton = document.createElement('button');
+        bindButton.textContent = '綁定';
+        bindButton.style.cssText = `
+            padding: 8px 20px;
+            border: none;
+            background: #2196F3;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        `;
+        bindButton.onclick = () => {
+            const sensorId = sensorSelect.value;
+            if (!sensorId) {
+                alert('請選擇感測器');
+                return;
+            }
+            this.createBinding(parseInt(sensorId));
+            dialog.remove();
+            this.bindingDialog = null;
+        };
+        buttonGroup.appendChild(bindButton);
+
+        dialog.appendChild(buttonGroup);
+
+        // 添加遮罩層
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+        `;
+        overlay.onclick = () => {
+            dialog.remove();
+            overlay.remove();
+            this.bindingDialog = null;
+        };
+
+        document.body.appendChild(overlay);
+        document.body.appendChild(dialog);
+
+        this.bindingDialog = dialog;
+    }
+
+    /**
+     * 創建綁定
+     */
+    private createBinding(sensorId: number): void {
+        if (!this.selectedElementInfo) {
+            return;
+        }
+
+        const binding = {
+            sensor: sensorId,
+            model_urn: this.selectedElementInfo.urn,
+            element_dbid: this.selectedElementInfo.dbId,
+            element_name: this.selectedElementInfo.name,
+            position_type: 'center' as PositionType,
+            label_visible: true,
+            priority: 0,
+            is_active: true,
+            position_offset: { x: 0, y: 0, z: 0 }
+        };
+
+        this.sensorService.createBinding(binding).subscribe({
+            next: () => {
+                alert('✅ 綁定成功！');
+                // 重新載入綁定資料
+                this.loadSensorsForCurrentModel();
+            },
+            error: (err) => {
+                console.error('綁定失敗:', err);
+                alert('❌ 綁定失敗：' + (err.error?.message || '未知錯誤'));
+            }
+        });
+    }
+
+    /**
+     * 載入感測器列表
+     */
+    private loadSensors(): void {
+        this.sensorService.getSensors({ is_active: true }).subscribe({
+            next: (sensors) => {
+                this.sensors = sensors;
+            },
+            error: (err) => {
+                console.error('載入感測器失敗:', err);
+            }
+        });
     }
 
     /**
