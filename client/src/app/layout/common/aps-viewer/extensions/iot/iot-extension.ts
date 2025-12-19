@@ -1,8 +1,5 @@
 import { Injector } from '@angular/core';
-import { Subscription } from 'rxjs';
 import { SensorService, Sensor, SensorBimBinding, SensorData } from 'app/core/services/sensors';
-import { MqttService } from 'app/core/services/mqtt';
-import { environment } from 'environments/environment';
 import { IotPanel } from './iot-panel';
 import { SensorMarker } from './sensor-marker';
 
@@ -16,13 +13,11 @@ declare const THREE: any;
 export class IotExtension extends Autodesk.Viewing.Extension {
     private injector: Injector;
     private sensorService: SensorService;
-    private mqttService: MqttService;
 
     private iotPanel: IotPanel | null = null;
     private markers: Map<string, SensorMarker> = new Map();
     private bindings: Map<string, SensorBimBinding[]> = new Map();
 
-    private mqttSubscription: Subscription | null = null;
     private isInitialized: boolean = false;
     private currentModelUrn: string | null = null;
     private selectedElementDbId: number | null = null;
@@ -31,7 +26,6 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         name: string;
         urn: string;
     } | null = null;
-    private isInSelectionMode: boolean = false;
 
     constructor(viewer: any, options: any) {
         super(viewer, options);
@@ -45,13 +39,9 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
         try {
             this.sensorService = this.injector.get(SensorService);
-            this.mqttService = this.injector.get(MqttService);
 
             if (!this.sensorService) {
                 console.error('Failed to get SensorService from Injector');
-            }
-            if (!this.mqttService) {
-                console.error('Failed to get MqttService from Injector');
             }
         } catch (error) {
             console.error('Failed to inject services:', error);
@@ -64,9 +54,6 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     public load(): boolean {
         console.log('IoT Extension loading...');
 
-        // 初始化 MQTT 連接
-        this.initializeMqtt();
-
         // 創建工具欄按鈕
         this.createToolbarButton();
 
@@ -75,11 +62,6 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             Autodesk.Viewing.SELECTION_CHANGED_EVENT,
             this.onSelectionChanged.bind(this)
         );
-
-        // 監聽來自 sensor-bindings 頁面的選擇模式事件
-        window.addEventListener('sensor-binding-select-mode', ((event: CustomEvent) => {
-            this.isInSelectionMode = event.detail.active;
-        }) as EventListener);
 
         console.log('IoT Extension loaded');
         return true;
@@ -90,16 +72,6 @@ export class IotExtension extends Autodesk.Viewing.Extension {
      */
     public unload(): boolean {
         console.log('IoT Extension unloading...');
-
-        // 清理 MQTT 訂閱
-        if (this.mqttSubscription) {
-            this.mqttSubscription.unsubscribe();
-        }
-
-        // 斷開 MQTT 連接
-        if (this.mqttService) {
-            this.mqttService.disconnect();
-        }
 
         // 清理標記
         this.clearAllMarkers();
@@ -112,81 +84,6 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
         console.log('IoT Extension unloaded');
         return true;
-    }
-
-    /**
-     * 初始化 MQTT 連接
-     */
-    private async initializeMqtt(): Promise<void> {
-        try {
-            // 檢查 mqttService 是否已初始化
-            if (!this.mqttService) {
-                console.error('MqttService not available');
-                return;
-            }
-
-            // 連接到 MQTT Broker
-            await this.mqttService.connect({
-                host: environment.mqtt.host,
-                port: environment.mqtt.port,
-                protocol: environment.mqtt.protocol,
-                path: environment.mqtt.path,
-                reconnectPeriod: environment.mqtt.reconnectPeriod,
-                keepalive: environment.mqtt.keepalive
-            });
-
-            console.log('MQTT connected successfully');
-
-            // 訂閱所有感測器 topics
-            await this.mqttService.subscribeMultiple([
-                'sensors/+/+',  // 訂閱所有感測器
-            ]);
-
-            // 監聽 MQTT 訊息
-            this.mqttSubscription = this.mqttService.messages$.subscribe(message => {
-                this.onMqttMessage(message);
-            });
-
-        } catch (error) {
-            console.error('MQTT initialization failed:', error);
-            console.error('Error details:', error);
-        }
-    }
-
-    /**
-     * 處理 MQTT 訊息
-     */
-    private onMqttMessage(message: any): void {
-        try {
-            const payload = JSON.parse(message.payload.toString());
-            const sensorId = payload.sensor_id;
-
-            if (!sensorId) {
-                return;
-            }
-
-            const sensorData: SensorData = {
-                sensor_id: sensorId,
-                value: payload.value,
-                unit: payload.unit,
-                status: payload.status || 'normal',
-                timestamp: payload.timestamp || new Date().toISOString()
-            };
-
-            // 更新標記
-            const marker = this.markers.get(sensorId);
-            if (marker) {
-                marker.updateData(sensorData);
-            }
-
-            // 更新面板顯示
-            if (this.iotPanel) {
-                this.iotPanel.updateSensorData(sensorId, sensorData);
-            }
-
-        } catch (error) {
-            console.error('Failed to process MQTT message:', error);
-        }
     }
 
     /**
@@ -224,13 +121,6 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             // 獲取元件詳細資訊
             this.getElementInfo(dbId).then(info => {
                 this.selectedElementInfo = info;
-
-                // 如果在選擇模式下，發送選擇事件給 sensor-bindings 頁面
-                if (this.isInSelectionMode) {
-                    window.dispatchEvent(new CustomEvent('viewer-element-selected', {
-                        detail: info
-                    }));
-                }
 
                 // 如果面板已開啟，更新顯示
                 if (this.iotPanel && this.iotPanel.isVisible()) {

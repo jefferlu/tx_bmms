@@ -135,27 +135,11 @@
                     </mat-form-field>
                 </div>
 
-                <!-- 從 Viewer 選擇按鈕 -->
-                <div class="mt-4 mb-2">
-                    <button type="button" mat-stroked-button class="w-full" (click)="onSelectFromViewer()">
-                        <mat-icon [svgIcon]="'heroicons_outline:cursor-arrow-rays'"></mat-icon>
-                        <span class="ml-2">從 3D 模型選擇元件</span>
-                    </button>
-                    @if(isSelectingFromViewer) {
-                    <div class="mt-2 p-3 bg-blue-50 border border-blue-300 rounded text-sm text-blue-800">
-                        <div class="flex items-center">
-                            <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
-                            <span class="font-medium">請在 3D 模型中點選元件...</span>
-                        </div>
-                    </div>
-                    }
-                </div>
-
                 <!-- 模型 URN -->
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
                         <mat-label>模型 URN *</mat-label>
-                        <input matInput [formControlName]="'model_urn'" placeholder="輸入模型 URN 或從上方選擇">
+                        <input matInput [formControlName]="'model_urn'" placeholder="輸入模型 URN">
                         @if(form.get('model_urn').hasError('required')) {
                         <mat-error>請輸入模型 URN</mat-error>
                         }
@@ -166,7 +150,7 @@
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
                         <mat-label>元件 DB ID *</mat-label>
-                        <input matInput type="number" [formControlName]="'element_dbid'" placeholder="輸入元件 DB ID 或從上方選擇">
+                        <input matInput type="number" [formControlName]="'element_dbid'" placeholder="輸入元件 DB ID">
                         @if(form.get('element_dbid').hasError('required')) {
                         <mat-error>請輸入元件 DB ID</mat-error>
                         }
