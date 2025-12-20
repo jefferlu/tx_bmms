@@ -210,6 +210,18 @@ export class IotExtension extends Autodesk.Viewing.Extension {
      * 創建綁定對話框 (Dark Mode)
      */
     private createBindingDialog(): void {
+        // 創建遮罩層
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+        `;
+
         // 創建對話框容器
         const dialog = document.createElement('div');
         dialog.className = 'iot-binding-dialog';
@@ -227,6 +239,13 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             min-width: 400px;
             max-width: 500px;
         `;
+
+        // 共用的關閉函數
+        const closeDialog = () => {
+            dialog.remove();
+            overlay.remove();
+            this.bindingDialog = null;
+        };
 
         // 標題
         const title = document.createElement('h3');
@@ -298,8 +317,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         cancelButton.onmouseenter = () => cancelButton.style.background = '#333';
         cancelButton.onmouseleave = () => cancelButton.style.background = '#2a2a2a';
         cancelButton.onclick = () => {
-            dialog.remove();
-            this.bindingDialog = null;
+            closeDialog();
         };
         buttonGroup.appendChild(cancelButton);
 
@@ -326,28 +344,15 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                 return;
             }
             this.createBinding(parseInt(sensorId));
-            dialog.remove();
-            this.bindingDialog = null;
+            closeDialog();
         };
         buttonGroup.appendChild(bindButton);
 
         dialog.appendChild(buttonGroup);
 
-        // 添加遮罩層
-        const overlay = document.createElement('div');
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 9999;
-        `;
+        // 點擊遮罩層關閉
         overlay.onclick = () => {
-            dialog.remove();
-            overlay.remove();
-            this.bindingDialog = null;
+            closeDialog();
         };
 
         document.body.appendChild(overlay);
