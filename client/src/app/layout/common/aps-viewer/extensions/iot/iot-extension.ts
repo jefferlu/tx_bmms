@@ -515,15 +515,15 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                     return;
                 }
 
-                // 獲取元件名稱
-                tree.getNodeName(dbId, (name: string) => {
-                    observer.next({
-                        dbId,
-                        name: name || `Element ${dbId}`,
-                        urn
-                    });
-                    observer.complete();
+                // 獲取元件名稱 - 這是同步方法，直接返回字符串
+                const name = tree.getNodeName(dbId);
+
+                observer.next({
+                    dbId,
+                    name: name || `Element ${dbId}`,
+                    urn
                 });
+                observer.complete();
             } catch (error) {
                 console.error('Error in getElementInfo:', error);
                 observer.error(error);
