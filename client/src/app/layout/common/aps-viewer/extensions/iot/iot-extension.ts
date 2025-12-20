@@ -161,6 +161,13 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
         // 創建綁定按鈕
         const bindButton = new Autodesk.Viewing.UI.Button('iot-bind-button');
+        const bindingImg = document.createElement('img');
+        bindingImg.src = 'assets/aps/svg/binding.svg';
+        bindingImg.style.width = '24px';
+        bindingImg.style.height = '24px';
+        bindButton.container.appendChild(bindingImg);
+        bindButton.addClass('bmms-button');
+
         bindButton.setToolTip('綁定感測器');
         bindButton.setIcon('adsk-icon-iot');
         bindButton.onClick = () => this.showBindingDialog();
@@ -206,7 +213,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     private showBindingDialog(): void {
         if (!this.selectedElementInfo) {
             this.toastService.open({
-                type: 'warning',
+                type: 'info',
                 message: '請先選擇一個 BIM 元件',
                 duration: 3
             });
@@ -357,7 +364,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             const sensorId = sensorSelect.value;
             if (!sensorId) {
                 this.toastService.open({
-                    type: 'warning',
+                    type: 'info',
                     message: '請選擇感測器',
                     duration: 3
                 });
@@ -477,7 +484,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         this.sensorService.createBinding(binding).subscribe({
             next: () => {
                 this.toastService.open({
-                    type: 'success',
+                    type: 'info',
                     message: '綁定成功！',
                     duration: 3
                 });
