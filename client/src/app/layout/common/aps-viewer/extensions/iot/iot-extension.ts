@@ -1,4 +1,6 @@
 import { Injector } from '@angular/core';
+import { Observable, Subject, of, throwError } from 'rxjs';
+import { takeUntil, catchError } from 'rxjs/operators';
 import { SensorService, Sensor, SensorBimBinding, PositionType } from 'app/core/services/sensors';
 import { SensorMarker } from './sensor-marker';
 
@@ -28,6 +30,9 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     // 綁定對話框元素
     private bindingDialog: HTMLDivElement | null = null;
     private sensors: Sensor[] = [];
+
+    // RxJS 訂閱管理
+    private _unsubscribeAll: Subject<void> = new Subject<void>();
 
     constructor(viewer: any, options: any) {
         super(viewer, options);
@@ -112,6 +117,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     public unload(): boolean {
         console.log('IoT Extension unloading...');
 
+        // 取消所有訂閱
+        this._unsubscribeAll.next();
+        this._unsubscribeAll.complete();
+
         // 清理標記
         this.clearAllMarkers();
 
@@ -158,13 +167,21 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             this.selectedElementDbId = dbId;
 
             // 獲取元件詳細資訊
-            this.getElementInfo(dbId).then(info => {
-                this.selectedElementInfo = info;
-                console.log('Element info updated:', info);
-            }).catch(err => {
-                console.error('Failed to get element info:', err);
-                this.selectedElementInfo = null;
-            });
+            this.getElementInfo(dbId)
+                .pipe(
+                    takeUntil(this._unsubscribeAll),
+                    catchError(err => {
+                        console.error('Failed to get element info:', err);
+                        this.selectedElementInfo = null;
+                        return of(null);
+                    })
+                )
+                .subscribe(info => {
+                    if (info) {
+                        this.selectedElementInfo = info;
+                        console.log('Element info updated:', info);
+                    }
+                });
         } else {
             this.selectedElementDbId = null;
             this.selectedElementInfo = null;
@@ -458,17 +475,17 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     /**
      * 獲取元件詳細資訊
      */
-    private async getElementInfo(dbId: number): Promise<{
+    private getElementInfo(dbId: number): Observable<{
         dbId: number;
         name: string;
         urn: string;
     }> {
-        return new Promise((resolve, reject) => {
+        return new Observable(observer => {
             try {
                 // 檢查 viewer 和 model 是否存在
                 if (!this.viewer || !this.viewer.model) {
                     console.error('Viewer or model not available');
-                    reject(new Error('Viewer or model not available'));
+                    observer.error(new Error('Viewer or model not available'));
                     return;
                 }
 
@@ -477,7 +494,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
                 if (!tree) {
                     console.error('Instance tree not available');
-                    reject(new Error('Instance tree not available'));
+                    observer.error(new Error('Instance tree not available'));
                     return;
                 }
 
@@ -494,21 +511,22 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
                 if (!urn) {
                     console.error('Model URN not available');
-                    reject(new Error('Model URN not available'));
+                    observer.error(new Error('Model URN not available'));
                     return;
                 }
 
                 // 獲取元件名稱
                 tree.getNodeName(dbId, (name: string) => {
-                    resolve({
+                    observer.next({
                         dbId,
                         name: name || `Element ${dbId}`,
                         urn
                     });
+                    observer.complete();
                 });
             } catch (error) {
                 console.error('Error in getElementInfo:', error);
-                reject(error);
+                observer.error(error);
             }
         });
     }
