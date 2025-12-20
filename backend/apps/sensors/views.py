@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
 from datetime import timedelta
+from django.db import transaction
 import redis
 import json
 from django.conf import settings
@@ -24,11 +25,18 @@ class SensorViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def bindings(self, request, pk=None):
-        """取得特定感測器的所有綁定"""
+        """取得特定感測器的綁定（一個 sensor 只能有一個綁定）"""
         sensor = self.get_object()
-        bindings = sensor.bim_bindings.filter(is_active=True)
-        serializer = SensorBimBindingSerializer(bindings, many=True)
-        return Response(serializer.data)
+        try:
+            # 改用 OneToOneField 的 related_name (singular)
+            binding = sensor.bim_binding
+            if binding.is_active:
+                serializer = SensorBimBindingSerializer(binding)
+                return Response(serializer.data)
+            else:
+                return Response(None)
+        except SensorBimBinding.DoesNotExist:
+            return Response(None)
 
     @action(detail=True, methods=['get'])
     def latest_data(self, request, pk=None):
@@ -123,6 +131,39 @@ class SensorBimBindingViewSet(viewsets.ModelViewSet):
     queryset = SensorBimBinding.objects.all()
     serializer_class = SensorBimBindingSerializer
     filterset_fields = ['sensor', 'model_urn', 'is_active']
+
+    def create(self, request, *args, **kwargs):
+        """創建綁定，如果 sensor 已有綁定則自動替換"""
+        sensor_id = request.data.get('sensor')
+
+        if not sensor_id:
+            return Response(
+                {'error': '缺少 sensor 參數'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 使用事務確保原子性操作
+        with transaction.atomic():
+            # 檢查該 sensor 是否已有綁定
+            try:
+                existing_binding = SensorBimBinding.objects.get(sensor_id=sensor_id)
+                # 自動刪除舊綁定（因為 OneToOneField 只允許一個綁定）
+                existing_binding.delete()
+            except SensorBimBinding.DoesNotExist:
+                # 沒有既有綁定，直接創建
+                pass
+
+            # 創建新綁定
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED,
+                headers=headers
+            )
 
     @action(detail=False, methods=['get'])
     def by_model(self, request):

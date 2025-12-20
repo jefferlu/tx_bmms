@@ -95,7 +95,7 @@ class Sensor(models.Model):
 
 
 class SensorBimBinding(models.Model):
-    """感測器與 BIM Element 的綁定關係"""
+    """感測器與 BIM Element 的綁定關係 - 一個感測器只能綁定一個元件"""
 
     POSITION_TYPE_CHOICES = [
         ('center', '中心'),
@@ -104,10 +104,14 @@ class SensorBimBinding(models.Model):
         ('custom', '自訂'),
     ]
 
-    # 將 sensor 改為 OneToOneField，確保一對一關係
-    sensor = models.OneToOneField('Sensor', on_delete=models.CASCADE, related_name='bim_bindings', verbose_name='感測器',
-                                  unique=True  # 確保唯一性
-                                  )
+    # 改為 OneToOneField，確保一個 sensor 只能有一個綁定
+    sensor = models.OneToOneField(
+        Sensor,
+        on_delete=models.CASCADE,
+        related_name='bim_binding',
+        verbose_name='感測器',
+        unique=True
+    )
 
     # BIM Element 識別
     model_urn = models.CharField(max_length=255, verbose_name='模型URN')
@@ -138,7 +142,7 @@ class SensorBimBinding(models.Model):
 
     class Meta:
         db_table = 'sensor_bim_bindings'
-        unique_together = [['sensor', 'model_urn', 'element_dbid']]
+        # 移除 unique_together，因為 OneToOneField 已經確保唯一性
         ordering = ['priority', 'created_at']
         verbose_name = '感測器BIM綁定'
         verbose_name_plural = '感測器BIM綁定'
