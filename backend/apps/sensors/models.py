@@ -105,7 +105,7 @@ class SensorBimBinding(models.Model):
     ]
 
     # 將 sensor 改為 OneToOneField，確保一對一關係
-    sensor = models.OneToOneField('Sensor', on_delete=models.CASCADE, related_name='bim_binding', verbose_name='感測器',
+    sensor = models.OneToOneField('Sensor', on_delete=models.CASCADE, related_name='bim_bindings', verbose_name='感測器',
                                   unique=True  # 確保唯一性
                                   )
 
