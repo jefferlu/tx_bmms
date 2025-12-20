@@ -207,7 +207,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     }
 
     /**
-     * 創建綁定對話框
+     * 創建綁定對話框 (Dark Mode)
      */
     private createBindingDialog(): void {
         // 創建對話框容器
@@ -218,10 +218,11 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: white;
+            background: #1e1e1e;
             padding: 24px;
             border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            border: 1px solid #3a3a3a;
             z-index: 10000;
             min-width: 400px;
             max-width: 500px;
@@ -230,34 +231,36 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         // 標題
         const title = document.createElement('h3');
         title.textContent = '綁定感測器到元件';
-        title.style.cssText = 'margin: 0 0 20px 0; font-size: 18px; font-weight: 600; color: #333;';
+        title.style.cssText = 'margin: 0 0 20px 0; font-size: 18px; font-weight: 600; color: #e0e0e0;';
         dialog.appendChild(title);
 
         // 元件資訊區域
         const infoSection = document.createElement('div');
-        infoSection.style.cssText = 'background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 20px;';
+        infoSection.style.cssText = 'background: #2a2a2a; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #3a3a3a;';
         infoSection.innerHTML = `
-            <div style="font-size: 12px; color: #666; margin-bottom: 8px; font-weight: 600;">選中的元件資訊</div>
-            <div style="font-size: 13px; margin-bottom: 4px;"><strong>名稱：</strong>${this.selectedElementInfo!.name}</div>
-            <div style="font-size: 13px; margin-bottom: 4px;"><strong>DBID：</strong>${this.selectedElementInfo!.dbId}</div>
-            <div style="font-size: 11px; word-break: break-all;"><strong>URN：</strong>${this.selectedElementInfo!.urn}</div>
+            <div style="font-size: 12px; color: #999; margin-bottom: 8px; font-weight: 600;">選中的元件資訊</div>
+            <div style="font-size: 13px; margin-bottom: 4px; color: #e0e0e0;"><strong style="color: #aaa;">名稱：</strong>${this.selectedElementInfo!.name}</div>
+            <div style="font-size: 13px; margin-bottom: 4px; color: #e0e0e0;"><strong style="color: #aaa;">DBID：</strong>${this.selectedElementInfo!.dbId}</div>
+            <div style="font-size: 11px; word-break: break-all; color: #bbb;"><strong style="color: #aaa;">URN：</strong>${this.selectedElementInfo!.urn}</div>
         `;
         dialog.appendChild(infoSection);
 
         // 感測器選擇區域
         const sensorLabel = document.createElement('label');
         sensorLabel.textContent = '選擇感測器：';
-        sensorLabel.style.cssText = 'display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #333;';
+        sensorLabel.style.cssText = 'display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #e0e0e0;';
         dialog.appendChild(sensorLabel);
 
         const sensorSelect = document.createElement('select');
         sensorSelect.style.cssText = `
             width: 100%;
             padding: 8px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid #3a3a3a;
             border-radius: 4px;
             font-size: 14px;
             margin-bottom: 20px;
+            background: #2a2a2a;
+            color: #e0e0e0;
         `;
 
         // 添加空選項
@@ -284,12 +287,16 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         cancelButton.textContent = '取消';
         cancelButton.style.cssText = `
             padding: 8px 20px;
-            border: 1px solid #ddd;
-            background: white;
+            border: 1px solid #3a3a3a;
+            background: #2a2a2a;
+            color: #e0e0e0;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
+            transition: background 0.2s;
         `;
+        cancelButton.onmouseenter = () => cancelButton.style.background = '#333';
+        cancelButton.onmouseleave = () => cancelButton.style.background = '#2a2a2a';
         cancelButton.onclick = () => {
             dialog.remove();
             this.bindingDialog = null;
@@ -308,7 +315,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
+            transition: background 0.2s;
         `;
+        bindButton.onmouseenter = () => bindButton.style.background = '#1976D2';
+        bindButton.onmouseleave = () => bindButton.style.background = '#2196F3';
         bindButton.onclick = () => {
             const sensorId = sensorSelect.value;
             if (!sensorId) {
@@ -331,7 +341,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.7);
             z-index: 9999;
         `;
         overlay.onclick = () => {
