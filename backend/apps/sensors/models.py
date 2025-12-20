@@ -41,9 +41,9 @@ class Sensor(models.Model):
 
     # 顯示設定
     display_format = models.CharField(max_length=50, default='{value} {unit}',
-                                     verbose_name='顯示格式')
+                                      verbose_name='顯示格式')
     decimal_places = models.IntegerField(default=2, validators=[MinValueValidator(0), MaxValueValidator(6)],
-                                        verbose_name='小數位數')
+                                         verbose_name='小數位數')
 
     # 告警閾值
     warning_threshold_min = models.FloatField(null=True, blank=True, verbose_name='警告下限')
@@ -53,8 +53,8 @@ class Sensor(models.Model):
 
     # 資料轉換 (可選)
     data_transform = models.JSONField(null=True, blank=True,
-                                     help_text='{"scale": 1.0, "offset": 0.0}',
-                                     verbose_name='數據轉換')
+                                      help_text='{"scale": 1.0, "offset": 0.0}',
+                                      verbose_name='數據轉換')
 
     # 狀態
     is_active = models.BooleanField(default=True, verbose_name='啟用')
@@ -104,8 +104,10 @@ class SensorBimBinding(models.Model):
         ('custom', '自訂'),
     ]
 
-    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE,
-                              related_name='bim_bindings', verbose_name='感測器')
+    # 將 sensor 改為 OneToOneField，確保一對一關係
+    sensor = models.OneToOneField('Sensor', on_delete=models.CASCADE, related_name='bim_binding', verbose_name='感測器',
+                                  unique=True  # 確保唯一性
+                                  )
 
     # BIM Element 識別
     model_urn = models.CharField(max_length=255, verbose_name='模型URN')
@@ -115,10 +117,10 @@ class SensorBimBinding(models.Model):
 
     # 顯示位置設定
     position_type = models.CharField(max_length=20, default='center',
-                                    choices=POSITION_TYPE_CHOICES, verbose_name='位置類型')
+                                     choices=POSITION_TYPE_CHOICES, verbose_name='位置類型')
     position_offset = models.JSONField(null=True, blank=True,
-                                      help_text='{"x": 0, "y": 0, "z": 0}',
-                                      verbose_name='位置偏移')
+                                       help_text='{"x": 0, "y": 0, "z": 0}',
+                                       verbose_name='位置偏移')
 
     # 顯示樣式
     label_visible = models.BooleanField(default=True, verbose_name='顯示標籤')
@@ -156,11 +158,11 @@ class SensorDataLog(models.Model):
     ]
 
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE,
-                              related_name='data_logs', verbose_name='感測器')
+                               related_name='data_logs', verbose_name='感測器')
     value = models.FloatField(verbose_name='數值')
     raw_value = models.FloatField(null=True, blank=True, verbose_name='原始數值')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,
-                             default='normal', verbose_name='狀態')
+                              default='normal', verbose_name='狀態')
     timestamp = models.DateTimeField(db_index=True, verbose_name='時間戳')
 
     class Meta:
