@@ -2,6 +2,8 @@ import { Injector } from '@angular/core';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 import { SensorService, Sensor, SensorBimBinding, PositionType } from 'app/core/services/sensors';
+import { ToastService } from 'app/layout/common/toast/toast.service';
+import { GtsConfirmationService } from '@gts/services/confirmation';
 import { SensorMarker } from './sensor-marker';
 
 declare const Autodesk: any;
@@ -14,6 +16,8 @@ declare const THREE: any;
 export class IotExtension extends Autodesk.Viewing.Extension {
     private injector: Injector;
     private sensorService: SensorService;
+    private toastService: ToastService;
+    private confirmationService: GtsConfirmationService;
 
     private markers: Map<string, SensorMarker> = new Map();
     private bindings: Map<string, SensorBimBinding[]> = new Map();
@@ -46,9 +50,17 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
         try {
             this.sensorService = this.injector.get(SensorService);
+            this.toastService = this.injector.get(ToastService);
+            this.confirmationService = this.injector.get(GtsConfirmationService);
 
             if (!this.sensorService) {
                 console.error('Failed to get SensorService from Injector');
+            }
+            if (!this.toastService) {
+                console.error('Failed to get ToastService from Injector');
+            }
+            if (!this.confirmationService) {
+                console.error('Failed to get GtsConfirmationService from Injector');
             }
         } catch (error) {
             console.error('Failed to inject services:', error);
@@ -193,7 +205,11 @@ export class IotExtension extends Autodesk.Viewing.Extension {
      */
     private showBindingDialog(): void {
         if (!this.selectedElementInfo) {
-            alert('請先選擇一個 BIM 元件');
+            this.toastService.open({
+                type: 'warning',
+                message: '請先選擇一個 BIM 元件',
+                duration: 3
+            });
             return;
         }
 
@@ -340,7 +356,11 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         bindButton.onclick = () => {
             const sensorId = sensorSelect.value;
             if (!sensorId) {
-                alert('請選擇感測器');
+                this.toastService.open({
+                    type: 'warning',
+                    message: '請選擇感測器',
+                    duration: 3
+                });
                 return;
             }
             this.createBinding(parseInt(sensorId));
@@ -376,24 +396,48 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
                 if (existingBinding) {
                     // 感測器已綁定到其他元件，詢問是否要改綁
-                    const confirmMessage =
-                        `此感測器已綁定至元件「${existingBinding.element_name || 'DBID: ' + existingBinding.element_dbid}」\n\n` +
-                        `確定要改為綁定至「${this.selectedElementInfo!.name}」嗎？\n\n` +
-                        `（原有的綁定將會被移除）`;
+                    const oldElementName = existingBinding.element_name || 'DBID: ' + existingBinding.element_dbid;
+                    const newElementName = this.selectedElementInfo!.name;
 
-                    if (confirm(confirmMessage)) {
-                        // 先刪除舊綁定，再創建新綁定
-                        this.sensorService.deleteBinding(existingBinding.id).subscribe({
-                            next: () => {
-                                console.log('舊綁定已刪除，創建新綁定...');
-                                this.performBinding(sensorId);
+                    this.confirmationService.open({
+                        title: '確認重新綁定',
+                        message: `此感測器已綁定至元件「${oldElementName}」\n\n確定要改為綁定至「${newElementName}」嗎？\n\n（原有的綁定將會被移除）`,
+                        icon: {
+                            show: true,
+                            name: 'heroicons_outline:exclamation-triangle',
+                            color: 'warn'
+                        },
+                        actions: {
+                            confirm: {
+                                show: true,
+                                label: '確認重新綁定',
+                                color: 'warn'
                             },
-                            error: (err) => {
-                                console.error('刪除舊綁定失敗:', err);
-                                alert('❌ 刪除舊綁定失敗：' + (err.error?.message || '未知錯誤'));
+                            cancel: {
+                                show: true,
+                                label: '取消'
                             }
-                        });
-                    }
+                        },
+                        dismissible: true
+                    }).afterClosed().subscribe((result) => {
+                        if (result === 'confirmed') {
+                            // 先刪除舊綁定，再創建新綁定
+                            this.sensorService.deleteBinding(existingBinding.id).subscribe({
+                                next: () => {
+                                    console.log('舊綁定已刪除，創建新綁定...');
+                                    this.performBinding(sensorId);
+                                },
+                                error: (err) => {
+                                    console.error('刪除舊綁定失敗:', err);
+                                    this.toastService.open({
+                                        type: 'error',
+                                        message: '刪除舊綁定失敗：' + (err.error?.message || '未知錯誤'),
+                                        duration: 5
+                                    });
+                                }
+                            });
+                        }
+                    });
                 } else {
                     // 感測器未綁定，直接創建新綁定
                     this.performBinding(sensorId);
@@ -401,7 +445,11 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             },
             error: (err) => {
                 console.error('檢查綁定狀態失敗:', err);
-                alert('❌ 檢查綁定狀態失敗：' + (err.error?.message || '未知錯誤'));
+                this.toastService.open({
+                    type: 'error',
+                    message: '檢查綁定狀態失敗：' + (err.error?.message || '未知錯誤'),
+                    duration: 5
+                });
             }
         });
     }
@@ -428,13 +476,21 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
         this.sensorService.createBinding(binding).subscribe({
             next: () => {
-                alert('✅ 綁定成功！');
+                this.toastService.open({
+                    type: 'success',
+                    message: '綁定成功！',
+                    duration: 3
+                });
                 // 重新載入綁定資料
                 this.loadSensorsForCurrentModel();
             },
             error: (err) => {
                 console.error('綁定失敗:', err);
-                alert('❌ 綁定失敗：' + (err.error?.message || '未知錯誤'));
+                this.toastService.open({
+                    type: 'error',
+                    message: '綁定失敗：' + (err.error?.message || '未知錯誤'),
+                    duration: 5
+                });
             }
         });
     }
