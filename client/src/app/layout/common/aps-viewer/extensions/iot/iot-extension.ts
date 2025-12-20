@@ -369,6 +369,51 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             return;
         }
 
+        // 檢查該 sensor 是否已有綁定
+        this.sensorService.getBindings().subscribe({
+            next: (bindings) => {
+                const existingBinding = bindings.find(b => b.sensor === sensorId);
+
+                if (existingBinding) {
+                    // 感測器已綁定到其他元件，詢問是否要改綁
+                    const confirmMessage =
+                        `此感測器已綁定至元件「${existingBinding.element_name || 'DBID: ' + existingBinding.element_dbid}」\n\n` +
+                        `確定要改為綁定至「${this.selectedElementInfo!.name}」嗎？\n\n` +
+                        `（原有的綁定將會被移除）`;
+
+                    if (confirm(confirmMessage)) {
+                        // 先刪除舊綁定，再創建新綁定
+                        this.sensorService.deleteBinding(existingBinding.id).subscribe({
+                            next: () => {
+                                console.log('舊綁定已刪除，創建新綁定...');
+                                this.performBinding(sensorId);
+                            },
+                            error: (err) => {
+                                console.error('刪除舊綁定失敗:', err);
+                                alert('❌ 刪除舊綁定失敗：' + (err.error?.message || '未知錯誤'));
+                            }
+                        });
+                    }
+                } else {
+                    // 感測器未綁定，直接創建新綁定
+                    this.performBinding(sensorId);
+                }
+            },
+            error: (err) => {
+                console.error('檢查綁定狀態失敗:', err);
+                alert('❌ 檢查綁定狀態失敗：' + (err.error?.message || '未知錯誤'));
+            }
+        });
+    }
+
+    /**
+     * 執行綁定操作
+     */
+    private performBinding(sensorId: number): void {
+        if (!this.selectedElementInfo) {
+            return;
+        }
+
         const binding = {
             sensor: sensorId,
             model_urn: this.selectedElementInfo.urn,
