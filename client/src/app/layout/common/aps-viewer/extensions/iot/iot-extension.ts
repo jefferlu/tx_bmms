@@ -8,6 +8,7 @@ import { SensorMarker } from './sensor-marker';
 
 declare const Autodesk: any;
 declare const THREE: any;
+declare const echarts: any;
 
 /**
  * IoT Extension for Autodesk Forge Viewer
@@ -34,6 +35,11 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     // 綁定對話框元素
     private bindingDialog: HTMLDivElement | null = null;
     private sensors: Sensor[] = [];
+
+    // 數據圖表對話框
+    private dataDialog: HTMLDivElement | null = null;
+    private chartInstance: any = null;
+    private dataUpdateInterval: any = null;
 
     // RxJS 訂閱管理
     private _unsubscribeAll: Subject<void> = new Subject<void>();
@@ -136,11 +142,14 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         // 清理標記
         this.clearAllMarkers();
 
-        // 移除對話框
+        // 移除綁定對話框
         if (this.bindingDialog) {
             this.bindingDialog.remove();
             this.bindingDialog = null;
         }
+
+        // 移除數據對話框和清理資源
+        this.closeDataDialog();
 
         console.log('IoT Extension unloaded');
         return true;
@@ -172,7 +181,14 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         bindButton.setIcon('adsk-icon-iot');
         bindButton.onClick = () => this.showBindingDialog();
 
+        // 創建查看數據按鈕
+        const dataButton = new Autodesk.Viewing.UI.Button('iot-data-button');
+        dataButton.setToolTip('查看感測器數據');
+        dataButton.setIcon('adsk-icon-chart');
+        dataButton.onClick = () => this.showDataDialog();
+
         iotGroup.addControl(bindButton);
+        iotGroup.addControl(dataButton);
         toolbar.addControl(iotGroup);
     }
 
@@ -762,6 +778,369 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         });
         this.markers.clear();
         this.bindings.clear();
+    }
+
+    /**
+     * 顯示數據圖表對話框
+     */
+    private showDataDialog(): void {
+        if (!this.selectedElementInfo) {
+            this.toastService.open({
+                type: 'warning',
+                message: '請先選擇一個 BIM 元件',
+                duration: 3
+            });
+            return;
+        }
+
+        // 獲取選中元件的綁定
+        this.sensorService.getBindings().subscribe({
+            next: (bindings) => {
+                const elementBinding = bindings.find(
+                    b => b.element_dbid === this.selectedElementInfo!.dbId &&
+                         b.model_urn === this.selectedElementInfo!.urn &&
+                         b.is_active
+                );
+
+                if (!elementBinding) {
+                    this.toastService.open({
+                        type: 'warning',
+                        message: '此元件尚未綁定感測器',
+                        duration: 3
+                    });
+                    return;
+                }
+
+                // 顯示圖表
+                this.createDataDialog(elementBinding);
+            },
+            error: (err) => {
+                console.error('獲取綁定失敗:', err);
+                this.toastService.open({
+                    type: 'error',
+                    message: '獲取綁定資料失敗',
+                    duration: 3
+                });
+            }
+        });
+    }
+
+    /**
+     * 創建數據圖表對話框
+     */
+    private createDataDialog(binding: SensorBimBinding): void {
+        // 如果對話框已存在，先關閉
+        if (this.dataDialog) {
+            this.closeDataDialog();
+        }
+
+        // 載入 ECharts (如果尚未載入)
+        this.loadECharts().then(() => {
+            this.buildDataDialog(binding);
+        }).catch(err => {
+            console.error('載入 ECharts 失敗:', err);
+            this.toastService.open({
+                type: 'error',
+                message: '載入圖表庫失敗',
+                duration: 3
+            });
+        });
+    }
+
+    /**
+     * 載入 ECharts 庫
+     */
+    private loadECharts(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            // 檢查是否已載入
+            if (typeof echarts !== 'undefined') {
+                resolve();
+                return;
+            }
+
+            // 動態載入 ECharts
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Failed to load ECharts'));
+            document.head.appendChild(script);
+        });
+    }
+
+    /**
+     * 建立數據圖表對話框
+     */
+    private buildDataDialog(binding: SensorBimBinding): void {
+        // 創建遮罩層
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+        `;
+
+        // 創建對話框
+        const dialog = document.createElement('div');
+        dialog.className = 'iot-data-dialog';
+        dialog.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1e1e1e;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            border: 1px solid #3a3a3a;
+            z-index: 10000;
+            width: 800px;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        `;
+
+        // 關閉函數
+        const closeDialog = () => {
+            this.closeDataDialog();
+            overlay.remove();
+        };
+
+        // 標題列
+        const header = document.createElement('div');
+        header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
+
+        const title = document.createElement('h3');
+        title.textContent = `感測器數據 - ${binding.element_name || 'Element ' + binding.element_dbid}`;
+        title.style.cssText = 'margin: 0; font-size: 18px; font-weight: 600; color: #e0e0e0;';
+
+        const closeButton = document.createElement('button');
+        closeButton.textContent = '✕';
+        closeButton.style.cssText = `
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s;
+        `;
+        closeButton.onmouseenter = () => closeButton.style.background = '#333';
+        closeButton.onmouseleave = () => closeButton.style.background = 'none';
+        closeButton.onclick = closeDialog;
+
+        header.appendChild(title);
+        header.appendChild(closeButton);
+        dialog.appendChild(header);
+
+        // 圖表容器
+        const chartContainer = document.createElement('div');
+        chartContainer.id = 'iot-chart-container';
+        chartContainer.style.cssText = 'width: 100%; height: 500px; background: #2a2a2a; border-radius: 4px;';
+        dialog.appendChild(chartContainer);
+
+        // 點擊遮罩層關閉
+        overlay.onclick = closeDialog;
+
+        // 添加到頁面
+        document.body.appendChild(overlay);
+        document.body.appendChild(dialog);
+
+        this.dataDialog = dialog;
+
+        // 初始化圖表
+        this.initChart(chartContainer, binding.sensor);
+    }
+
+    /**
+     * 初始化 ECharts 圖表
+     */
+    private initChart(container: HTMLElement, sensorId: number): void {
+        // 創建圖表實例
+        this.chartInstance = echarts.init(container, 'dark');
+
+        // 初始配置
+        const option = {
+            title: {
+                text: '感測器即時數據',
+                textStyle: {
+                    color: '#e0e0e0'
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                formatter: (params: any) => {
+                    const param = params[0];
+                    const date = new Date(param.name);
+                    return `${date.toLocaleString('zh-TW')}<br/>${param.seriesName}: ${param.value[1]}`;
+                },
+                axisPointer: {
+                    animation: false
+                }
+            },
+            xAxis: {
+                type: 'time',
+                splitLine: {
+                    show: false
+                },
+                axisLabel: {
+                    color: '#999'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                boundaryGap: [0, '100%'],
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        color: '#3a3a3a'
+                    }
+                },
+                axisLabel: {
+                    color: '#999'
+                }
+            },
+            series: [
+                {
+                    name: '數值',
+                    type: 'line',
+                    showSymbol: false,
+                    data: [],
+                    smooth: true,
+                    lineStyle: {
+                        color: '#2196F3',
+                        width: 2
+                    },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [
+                                { offset: 0, color: 'rgba(33, 150, 243, 0.3)' },
+                                { offset: 1, color: 'rgba(33, 150, 243, 0)' }
+                            ]
+                        }
+                    }
+                }
+            ],
+            grid: {
+                left: '50px',
+                right: '20px',
+                bottom: '40px',
+                top: '80px'
+            }
+        };
+
+        this.chartInstance.setOption(option);
+
+        // 載入歷史數據
+        this.loadHistoryData(sensorId);
+
+        // 開始定時更新
+        this.startDataUpdate(sensorId);
+    }
+
+    /**
+     * 載入歷史數據
+     */
+    private loadHistoryData(sensorId: number): void {
+        this.sensorService.getSensorHistory(sensorId, 1).subscribe({
+            next: (logs) => {
+                const data = logs.map(log => ({
+                    name: log.timestamp,
+                    value: [log.timestamp, log.value]
+                }));
+
+                if (this.chartInstance) {
+                    this.chartInstance.setOption({
+                        series: [{
+                            data: data
+                        }]
+                    });
+                }
+            },
+            error: (err) => {
+                console.error('載入歷史數據失敗:', err);
+            }
+        });
+    }
+
+    /**
+     * 開始定時更新數據
+     */
+    private startDataUpdate(sensorId: number): void {
+        // 清除舊的 interval
+        if (this.dataUpdateInterval) {
+            clearInterval(this.dataUpdateInterval);
+        }
+
+        // 每 5 秒更新一次
+        this.dataUpdateInterval = setInterval(() => {
+            this.sensorService.getSensorLatestData(sensorId).subscribe({
+                next: (data) => {
+                    if (this.chartInstance) {
+                        const option = this.chartInstance.getOption();
+                        const seriesData = option.series[0].data || [];
+
+                        // 添加新數據
+                        seriesData.push({
+                            name: data.timestamp,
+                            value: [data.timestamp, data.value]
+                        });
+
+                        // 保持最多 100 個數據點
+                        if (seriesData.length > 100) {
+                            seriesData.shift();
+                        }
+
+                        this.chartInstance.setOption({
+                            series: [{
+                                data: seriesData
+                            }]
+                        });
+                    }
+                },
+                error: (err) => {
+                    console.error('更新數據失敗:', err);
+                }
+            });
+        }, 5000);
+    }
+
+    /**
+     * 關閉數據對話框
+     */
+    private closeDataDialog(): void {
+        // 停止更新
+        if (this.dataUpdateInterval) {
+            clearInterval(this.dataUpdateInterval);
+            this.dataUpdateInterval = null;
+        }
+
+        // 銷毀圖表
+        if (this.chartInstance) {
+            this.chartInstance.dispose();
+            this.chartInstance = null;
+        }
+
+        // 移除對話框
+        if (this.dataDialog) {
+            this.dataDialog.remove();
+            this.dataDialog = null;
+        }
     }
 
     /**
