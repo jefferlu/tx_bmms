@@ -14,7 +14,13 @@ class SensorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_bim_bindings_count(self, obj):
-        return obj.bim_bindings.filter(is_active=True).count()
+        """取得綁定數量（OneToOneField 只會是 0 或 1）"""
+        try:
+            # 改用 OneToOneField 的 related_name (singular)
+            binding = obj.bim_binding
+            return 1 if binding and binding.is_active else 0
+        except SensorBimBinding.DoesNotExist:
+            return 0
 
     def get_latest_value(self, obj):
         """從 Redis 取得最新數據"""
