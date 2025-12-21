@@ -966,11 +966,23 @@ export class IotExtension extends Autodesk.Viewing.Extension {
      * 初始化 ECharts 圖表
      */
     private initChart(container: HTMLElement, sensorId: number): void {
-        // 創建圖表實例
-        this.chartInstance = echarts.init(container, 'dark');
+        // 創建圖表實例 (不使用 dark theme，自定義配置)
+        this.chartInstance = echarts.init(container);
+
+        // 生成初始假數據（最近 100 個數據點，值為 0）
+        const initialData: any[] = [];
+        const now = new Date();
+        for (let i = 99; i >= 0; i--) {
+            const time = new Date(now.getTime() - i * 1000); // 每秒一個數據點
+            initialData.push({
+                name: time.toString(),
+                value: [time, 0]
+            });
+        }
 
         // 初始配置
         const option = {
+            backgroundColor: 'transparent', // 透明背景
             title: {
                 text: '感測器即時數據',
                 textStyle: {
@@ -981,11 +993,19 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                 trigger: 'axis',
                 formatter: (params: any) => {
                     const param = params[0];
-                    const date = new Date(param.name);
-                    return `${date.toLocaleString('zh-TW')}<br/>${param.seriesName}: ${param.value[1]}`;
+                    const date = new Date(param.value[0]);
+                    const hours = date.getHours().toString().padStart(2, '0');
+                    const minutes = date.getMinutes().toString().padStart(2, '0');
+                    const seconds = date.getSeconds().toString().padStart(2, '0');
+                    return `${hours}:${minutes}:${seconds}<br/>${param.seriesName}: ${param.value[1]}`;
                 },
                 axisPointer: {
                     animation: false
+                },
+                backgroundColor: 'rgba(50, 50, 50, 0.9)',
+                borderColor: '#3a3a3a',
+                textStyle: {
+                    color: '#e0e0e0'
                 }
             },
             xAxis: {
@@ -994,7 +1014,19 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                     show: false
                 },
                 axisLabel: {
-                    color: '#999'
+                    color: '#999',
+                    formatter: (value: number) => {
+                        const date = new Date(value);
+                        const hours = date.getHours().toString().padStart(2, '0');
+                        const minutes = date.getMinutes().toString().padStart(2, '0');
+                        const seconds = date.getSeconds().toString().padStart(2, '0');
+                        return `${hours}:${minutes}:${seconds}`;
+                    }
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: '#3a3a3a'
+                    }
                 }
             },
             yAxis: {
@@ -1008,6 +1040,12 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                 },
                 axisLabel: {
                     color: '#999'
+                },
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: '#3a3a3a'
+                    }
                 }
             },
             series: [
@@ -1015,7 +1053,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                     name: '數值',
                     type: 'line',
                     showSymbol: false,
-                    data: [],
+                    data: initialData,
                     smooth: true,
                     lineStyle: {
                         color: '#2196F3',
@@ -1037,7 +1075,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                 }
             ],
             grid: {
-                left: '50px',
+                left: '60px',
                 right: '20px',
                 bottom: '40px',
                 top: '80px'
@@ -1046,10 +1084,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
         this.chartInstance.setOption(option);
 
-        // 載入歷史數據
+        // 嘗試載入歷史數據（如果有的話會替換假數據）
         this.loadHistoryData(sensorId);
 
-        // 開始定時更新
+        // 開始定時更新（每秒更新一次，即使沒有數據也更新時間軸）
         this.startDataUpdate(sensorId);
     }
 
@@ -1059,21 +1097,26 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     private loadHistoryData(sensorId: number): void {
         this.sensorService.getSensorHistory(sensorId, 1).subscribe({
             next: (logs) => {
-                const data = logs.map(log => ({
-                    name: log.timestamp,
-                    value: [log.timestamp, log.value]
-                }));
+                if (logs && logs.length > 0) {
+                    // 有歷史數據，使用實際數據
+                    const data = logs.map(log => ({
+                        name: log.timestamp,
+                        value: [new Date(log.timestamp), log.value]
+                    }));
 
-                if (this.chartInstance) {
-                    this.chartInstance.setOption({
-                        series: [{
-                            data: data
-                        }]
-                    });
+                    if (this.chartInstance) {
+                        this.chartInstance.setOption({
+                            series: [{
+                                data: data
+                            }]
+                        });
+                    }
                 }
+                // 如果沒有歷史數據，保持初始假數據（值為 0）
             },
             error: (err) => {
                 console.error('載入歷史數據失敗:', err);
+                // 錯誤時保持初始假數據（值為 0）
             }
         });
     }
@@ -1087,18 +1130,20 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             clearInterval(this.dataUpdateInterval);
         }
 
-        // 每 5 秒更新一次
+        // 每 1 秒更新一次
         this.dataUpdateInterval = setInterval(() => {
+            const currentTime = new Date();
+
             this.sensorService.getSensorLatestData(sensorId).subscribe({
                 next: (data) => {
                     if (this.chartInstance) {
                         const option = this.chartInstance.getOption();
                         const seriesData = option.series[0].data || [];
 
-                        // 添加新數據
+                        // 添加新數據（使用實際數據）
                         seriesData.push({
                             name: data.timestamp,
-                            value: [data.timestamp, data.value]
+                            value: [new Date(data.timestamp), data.value]
                         });
 
                         // 保持最多 100 個數據點
@@ -1114,10 +1159,31 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                     }
                 },
                 error: (err) => {
-                    console.error('更新數據失敗:', err);
+                    // 即使 API 錯誤或沒有數據，也要更新時間軸（值為 0）
+                    if (this.chartInstance) {
+                        const option = this.chartInstance.getOption();
+                        const seriesData = option.series[0].data || [];
+
+                        // 添加值為 0 的數據點
+                        seriesData.push({
+                            name: currentTime.toString(),
+                            value: [currentTime, 0]
+                        });
+
+                        // 保持最多 100 個數據點
+                        if (seriesData.length > 100) {
+                            seriesData.shift();
+                        }
+
+                        this.chartInstance.setOption({
+                            series: [{
+                                data: seriesData
+                            }]
+                        });
+                    }
                 }
             });
-        }, 5000);
+        }, 1000); // 每秒更新
     }
 
     /**
