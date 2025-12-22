@@ -62,6 +62,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     private selectedSensorId: number | null = null; // 當前選中的 sensor
     private currentDialogBindings: SensorBimBinding[] = []; // 當前對話框的 bindings
     private currentDialogSensors: (Sensor | null)[] = []; // 當前對話框的 sensors
+    private sensorConnectionStatus: Map<number, 'connected' | 'waiting' | 'error'> = new Map(); // 感測器連接狀態
 
     // RxJS 訂閱管理
     private _unsubscribeAll: Subject<void> = new Subject<void>();
@@ -988,6 +989,37 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     }
 
     /**
+     * 獲取連接狀態的顯示資訊
+     */
+    private getStatusInfo(sensorId: number): { color: string; text: string; icon: string } {
+        const status = this.sensorConnectionStatus.get(sensorId) || 'waiting';
+
+        switch (status) {
+            case 'connected':
+                return { color: '#4caf50', text: '正在接收', icon: '●' };
+            case 'waiting':
+                return { color: '#ff9800', text: '等待數據', icon: '●' };
+            case 'error':
+                return { color: '#f44336', text: '連接失敗', icon: '●' };
+            default:
+                return { color: '#999', text: '未知', icon: '●' };
+        }
+    }
+
+    /**
+     * 更新狀態指示器
+     */
+    private updateStatusBadge(sensorId: number): void {
+        const statusBadge = document.getElementById(`status-badge-${sensorId}`);
+        if (!statusBadge) return;
+
+        const statusInfo = this.getStatusInfo(sensorId);
+        statusBadge.style.color = statusInfo.color;
+        statusBadge.style.borderColor = statusInfo.color;
+        statusBadge.innerHTML = `<span style="font-size: 10px;">${statusInfo.icon}</span><span>${statusInfo.text}</span>`;
+    }
+
+    /**
      * 創建 Sensor Card
      */
     private createSensorCard(binding: SensorBimBinding, sensor: Sensor | null): HTMLElement {
@@ -1002,6 +1034,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             display: flex;
             flex-direction: column;
             min-height: 300px;
+            position: relative;
         `;
 
         // Hover 效果
@@ -1013,7 +1046,29 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             card.style.borderColor = '#3a3a3a';
             card.style.boxShadow = 'none';
         };
-        
+
+        // 狀態指示器（右上角）
+        const statusBadge = document.createElement('div');
+        statusBadge.id = `status-badge-${binding.sensor}`;
+        const statusInfo = this.getStatusInfo(binding.sensor);
+        statusBadge.style.cssText = `
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: ${statusInfo.color};
+            background: rgba(0, 0, 0, 0.5);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid ${statusInfo.color};
+            z-index: 10;
+        `;
+        statusBadge.innerHTML = `<span style="font-size: 10px;">${statusInfo.icon}</span><span>${statusInfo.text}</span>`;
+        card.appendChild(statusBadge);
+
         // Chart 容器
         const chartContainer = document.createElement('div');
         chartContainer.id = `sensor-chart-${binding.sensor}`;
@@ -1305,9 +1360,70 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     }
 
     /**
+     * 更新圖表的 "無數據" 提示
+     */
+    private updateChartNoDataGraphic(sensorId: number, hasData: boolean): void {
+        const chartInstance = this.chartInstances.get(sensorId);
+        if (!chartInstance) return;
+
+        if (!hasData) {
+            // 顯示 "等待感測器數據" 提示
+            chartInstance.setOption({
+                graphic: {
+                    type: 'group',
+                    left: 'center',
+                    top: 'center',
+                    children: [
+                        {
+                            type: 'rect',
+                            z: 100,
+                            left: 'center',
+                            top: 'middle',
+                            shape: {
+                                width: 240,
+                                height: 100
+                            },
+                            style: {
+                                fill: '#2a2a2a',
+                                stroke: '#3a3a3a',
+                                lineWidth: 1
+                            }
+                        },
+                        {
+                            type: 'text',
+                            z: 100,
+                            left: 'center',
+                            top: 'middle',
+                            style: {
+                                text: '⏳ 等待感測器數據...',
+                                textAlign: 'center',
+                                fill: '#999',
+                                fontSize: 14
+                            }
+                        }
+                    ]
+                }
+            });
+        } else {
+            // 移除 "無數據" 提示
+            chartInstance.setOption({
+                graphic: {
+                    type: 'group',
+                    children: []
+                }
+            });
+        }
+    }
+
+    /**
      * 載入歷史數據（使用 MQTT timestamp）
      */
     private loadHistoryData(sensorId: number): void {
+        // 初始狀態：等待數據
+        this.sensorConnectionStatus.set(sensorId, 'waiting');
+        this.updateChartNoDataGraphic(sensorId, false);
+        this.updateStatusBadge(sensorId);
+
         // 查詢最近 24 小時的歷史數據，確保有足夠的數據點填充圖表
         this.sensorService.getSensorHistory(sensorId, 24).subscribe({
             next: (logs) => {
@@ -1328,15 +1444,25 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                                 data: recentData
                             }]
                         });
+                        // 有數據，移除 "無數據" 提示，設置狀態為已連接
+                        this.sensorConnectionStatus.set(sensorId, 'connected');
+                        this.updateChartNoDataGraphic(sensorId, true);
+                        this.updateStatusBadge(sensorId);
                     }
                 } else {
-                    // 沒有歷史數據，圖表保持空白，等待新數據
+                    // 沒有歷史數據，顯示 "等待數據" 提示
                     console.debug(`No historical data for sensor ${sensorId}`);
+                    this.sensorConnectionStatus.set(sensorId, 'waiting');
+                    this.updateChartNoDataGraphic(sensorId, false);
+                    this.updateStatusBadge(sensorId);
                 }
             },
             error: (err) => {
                 console.error('載入歷史數據失敗:', err);
-                // 錯誤時圖表保持空白，等待新數據
+                // 錯誤時顯示 "等待數據" 提示，狀態設為錯誤
+                this.sensorConnectionStatus.set(sensorId, 'error');
+                this.updateChartNoDataGraphic(sensorId, false);
+                this.updateStatusBadge(sensorId);
             }
         });
     }
@@ -1385,13 +1511,31 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                                     data: seriesData
                                 }]
                             });
+
+                            // 收到數據，更新狀態為已連接，移除 "無數據" 提示
+                            this.sensorConnectionStatus.set(sensorId, 'connected');
+                            this.updateChartNoDataGraphic(sensorId, true);
+                            this.updateStatusBadge(sensorId);
                         }
                     }
                 },
                 error: (err) => {
                     // 沒有數據時不添加任何點，保持圖表現有狀態
-                    // 避免使用系統時間生成假數據
                     console.debug(`No new data for sensor ${sensorId}`);
+
+                    // 檢查當前圖表是否有數據
+                    const chartInstance = this.chartInstances.get(sensorId);
+                    if (chartInstance) {
+                        const option = chartInstance.getOption();
+                        const seriesData = option.series[0].data || [];
+
+                        // 如果圖表沒有數據，顯示 "等待數據" 提示
+                        if (seriesData.length === 0) {
+                            this.sensorConnectionStatus.set(sensorId, 'waiting');
+                            this.updateChartNoDataGraphic(sensorId, false);
+                            this.updateStatusBadge(sensorId);
+                        }
+                    }
                 }
             });
         }, 1000); // 每秒更新
@@ -1415,6 +1559,9 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             chart.dispose();
         });
         this.chartInstances.clear();
+
+        // 清空連接狀態
+        this.sensorConnectionStatus.clear();
 
         // 重置視圖狀態
         this.currentView = 'grid';
