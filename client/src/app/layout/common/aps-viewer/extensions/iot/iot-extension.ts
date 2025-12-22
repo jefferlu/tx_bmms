@@ -1013,24 +1013,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             card.style.borderColor = '#3a3a3a';
             card.style.boxShadow = 'none';
         };
-
-        // Card Header
-        const cardHeader = document.createElement('div');
-        cardHeader.style.cssText = 'margin-bottom: 12px;';
-
-        const cardTitle = document.createElement('h4');
-        const sensorTypeName = sensor?.sensor_type_display || sensor?.sensor_type || '未知';
-        cardTitle.textContent = sensorTypeName;
-        cardTitle.style.cssText = 'margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: #e0e0e0;';
-
-        const cardSubtitle = document.createElement('div');
-        cardSubtitle.textContent = sensor?.name || `Sensor ${binding.sensor}`;
-        cardSubtitle.style.cssText = 'font-size: 12px; color: #999;';
-
-        // cardHeader.appendChild(cardTitle);
-        // cardHeader.appendChild(cardSubtitle);
-        // card.appendChild(cardHeader);
-
+        
         // Chart 容器
         const chartContainer = document.createElement('div');
         chartContainer.id = `sensor-chart-${binding.sensor}`;
