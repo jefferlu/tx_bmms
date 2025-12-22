@@ -1153,17 +1153,6 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         // 創建圖表實例
         const chartInstance = echarts.init(container);
 
-        // 生成初始假數據（最近 100 個數據點，值為 0）
-        const initialData: any[] = [];
-        const now = new Date();
-        for (let i = 99; i >= 0; i--) {
-            const time = new Date(now.getTime() - i * 1000); // 每秒一個數據點
-            initialData.push({
-                name: time.toString(),
-                value: [time, 0]
-            });
-        }
-
         // 生成動態標題（例如：會議室 101 CO2）
         // let chartTitle = sensor?.name || `Sensor ${binding.sensor}` || '未知';
         // if (sensor) {
@@ -1279,7 +1268,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                     name: '數值',
                     type: 'line',
                     showSymbol: false,
-                    data: initialData,
+                    data: [], // 初始為空，等待載入真實歷史數據
                     smooth: true,
                     lineStyle: {
                         color: '#2196F3',
@@ -1308,7 +1297,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         // 存儲圖表實例到 Map
         this.chartInstances.set(binding.sensor, chartInstance);
 
-        // 嘗試載入歷史數據（如果有的話會替換假數據）
+        // 載入真實歷史數據（使用 MQTT timestamp）
         this.loadHistoryData(binding.sensor);
 
         // 開始定時更新（每秒更新一次，即使沒有數據也更新時間軸）
@@ -1316,32 +1305,38 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     }
 
     /**
-     * 載入歷史數據
+     * 載入歷史數據（使用 MQTT timestamp）
      */
     private loadHistoryData(sensorId: number): void {
-        this.sensorService.getSensorHistory(sensorId, 1).subscribe({
+        // 查詢最近 24 小時的歷史數據，確保有足夠的數據點填充圖表
+        this.sensorService.getSensorHistory(sensorId, 24).subscribe({
             next: (logs) => {
                 if (logs && logs.length > 0) {
-                    // 有歷史數據，使用實際數據
+                    // 有歷史數據，使用 MQTT 的實際 timestamp
                     const data = logs.map(log => ({
                         name: log.timestamp,
                         value: [new Date(log.timestamp), log.value]
                     }));
 
+                    // 只保留最近 100 個數據點
+                    const recentData = data.slice(-100);
+
                     const chartInstance = this.chartInstances.get(sensorId);
                     if (chartInstance) {
                         chartInstance.setOption({
                             series: [{
-                                data: data
+                                data: recentData
                             }]
                         });
                     }
+                } else {
+                    // 沒有歷史數據，圖表保持空白，等待新數據
+                    console.debug(`No historical data for sensor ${sensorId}`);
                 }
-                // 如果沒有歷史數據，保持初始假數據（值為 0）
             },
             error: (err) => {
                 console.error('載入歷史數據失敗:', err);
-                // 錯誤時保持初始假數據（值為 0）
+                // 錯誤時圖表保持空白，等待新數據
             }
         });
     }
@@ -1358,8 +1353,6 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
         // 每 1 秒更新一次
         const interval = setInterval(() => {
-            const currentTime = new Date();
-
             this.sensorService.getSensorLatestData(sensorId).subscribe({
                 next: (data) => {
                     const chartInstance = this.chartInstances.get(sensorId);
@@ -1367,48 +1360,38 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                         const option = chartInstance.getOption();
                         const seriesData = option.series[0].data || [];
 
-                        // 添加新數據（使用實際數據）
-                        seriesData.push({
-                            name: data.timestamp,
-                            value: [new Date(data.timestamp), data.value]
-                        });
+                        // 使用 MQTT timestamp，不使用前端系統時間
+                        const dataTimestamp = new Date(data.timestamp);
 
-                        // 保持最多 100 個數據點
-                        if (seriesData.length > 100) {
-                            seriesData.shift();
+                        // 檢查是否已存在相同時間戳的數據（避免重複）
+                        const existingIndex = seriesData.findIndex((item: any) =>
+                            item.value[0].getTime() === dataTimestamp.getTime()
+                        );
+
+                        if (existingIndex === -1) {
+                            // 添加新數據（使用 MQTT 的 timestamp）
+                            seriesData.push({
+                                name: data.timestamp,
+                                value: [dataTimestamp, data.value]
+                            });
+
+                            // 保持最多 100 個數據點
+                            if (seriesData.length > 100) {
+                                seriesData.shift();
+                            }
+
+                            chartInstance.setOption({
+                                series: [{
+                                    data: seriesData
+                                }]
+                            });
                         }
-
-                        chartInstance.setOption({
-                            series: [{
-                                data: seriesData
-                            }]
-                        });
                     }
                 },
                 error: (err) => {
-                    // 即使 API 錯誤或沒有數據，也要更新時間軸（值為 0）
-                    const chartInstance = this.chartInstances.get(sensorId);
-                    if (chartInstance) {
-                        const option = chartInstance.getOption();
-                        const seriesData = option.series[0].data || [];
-
-                        // 添加值為 0 的數據點
-                        seriesData.push({
-                            name: currentTime.toString(),
-                            value: [currentTime, 0]
-                        });
-
-                        // 保持最多 100 個數據點
-                        if (seriesData.length > 100) {
-                            seriesData.shift();
-                        }
-
-                        chartInstance.setOption({
-                            series: [{
-                                data: seriesData
-                            }]
-                        });
-                    }
+                    // 沒有數據時不添加任何點，保持圖表現有狀態
+                    // 避免使用系統時間生成假數據
+                    console.debug(`No new data for sensor ${sensorId}`);
                 }
             });
         }, 1000); // 每秒更新
