@@ -26,6 +26,7 @@
     "@types/crypto-js": "^4.2.1",
     "crypto-js": "^4.2.0",
     "diff-match-patch-ts": "^0.6.0",
+    "echarts": "^6.0.0",
     "lodash-es": "^4.17.21",
     "mqtt": "^5.14.1",
     "ngx-cookie-service": "^19.1.0",

@@ -5,10 +5,10 @@ import { SensorService, Sensor, SensorBimBinding, PositionType } from 'app/core/
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { SensorMarker } from './sensor-marker';
+import * as echarts from 'echarts';
 
 declare const Autodesk: any;
 declare const THREE: any;
-declare const echarts: any;
 
 /**
  * IoT Extension for Autodesk Forge Viewer
@@ -834,43 +834,23 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             this.closeDataDialog();
         }
 
-        // 載入 ECharts (如果尚未載入)
-        this.loadECharts().then(() => {
-            this.buildDataDialog(binding);
-        }).catch(err => {
-            console.error('載入 ECharts 失敗:', err);
-            this.toastService.open({
-                type: 'error',
-                message: '載入圖表庫失敗',
-                duration: 3
-            });
-        });
-    }
-
-    /**
-     * 載入 ECharts 庫
-     */
-    private loadECharts(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            // 檢查是否已載入
-            if (typeof echarts !== 'undefined') {
-                resolve();
-                return;
+        // 獲取 sensor 詳細資訊
+        this.sensorService.getSensor(binding.sensor).subscribe({
+            next: (sensor) => {
+                this.buildDataDialog(binding, sensor);
+            },
+            error: (err) => {
+                console.error('獲取感測器資訊失敗:', err);
+                // 即使失敗也顯示圖表，使用預設標題
+                this.buildDataDialog(binding, null);
             }
-
-            // 動態載入 ECharts
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error('Failed to load ECharts'));
-            document.head.appendChild(script);
         });
     }
 
     /**
      * 建立數據圖表對話框
      */
-    private buildDataDialog(binding: SensorBimBinding): void {
+    private buildDataDialog(binding: SensorBimBinding, sensor: Sensor | null): void {
         // 創建遮罩層
         const overlay = document.createElement('div');
         overlay.style.cssText = `
@@ -959,13 +939,13 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         this.dataDialog = dialog;
 
         // 初始化圖表
-        this.initChart(chartContainer, binding.sensor);
+        this.initChart(chartContainer, binding, sensor);
     }
 
     /**
      * 初始化 ECharts 圖表
      */
-    private initChart(container: HTMLElement, sensorId: number): void {
+    private initChart(container: HTMLElement, binding: SensorBimBinding, sensor: Sensor | null): void {
         // 創建圖表實例 (不使用 dark theme，自定義配置)
         this.chartInstance = echarts.init(container);
 
@@ -980,11 +960,31 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             });
         }
 
+        // 生成動態標題（例如：會議室 101 CO2）
+        let chartTitle = '感測器即時數據';
+        if (sensor) {
+            const elementName = binding.element_name || `Element ${binding.element_dbid}`;
+            const sensorTypeMap: { [key: string]: string } = {
+                'temperature': '溫度',
+                'humidity': '濕度',
+                'pressure': '壓力',
+                'flow': '流量',
+                'power': '功率',
+                'voltage': '電壓',
+                'current': '電流',
+                'status': '狀態',
+                'occupancy': '佔用率',
+                'co2': 'CO2'
+            };
+            const sensorTypeName = sensorTypeMap[sensor.sensor_type] || sensor.sensor_type;
+            chartTitle = `${elementName} ${sensorTypeName}`;
+        }
+
         // 初始配置
         const option = {
             backgroundColor: 'transparent', // 透明背景
             title: {
-                text: '感測器即時數據',
+                text: chartTitle,
                 textStyle: {
                     color: '#e0e0e0'
                 }
@@ -1085,10 +1085,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         this.chartInstance.setOption(option);
 
         // 嘗試載入歷史數據（如果有的話會替換假數據）
-        this.loadHistoryData(sensorId);
+        this.loadHistoryData(binding.sensor);
 
         // 開始定時更新（每秒更新一次，即使沒有數據也更新時間軸）
-        this.startDataUpdate(sensorId);
+        this.startDataUpdate(binding.sensor);
     }
 
     /**
