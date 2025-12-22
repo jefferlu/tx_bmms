@@ -60,6 +60,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     private dataUpdateIntervals: Map<number, any> = new Map(); // 存儲多個更新 interval
     private currentView: 'grid' | 'detail' = 'grid'; // 當前視圖模式
     private selectedSensorId: number | null = null; // 當前選中的 sensor
+    private currentDialogBindings: SensorBimBinding[] = []; // 當前對話框的 bindings
+    private currentDialogSensors: (Sensor | null)[] = []; // 當前對話框的 sensors
 
     // RxJS 訂閱管理
     private _unsubscribeAll: Subject<void> = new Subject<void>();
@@ -878,6 +880,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
      * 建立數據圖表對話框（全螢幕，支援多 sensor）
      */
     private buildDataDialog(bindings: SensorBimBinding[], sensors: (Sensor | null)[]): void {
+        // 保存當前對話框的數據，供視圖切換時重用
+        this.currentDialogBindings = bindings;
+        this.currentDialogSensors = sensors;
+
         // 創建全螢幕對話框
         const dialog = document.createElement('div');
         dialog.className = 'iot-data-dialog-fullscreen';
@@ -1051,6 +1057,18 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         this.currentView = 'detail';
         this.selectedSensorId = binding.sensor;
 
+        // 停止所有網格視圖的更新 intervals
+        this.dataUpdateIntervals.forEach((interval, sensorId) => {
+            clearInterval(interval);
+        });
+        this.dataUpdateIntervals.clear();
+
+        // 銷毀所有網格視圖的圖表實例
+        this.chartInstances.forEach((chart, sensorId) => {
+            chart.dispose();
+        });
+        this.chartInstances.clear();
+
         const content = document.getElementById('iot-dialog-content');
         if (!content) return;
 
@@ -1073,15 +1091,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         backButton.onmouseenter = () => backButton.style.background = '#333';
         backButton.onmouseleave = () => backButton.style.background = '#2a2a2a';
         backButton.onclick = () => {
-            // 重新顯示 grid view
-            this.currentView = 'grid';
-            this.selectedSensorId = null;
-            const bindings = Array.from(this.chartInstances.keys()).map(sensorId => {
-                return { sensor: sensorId } as SensorBimBinding;
-            });
-            // 需要重新獲取 bindings 和 sensors，簡化處理：刷新整個 dialog
-            this.closeDataDialog();
-            this.showDataDialog();
+            // 返回網格視圖（不關閉 dialog，避免閃爍）
+            this.returnToGridView();
         };
         content.appendChild(backButton);
 
@@ -1101,6 +1112,41 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         setTimeout(() => {
             this.initLargeChart(largeChartContainer, binding, sensor);
         }, 100);
+    }
+
+    /**
+     * 返回網格視圖（不關閉 dialog，避免閃爍）
+     */
+    private returnToGridView(): void {
+        // 停止詳細視圖的更新 interval
+        if (this.selectedSensorId !== null) {
+            const interval = this.dataUpdateIntervals.get(this.selectedSensorId);
+            if (interval) {
+                clearInterval(interval);
+            }
+            this.dataUpdateIntervals.delete(this.selectedSensorId);
+
+            // 銷毀詳細視圖的圖表實例
+            const chart = this.chartInstances.get(this.selectedSensorId);
+            if (chart) {
+                chart.dispose();
+            }
+            this.chartInstances.delete(this.selectedSensorId);
+        }
+
+        // 重置視圖狀態
+        this.currentView = 'grid';
+        this.selectedSensorId = null;
+
+        // 獲取 content 容器
+        const content = document.getElementById('iot-dialog-content');
+        if (!content) return;
+
+        // 清空內容
+        content.innerHTML = '';
+
+        // 使用保存的數據重新構建網格視圖
+        this.buildGridView(content, this.currentDialogBindings, this.currentDialogSensors);
     }
 
     /**
@@ -1396,6 +1442,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         // 重置視圖狀態
         this.currentView = 'grid';
         this.selectedSensorId = null;
+
+        // 清空保存的數據
+        this.currentDialogBindings = [];
+        this.currentDialogSensors = [];
 
         // 移除對話框
         if (this.dataDialog) {
