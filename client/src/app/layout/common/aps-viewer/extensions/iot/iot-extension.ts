@@ -820,8 +820,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             next: (bindings) => {
                 const elementBindings = bindings.filter(
                     b => b.element_dbid === this.selectedElementInfo!.dbId &&
-                         b.model_urn === this.selectedElementInfo!.urn &&
-                         b.is_active
+                        b.model_urn === this.selectedElementInfo!.urn &&
+                        b.is_active
                 );
 
                 if (elementBindings.length === 0) {
@@ -1027,9 +1027,9 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         cardSubtitle.textContent = sensor?.name || `Sensor ${binding.sensor}`;
         cardSubtitle.style.cssText = 'font-size: 12px; color: #999;';
 
-        cardHeader.appendChild(cardTitle);
-        cardHeader.appendChild(cardSubtitle);
-        card.appendChild(cardHeader);
+        // cardHeader.appendChild(cardTitle);
+        // cardHeader.appendChild(cardSubtitle);
+        // card.appendChild(cardHeader);
 
         // Chart 容器
         const chartContainer = document.createElement('div');
@@ -1182,28 +1182,39 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         }
 
         // 生成動態標題（例如：會議室 101 CO2）
-        let chartTitle = '感測器即時數據';
-        if (sensor) {
-            const elementName = binding.element_name || `Element ${binding.element_dbid}`;
-            // 使用後端提供的 sensor_type_display（中文名稱），避免前端硬編碼
-            const sensorTypeName = sensor.sensor_type_display || sensor.sensor_type;
-            chartTitle = `${elementName} ${sensorTypeName}`;
-        }
+        // let chartTitle = sensor?.name || `Sensor ${binding.sensor}` || '未知';
+        // if (sensor) {
+        //     const elementName = binding.element_name || `Element ${binding.element_dbid}`;
+        //     // 使用後端提供的 sensor_type_display（中文名稱），避免前端硬編碼
+        //     const sensorTypeName = sensor.sensor_type_display || sensor.sensor_type;
+        //     chartTitle = `${elementName} ${sensorTypeName}`;
+        // }
 
         // 根據 isMini 調整標題和佈局
-        const titleConfig = isMini ? {
-            text: sensor?.sensor_type_display || sensor?.sensor_type || '未知',
-            textStyle: {
-                color: '#e0e0e0',
-                fontSize: 14
-            }
-        } : {
+        // const titleConfig = isMini ? {
+        //     text: sensor?.sensor_type_display || sensor?.sensor_type || '未知',
+        //     textStyle: {
+        //         color: '#e0e0e0',
+        //         fontSize: 14
+        //     }
+        // } : {
+        //     text: chartTitle,
+        //     textStyle: {
+        //         color: '#e0e0e0',
+        //         fontSize: 18
+        //     }
+        // };
+
+        let chartTitle = sensor?.name || `Sensor ${binding.sensor}` || '未知';
+        const titleConfig = {
             text: chartTitle,
             textStyle: {
                 color: '#e0e0e0',
-                fontSize: 18
+                fontSize: 0
             }
-        };
+        }
+
+        titleConfig.textStyle.fontSize = isMini ? 14 : 18;
 
         const gridConfig = isMini ? {
             left: '10%',
