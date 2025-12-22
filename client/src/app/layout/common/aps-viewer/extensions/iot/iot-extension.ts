@@ -982,19 +982,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         let chartTitle = '感測器即時數據';
         if (sensor) {
             const elementName = binding.element_name || `Element ${binding.element_dbid}`;
-            const sensorTypeMap: { [key: string]: string } = {
-                'temperature': '溫度',
-                'humidity': '濕度',
-                'pressure': '壓力',
-                'flow': '流量',
-                'power': '功率',
-                'voltage': '電壓',
-                'current': '電流',
-                'status': '狀態',
-                'occupancy': '佔用率',
-                'co2': 'CO2'
-            };
-            const sensorTypeName = sensorTypeMap[sensor.sensor_type] || sensor.sensor_type;
+            // 使用後端提供的 sensor_type_display（中文名稱），避免前端硬編碼
+            const sensorTypeName = sensor.sensor_type_display || sensor.sensor_type;
             chartTitle = `${elementName} ${sensorTypeName}`;
         }
 

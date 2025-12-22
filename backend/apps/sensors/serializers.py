@@ -8,6 +8,7 @@ from django.conf import settings
 class SensorSerializer(serializers.ModelSerializer):
     bim_bindings_count = serializers.SerializerMethodField()
     latest_value = serializers.SerializerMethodField()
+    sensor_type_display = serializers.CharField(source='get_sensor_type_display', read_only=True)
 
     class Meta:
         model = Sensor

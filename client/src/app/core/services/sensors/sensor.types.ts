@@ -46,6 +46,7 @@ export interface Sensor {
     name: string;
     description?: string;
     sensor_type: SensorType;
+    sensor_type_display?: string; // 感測器類型的中文顯示名稱（由後端提供）
     unit: string;
 
     // MQTT 設定
