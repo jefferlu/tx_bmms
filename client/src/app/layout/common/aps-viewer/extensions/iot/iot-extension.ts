@@ -786,7 +786,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     private showDataDialog(): void {
         if (!this.selectedElementInfo) {
             this.toastService.open({
-                type: 'warning',
+                type: 'info',
                 message: '請先選擇一個 BIM 元件',
                 duration: 3
             });
@@ -804,7 +804,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
                 if (!elementBinding) {
                     this.toastService.open({
-                        type: 'warning',
+                        type: 'info',
                         message: '此元件尚未綁定感測器',
                         duration: 3
                     });
