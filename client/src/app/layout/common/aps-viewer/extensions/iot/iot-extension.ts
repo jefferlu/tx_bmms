@@ -5,7 +5,25 @@ import { SensorService, Sensor, SensorBimBinding, PositionType } from 'app/core/
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { SensorMarker } from './sensor-marker';
-import * as echarts from 'echarts';
+
+// ECharts ESM 導入方式（按需導入，支援 tree-shaking）
+import * as echarts from 'echarts/core';
+import { LineChart } from 'echarts/charts';
+import {
+    TitleComponent,
+    TooltipComponent,
+    GridComponent
+} from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
+
+// 註冊必要的組件
+echarts.use([
+    LineChart,
+    TitleComponent,
+    TooltipComponent,
+    GridComponent,
+    CanvasRenderer
+]);
 
 declare const Autodesk: any;
 declare const THREE: any;
