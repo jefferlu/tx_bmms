@@ -56,8 +56,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
     // 數據圖表對話框
     private dataDialog: HTMLDivElement | null = null;
-    private chartInstance: any = null;
-    private dataUpdateInterval: any = null;
+    private chartInstances: Map<number, any> = new Map(); // 存儲多個圖表實例
+    private dataUpdateIntervals: Map<number, any> = new Map(); // 存儲多個更新 interval
+    private currentView: 'grid' | 'detail' = 'grid'; // 當前視圖模式
+    private selectedSensorId: number | null = null; // 當前選中的 sensor
 
     // RxJS 訂閱管理
     private _unsubscribeAll: Subject<void> = new Subject<void>();
@@ -811,16 +813,16 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             return;
         }
 
-        // 獲取選中元件的綁定
+        // 獲取選中元件的所有綁定
         this.sensorService.getBindings().subscribe({
             next: (bindings) => {
-                const elementBinding = bindings.find(
+                const elementBindings = bindings.filter(
                     b => b.element_dbid === this.selectedElementInfo!.dbId &&
                          b.model_urn === this.selectedElementInfo!.urn &&
                          b.is_active
                 );
 
-                if (!elementBinding) {
+                if (elementBindings.length === 0) {
                     this.toastService.open({
                         type: 'info',
                         message: '此元件尚未綁定感測器',
@@ -829,8 +831,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                     return;
                 }
 
-                // 顯示圖表
-                this.createDataDialog(elementBinding);
+                // 顯示圖表（支援多個 sensor）
+                this.createDataDialog(elementBindings);
             },
             error: (err) => {
                 console.error('獲取綁定失敗:', err);
@@ -844,77 +846,69 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     }
 
     /**
-     * 創建數據圖表對話框
+     * 創建數據圖表對話框（支援多個 sensor）
      */
-    private createDataDialog(binding: SensorBimBinding): void {
+    private createDataDialog(bindings: SensorBimBinding[]): void {
         // 如果對話框已存在，先關閉
         if (this.dataDialog) {
             this.closeDataDialog();
         }
 
-        // 獲取 sensor 詳細資訊
-        this.sensorService.getSensor(binding.sensor).subscribe({
-            next: (sensor) => {
-                this.buildDataDialog(binding, sensor);
-            },
-            error: (err) => {
+        // 重置視圖狀態
+        this.currentView = 'grid';
+        this.selectedSensorId = null;
+
+        // 獲取所有 sensor 的詳細資訊
+        const sensorRequests = bindings.map(binding =>
+            this.sensorService.getSensor(binding.sensor)
+        );
+
+        // 使用 Promise.all 同時獲取所有 sensor 資訊
+        Promise.all(sensorRequests.map(req => req.toPromise()))
+            .then(sensors => {
+                this.buildDataDialog(bindings, sensors);
+            })
+            .catch(err => {
                 console.error('獲取感測器資訊失敗:', err);
-                // 即使失敗也顯示圖表，使用預設標題
-                this.buildDataDialog(binding, null);
-            }
-        });
+                this.buildDataDialog(bindings, []);
+            });
     }
 
     /**
-     * 建立數據圖表對話框
+     * 建立數據圖表對話框（全螢幕，支援多 sensor）
      */
-    private buildDataDialog(binding: SensorBimBinding, sensor: Sensor | null): void {
-        // 創建遮罩層
-        const overlay = document.createElement('div');
-        overlay.style.cssText = `
+    private buildDataDialog(bindings: SensorBimBinding[], sensors: (Sensor | null)[]): void {
+        // 創建全螢幕對話框
+        const dialog = document.createElement('div');
+        dialog.className = 'iot-data-dialog-fullscreen';
+        dialog.style.cssText = `
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 9999;
-        `;
-
-        // 創建對話框
-        const dialog = document.createElement('div');
-        dialog.className = 'iot-data-dialog';
-        dialog.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #1e1e1e;
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-            border: 1px solid #3a3a3a;
+            background: #1a1a1a;
             z-index: 10000;
-            width: 800px;
-            max-width: 90vw;
-            max-height: 90vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         `;
 
-        // 關閉函數
-        const closeDialog = () => {
-            this.closeDataDialog();
-            overlay.remove();
-        };
-
-        // 標題列
+        // Header
         const header = document.createElement('div');
-        header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
+        header.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: #1e1e1e;
+            border-bottom: 1px solid #3a3a3a;
+        `;
 
-        const title = document.createElement('h3');
-        title.textContent = `感測器數據 - ${binding.element_name || 'Element ' + binding.element_dbid}`;
-        title.style.cssText = 'margin: 0; font-size: 18px; font-weight: 600; color: #e0e0e0;';
+        const title = document.createElement('h2');
+        const elementName = bindings[0]?.element_name || `Element ${bindings[0]?.element_dbid}`;
+        title.textContent = `${elementName} - 感測器數據 (${bindings.length} 個感測器)`;
+        title.style.cssText = 'margin: 0; font-size: 20px; font-weight: 600; color: #e0e0e0;';
 
         const closeButton = document.createElement('button');
         closeButton.textContent = '✕';
@@ -922,11 +916,11 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             background: none;
             border: none;
             color: #999;
-            font-size: 24px;
+            font-size: 32px;
             cursor: pointer;
             padding: 0;
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -935,37 +929,200 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         `;
         closeButton.onmouseenter = () => closeButton.style.background = '#333';
         closeButton.onmouseleave = () => closeButton.style.background = 'none';
-        closeButton.onclick = closeDialog;
+        closeButton.onclick = () => this.closeDataDialog();
 
         header.appendChild(title);
         header.appendChild(closeButton);
         dialog.appendChild(header);
 
-        // 圖表容器
-        const chartContainer = document.createElement('div');
-        chartContainer.id = 'iot-chart-container';
-        chartContainer.style.cssText = 'width: 100%; height: 500px; background: #2a2a2a; border-radius: 4px;';
-        dialog.appendChild(chartContainer);
+        // Content 容器
+        const content = document.createElement('div');
+        content.id = 'iot-dialog-content';
+        content.style.cssText = `
+            flex: 1;
+            overflow: auto;
+            padding: 24px;
+        `;
+        dialog.appendChild(content);
 
-        // 點擊遮罩層關閉
-        overlay.onclick = closeDialog;
-
-        // 添加到頁面
-        document.body.appendChild(overlay);
         document.body.appendChild(dialog);
-
         this.dataDialog = dialog;
 
-        // 初始化圖表
-        this.initChart(chartContainer, binding, sensor);
+        // 初始顯示 Grid View
+        this.buildGridView(content, bindings, sensors);
     }
 
     /**
-     * 初始化 ECharts 圖表
+     * 建立 Grid View（顯示多個 sensor cards）
      */
-    private initChart(container: HTMLElement, binding: SensorBimBinding, sensor: Sensor | null): void {
-        // 創建圖表實例 (不使用 dark theme，自定義配置)
-        this.chartInstance = echarts.init(container);
+    private buildGridView(container: HTMLElement, bindings: SensorBimBinding[], sensors: (Sensor | null)[]): void {
+        container.innerHTML = '';
+
+        // 計算 grid 列數（2, 3, 或 4 列）
+        const count = bindings.length;
+        const columns = count === 1 ? 1 : count === 2 ? 2 : count <= 4 ? 2 : count <= 9 ? 3 : 4;
+
+        // Grid 容器
+        const grid = document.createElement('div');
+        grid.style.cssText = `
+            display: grid;
+            grid-template-columns: repeat(${columns}, 1fr);
+            gap: 24px;
+            width: 100%;
+        `;
+
+        // 為每個 sensor 創建 card
+        bindings.forEach((binding, index) => {
+            const sensor = sensors[index];
+            const card = this.createSensorCard(binding, sensor);
+            grid.appendChild(card);
+        });
+
+        container.appendChild(grid);
+    }
+
+    /**
+     * 創建 Sensor Card
+     */
+    private createSensorCard(binding: SensorBimBinding, sensor: Sensor | null): HTMLElement {
+        const card = document.createElement('div');
+        card.style.cssText = `
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+        `;
+
+        // Hover 效果
+        card.onmouseenter = () => {
+            card.style.borderColor = '#2196F3';
+            card.style.boxShadow = '0 4px 12px rgba(33, 150, 243, 0.3)';
+        };
+        card.onmouseleave = () => {
+            card.style.borderColor = '#3a3a3a';
+            card.style.boxShadow = 'none';
+        };
+
+        // Card Header
+        const cardHeader = document.createElement('div');
+        cardHeader.style.cssText = 'margin-bottom: 12px;';
+
+        const cardTitle = document.createElement('h4');
+        const sensorTypeName = sensor?.sensor_type_display || sensor?.sensor_type || '未知';
+        cardTitle.textContent = sensorTypeName;
+        cardTitle.style.cssText = 'margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: #e0e0e0;';
+
+        const cardSubtitle = document.createElement('div');
+        cardSubtitle.textContent = sensor?.name || `Sensor ${binding.sensor}`;
+        cardSubtitle.style.cssText = 'font-size: 12px; color: #999;';
+
+        cardHeader.appendChild(cardTitle);
+        cardHeader.appendChild(cardSubtitle);
+        card.appendChild(cardHeader);
+
+        // Chart 容器
+        const chartContainer = document.createElement('div');
+        chartContainer.id = `sensor-chart-${binding.sensor}`;
+        chartContainer.style.cssText = 'flex: 1; min-height: 200px;';
+        card.appendChild(chartContainer);
+
+        // 點擊 card 放大顯示
+        card.onclick = () => {
+            this.showDetailView(binding, sensor);
+        };
+
+        // 初始化小圖表
+        setTimeout(() => {
+            this.initMiniChart(chartContainer, binding, sensor);
+        }, 100);
+
+        return card;
+    }
+
+    /**
+     * 顯示詳細視圖（放大單個 sensor）
+     */
+    private showDetailView(binding: SensorBimBinding, sensor: Sensor | null): void {
+        this.currentView = 'detail';
+        this.selectedSensorId = binding.sensor;
+
+        const content = document.getElementById('iot-dialog-content');
+        if (!content) return;
+
+        content.innerHTML = '';
+
+        // 返回按鈕
+        const backButton = document.createElement('button');
+        backButton.textContent = '← 返回列表';
+        backButton.style.cssText = `
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            color: #e0e0e0;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        `;
+        backButton.onmouseenter = () => backButton.style.background = '#333';
+        backButton.onmouseleave = () => backButton.style.background = '#2a2a2a';
+        backButton.onclick = () => {
+            // 重新顯示 grid view
+            this.currentView = 'grid';
+            this.selectedSensorId = null;
+            const bindings = Array.from(this.chartInstances.keys()).map(sensorId => {
+                return { sensor: sensorId } as SensorBimBinding;
+            });
+            // 需要重新獲取 bindings 和 sensors，簡化處理：刷新整個 dialog
+            this.closeDataDialog();
+            this.showDataDialog();
+        };
+        content.appendChild(backButton);
+
+        // 大圖表容器
+        const largeChartContainer = document.createElement('div');
+        largeChartContainer.id = `sensor-detail-chart-${binding.sensor}`;
+        largeChartContainer.style.cssText = `
+            width: 100%;
+            height: calc(100vh - 200px);
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+        `;
+        content.appendChild(largeChartContainer);
+
+        // 初始化大圖表
+        setTimeout(() => {
+            this.initLargeChart(largeChartContainer, binding, sensor);
+        }, 100);
+    }
+
+    /**
+     * 初始化小圖表（Grid View 中的 card）
+     */
+    private initMiniChart(container: HTMLElement, binding: SensorBimBinding, sensor: Sensor | null): void {
+        this.initChartCommon(container, binding, sensor, true);
+    }
+
+    /**
+     * 初始化大圖表（Detail View）
+     */
+    private initLargeChart(container: HTMLElement, binding: SensorBimBinding, sensor: Sensor | null): void {
+        this.initChartCommon(container, binding, sensor, false);
+    }
+
+    /**
+     * 通用圖表初始化方法
+     */
+    private initChartCommon(container: HTMLElement, binding: SensorBimBinding, sensor: Sensor | null, isMini: boolean): void {
+        // 創建圖表實例
+        const chartInstance = echarts.init(container);
 
         // 生成初始假數據（最近 100 個數據點，值為 0）
         const initialData: any[] = [];
@@ -987,15 +1144,37 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             chartTitle = `${elementName} ${sensorTypeName}`;
         }
 
+        // 根據 isMini 調整標題和佈局
+        const titleConfig = isMini ? {
+            text: sensor?.sensor_type_display || sensor?.sensor_type || '未知',
+            textStyle: {
+                color: '#e0e0e0',
+                fontSize: 14
+            }
+        } : {
+            text: chartTitle,
+            textStyle: {
+                color: '#e0e0e0',
+                fontSize: 18
+            }
+        };
+
+        const gridConfig = isMini ? {
+            left: '10%',
+            right: '10%',
+            bottom: '15%',
+            top: '20%'
+        } : {
+            left: '60px',
+            right: '20px',
+            bottom: '40px',
+            top: '80px'
+        };
+
         // 初始配置
         const option = {
             backgroundColor: 'transparent', // 透明背景
-            title: {
-                text: chartTitle,
-                textStyle: {
-                    color: '#e0e0e0'
-                }
-            },
+            title: titleConfig,
             tooltip: {
                 trigger: 'axis',
                 formatter: (params: any) => {
@@ -1081,15 +1260,13 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                     }
                 }
             ],
-            grid: {
-                left: '60px',
-                right: '20px',
-                bottom: '40px',
-                top: '80px'
-            }
+            grid: gridConfig
         };
 
-        this.chartInstance.setOption(option);
+        chartInstance.setOption(option);
+
+        // 存儲圖表實例到 Map
+        this.chartInstances.set(binding.sensor, chartInstance);
 
         // 嘗試載入歷史數據（如果有的話會替換假數據）
         this.loadHistoryData(binding.sensor);
@@ -1111,8 +1288,9 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                         value: [new Date(log.timestamp), log.value]
                     }));
 
-                    if (this.chartInstance) {
-                        this.chartInstance.setOption({
+                    const chartInstance = this.chartInstances.get(sensorId);
+                    if (chartInstance) {
+                        chartInstance.setOption({
                             series: [{
                                 data: data
                             }]
@@ -1132,19 +1310,21 @@ export class IotExtension extends Autodesk.Viewing.Extension {
      * 開始定時更新數據
      */
     private startDataUpdate(sensorId: number): void {
-        // 清除舊的 interval
-        if (this.dataUpdateInterval) {
-            clearInterval(this.dataUpdateInterval);
+        // 清除該 sensor 的舊 interval（如果存在）
+        const oldInterval = this.dataUpdateIntervals.get(sensorId);
+        if (oldInterval) {
+            clearInterval(oldInterval);
         }
 
         // 每 1 秒更新一次
-        this.dataUpdateInterval = setInterval(() => {
+        const interval = setInterval(() => {
             const currentTime = new Date();
 
             this.sensorService.getSensorLatestData(sensorId).subscribe({
                 next: (data) => {
-                    if (this.chartInstance) {
-                        const option = this.chartInstance.getOption();
+                    const chartInstance = this.chartInstances.get(sensorId);
+                    if (chartInstance) {
+                        const option = chartInstance.getOption();
                         const seriesData = option.series[0].data || [];
 
                         // 添加新數據（使用實際數據）
@@ -1158,7 +1338,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                             seriesData.shift();
                         }
 
-                        this.chartInstance.setOption({
+                        chartInstance.setOption({
                             series: [{
                                 data: seriesData
                             }]
@@ -1167,8 +1347,9 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                 },
                 error: (err) => {
                     // 即使 API 錯誤或沒有數據，也要更新時間軸（值為 0）
-                    if (this.chartInstance) {
-                        const option = this.chartInstance.getOption();
+                    const chartInstance = this.chartInstances.get(sensorId);
+                    if (chartInstance) {
+                        const option = chartInstance.getOption();
                         const seriesData = option.series[0].data || [];
 
                         // 添加值為 0 的數據點
@@ -1182,7 +1363,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                             seriesData.shift();
                         }
 
-                        this.chartInstance.setOption({
+                        chartInstance.setOption({
                             series: [{
                                 data: seriesData
                             }]
@@ -1191,23 +1372,30 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                 }
             });
         }, 1000); // 每秒更新
+
+        // 存儲 interval 到 Map
+        this.dataUpdateIntervals.set(sensorId, interval);
     }
 
     /**
      * 關閉數據對話框
      */
     private closeDataDialog(): void {
-        // 停止更新
-        if (this.dataUpdateInterval) {
-            clearInterval(this.dataUpdateInterval);
-            this.dataUpdateInterval = null;
-        }
+        // 停止所有更新 intervals
+        this.dataUpdateIntervals.forEach((interval, sensorId) => {
+            clearInterval(interval);
+        });
+        this.dataUpdateIntervals.clear();
 
-        // 銷毀圖表
-        if (this.chartInstance) {
-            this.chartInstance.dispose();
-            this.chartInstance = null;
-        }
+        // 銷毀所有圖表實例
+        this.chartInstances.forEach((chart, sensorId) => {
+            chart.dispose();
+        });
+        this.chartInstances.clear();
+
+        // 重置視圖狀態
+        this.currentView = 'grid';
+        this.selectedSensorId = null;
 
         // 移除對話框
         if (this.dataDialog) {
