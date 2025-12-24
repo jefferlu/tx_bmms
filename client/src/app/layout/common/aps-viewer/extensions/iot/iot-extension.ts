@@ -208,6 +208,13 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
         // 創建查看數據按鈕
         const dataButton = new Autodesk.Viewing.UI.Button('iot-data-button');
+        const sensorImg = document.createElement('img');
+        sensorImg.src = 'assets/aps/svg/sensor.svg';
+        sensorImg.style.width = '24px';
+        sensorImg.style.height = '24px';
+        dataButton.container.appendChild(sensorImg);
+        dataButton.addClass('bmms-button');
+        
         dataButton.setToolTip('查看感測器數據');
         dataButton.setIcon('adsk-icon-chart');
         dataButton.onClick = () => this.showDataDialog();
