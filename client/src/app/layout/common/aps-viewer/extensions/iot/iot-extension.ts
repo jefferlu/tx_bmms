@@ -63,6 +63,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     private currentDialogBindings: SensorBimBinding[] = []; // 當前對話框的 bindings
     private currentDialogSensors: (Sensor | null)[] = []; // 當前對話框的 sensors
     private sensorConnectionStatus: Map<number, 'connected' | 'waiting' | 'error'> = new Map(); // 感測器連接狀態
+    private lastDataTimestamp: Map<number, number> = new Map(); // 記錄每個感測器最後一次數據的時間戳
+    private noNewDataCounter: Map<number, number> = new Map(); // 記錄連續沒有新數據的次數
 
     // RxJS 訂閱管理
     private _unsubscribeAll: Subject<void> = new Subject<void>();
@@ -1444,6 +1446,13 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                                 data: recentData
                             }]
                         });
+
+                        // 記錄最後一筆歷史數據的時間戳
+                        if (recentData.length > 0) {
+                            const lastData = recentData[recentData.length - 1];
+                            this.lastDataTimestamp.set(sensorId, new Date(lastData.name).getTime());
+                        }
+
                         // 有數據，移除 "無數據" 提示，設置狀態為已連接
                         this.sensorConnectionStatus.set(sensorId, 'connected');
                         this.updateChartNoDataGraphic(sensorId, true);
@@ -1488,39 +1497,62 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
                         // 使用 MQTT timestamp，不使用前端系統時間
                         const dataTimestamp = new Date(data.timestamp);
+                        const currentTimestamp = dataTimestamp.getTime();
 
-                        // 檢查是否已存在相同時間戳的數據（避免重複）
-                        const existingIndex = seriesData.findIndex((item: any) =>
-                            item.value[0].getTime() === dataTimestamp.getTime()
-                        );
+                        // 獲取上次記錄的時間戳
+                        const lastTimestamp = this.lastDataTimestamp.get(sensorId) || 0;
 
-                        if (existingIndex === -1) {
-                            // 添加新數據（使用 MQTT 的 timestamp）
-                            seriesData.push({
-                                name: data.timestamp,
-                                value: [dataTimestamp, data.value]
-                            });
+                        // 判斷是否為新數據（時間戳是否更新）
+                        if (currentTimestamp > lastTimestamp) {
+                            // ✅ MQTT 有發送新數據（時間戳更新了）
+                            this.lastDataTimestamp.set(sensorId, currentTimestamp);
+                            this.noNewDataCounter.set(sensorId, 0); // 重置計數器
 
-                            // 保持最多 100 個數據點
-                            if (seriesData.length > 100) {
-                                seriesData.shift();
+                            // 檢查是否已存在相同時間戳的數據（避免重複）
+                            const existingIndex = seriesData.findIndex((item: any) =>
+                                item.value[0].getTime() === currentTimestamp
+                            );
+
+                            if (existingIndex === -1) {
+                                // 添加新數據到圖表
+                                seriesData.push({
+                                    name: data.timestamp,
+                                    value: [dataTimestamp, data.value]
+                                });
+
+                                // 保持最多 100 個數據點
+                                if (seriesData.length > 100) {
+                                    seriesData.shift();
+                                }
+
+                                chartInstance.setOption({
+                                    series: [{
+                                        data: seriesData
+                                    }]
+                                });
                             }
 
-                            chartInstance.setOption({
-                                series: [{
-                                    data: seriesData
-                                }]
-                            });
-
-                            // 收到數據，更新狀態為已連接，移除 "無數據" 提示
+                            // 狀態：正在接收（MQTT 有新數據）
                             this.sensorConnectionStatus.set(sensorId, 'connected');
                             this.updateChartNoDataGraphic(sensorId, true);
                             this.updateStatusBadge(sensorId);
+
+                        } else {
+                            // ⚠️ API 成功但數據時間戳沒變（Redis 返回舊數據，MQTT 沒有新數據）
+                            const counter = (this.noNewDataCounter.get(sensorId) || 0) + 1;
+                            this.noNewDataCounter.set(sensorId, counter);
+
+                            // 如果連續 5 次（5 秒）沒有新數據，狀態改為 "等待數據"
+                            if (counter >= 5) {
+                                this.sensorConnectionStatus.set(sensorId, 'waiting');
+                                this.updateStatusBadge(sensorId);
+                                console.debug(`Sensor ${sensorId}: No new MQTT data for ${counter} seconds`);
+                            }
                         }
                     }
                 },
                 error: (err) => {
-                    // 沒有數據時不添加任何點，保持圖表現有狀態
+                    // API 調用失敗（Redis 或後端錯誤）
                     console.debug(`No new data for sensor ${sensorId}`);
 
                     // 檢查當前圖表是否有數據
@@ -1562,6 +1594,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
         // 清空連接狀態
         this.sensorConnectionStatus.clear();
+
+        // 清空時間戳追蹤
+        this.lastDataTimestamp.clear();
+        this.noNewDataCounter.clear();
 
         // 重置視圖狀態
         this.currentView = 'grid';
