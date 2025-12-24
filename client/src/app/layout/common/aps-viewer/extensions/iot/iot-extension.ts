@@ -1285,6 +1285,23 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                 splitLine: {
                     show: false
                 },
+                // 設置 X 軸範圍：總是顯示最近 100 秒
+                min: function(value: any) {
+                    // 如果有數據，以最新數據時間為基準往前推 100 秒
+                    if (value.max) {
+                        return value.max - 100 * 1000;
+                    }
+                    // 如果沒有數據，以當前時間為基準往前推 100 秒
+                    return new Date().getTime() - 100 * 1000;
+                },
+                max: function(value: any) {
+                    // 如果有數據，使用最新數據的時間
+                    if (value.max) {
+                        return value.max;
+                    }
+                    // 如果沒有數據，使用當前時間
+                    return new Date().getTime();
+                },
                 axisLabel: {
                     color: '#999',
                     formatter: (value: number) => {
