@@ -27,13 +27,9 @@ User = get_user_model()
 if not User.objects.filter(email='admin@example.com').exists(): \
     User.objects.create_superuser('admin@example.com', '123')"
 
-# 啟動 Celery Worker
-# echo "Starting Celery Worker..."
-# celery -A tx_bmms worker --loglevel=info &  # 使用&將其放到背景
-# celery -A tx_bmms worker --pool=solo --loglevel=info # for windows os
+# 初始化完成
+echo "✓ Django initialization completed"
+echo "Supervisor will now start Daphne and MQTT Publisher..."
 
-# 啟動 Daphne
-echo "Starting Daphne..."
-# exec gunicorn --bind 0.0.0.0:81 tx_bmms.wsgi:application
-exec daphne tx_bmms.asgi:application -b 0.0.0.0 -p 80  
-# celery -A tx_bmms  worker --loglevel=info    
+# 啟動 Supervisor（會同時運行 Daphne 和 MQTT Publisher）
+exec /usr/bin/supervisord -c /etc/supervisord.conf
