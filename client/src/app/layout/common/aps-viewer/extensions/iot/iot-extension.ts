@@ -65,6 +65,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     private sensorConnectionStatus: Map<number, 'connected' | 'waiting' | 'error'> = new Map(); // 感測器連接狀態
     private lastDataTimestamp: Map<number, number> = new Map(); // 記錄每個感測器最後一次數據的時間戳
     private noNewDataCounter: Map<number, number> = new Map(); // 記錄連續沒有新數據的次數
+    private visibilityChangeHandler: (() => void) | null = null; // Page Visibility API 處理器
 
     // RxJS 訂閱管理
     private _unsubscribeAll: Subject<void> = new Subject<void>();
@@ -150,6 +151,9 @@ export class IotExtension extends Autodesk.Viewing.Extension {
             }
         }
 
+        // 監聽 Page Visibility API - 處理分頁切換
+        this.setupVisibilityChangeHandler();
+
         console.log('IoT Extension loaded');
         return true;
     }
@@ -163,6 +167,12 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         // 取消所有訂閱
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
+
+        // 移除 Page Visibility 監聽器
+        if (this.visibilityChangeHandler) {
+            document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
+            this.visibilityChangeHandler = null;
+        }
 
         // 清理標記
         this.clearAllMarkers();
@@ -1444,9 +1454,98 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     }
 
     /**
+     * 設置 Page Visibility API 處理器
+     * 當用戶切換分頁回來時，重新載入遺漏的數據
+     */
+    private setupVisibilityChangeHandler(): void {
+        this.visibilityChangeHandler = () => {
+            if (!document.hidden) {
+                // 分頁變為可見時，重新載入所有活躍圖表的最近數據
+                console.log('[IoT] Tab became visible, reloading recent data...');
+
+                // 遍歷所有活躍的圖表
+                this.chartInstances.forEach((chartInstance, sensorId) => {
+                    this.reloadRecentData(sensorId);
+                });
+            }
+        };
+
+        document.addEventListener('visibilitychange', this.visibilityChangeHandler);
+    }
+
+    /**
+     * 重新載入最近的數據（用於分頁切換回來時填補空缺）
+     */
+    private reloadRecentData(sensorId: number): void {
+        console.log(`[IoT] Reloading recent data for sensor ${sensorId}`);
+
+        // 載入最近 3 分鐘的數據（180 秒，確保覆蓋 120 秒窗口）
+        this.sensorService.getSensorHistory(sensorId, 0.05).subscribe({ // 0.05 小時 = 3 分鐘
+            next: (logs) => {
+                if (logs && logs.length > 0) {
+                    const chartInstance = this.chartInstances.get(sensorId);
+                    if (!chartInstance) return;
+
+                    // 獲取當前圖表數據
+                    const option = chartInstance.getOption();
+                    const existingData = option.series[0].data || [];
+
+                    // 建立時間戳索引以避免重複
+                    const existingTimestamps = new Set(
+                        existingData.map((item: any) => item.value[0].getTime())
+                    );
+
+                    // 轉換新數據
+                    const newData = logs
+                        .map(log => ({
+                            name: log.timestamp,
+                            value: [new Date(log.timestamp), log.value]
+                        }))
+                        .filter(item => {
+                            const timestamp = item.value[0].getTime();
+                            return !existingTimestamps.has(timestamp); // 只保留不重複的數據
+                        });
+
+                    if (newData.length > 0) {
+                        console.log(`[IoT] Adding ${newData.length} missing data points for sensor ${sensorId}`);
+
+                        // 合併並排序數據
+                        const mergedData = [...existingData, ...newData]
+                            .sort((a: any, b: any) => a.value[0].getTime() - b.value[0].getTime())
+                            .slice(-120); // 只保留最近 120 個數據點
+
+                        // 更新圖表
+                        chartInstance.setOption({
+                            series: [{
+                                data: mergedData
+                            }]
+                        });
+
+                        // 更新最後時間戳
+                        if (mergedData.length > 0) {
+                            const lastData = mergedData[mergedData.length - 1];
+                            this.lastDataTimestamp.set(sensorId, new Date(lastData.name).getTime());
+                            this.noNewDataCounter.set(sensorId, 0);
+                            this.sensorConnectionStatus.set(sensorId, 'connected');
+                            this.updateStatusBadge(sensorId);
+                        }
+                    } else {
+                        console.log(`[IoT] No new data points to add for sensor ${sensorId}`);
+                    }
+                }
+            },
+            error: (err) => {
+                console.error(`[IoT] Failed to reload recent data for sensor ${sensorId}:`, err);
+            }
+        });
+    }
+
+    /**
      * 載入歷史數據（使用 MQTT timestamp）
      */
     private loadHistoryData(sensorId: number): void {
+        console.log(`[IoT] Loading historical data for sensor ${sensorId}...`);
+
         // 初始狀態：等待數據
         this.sensorConnectionStatus.set(sensorId, 'waiting');
         this.updateChartNoDataGraphic(sensorId, false);
@@ -1455,6 +1554,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         // 查詢最近 24 小時的歷史數據，確保有足夠的數據點填充圖表
         this.sensorService.getSensorHistory(sensorId, 24).subscribe({
             next: (logs) => {
+                console.log(`[IoT] Received ${logs?.length || 0} historical data points for sensor ${sensorId}`);
+
                 if (logs && logs.length > 0) {
                     // 有歷史數據，使用 MQTT 的實際 timestamp
                     const data = logs.map(log => ({
@@ -1464,6 +1565,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
                     // 只保留最近 120 個數據點（120 秒）
                     const recentData = data.slice(-120);
+                    console.log(`[IoT] Displaying last ${recentData.length} data points (120 seconds window) for sensor ${sensorId}`);
 
                     const chartInstance = this.chartInstances.get(sensorId);
                     if (chartInstance) {
@@ -1477,6 +1579,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                         if (recentData.length > 0) {
                             const lastData = recentData[recentData.length - 1];
                             this.lastDataTimestamp.set(sensorId, new Date(lastData.name).getTime());
+                            console.log(`[IoT] Last data timestamp for sensor ${sensorId}: ${lastData.name}`);
                         }
 
                         // 有數據，移除 "無數據" 提示，設置狀態為已連接
@@ -1486,14 +1589,18 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                     }
                 } else {
                     // 沒有歷史數據，顯示 "等待數據" 提示
-                    console.debug(`No historical data for sensor ${sensorId}`);
+                    console.warn(`[IoT] ⚠️ No historical data found for sensor ${sensorId}`);
+                    console.warn(`[IoT] 💡 Possible reasons:`);
+                    console.warn(`[IoT]    1. MQTT publisher hasn't sent data yet`);
+                    console.warn(`[IoT]    2. SENSOR_DATA_SAVE_TO_DB is disabled (check backend settings)`);
+                    console.warn(`[IoT]    3. Backend container needs restart after config change`);
                     this.sensorConnectionStatus.set(sensorId, 'waiting');
                     this.updateChartNoDataGraphic(sensorId, false);
                     this.updateStatusBadge(sensorId);
                 }
             },
             error: (err) => {
-                console.error('載入歷史數據失敗:', err);
+                console.error(`[IoT] ❌ Failed to load historical data for sensor ${sensorId}:`, err);
                 // 錯誤時顯示 "等待數據" 提示，狀態設為錯誤
                 this.sensorConnectionStatus.set(sensorId, 'error');
                 this.updateChartNoDataGraphic(sensorId, false);
