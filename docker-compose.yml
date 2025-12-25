@@ -45,7 +45,7 @@ services:
             - REDIS_DB=0
             - REDIS_PASSWORD=
             # Sensor Data Settings
-            - SENSOR_DATA_SAVE_TO_DB=False
+            - SENSOR_DATA_SAVE_TO_DB=True
             - SENSOR_DATA_RETENTION_HOURS=168
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
