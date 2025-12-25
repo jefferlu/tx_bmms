@@ -1302,12 +1302,12 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                 splitLine: {
                     show: false
                 },
-                // 設置 X 軸範圍：總是顯示最近 120 秒（120 筆資料）
+                // 設置 X 軸範圍：總是顯示最近 100 秒
                 min: function(value: any) {
-                    // 使用數據的最大時間戳往前推 120 秒
+                    // 使用數據的最大時間戳往前推 100 秒
                     // 完全基於 MQTT 數據時間，不使用系統時間
                     if (value.max) {
-                        return value.max - 120 * 1000;
+                        return value.max - 100 * 1000;
                     }
                     // 如果沒有數據，返回 dataMin（讓 ECharts 自動處理）
                     return 'dataMin';
@@ -1479,7 +1479,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
     private reloadRecentData(sensorId: number): void {
         console.log(`[IoT] Reloading recent data for sensor ${sensorId}`);
 
-        // 載入最近 3 分鐘的數據（180 秒，確保覆蓋 120 秒窗口）
+        // 載入最近 3 分鐘的數據（180 秒，確保覆蓋 100 秒窗口）
         this.sensorService.getSensorHistory(sensorId, 0.05).subscribe({ // 0.05 小時 = 3 分鐘
             next: (logs) => {
                 if (logs && logs.length > 0) {
@@ -1520,7 +1520,7 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                                 const bTime = b.value[0] instanceof Date ? b.value[0].getTime() : b.value[0];
                                 return aTime - bTime;
                             })
-                            .slice(-120); // 只保留最近 120 個數據點
+                            .slice(-100); // 只保留最近 100 個數據點
 
                         // 更新圖表
                         chartInstance.setOption({
@@ -1552,8 +1552,6 @@ export class IotExtension extends Autodesk.Viewing.Extension {
      * 載入歷史數據（使用 MQTT timestamp）
      */
     private loadHistoryData(sensorId: number): void {
-        console.log(`[IoT] Loading historical data for sensor ${sensorId}...`);
-
         // 初始狀態：等待數據
         this.sensorConnectionStatus.set(sensorId, 'waiting');
         this.updateChartNoDataGraphic(sensorId, false);
@@ -1562,8 +1560,6 @@ export class IotExtension extends Autodesk.Viewing.Extension {
         // 查詢最近 24 小時的歷史數據，確保有足夠的數據點填充圖表
         this.sensorService.getSensorHistory(sensorId, 24).subscribe({
             next: (logs) => {
-                console.log(`[IoT] Received ${logs?.length || 0} historical data points for sensor ${sensorId}`);
-
                 if (logs && logs.length > 0) {
                     // 有歷史數據，使用 MQTT 的實際 timestamp
                     const data = logs.map(log => ({
@@ -1571,9 +1567,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                         value: [new Date(log.timestamp), log.value]
                     }));
 
-                    // 只保留最近 120 個數據點（120 秒）
-                    const recentData = data.slice(-120);
-                    console.log(`[IoT] Displaying last ${recentData.length} data points (120 seconds window) for sensor ${sensorId}`);
+                    // 只保留最近 100 個數據點
+                    const recentData = data.slice(-100);
 
                     const chartInstance = this.chartInstances.get(sensorId);
                     if (chartInstance) {
@@ -1587,7 +1582,6 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                         if (recentData.length > 0) {
                             const lastData = recentData[recentData.length - 1];
                             this.lastDataTimestamp.set(sensorId, new Date(lastData.name).getTime());
-                            console.log(`[IoT] Last data timestamp for sensor ${sensorId}: ${lastData.name}`);
                         }
 
                         // 有數據，移除 "無數據" 提示，設置狀態為已連接
@@ -1597,18 +1591,14 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                     }
                 } else {
                     // 沒有歷史數據，顯示 "等待數據" 提示
-                    console.warn(`[IoT] ⚠️ No historical data found for sensor ${sensorId}`);
-                    console.warn(`[IoT] 💡 Possible reasons:`);
-                    console.warn(`[IoT]    1. MQTT publisher hasn't sent data yet`);
-                    console.warn(`[IoT]    2. SENSOR_DATA_SAVE_TO_DB is disabled (check backend settings)`);
-                    console.warn(`[IoT]    3. Backend container needs restart after config change`);
+                    console.debug(`No historical data for sensor ${sensorId}`);
                     this.sensorConnectionStatus.set(sensorId, 'waiting');
                     this.updateChartNoDataGraphic(sensorId, false);
                     this.updateStatusBadge(sensorId);
                 }
             },
             error: (err) => {
-                console.error(`[IoT] ❌ Failed to load historical data for sensor ${sensorId}:`, err);
+                console.error('載入歷史數據失敗:', err);
                 // 錯誤時顯示 "等待數據" 提示，狀態設為錯誤
                 this.sensorConnectionStatus.set(sensorId, 'error');
                 this.updateChartNoDataGraphic(sensorId, false);
@@ -1661,8 +1651,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                                     value: [dataTimestamp, data.value]
                                 });
 
-                                // 保持最多 120 個數據點（120 秒）
-                                if (seriesData.length > 120) {
+                                // 保持最多 100 個數據點
+                                if (seriesData.length > 100) {
                                     seriesData.shift();
                                 }
 
