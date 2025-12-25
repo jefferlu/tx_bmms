@@ -1492,7 +1492,10 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
                     // 建立時間戳索引以避免重複
                     const existingTimestamps = new Set(
-                        existingData.map((item: any) => item.value[0].getTime())
+                        existingData.map((item: any) => {
+                            const timeValue = item.value[0];
+                            return timeValue instanceof Date ? timeValue.getTime() : timeValue;
+                        })
                     );
 
                     // 轉換新數據
@@ -1502,7 +1505,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                             value: [new Date(log.timestamp), log.value]
                         }))
                         .filter(item => {
-                            const timestamp = item.value[0].getTime();
+                            const dateObj = item.value[0];
+                            const timestamp = dateObj instanceof Date ? dateObj.getTime() : dateObj;
                             return !existingTimestamps.has(timestamp); // 只保留不重複的數據
                         });
 
@@ -1511,7 +1515,11 @@ export class IotExtension extends Autodesk.Viewing.Extension {
 
                         // 合併並排序數據
                         const mergedData = [...existingData, ...newData]
-                            .sort((a: any, b: any) => a.value[0].getTime() - b.value[0].getTime())
+                            .sort((a: any, b: any) => {
+                                const aTime = a.value[0] instanceof Date ? a.value[0].getTime() : a.value[0];
+                                const bTime = b.value[0] instanceof Date ? b.value[0].getTime() : b.value[0];
+                                return aTime - bTime;
+                            })
                             .slice(-120); // 只保留最近 120 個數據點
 
                         // 更新圖表
