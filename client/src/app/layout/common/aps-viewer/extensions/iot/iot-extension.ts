@@ -1292,22 +1292,24 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                 splitLine: {
                     show: false
                 },
-                // 設置 X 軸範圍：總是顯示最近 100 秒
+                // 設置 X 軸範圍：總是顯示最近 120 秒（120 筆資料）
                 min: function(value: any) {
-                    // 如果有數據，以最新數據時間為基準往前推 100 秒
+                    // 使用數據的最大時間戳往前推 120 秒
+                    // 完全基於 MQTT 數據時間，不使用系統時間
                     if (value.max) {
-                        return value.max - 100 * 1000;
+                        return value.max - 120 * 1000;
                     }
-                    // 如果沒有數據，以當前時間為基準往前推 100 秒
-                    return new Date().getTime() - 100 * 1000;
+                    // 如果沒有數據，返回 dataMin（讓 ECharts 自動處理）
+                    return 'dataMin';
                 },
                 max: function(value: any) {
-                    // 如果有數據，使用最新數據的時間
+                    // 使用數據的最大時間戳
+                    // 完全基於 MQTT 數據時間，不使用系統時間
                     if (value.max) {
                         return value.max;
                     }
-                    // 如果沒有數據，使用當前時間
-                    return new Date().getTime();
+                    // 如果沒有數據，返回 dataMax（讓 ECharts 自動處理）
+                    return 'dataMax';
                 },
                 axisLabel: {
                     color: '#999',
@@ -1460,8 +1462,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                         value: [new Date(log.timestamp), log.value]
                     }));
 
-                    // 只保留最近 100 個數據點
-                    const recentData = data.slice(-100);
+                    // 只保留最近 120 個數據點（120 秒）
+                    const recentData = data.slice(-120);
 
                     const chartInstance = this.chartInstances.get(sensorId);
                     if (chartInstance) {
@@ -1544,8 +1546,8 @@ export class IotExtension extends Autodesk.Viewing.Extension {
                                     value: [dataTimestamp, data.value]
                                 });
 
-                                // 保持最多 100 個數據點
-                                if (seriesData.length > 100) {
+                                // 保持最多 120 個數據點（120 秒）
+                                if (seriesData.length > 120) {
                                     seriesData.shift();
                                 }
 
