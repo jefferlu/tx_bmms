@@ -1,10 +1,18 @@
 {
+    "/api": {
+        "target": "http://localhost:8000",
+        "secure": false,
+        "changeOrigin": true
+    },
     "/media-files": {
-        "target": "https://bmms.giantcld.com", 
-        "secure": false, 
+        "target": "http://localhost:8200",
+        "secure": false,
+        "changeOrigin": true
+    },
+    "/elfinder": {
+        "target": "http://localhost:8200",
+        "secure": false,
         "changeOrigin": true,
-        "pathRewrite": {
-            "^/elfinder": "/media-files" 
-        }
+        "logLevel": "debug"
     }
 }

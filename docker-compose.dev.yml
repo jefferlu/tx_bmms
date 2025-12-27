@@ -1,0 +1,25 @@
+# Docker Compose 開發環境覆蓋配置
+# 使用方式: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+version: '3.8'
+
+services:
+  elfinder:
+    environment:
+      - TZ=Asia/Taipei
+      - DJANGO_SECRET_KEY=django-insecure-=qxo)i^(3nhpn@=dfdfw^$$du=jiayia=955h4gjnqj59do=#bu
+      - CORS_ALLOWED_ORIGINS=http://localhost:4200  # 允許本地開發環境訪問
+    ports:
+      - "8200:80"  # 暴露 elfinder 端口到主機
+    networks:
+      - internal_network
+
+  backend:
+    environment:
+      - DEBUG=True  # 開發環境啟用 DEBUG
+      - CSRF_TRUSTED_ORIGINS=http://localhost:4200,http://localhost:8000
+    ports:
+      - "8000:80"  # 確保後端端口正確暴露
+
+networks:
+  internal_network:
+    driver: bridge

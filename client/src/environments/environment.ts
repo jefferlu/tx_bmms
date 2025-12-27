@@ -9,7 +9,7 @@ export const environment = {
     api: 'http://localhost:8000/api',
     apiUrl: 'http://localhost:8000/api',  // 新增: 標準化 API URL
     websocket: 'ws://localhost:8000',
-    elfinder: 'https://bmms.giantcld.com',
+    elfinder: 'http://localhost:8200',  // 開發環境: 本地 elfinder 服務
     // MQTT Broker 設定 (IoT 感測器)
     mqtt: {
         host: 'giantcld.com',
