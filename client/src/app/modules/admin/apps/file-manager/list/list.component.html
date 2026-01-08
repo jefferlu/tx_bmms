@@ -1,0 +1,129 @@
+<div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden">
+    <!-- Main -->
+    <div class="flex flex-auto flex-col bg-card dark:bg-transparent">
+        <!-- Header -->
+        <div class="bg-card flex flex-col items-start border-b p-6 dark:bg-transparent sm:flex-row sm:items-center sm:justify-between sm:py-8 md:px-8">
+            <!-- Title -->
+            <div>
+                <div class="text-4xl font-extrabold leading-none tracking-tight">
+                    檔案管理器
+                </div>
+                <div class="text-secondary mt-2 flex items-center space-x-2 font-medium">
+                    <!-- Breadcrumbs -->
+                    <button mat-button (click)="goToRoot()" class="cursor-pointer text-primary">
+                        首頁
+                    </button>
+                    @if (currentPath) {
+                        <span>/</span>
+                        <span>{{ currentPath }}</span>
+                        <button mat-icon-button (click)="goBack()" [disabled]="!currentPath">
+                            <mat-icon [svgIcon]="'heroicons_outline:arrow-left'"></mat-icon>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Actions -->
+            @if (permissions.can_write) {
+                <div class="mt-4 sm:mt-0">
+                    <button mat-flat-button [color]="'primary'">
+                        <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                        <span class="ml-2">上傳檔案</span>
+                    </button>
+                </div>
+            }
+        </div>
+
+        <!-- Loading -->
+        @if (loading) {
+            <div class="flex flex-auto items-center justify-center">
+                <mat-spinner></mat-spinner>
+            </div>
+        }
+
+        <!-- Error -->
+        @if (error && !loading) {
+            <div class="m-8 rounded border border-red-200 bg-red-50 p-4 text-red-800">
+                {{ error }}
+            </div>
+        }
+
+        <!-- Content -->
+        @if (!loading && !error) {
+            <!-- Items list -->
+            @if (items.length > 0) {
+                <div class="space-y-4 p-6 md:p-8">
+                    <!-- Folders -->
+                    @if (getFolders().length > 0) {
+                        <div>
+                            <div class="mb-2 font-medium">資料夾</div>
+                            <div class="-m-2 flex flex-wrap">
+                                @for (folder of getFolders(); track trackByFn($index, folder)) {
+                                    <div
+                                        class="bg-card relative m-2 h-40 w-40 cursor-pointer rounded-2xl p-4 shadow transition hover:shadow-lg"
+                                        (click)="navigateToFolder(folder)"
+                                    >
+                                        <div class="flex h-full flex-col items-center justify-center">
+                                            <mat-icon
+                                                class="text-hint opacity-50 icon-size-14"
+                                                [svgIcon]="getFileIcon(folder)"
+                                            ></mat-icon>
+                                            <div class="mt-2 truncate text-center text-sm font-medium" [matTooltip]="folder.name">
+                                                {{ folder.name }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Files -->
+                    @if (getFiles().length > 0) {
+                        <div>
+                            <div class="mb-2 font-medium">檔案</div>
+                            <div class="-m-2 flex flex-wrap">
+                                @for (file of getFiles(); track trackByFn($index, file)) {
+                                    <div
+                                        class="bg-card relative m-2 h-40 w-40 rounded-2xl p-4 shadow transition hover:shadow-lg"
+                                    >
+                                        <button
+                                            mat-icon-button
+                                            class="absolute right-1 top-1 z-10"
+                                            (click)="downloadFile(file)"
+                                        >
+                                            <mat-icon
+                                                class="icon-size-5"
+                                                [svgIcon]="'heroicons_outline:arrow-down-tray'"
+                                            ></mat-icon>
+                                        </button>
+                                        <div class="flex h-full flex-col items-center justify-center">
+                                            <mat-icon
+                                                class="text-hint opacity-50 icon-size-14"
+                                                [svgIcon]="getFileIcon(file)"
+                                            ></mat-icon>
+                                            <div class="mt-2 truncate text-center text-sm font-medium" [matTooltip]="file.name">
+                                                {{ file.name }}
+                                            </div>
+                                            <div class="text-secondary text-xs">
+                                                {{ formatSize(file.size) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            } @else {
+                <!-- Empty state -->
+                <div class="flex flex-auto flex-col items-center justify-center bg-gray-100 dark:bg-transparent">
+                    <mat-icon class="icon-size-24" [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
+                    <div class="text-secondary mt-4 text-2xl font-semibold tracking-tight">
+                        此資料夾是空的
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
