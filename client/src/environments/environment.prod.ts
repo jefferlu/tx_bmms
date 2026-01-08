@@ -3,7 +3,6 @@ export const environment = {
     host: '',
     api: 'api',
     apiUrl: 'api',  // 標準化 API URL
-    elfinder: '',
     websocket: '',
     // MQTT Broker 設定 (IoT 感測器)
     mqtt: {

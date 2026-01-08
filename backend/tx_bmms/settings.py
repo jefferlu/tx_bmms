@@ -169,6 +169,7 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.forge',
     'apps.sensors',
+    'apps.file_manager',
 ]
 
 MIDDLEWARE = [
@@ -284,3 +285,7 @@ INTERNAL_IPS = ['127.0.0.1']
 if DEBUG:
     INSTALLED_APPS += ['debug_toolbar']
     MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+
+# File Manager 設定
+FILE_MANAGER_STORAGE_ROOT = MEDIA_ROOT / 'storage'
+FILE_MANAGER_MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
