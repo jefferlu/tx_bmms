@@ -9,10 +9,10 @@ import {
     UploadResponse,
     ActionRequest,
     ActionResponse,
-} from './file-manager.types';
+} from './bim-media-viewer.types';
 
 @Injectable({ providedIn: 'root' })
-export class FileManagerService {
+export class BimMediaViewerService {
     private _httpClient = inject(HttpClient);
     private readonly API_URL = `${environment.apiUrl}/file-manager`;
 

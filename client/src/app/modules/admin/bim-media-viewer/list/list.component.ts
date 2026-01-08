@@ -4,12 +4,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { FileManagerService } from '../file-manager.service';
-import { FileItem, PermissionInfo } from '../file-manager.types';
+import { BimMediaViewerService } from '../bim-media-viewer.service';
+import { FileItem, PermissionInfo } from '../bim-media-viewer.types';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector: 'file-manager-list',
+    selector: 'bim-media-viewer-list',
     templateUrl: './list.component.html',
     standalone: true,
     imports: [
@@ -20,8 +20,8 @@ import { Subject, takeUntil } from 'rxjs';
         MatProgressSpinnerModule
     ]
 })
-export class FileManagerListComponent implements OnInit, OnDestroy {
-    private _fileManagerService = inject(FileManagerService);
+export class BimMediaViewerListComponent implements OnInit, OnDestroy {
+    private _bimMediaViewerService = inject(BimMediaViewerService);
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     items: FileItem[] = [];
@@ -32,35 +32,35 @@ export class FileManagerListComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         // 訂閱檔案列表
-        this._fileManagerService.items$
+        this._bimMediaViewerService.items$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((items) => {
                 this.items = items;
             });
 
         // 訂閱當前路徑
-        this._fileManagerService.currentPath$
+        this._bimMediaViewerService.currentPath$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((path) => {
                 this.currentPath = path;
             });
 
         // 訂閱權限
-        this._fileManagerService.permissions$
+        this._bimMediaViewerService.permissions$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((permissions) => {
                 this.permissions = permissions;
             });
 
         // 訂閱載入狀態
-        this._fileManagerService.loading$
+        this._bimMediaViewerService.loading$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((loading) => {
                 this.loading = loading;
             });
 
         // 訂閱錯誤
-        this._fileManagerService.error$
+        this._bimMediaViewerService.error$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((error) => {
                 this.error = error;
@@ -77,7 +77,7 @@ export class FileManagerListComponent implements OnInit, OnDestroy {
      */
     navigateToFolder(item: FileItem): void {
         if (item.type === 'directory') {
-            this._fileManagerService.navigateTo(item.path);
+            this._bimMediaViewerService.navigateTo(item.path);
         }
     }
 
@@ -85,14 +85,14 @@ export class FileManagerListComponent implements OnInit, OnDestroy {
      * 返回上層
      */
     goBack(): void {
-        this._fileManagerService.goBack();
+        this._bimMediaViewerService.goBack();
     }
 
     /**
      * 返回根目錄
      */
     goToRoot(): void {
-        this._fileManagerService.goToRoot();
+        this._bimMediaViewerService.goToRoot();
     }
 
     /**
@@ -100,7 +100,7 @@ export class FileManagerListComponent implements OnInit, OnDestroy {
      */
     downloadFile(item: FileItem): void {
         if (item.type === 'file') {
-            this._fileManagerService.downloadFile(item.path);
+            this._bimMediaViewerService.downloadFile(item.path);
         }
     }
 
