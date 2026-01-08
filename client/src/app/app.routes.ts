@@ -36,7 +36,7 @@ export const routes: Routes = [
         children: [
             { path: 'process-functions', loadChildren: () => import('app/modules/admin/process-functions/process-functions.routes') },
             { path: 'bim-model-viewer', loadChildren: () => import('app/modules/admin/bim-model-viewer/bim-model-viewer.routes') },
-            { path: 'file-manager', loadChildren: () => import('app/modules/admin/apps/file-manager/file-manager.routes') },
+            { path: 'bim-media-viewer', loadChildren: () => import('app/modules/admin/apps/file-manager/file-manager.routes') },
             { path: 'bim-data-import', loadChildren: () => import('app/modules/admin/bim-data-import/bim-data-import.routes') },
             { path: 'user-management', loadChildren: () => import('app/modules/admin/user-management/user-management.routes') },
             { path: 'system-administration', loadChildren: () => import('app/modules/admin/system-administration/system-administration.routes') },
