@@ -98,6 +98,16 @@ export class UserGroupComponent implements OnInit, OnDestroy {
                 this.page.permissions = data;
                 this._managePermission();
             });
+
+        // Listen to language changes and update permissions
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                if (this.page.permissions) {
+                    this._managePermission();
+                    this._changeDetectorRef.markForCheck();
+                }
+            });
     }
 
     onOpenDrawer(event?: any) {
