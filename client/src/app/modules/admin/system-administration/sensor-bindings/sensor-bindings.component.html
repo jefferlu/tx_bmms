@@ -11,18 +11,18 @@
                 <div class="flex flex-row items-center justify-between px-6 py-8 md:px-8">
                     <!-- Title -->
                     <div class="text-3xl font-extrabold leading-none tracking-tight">
-                        感測器綁定管理
+                        {{ t('sensor-binding-management') }}
                     </div>
 
                     <!-- Actions -->
                     <div class="flex gap-2">
                         <button mat-stroked-button (click)="loadData()">
                             <mat-icon [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
-                            <span class="ml-2 mr-1">重新整理</span>
+                            <span class="ml-2 mr-1">{{ t('loading') }}</span>
                         </button>
                         <button mat-stroked-button (click)="onOpenDrawer()">
                             <mat-icon [svgIcon]="'heroicons_outline:plus-circle'"></mat-icon>
-                            <span class="ml-2 mr-1">新增綁定</span>
+                            <span class="ml-2 mr-1">{{ t('add-binding') }}</span>
                         </button>
                     </div>
                 </div>
@@ -41,12 +41,12 @@
                         (onRowSelect)="onOpenDrawer($event)">
                         <ng-template pTemplate="header">
                             <tr>
-                                <th class="pl-8 py-4">感測器</th>
-                                <th>模型 URN</th>
-                                <th class="text-center">元件 DB ID</th>
-                                <th>元件名稱</th>
-                                <th class="text-center">位置類型</th>
-                                <th class="text-center">狀態</th>
+                                <th class="pl-8 py-4">{{ t('user') }}</th>
+                                <th>{{ t('model-urn') }}</th>
+                                <th class="text-center">{{ t('element-db-id') }}</th>
+                                <th>{{ t('element-name') }}</th>
+                                <th class="text-center">{{ t('position-type') }}</th>
+                                <th class="text-center">{{ t('status') }}</th>
                             </tr>
                         </ng-template>
                         <ng-template pTemplate="body" let-d>
@@ -72,7 +72,7 @@
                                             'bg-green-100 text-green-800': d.is_active,
                                             'bg-gray-100 text-gray-800': !d.is_active
                                         }">
-                                        {{d.is_active ? '啟用' : '停用'}}
+                                        {{d.is_active ? t('active') : t('inactive')}}
                                     </span>
                                 </td>
                             </tr>
@@ -83,9 +83,9 @@
                     <div class="flex flex-auto flex-col items-center justify-center text-secondary mb-10">
                         <mat-icon class="icon-size-16" [svgIcon]="'heroicons_outline:inbox'"></mat-icon>
                         <div class="mt-4 text-xl font-semibold tracking-tight">
-                            尚無綁定資料
+                            {{ t('no-binding-data') }}
                         </div>
-                        <div class="mt-2 text-sm text-gray-500">點擊「新增綁定」按鈕開始建立感測器與 BIM 元件的綁定</div>
+                        <div class="mt-2 text-sm text-gray-500">{{ t('click-add-binding-description') }}</div>
                     </div>
                     }
                 </div>
@@ -102,8 +102,8 @@
             <div class="flex items-center justify-between px-6 py-3">
                 <mat-icon [svgIcon]="'heroicons_outline:link'"></mat-icon>
                 <span class="text-xl">
-                    @if(page.record?.id) { 編輯綁定 }
-                    @else { 新增綁定 }
+                    @if(page.record?.id) { {{ t('edit-binding') }} }
+                    @else { {{ t('add-binding') }} }
                 </span>
 
                 <div class="flex">
@@ -121,7 +121,7 @@
                 <!-- 感測器選擇 -->
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
-                        <mat-label>感測器 *</mat-label>
+                        <mat-label>{{ t('user') }} *</mat-label>
                         <mat-select [formControlName]="'sensor'">
                             @for (sensor of page.sensors; track sensor.id) {
                             <mat-option [value]="sensor.id">
@@ -130,7 +130,7 @@
                             }
                         </mat-select>
                         @if(form.get('sensor').hasError('required')) {
-                        <mat-error>請選擇感測器</mat-error>
+                        <mat-error>{{ t('please-select-sensor') }}</mat-error>
                         }
                     </mat-form-field>
                 </div>
@@ -138,10 +138,10 @@
                 <!-- 模型 URN -->
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
-                        <mat-label>模型 URN *</mat-label>
-                        <input matInput [formControlName]="'model_urn'" placeholder="輸入模型 URN">
+                        <mat-label>{{ t('model-urn') }} *</mat-label>
+                        <input matInput [formControlName]="'model_urn'" [placeholder]="t('enter-model-urn')">
                         @if(form.get('model_urn').hasError('required')) {
-                        <mat-error>請輸入模型 URN</mat-error>
+                        <mat-error>{{ t('please-enter-model-urn') }}</mat-error>
                         }
                     </mat-form-field>
                 </div>
@@ -149,10 +149,10 @@
                 <!-- 元件 DB ID -->
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
-                        <mat-label>元件 DB ID *</mat-label>
-                        <input matInput type="number" [formControlName]="'element_dbid'" placeholder="輸入元件 DB ID">
+                        <mat-label>{{ t('element-db-id') }} *</mat-label>
+                        <input matInput type="number" [formControlName]="'element_dbid'" [placeholder]="t('enter-element-db-id')">
                         @if(form.get('element_dbid').hasError('required')) {
-                        <mat-error>請輸入元件 DB ID</mat-error>
+                        <mat-error>{{ t('please-enter-element-db-id') }}</mat-error>
                         }
                     </mat-form-field>
                 </div>
@@ -160,26 +160,26 @@
                 <!-- 元件名稱 -->
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
-                        <mat-label>元件名稱</mat-label>
-                        <input matInput [formControlName]="'element_name'" placeholder="輸入元件名稱 (選填)">
+                        <mat-label>{{ t('element-name') }}</mat-label>
+                        <input matInput [formControlName]="'element_name'" [placeholder]="t('enter-element-name-optional')">
                     </mat-form-field>
                 </div>
 
                 <!-- 元件外部 ID -->
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
-                        <mat-label>元件外部 ID</mat-label>
-                        <input matInput [formControlName]="'element_external_id'" placeholder="輸入元件外部 ID (選填)">
+                        <mat-label>{{ t('element-external-id') }}</mat-label>
+                        <input matInput [formControlName]="'element_external_id'" [placeholder]="t('enter-element-external-id-optional')">
                     </mat-form-field>
                 </div>
 
                 <!-- 位置類型 -->
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
-                        <mat-label>位置類型</mat-label>
+                        <mat-label>{{ t('position-type') }}</mat-label>
                         <mat-select [formControlName]="'position_type'">
                             @for (option of positionTypeOptions; track option.value) {
-                            <mat-option [value]="option.value">{{option.label}}</mat-option>
+                            <mat-option [value]="option.value">{{ t(option.value) }}</mat-option>
                             }
                         </mat-select>
                     </mat-form-field>
@@ -187,7 +187,7 @@
 
                 <!-- 位置偏移 -->
                 <div class="mt-4">
-                    <label class="text-sm font-medium">位置偏移 (X, Y, Z)</label>
+                    <label class="text-sm font-medium">{{ t('position-offset-xyz') }}</label>
                     <div class="flex gap-2 mt-2" [formGroupName]="'position_offset'">
                         <mat-form-field class="flex-1 gts-mat-dense">
                             <mat-label>X</mat-label>
@@ -207,23 +207,23 @@
                 <!-- 圖示類型 -->
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
-                        <mat-label>圖示類型</mat-label>
-                        <input matInput [formControlName]="'icon_type'" placeholder="輸入圖示類型 (選填)">
+                        <mat-label>{{ t('icon-type') }}</mat-label>
+                        <input matInput [formControlName]="'icon_type'" [placeholder]="t('enter-icon-type-optional')">
                     </mat-form-field>
                 </div>
 
                 <!-- 顏色 -->
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
-                        <mat-label>顏色</mat-label>
-                        <input matInput [formControlName]="'color'" placeholder="輸入顏色 (選填)">
+                        <mat-label>{{ t('color') }}</mat-label>
+                        <input matInput [formControlName]="'color'" [placeholder]="t('enter-color-optional')">
                     </mat-form-field>
                 </div>
 
                 <!-- 優先級 -->
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
-                        <mat-label>優先級</mat-label>
+                        <mat-label>{{ t('priority') }}</mat-label>
                         <input matInput type="number" [formControlName]="'priority'">
                     </mat-form-field>
                 </div>
@@ -231,22 +231,22 @@
                 <!-- 標籤顯示 -->
                 <div class="mt-2 inline-flex w-full items-center justify-between">
                     <mat-checkbox class="-ml-2" [formControlName]="'label_visible'">
-                        顯示標籤
+                        {{ t('show-label') }}
                     </mat-checkbox>
                 </div>
 
                 <!-- 啟用狀態 -->
                 <div class="mt-2 inline-flex w-full items-center justify-between">
                     <mat-checkbox class="-ml-2" [formControlName]="'is_active'">
-                        啟用
+                        {{ t('active') }}
                     </mat-checkbox>
                 </div>
 
                 <!-- 備註 -->
                 <div class="mt-2">
                     <mat-form-field class="w-full gts-mat-dense">
-                        <mat-label>備註</mat-label>
-                        <textarea matInput [formControlName]="'notes'" rows="3" placeholder="輸入備註 (選填)"></textarea>
+                        <mat-label>{{ t('notes') }}</mat-label>
+                        <textarea matInput [formControlName]="'notes'" rows="3" [placeholder]="t('enter-notes-optional')"></textarea>
                     </mat-form-field>
                 </div>
 
@@ -260,7 +260,7 @@
                     <div class="flex items-center space-x-2">
                         @if(page?.record?.id) {
                         <button [color]="'warn'" mat-flat-button (click)="onDelete()">
-                            <mat-icon class="pr-2" [svgIcon]="'heroicons_outline:trash'"></mat-icon>刪除
+                            <mat-icon class="pr-2" [svgIcon]="'heroicons_outline:trash'"></mat-icon>{{ t('delete') }}
                         </button>
                         }
                     </div>
@@ -268,7 +268,7 @@
                     <!-- Save -->
                     <div>
                         <button mat-flat-button [color]="'primary'" class="mr-2" (click)="onSave()">
-                            <mat-icon class="pr-2" [svgIcon]="'heroicons_outline:bookmark-square'"></mat-icon>儲存
+                            <mat-icon class="pr-2" [svgIcon]="'heroicons_outline:bookmark-square'"></mat-icon>{{ t('save') }}
                         </button>
                     </div>
                     }
