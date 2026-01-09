@@ -75,5 +75,7 @@
     "auth-permission" : "Authorized Permission",
     "auth-group" : "Authorized Group",
     "cancel" : "Cancel",
-    "email-already-exists": "Email already exists"
+    "email-already-exists": "Email already exists",
+    "demo-account": "Demo Account",
+    "select-account": "Select Account"
 }
