@@ -114,8 +114,8 @@ class SensorViewSet(viewsets.ModelViewSet):
         """取得歷史數據"""
         sensor = self.get_object()
 
-        # 時間範圍（支援小數，如 0.05 小時 = 3 分鐘）
-        hours = float(request.query_params.get('hours', 24))
+        # 時間範圍
+        hours = int(request.query_params.get('hours', 24))
         start_time = timezone.now() - timedelta(hours=hours)
 
         logs = SensorDataLog.objects.filter(

@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 import { environment } from 'environments/environment';
-import { AuthService } from 'app/core/auth/auth.service';
 
 declare var $: any;
 const endpoint = environment.elfinder;
@@ -22,7 +21,6 @@ export class BimMediaViewerComponent {
 
     constructor(
         private _translocoService: TranslocoService,
-        private _authService: AuthService
     ) { }
     ngAfterViewInit(): void {
 
@@ -35,9 +33,6 @@ export class BimMediaViewerComponent {
             lang: this.lang,                // language (OPTIONAL)
             height: 'auto',
             width: '100%',
-            customHeaders: {
-                'Authorization': `Bearer ${this._authService.accessToken}`
-            }
         }, (fm: any) => {
             // `init` event callback function
             fm.bind('init', function () { });
@@ -60,7 +55,7 @@ export class BimMediaViewerComponent {
     private getViewerLanguage(lang: string): string {
         switch (lang) {
             case 'zh':
-                return 'zh_TW';  // Fixed: use underscore to match actual file name
+                return 'zh-TW';
             case 'en':
             default:  // 默認為英文
                 return 'en';

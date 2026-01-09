@@ -13,7 +13,6 @@ import { gtsAnimations } from '@gts/animations';
 import { AuthService } from 'app/core/auth/auth.service';
 import { TranslocoModule } from '@jsverse/transloco';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSelectModule } from '@angular/material/select';
 
 @Component({
     selector: 'app-sign-in',
@@ -23,7 +22,6 @@ import { MatSelectModule } from '@angular/material/select';
     imports: [
         RouterLink, FormsModule, ReactiveFormsModule, TranslocoModule, MatCheckboxModule,
         MatButtonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatProgressSpinnerModule,
-        MatSelectModule, CommonModule,
         GtsAlertComponent
     ]
 })
@@ -36,13 +34,6 @@ export class SignInComponent {
         type: 'success',
         message: '123'
     };
-
-    // Demo accounts from bim-init.sql
-    demoAccounts = [
-        { email: 'admin@example.com', username: '管理員', password: 'user1234' },
-        { email: 'zenithbim@example.com', username: 'ZenithBIM', password: 'user1234' },
-        { email: 'user@example.com', username: '使用者', password: 'user1234' }
-    ];
 
     constructor(
         private _activatedRoute: ActivatedRoute,
@@ -57,21 +48,7 @@ export class SignInComponent {
             email: ['', [Validators.required, Validators.email]],
             password: ['', Validators.required],
             rememberMe: [''],
-            demoAccount: [this.demoAccounts[0]] // Set default to first account
         });
-
-        // Auto-fill form with first demo account
-        this.selectDemoAccount(this.demoAccounts[0]);
-    }
-
-    // Fill in the form with selected demo account
-    selectDemoAccount(account: any): void {
-        if (account) {
-            this.signInForm.patchValue({
-                email: account.email,
-                password: account.password
-            });
-        }
     }
 
     signIn(): void {

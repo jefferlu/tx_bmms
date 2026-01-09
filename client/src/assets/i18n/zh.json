@@ -75,7 +75,5 @@
     "auth-permission": "權限",
     "auth-group": "權限群組",
     "cancel": "取消",
-    "email-already-exists": "電子郵件已存在",
-    "demo-account": "示範帳戶",
-    "select-account": "選擇帳戶"
+    "email-already-exists": "電子郵件已存在"
 }

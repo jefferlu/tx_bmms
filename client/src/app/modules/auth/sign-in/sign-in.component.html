@@ -24,16 +24,6 @@
             <!-- Sign in form -->
             <form class="mt-8 sm:w-80 mx-auto" [formGroup]="signInForm" #signInNgForm="ngForm">
 
-                <!-- Demo Account Selector -->
-                <mat-form-field class="w-full gts-mat-dense">
-                    <mat-label>{{ t('demo-account') || '示範帳戶' }}</mat-label>
-                    <mat-select [formControlName]="'demoAccount'" (selectionChange)="selectDemoAccount($event.value)">
-                        <mat-option *ngFor="let account of demoAccounts" [value]="account">
-                            {{ account.username }} ({{ account.email }})
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-
                 <!-- Email field -->
                 <mat-form-field class="w-full gts-mat-dense">
                     <mat-label> {{t('email')}} </mat-label>
