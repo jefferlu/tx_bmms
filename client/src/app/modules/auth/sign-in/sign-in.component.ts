@@ -57,7 +57,11 @@ export class SignInComponent {
             email: ['', [Validators.required, Validators.email]],
             password: ['', Validators.required],
             rememberMe: [''],
+            demoAccount: [this.demoAccounts[0]] // Set default to first account
         });
+
+        // Auto-fill form with first demo account
+        this.selectDemoAccount(this.demoAccounts[0]);
     }
 
     // Fill in the form with selected demo account

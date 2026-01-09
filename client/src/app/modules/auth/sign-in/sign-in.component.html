@@ -27,8 +27,7 @@
                 <!-- Demo Account Selector -->
                 <mat-form-field class="w-full gts-mat-dense">
                     <mat-label>{{ t('demo-account') || '示範帳戶' }}</mat-label>
-                    <mat-select (selectionChange)="selectDemoAccount($event.value)">
-                        <mat-option>-- {{ t('select-account') || '選擇帳戶' }} --</mat-option>
+                    <mat-select [formControlName]="'demoAccount'" (selectionChange)="selectDemoAccount($event.value)">
                         <mat-option *ngFor="let account of demoAccounts" [value]="account">
                             {{ account.username }} ({{ account.email }})
                         </mat-option>
