@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 import { environment } from 'environments/environment';
 import { AuthService } from 'app/core/auth/auth.service';
+import { Subscription } from 'rxjs';
 
 declare var $: any;
 const endpoint = environment.elfinder;
@@ -14,21 +15,45 @@ const endpoint = environment.elfinder;
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: []
 })
-export class BimMediaViewerComponent {
+export class BimMediaViewerComponent implements OnDestroy {
 
     @ViewChild('elfinder') elfinderDiv!: ElementRef;
 
     lang: any;
+    private elfinderInstance: any;
+    private langChangeSubscription?: Subscription;
 
     constructor(
         private _translocoService: TranslocoService,
         private _authService: AuthService
     ) { }
     ngAfterViewInit(): void {
+        // Initialize elfinder
+        this.initElFinder();
 
+        // Subscribe to language changes for dynamic language switching
+        this.langChangeSubscription = this._translocoService.langChanges$.subscribe(lang => {
+            this.destroyElFinder();
+            this.initElFinder();
+        });
+    }
+
+    ngOnDestroy(): void {
+        // Unsubscribe to prevent memory leaks
+        if (this.langChangeSubscription) {
+            this.langChangeSubscription.unsubscribe();
+        }
+        // Destroy elfinder instance
+        this.destroyElFinder();
+    }
+
+    /**
+     * Initialize elfinder instance
+     */
+    private initElFinder(): void {
         this.lang = this.getViewerLanguage(this._translocoService.getActiveLang());
 
-        $(this.elfinderDiv.nativeElement).elfinder({
+        this.elfinderInstance = $(this.elfinderDiv.nativeElement).elfinder({
             cssAutoLoad: false,               // Disable CSS auto loading
             baseUrl: './elfinder/',
             url: `${endpoint}/elfinder/php/connector.minimal.php`,  // connector URL (REQUIRED)
@@ -54,7 +79,19 @@ export class BimMediaViewerComponent {
                 document.title = title;
             });
         });
+    }
 
+    /**
+     * Destroy elfinder instance
+     */
+    private destroyElFinder(): void {
+        if (this.elfinderInstance) {
+            const instance = $(this.elfinderDiv.nativeElement).elfinder('instance');
+            if (instance) {
+                instance.destroy();
+            }
+            this.elfinderInstance = null;
+        }
     }
 
     private getViewerLanguage(lang: string): string {
