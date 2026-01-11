@@ -251,32 +251,32 @@ export class UserGroupComponent implements OnInit, OnDestroy {
     private _managePermission() {
         const category = [
             {
-                name: `${this._translocoService.translate('bim-information-listing')} ${this._translocoService.translate('module')}`,
+                name: `${this._translocoService.translate('bim-information-listing')}`,
                 permissions: [
                     { codename: "view_process_function", name: this._translocoService.translate('bim-information-search'), desc: this._translocoService.translate('bim-information-search-desc') },
                 ]
             },
             {
-                name: `${this._translocoService.translate('bim-model-viewer')} ${this._translocoService.translate('module')}`,
+                name: `${this._translocoService.translate('bim-model-viewer')}`,
                 permissions: [
                     { codename: "view_bim_model", name: this._translocoService.translate('3d-model-viewer'), desc: this._translocoService.translate('3d-model-viewer-desc') },
                     { codename: "manage_bim_model", name: this._translocoService.translate('bim-file-management'), desc: this._translocoService.translate('bim-file-management-desc') }
                 ]
             },
             {
-                name: `${this._translocoService.translate('digital-files')} ${this._translocoService.translate('module')}`,
+                name: `${this._translocoService.translate('digital-files')}`,
                 permissions: [
                     { codename: "manage_media_data", name: this._translocoService.translate('digital-files'), desc: this._translocoService.translate('digital-files-desc') },
                 ]
             },
             {
-                name: `${this._translocoService.translate('bim-data-import')} ${this._translocoService.translate('module')}`,
+                name: `${this._translocoService.translate('bim-data-import')}`,
                 permissions: [
                     { codename: "manage_data_import", name: this._translocoService.translate('model-import-operations'), desc: this._translocoService.translate('model-import-operations-desc') }
                 ]
             },
             {
-                name: `${this._translocoService.translate('user-management')} ${this._translocoService.translate('module')}`,
+                name: `${this._translocoService.translate('user-management')}`,
                 permissions: [
                     { codename: "manage_users", name: this._translocoService.translate('user-management'), desc: this._translocoService.translate('user-management-desc') },
                     { codename: "manage_user_groups", name: this._translocoService.translate('permission-group-management'), desc: this._translocoService.translate('permission-group-management-desc') },
@@ -284,7 +284,7 @@ export class UserGroupComponent implements OnInit, OnDestroy {
                 ]
             },
             {
-                name: `${this._translocoService.translate('system-administration')} ${this._translocoService.translate('module')}`,
+                name: `${this._translocoService.translate('system-administration')}`,
                 permissions: [
                     { codename: "manage_aps_credentials", name: this._translocoService.translate('aps-account'), desc: this._translocoService.translate('aps-account-desc') },
                     { codename: "manage_backup_restore", name: this._translocoService.translate('database-management'), desc: this._translocoService.translate('database-management-desc') },
