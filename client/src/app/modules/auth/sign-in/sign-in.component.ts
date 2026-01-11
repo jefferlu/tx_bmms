@@ -40,8 +40,10 @@ export class SignInComponent {
     // Demo accounts from bim-init.sql
     demoAccounts = [
         { email: 'admin@example.com', username: '管理員', password: 'Temp.123456789' },
-        { email: 'zenithbim@example.com', username: 'ZenithBIM', password: 'Temp.123456789' },
-        { email: 'user@example.com', username: '使用者', password: 'Temp.123456789' }
+        { email: 'security@example.com', username: '安控管理人員', password: 'Temp.123456789' },
+        { email: 'manager@example.com', username: '圖資管理人員', password: 'Temp.123456789' },
+        { email: 'operator@example.com', username: '圖資作業人員', password: 'Temp.123456789' },
+        { email: 'user@example.com', username: '一般使用者', password: 'Temp.123456789' }
     ];
 
     constructor(
