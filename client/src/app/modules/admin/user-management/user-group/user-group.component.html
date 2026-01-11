@@ -98,7 +98,7 @@
                         @for (permission of r.permissions; track trackByFn($index, permission)) {
                         <div class="flex items-center justify-between pt-2">
                             <div>
-                                <label class="pb-1 block"> {{ permission.name }} {{permission.codename}} </label>
+                                <label class="pb-1 block"> {{ permission.name }} </label>
                                 <div class="pb-2 text-secondary mt-0.5 line-clamp-2 text-sm">{{ permission.desc }}</div>
                             </div>
                             <p-toggleswitch [name]="permission.codename" [(ngModel)]="permission.status"></p-toggleswitch>

@@ -10,7 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Subject, takeUntil, forkJoin, finalize } from 'rxjs';
 import { SensorService, Sensor, SensorBimBinding } from 'app/core/services/sensors';
@@ -69,10 +69,10 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
 
     // 位置類型選項
     positionTypeOptions = [
-        { label: '中心', value: 'center' },
-        { label: '頂部', value: 'top' },
-        { label: '底部', value: 'bottom' },
-        { label: '自訂', value: 'custom' }
+        { value: 'center' },
+        { value: 'top' },
+        { value: 'bottom' },
+        { value: 'custom' }
     ];
 
     private _unsubscribeAll: Subject<void> = new Subject<void>();
@@ -83,7 +83,8 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
         private _changeDetectorRef: ChangeDetectorRef,
         private _formBuilder: UntypedFormBuilder,
         private _gtsMediaWatcherService: GtsMediaWatcherService,
-        private _gtsConfirmationService: GtsConfirmationService
+        private _gtsConfirmationService: GtsConfirmationService,
+        private _translocoService: TranslocoService
     ) {}
 
     ngOnInit(): void {
@@ -151,7 +152,7 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
             },
             error: (error) => {
                 console.error('Failed to load data:', error);
-                this._toastService.open({ message: '載入資料失敗' });
+                this._toastService.open({ message: this._translocoService.translate('failed-to-load-data') });
                 this.isLoading = false;
                 this._changeDetectorRef.markForCheck();
             }
@@ -197,7 +198,7 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
      */
     onSave(): void {
         if (this.form.invalid) {
-            this._toastService.open({ message: '請填寫必填欄位' });
+            this._toastService.open({ message: this._translocoService.translate('please-fill-required-fields') });
             return;
         }
 
@@ -223,13 +224,13 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
                 )
                 .subscribe({
                     next: () => {
-                        this._toastService.open({ message: '綁定已更新' });
+                        this._toastService.open({ message: this._translocoService.translate('binding-updated') });
                         this.onCloseDrawer();
                         this.loadData();
                     },
                     error: (error) => {
                         console.error('Failed to update binding:', error);
-                        this._toastService.open({ message: '更新綁定失敗' });
+                        this._toastService.open({ message: this._translocoService.translate('failed-to-update-binding') });
                     }
                 });
         }
@@ -245,13 +246,13 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
                 )
                 .subscribe({
                     next: () => {
-                        this._toastService.open({ message: '綁定已建立' });
+                        this._toastService.open({ message: this._translocoService.translate('binding-created') });
                         this.ngForm?.resetForm();
                         this.loadData();
                     },
                     error: (error) => {
                         console.error('Failed to create binding:', error);
-                        this._toastService.open({ message: '建立綁定失敗' });
+                        this._toastService.open({ message: this._translocoService.translate('failed-to-create-binding') });
                     }
                 });
         }
@@ -262,12 +263,12 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
      */
     onDelete(): void {
         const dialogRef = this._gtsConfirmationService.open({
-            title: '確認刪除',
-            message: '確定要刪除此綁定嗎？',
+            title: this._translocoService.translate('confirm-delete-binding'),
+            message: this._translocoService.translate('confirm-delete-binding-message'),
             icon: { color: 'warn' },
             actions: {
-                confirm: { label: '刪除', color: 'warn' },
-                cancel: { label: '取消' }
+                confirm: { label: this._translocoService.translate('delete'), color: 'warn' },
+                cancel: { label: this._translocoService.translate('cancel') }
             }
         });
 
@@ -296,12 +297,12 @@ export class SensorBindingsComponent implements OnInit, OnDestroy {
             )
             .subscribe({
                 next: () => {
-                    this._toastService.open({ message: '綁定已刪除' });
+                    this._toastService.open({ message: this._translocoService.translate('binding-deleted') });
                     this.loadData();
                 },
                 error: (error) => {
                     console.error('Failed to delete binding:', error);
-                    this._toastService.open({ message: '刪除綁定失敗' });
+                    this._toastService.open({ message: this._translocoService.translate('failed-to-delete-binding') });
                 }
             });
     }

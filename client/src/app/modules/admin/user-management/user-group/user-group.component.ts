@@ -98,6 +98,16 @@ export class UserGroupComponent implements OnInit, OnDestroy {
                 this.page.permissions = data;
                 this._managePermission();
             });
+
+        // Listen to language changes and update permissions
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                if (this.page.permissions) {
+                    this._managePermission();
+                    this._changeDetectorRef.markForCheck();
+                }
+            });
     }
 
     onOpenDrawer(event?: any) {
@@ -241,44 +251,44 @@ export class UserGroupComponent implements OnInit, OnDestroy {
     private _managePermission() {
         const category = [
             {
-                name: "圖資檢索模組",
+                name: `${this._translocoService.translate('bim-information-listing')}`,
                 permissions: [
-                    { codename: "view_process_function", name: "圖資檢索查詢", desc: "可查詢模型檢索列表資料" },
+                    { codename: "view_process_function", name: this._translocoService.translate('bim-information-search'), desc: this._translocoService.translate('bim-information-search-desc') },
                 ]
             },
             {
-                name: "模型檢視模組",
+                name: `${this._translocoService.translate('bim-model-viewer')}`,
                 permissions: [
-                    { codename: "view_bim_model", name: "3D模型檢視器", desc: "可使用 3D WebGL 模型檢視器" },
-                    { codename: "manage_bim_model", name: "BIM 檔案管理", desc: "可管理並下載 BIM 檔案" }
+                    { codename: "view_bim_model", name: this._translocoService.translate('3d-model-viewer'), desc: this._translocoService.translate('3d-model-viewer-desc') },
+                    { codename: "manage_bim_model", name: this._translocoService.translate('bim-file-management'), desc: this._translocoService.translate('bim-file-management-desc') }
                 ]
             },
             {
-                name: "文件管理模組",
+                name: `${this._translocoService.translate('digital-files')}`,
                 permissions: [
-                    { codename: "manage_media_data", name: "數位化檔案", desc: "可管理數位化檔案並下載" },
+                    { codename: "manage_media_data", name: this._translocoService.translate('digital-files'), desc: this._translocoService.translate('digital-files-desc') },
                 ]
             },
             {
-                name: "模型匯入模組",
+                name: `${this._translocoService.translate('bim-data-import')}`,
                 permissions: [
-                    { codename: "manage_data_import", name: "模型匯入作業", desc: "使用 APS 服務將模型轉換 WebGL 格式" }
+                    { codename: "manage_data_import", name: this._translocoService.translate('model-import-operations'), desc: this._translocoService.translate('model-import-operations-desc') }
                 ]
             },
             {
-                name: "使用者管理模組",
+                name: `${this._translocoService.translate('user-management')}`,
                 permissions: [
-                    { codename: "manage_users", name: "使用者管理", desc: "可新增、刪除、修改使用者帳戶" },
-                    { codename: "manage_user_groups", name: "權限群組管理", desc: "可新增、刪除、修改使用者權限群組" },
-                    { codename: "view_user_activity_log", name: "查詢使用者歷程", desc: "可查詢使用者歷程記錄並匯出記錄檔" }
+                    { codename: "manage_users", name: this._translocoService.translate('user-management'), desc: this._translocoService.translate('user-management-desc') },
+                    { codename: "manage_user_groups", name: this._translocoService.translate('permission-group-management'), desc: this._translocoService.translate('permission-group-management-desc') },
+                    { codename: "view_user_activity_log", name: this._translocoService.translate('user-log-query'), desc: this._translocoService.translate('user-log-query-desc') }
                 ]
             },
             {
-                name: "系統管理模組",
-                permissions: [                    
-                    { codename: "manage_aps_credentials", name: "APS客戶端憑證", desc: "可進行資料庫備份及還原作業" },
-                    { codename: "manage_backup_restore", name: "資料庫管理", desc: "可查詢系統記錄並匯出記錄檔" },
-                    { codename: "view_system_activity_log", name: "查看系統活動日誌", desc: "可修改 APS 客戶端憑證資料" }
+                name: `${this._translocoService.translate('system-administration')}`,
+                permissions: [
+                    { codename: "manage_aps_credentials", name: this._translocoService.translate('aps-account'), desc: this._translocoService.translate('aps-account-desc') },
+                    { codename: "manage_backup_restore", name: this._translocoService.translate('database-management'), desc: this._translocoService.translate('database-management-desc') },
+                    { codename: "view_system_activity_log", name: this._translocoService.translate('system-log-query'), desc: this._translocoService.translate('system-log-query-desc') }
                 ]
             }
         ]
