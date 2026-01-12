@@ -1,9 +1,10 @@
 import os
+import csv
 import docker
 import pandas as pd
 import logging
 
-from io import BytesIO
+from io import BytesIO, StringIO
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
@@ -13,7 +14,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.conf import settings
-from django.http import FileResponse
+from django.http import FileResponse, StreamingHttpResponse
 from django.core.files.uploadedfile import UploadedFile
 
 from rest_framework import viewsets, generics, status
@@ -626,6 +627,102 @@ class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelVie
     queryset = models.LogUserActivity.objects.all().order_by('-timestamp')  # 按 timestamp 降序
     serializer_class = serializers.LogUserActivitySerializer
     pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search = self.request.query_params.get('search', None)
+
+        if search:
+            # 模糊查詢所有欄位
+            queryset = queryset.filter(
+                Q(user__username__icontains=search) |
+                Q(user__email__icontains=search) |
+                Q(function__icontains=search) |
+                Q(action__icontains=search) |
+                Q(status__icontains=search) |
+                Q(ip_address__icontains=search)
+            )
+
+        return queryset
+
+    def _generate_csv_rows(self, queryset, headers):
+        """生成 CSV 行的生成器"""
+        # CSV 標題
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow(headers)
+        yield '\ufeff' + output.getvalue()  # BOM + 標題
+        output.truncate(0)
+        output.seek(0)
+
+        # 數據行
+        for log in queryset.iterator(chunk_size=100):
+            writer = csv.writer(output)
+            writer.writerow([
+                log.user.email if log.user else '',
+                log.user.username if log.user else '',
+                log.function,
+                log.action,
+                log.status,
+                log.timestamp.strftime('%Y/%m/%d %H:%M:%S'),
+                log.ip_address or ''
+            ])
+            yield output.getvalue()
+            output.truncate(0)
+            output.seek(0)
+
+    def _generate_txt_rows(self, queryset, headers):
+        """生成 TXT 行的生成器（Tab 分隔）"""
+        # TXT 標題
+        yield '\t'.join(headers) + '\n'
+
+        # 數據行
+        for log in queryset.iterator(chunk_size=100):
+            yield f"{log.user.email if log.user else ''}\t" \
+                  f"{log.user.username if log.user else ''}\t" \
+                  f"{log.function}\t" \
+                  f"{log.action}\t" \
+                  f"{log.status}\t" \
+                  f"{log.timestamp.strftime('%Y/%m/%d %H:%M:%S')}\t" \
+                  f"{log.ip_address or ''}\n"
+
+    @action(detail=False, methods=['get'])
+    def export_csv(self, request):
+        """導出 CSV 格式（流式響應）"""
+        # 從查詢參數獲取標題（前端提供，逗號分隔）
+        headers_str = request.query_params.get('headers', '')
+        if headers_str:
+            headers = headers_str.split(',')
+        else:
+            headers = ['Account', 'Name', 'Function', 'Action', 'Status', 'Timestamp', 'IP Address']
+
+        queryset = self.get_queryset()
+        response = StreamingHttpResponse(
+            self._generate_csv_rows(queryset, headers),
+            content_type='text/csv; charset=utf-8'
+        )
+        filename = f"user_activity_log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    @action(detail=False, methods=['get'])
+    def export_txt(self, request):
+        """導出 TXT 格式（Tab 分隔，流式響應）"""
+        # 從查詢參數獲取標題（前端提供，逗號分隔）
+        headers_str = request.query_params.get('headers', '')
+        if headers_str:
+            headers = headers_str.split(',')
+        else:
+            headers = ['Account', 'Name', 'Function', 'Action', 'Status', 'Timestamp', 'IP Address']
+
+        queryset = self.get_queryset()
+        response = StreamingHttpResponse(
+            self._generate_txt_rows(queryset, headers),
+            content_type='text/plain; charset=utf-8'
+        )
+        filename = f"user_activity_log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
 
 class DockerLogsView(APIView):
