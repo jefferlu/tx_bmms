@@ -179,12 +179,11 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
                         return;
                     }
 
-                    // 準備 TXT 內容
+                    // 準備 TXT 內容（Tab 分隔格式）
+                    const headers = ['帳號', '姓名', '功能名稱', '動作', '狀態', '時間戳記', 'IP 位址'];
                     const txtContent = [
-                        '使用者活動記錄',
-                        '=' .repeat(80),
-                        '',
-                        ...data.map((item: any, index: number) => {
+                        headers.join('\t'),
+                        ...data.map((item: any) => {
                             const timestamp = new Date(item.timestamp).toLocaleString('zh-TW', {
                                 year: 'numeric',
                                 month: '2-digit',
@@ -194,16 +193,14 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
                                 second: '2-digit'
                             });
                             return [
-                                `記錄 ${index + 1}:`,
-                                `  帳號: ${item.email || 'N/A'}`,
-                                `  姓名: ${item.username || 'N/A'}`,
-                                `  功能名稱: ${item.function || 'N/A'}`,
-                                `  動作: ${item.action || 'N/A'}`,
-                                `  狀態: ${item.status || 'N/A'}`,
-                                `  時間戳記: ${timestamp}`,
-                                `  IP 位址: ${item.ip_address || 'N/A'}`,
-                                ''
-                            ].join('\n');
+                                item.email || '',
+                                item.username || '',
+                                item.function || '',
+                                item.action || '',
+                                item.status || '',
+                                timestamp,
+                                item.ip_address || ''
+                            ].join('\t');
                         })
                     ].join('\n');
 
