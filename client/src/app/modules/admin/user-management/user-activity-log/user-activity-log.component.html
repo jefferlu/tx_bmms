@@ -10,9 +10,10 @@
                 </div>
 
                 <!-- Search -->
-                <div class="flex items-center justify-between sm:mr-10">
+                <div class="flex items-center justify-between gap-x-2 sm:gap-x-4">
                     <div class="flex flex-col">
-                        <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 gts-mat-dense">
+                        <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 gts-mat-dense" subscriptSizing="dynamic">
+                            
                             <input matInput [placeholder]="t('search')" [(ngModel)]="searchBinName" />
 
                             <button mat-icon-button matSuffix (click)="onSearch()">
@@ -20,8 +21,27 @@
                             </button>
                         </mat-form-field>
                     </div>
+                    <div>
+                        <button mat-flat-button [matMenuTriggerFor]="manageCriteria">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-down-tray'"></mat-icon>
+                            <span class="ml-2">下載</span>
+                        </button>
+                        <mat-menu #manageCriteria="matMenu">
+                            <button mat-menu-item (click)="onSaveCsv()">
+                                <span class="flex items-center">
+                                    <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+                                    <span>CSV</span>
+                                </span>
+                            </button>
+                            <button mat-menu-item (click)="onSaveTxt()">
+                                <span class="flex items-center">
+                                    <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+                                    <span>TXT</span>
+                                </span>
+                            </button>                           
+                        </mat-menu>
+                    </div>
                 </div>
-
             </div>
 
             <!-- Content -->
@@ -30,9 +50,8 @@
                 <!-- <p-table class="w-full" [value]="data?.results" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" selectionMode="single"
                     [metaKeySelection]="true" (onRowSelect)="onOpenDrawer($event)"> -->
                 <p-table #dataTable class="w-full" [value]="data?.results" [totalRecords]="this.data?.count" [scrollable]="true" scrollHeight="flex"
-                    selectionMode="single" [pageLinks]="5" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [first]="first"
-                    [paginator]="true" [lazy]="true" [lazyLoadOnInit]="false" [loading]="isLoading" [selection]="selectedObjects"
-                    (onLazyLoad)="onPageChange($event)">
+                    selectionMode="single" [pageLinks]="5" dataKey="id" [styleClass]="'p-datatable-lg'" [rows]="rowsPerPage" [first]="first" [paginator]="true"
+                    [lazy]="true" [lazyLoadOnInit]="false" [loading]="isLoading" [selection]="selectedObjects" (onLazyLoad)="onPageChange($event)">
                     <ng-template pTemplate="header">
                         <tr>
                             <th class="pl-8 py-4">{{t('account')}}</th>

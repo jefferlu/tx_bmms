@@ -8,6 +8,7 @@ import { TranslocoModule } from '@jsverse/transloco';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
 import { UserActivityLogService } from './user-activity-log.service';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
     selector: 'app-user-activity-log',
@@ -16,7 +17,7 @@ import { UserActivityLogService } from './user-activity-log.service';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         FormsModule, TranslocoModule, TableModule, DatePipe,
-        MatIconModule, MatButtonModule, MatInputModule,
+        MatIconModule, MatButtonModule, MatInputModule, MatMenuModule
     ],
 })
 export class UserActivityLogComponent implements OnInit, OnDestroy {
@@ -49,73 +50,6 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
         this._userActivityLogService.getData()
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((res: any) => { });
-
-
-        // // 產生最終 request
-        // this.request = {
-        //     page,
-        //     size: this.rowsPerPage,
-        //     ...(regions.length > 0 && { regions }),
-        //     ...(categories.length > 0 && { categories }),
-        //     ...(this.keyword && { fuzzy_keyword: this.keyword }),
-        // };
-
-        // const cacheKey = JSON.stringify(this.request);
-        // if (this._cache.has(cacheKey)) {
-
-        //     this.objects = this._cache.get(cacheKey);
-        //     this.updateCriteria();
-
-        //     if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
-        //         this.selectedObjects = this.bimCriteria.objects;
-        //         this.bimCriteria.isRead = true;
-        //     }
-        //     this._changeDetectorRef.markForCheck();
-        //     return;
-        // }
-
-        // this.isLoading = true;
-        // this._processFunctionsService.getData(this.request)
-        //     .pipe(
-        //         takeUntil(this._unsubscribeAll),
-        //         finalize(() => {
-        //             this.isLoading = false;
-        //             this._changeDetectorRef.markForCheck();
-        //         })
-        //     )
-        //     .subscribe({
-        //         next: (res) => {
-
-        //             if (res && res.count >= 0 && res.results) {
-        //                 this.objects = { count: res.count, results: res.results };
-        //                 this._cache.set(cacheKey, this.objects);
-        //             } else {
-        //                 this.objects = { count: 0, results: [] };
-        //             }
-        //             this.updateCriteria();
-
-        //             // Set selectedObjects if bimCriteria has objects and they exist in this.objects.results
-        //             // if (this.bimCriteria?.objects?.length > 0 && this.objects?.results?.length > 0) {
-        //             // const validIds = new Set(this.objects.results.map((item: any) => item.id));
-        //             // const validObjects = this.bimCriteria.objects.filter((obj: any) => validIds.has(obj.id));
-        //             // if (this.selectedObjects.length > 0)
-        //             //     this.selectedObjects = [this.selectedObjects, ...validObjects];
-        //             // else
-        //             //     this.selectedObjects = validObjects;
-        //             // debugger;
-
-        //             if (this.bimCriteria?.objects?.length > 0 && !this.bimCriteria.isRead) {
-        //                 this.selectedObjects = this.bimCriteria.objects;
-        //                 this.bimCriteria.isRead = true;
-        //             }
-        //             this._changeDetectorRef.markForCheck();
-        //         },
-        //         error: (err) => {
-        //             console.error('Error:', err);
-        //             this.objects = { count: 0, results: [] };
-        //             this._changeDetectorRef.markForCheck();
-        //         }
-        //     });
     }
 
     onSearch(): void {
@@ -131,6 +65,12 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
         this.rowsPerPage = event.rows || this.rowsPerPage;
         const page = this.first / this.rowsPerPage + 1;
         this.loadPage(page);
+    }
+
+    onSaveCsv() {
+    }
+
+    onSaveTxt() {
     }
 
     ngOnDestroy(): void {
