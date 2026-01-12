@@ -618,7 +618,7 @@ class ApsCredentialsViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 100
     page_size_query_param = 'size'
-    max_page_size = 100
+    max_page_size = 10000  # 允許導出大量數據
 
 
 class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):

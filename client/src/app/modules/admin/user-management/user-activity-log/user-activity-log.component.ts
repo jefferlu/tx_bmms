@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
 import { UserActivityLogService } from './user-activity-log.service';
@@ -32,7 +32,8 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
-        private _userActivityLogService: UserActivityLogService
+        private _userActivityLogService: UserActivityLogService,
+        private _translocoService: TranslocoService
     ) { }
 
     ngOnInit(): void {
@@ -114,8 +115,16 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
                         return;
                     }
 
-                    // 準備 CSV 標題
-                    const headers = ['帳號', '姓名', '功能名稱', '動作', '狀態', '時間戳記', 'IP 位址'];
+                    // 準備 CSV 標題（使用多語系）
+                    const headers = [
+                        this._translocoService.translate('account'),
+                        this._translocoService.translate('name'),
+                        this._translocoService.translate('function-name'),
+                        this._translocoService.translate('action'),
+                        this._translocoService.translate('status'),
+                        this._translocoService.translate('timestamp'),
+                        this._translocoService.translate('ip-address')
+                    ];
                     const csvContent = [
                         headers.join(','),
                         ...data.map((item: any) => {
@@ -125,7 +134,8 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
                                 day: '2-digit',
                                 hour: '2-digit',
                                 minute: '2-digit',
-                                second: '2-digit'
+                                second: '2-digit',
+                                hour12: false
                             });
                             return [
                                 this.escapeCsvValue(item.email || ''),
@@ -179,8 +189,16 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
                         return;
                     }
 
-                    // 準備 TXT 內容（Tab 分隔格式）
-                    const headers = ['帳號', '姓名', '功能名稱', '動作', '狀態', '時間戳記', 'IP 位址'];
+                    // 準備 TXT 內容（Tab 分隔格式，使用多語系）
+                    const headers = [
+                        this._translocoService.translate('account'),
+                        this._translocoService.translate('name'),
+                        this._translocoService.translate('function-name'),
+                        this._translocoService.translate('action'),
+                        this._translocoService.translate('status'),
+                        this._translocoService.translate('timestamp'),
+                        this._translocoService.translate('ip-address')
+                    ];
                     const txtContent = [
                         headers.join('\t'),
                         ...data.map((item: any) => {
@@ -190,7 +208,8 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
                                 day: '2-digit',
                                 hour: '2-digit',
                                 minute: '2-digit',
-                                second: '2-digit'
+                                second: '2-digit',
+                                hour12: false
                             });
                             return [
                                 item.email || '',
