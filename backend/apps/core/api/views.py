@@ -1,9 +1,10 @@
 import os
+import csv
 import docker
 import pandas as pd
 import logging
 
-from io import BytesIO
+from io import BytesIO, StringIO
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
@@ -13,7 +14,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.conf import settings
-from django.http import FileResponse
+from django.http import FileResponse, StreamingHttpResponse
 from django.core.files.uploadedfile import UploadedFile
 
 from rest_framework import viewsets, generics, status
@@ -618,7 +619,7 @@ class ApsCredentialsViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 100
     page_size_query_param = 'size'
-    max_page_size = 10000  # 允許導出大量數據
+    max_page_size = 100
 
 
 class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
@@ -643,6 +644,81 @@ class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelVie
             )
 
         return queryset
+
+    def _get_headers(self, lang='zh'):
+        """根據語系返回標題"""
+        if lang == 'en':
+            return ['Account', 'Name', 'Function Name', 'Action', 'Status', 'Timestamp', 'IP Address']
+        else:  # 預設中文
+            return ['帳號', '姓名', '功能名稱', '動作', '狀態', '時間戳記', 'IP 位址']
+
+    def _generate_csv_rows(self, queryset, lang='zh'):
+        """生成 CSV 行的生成器"""
+        # CSV 標題
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow(self._get_headers(lang))
+        yield '\ufeff' + output.getvalue()  # BOM + 標題
+        output.truncate(0)
+        output.seek(0)
+
+        # 數據行
+        for log in queryset.iterator(chunk_size=100):
+            writer = csv.writer(output)
+            writer.writerow([
+                log.user.email if log.user else '',
+                log.user.username if log.user else '',
+                log.function,
+                log.action,
+                log.status,
+                log.timestamp.strftime('%Y/%m/%d %H:%M:%S'),
+                log.ip_address or ''
+            ])
+            yield output.getvalue()
+            output.truncate(0)
+            output.seek(0)
+
+    def _generate_txt_rows(self, queryset, lang='zh'):
+        """生成 TXT 行的生成器（Tab 分隔）"""
+        # TXT 標題
+        headers = self._get_headers(lang)
+        yield '\t'.join(headers) + '\n'
+
+        # 數據行
+        for log in queryset.iterator(chunk_size=100):
+            yield f"{log.user.email if log.user else ''}\t" \
+                  f"{log.user.username if log.user else ''}\t" \
+                  f"{log.function}\t" \
+                  f"{log.action}\t" \
+                  f"{log.status}\t" \
+                  f"{log.timestamp.strftime('%Y/%m/%d %H:%M:%S')}\t" \
+                  f"{log.ip_address or ''}\n"
+
+    @action(detail=False, methods=['get'])
+    def export_csv(self, request):
+        """導出 CSV 格式"""
+        lang = request.query_params.get('lang', 'zh')
+        queryset = self.get_queryset()
+        response = StreamingHttpResponse(
+            self._generate_csv_rows(queryset, lang),
+            content_type='text/csv; charset=utf-8'
+        )
+        filename = f"user_activity_log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    @action(detail=False, methods=['get'])
+    def export_txt(self, request):
+        """導出 TXT 格式（Tab 分隔）"""
+        lang = request.query_params.get('lang', 'zh')
+        queryset = self.get_queryset()
+        response = StreamingHttpResponse(
+            self._generate_txt_rows(queryset, lang),
+            content_type='text/plain; charset=utf-8'
+        )
+        filename = f"user_activity_log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
 
 class DockerLogsView(APIView):

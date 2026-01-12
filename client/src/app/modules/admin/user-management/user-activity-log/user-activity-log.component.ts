@@ -98,59 +98,18 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
     }
 
     onSaveCsv(): void {
-        const searchParams: any = {};
+        const searchParams: any = {
+            lang: this._translocoService.getActiveLang()
+        };
         if (this.searchBinName && this.searchBinName.trim()) {
             searchParams.search = this.searchBinName.trim();
         }
 
         this.isLoading = true;
-        this._userActivityLogService.getAllData(searchParams)
+        this._userActivityLogService.exportData('csv', searchParams)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
-                next: (response: any) => {
-                    const data = response?.results || [];
-                    if (data.length === 0) {
-                        this.isLoading = false;
-                        this._changeDetectorRef.markForCheck();
-                        return;
-                    }
-
-                    // 準備 CSV 標題（使用多語系）
-                    const headers = [
-                        this._translocoService.translate('account'),
-                        this._translocoService.translate('name'),
-                        this._translocoService.translate('function-name'),
-                        this._translocoService.translate('action'),
-                        this._translocoService.translate('status'),
-                        this._translocoService.translate('timestamp'),
-                        this._translocoService.translate('ip-address')
-                    ];
-                    const csvContent = [
-                        headers.join(','),
-                        ...data.map((item: any) => {
-                            const timestamp = new Date(item.timestamp).toLocaleString('zh-TW', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                                hour12: false
-                            });
-                            return [
-                                this.escapeCsvValue(item.email || ''),
-                                this.escapeCsvValue(item.username || ''),
-                                this.escapeCsvValue(item.function || ''),
-                                this.escapeCsvValue(item.action || ''),
-                                this.escapeCsvValue(item.status || ''),
-                                this.escapeCsvValue(timestamp),
-                                this.escapeCsvValue(item.ip_address || '')
-                            ].join(',');
-                        })
-                    ].join('\n');
-
-                    // 添加 BOM 以支持 Excel 正確顯示中文
-                    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                next: (blob: Blob) => {
                     const link = document.createElement('a');
                     const url = URL.createObjectURL(blob);
                     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
@@ -160,6 +119,7 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
 
                     this.isLoading = false;
                     this._changeDetectorRef.markForCheck();
@@ -172,58 +132,18 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
     }
 
     onSaveTxt(): void {
-        const searchParams: any = {};
+        const searchParams: any = {
+            lang: this._translocoService.getActiveLang()
+        };
         if (this.searchBinName && this.searchBinName.trim()) {
             searchParams.search = this.searchBinName.trim();
         }
 
         this.isLoading = true;
-        this._userActivityLogService.getAllData(searchParams)
+        this._userActivityLogService.exportData('txt', searchParams)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
-                next: (response: any) => {
-                    const data = response?.results || [];
-                    if (data.length === 0) {
-                        this.isLoading = false;
-                        this._changeDetectorRef.markForCheck();
-                        return;
-                    }
-
-                    // 準備 TXT 內容（Tab 分隔格式，使用多語系）
-                    const headers = [
-                        this._translocoService.translate('account'),
-                        this._translocoService.translate('name'),
-                        this._translocoService.translate('function-name'),
-                        this._translocoService.translate('action'),
-                        this._translocoService.translate('status'),
-                        this._translocoService.translate('timestamp'),
-                        this._translocoService.translate('ip-address')
-                    ];
-                    const txtContent = [
-                        headers.join('\t'),
-                        ...data.map((item: any) => {
-                            const timestamp = new Date(item.timestamp).toLocaleString('zh-TW', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                                hour12: false
-                            });
-                            return [
-                                item.email || '',
-                                item.username || '',
-                                item.function || '',
-                                item.action || '',
-                                item.status || '',
-                                timestamp,
-                                item.ip_address || ''
-                            ].join('\t');
-                        })
-                    ].join('\n');
-
-                    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+                next: (blob: Blob) => {
                     const link = document.createElement('a');
                     const url = URL.createObjectURL(blob);
                     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
@@ -233,6 +153,7 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
 
                     this.isLoading = false;
                     this._changeDetectorRef.markForCheck();
@@ -242,18 +163,6 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
                     this._changeDetectorRef.markForCheck();
                 }
             });
-    }
-
-    private escapeCsvValue(value: string): string {
-        if (value === null || value === undefined) {
-            return '';
-        }
-        const stringValue = String(value);
-        // 如果包含逗號、引號或換行符，需要用雙引號包裹，並將內部的雙引號轉義
-        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-            return `"${stringValue.replace(/"/g, '""')}"`;
-        }
-        return stringValue;
     }
 
     ngOnDestroy(): void {

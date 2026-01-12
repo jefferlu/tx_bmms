@@ -12,15 +12,16 @@ export class UserActivityLogService extends BaseService {
     }
 
     /**
-     * 獲取所有數據（用於導出）
+     * 導出 CSV 或 TXT 文件
+     * @param format 導出格式 'csv' 或 'txt'
      * @param searchParams 搜索參數
-     * @returns Observable with all data
+     * @returns Observable<Blob>
      */
-    getAllData(searchParams?: any): Observable<any> {
-        const params = {
-            ...searchParams,
-            size: 10000  // 設置一個很大的數字來獲取所有數據
-        };
-        return this._appService.get('core/log-user-activity', params);
+    exportData(format: 'csv' | 'txt', searchParams?: any): Observable<Blob> {
+        return this._appService.get(
+            `core/log-user-activity/export_${format}`,
+            searchParams,
+            { responseType: 'blob' }
+        );
     }
 }
