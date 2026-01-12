@@ -13,8 +13,8 @@
                 <div class="flex items-center justify-between gap-x-2 sm:gap-x-4">
                     <div class="flex flex-col">
                         <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 gts-mat-dense" subscriptSizing="dynamic">
-                            
-                            <input matInput [placeholder]="t('search')" [(ngModel)]="searchBinName" />
+
+                            <input matInput [placeholder]="t('search')" [(ngModel)]="searchBinName" (keyup.enter)="onSearch()" />
 
                             <button mat-icon-button matSuffix (click)="onSearch()">
                                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
@@ -24,7 +24,7 @@
                     <div>
                         <button mat-flat-button [matMenuTriggerFor]="manageCriteria">
                             <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-down-tray'"></mat-icon>
-                            <span class="ml-2">下載</span>
+                            <span class="ml-2">{{t('download')}}</span>
                         </button>
                         <mat-menu #manageCriteria="matMenu">
                             <button mat-menu-item (click)="onSaveCsv()">
@@ -38,7 +38,7 @@
                                     <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
                                     <span>TXT</span>
                                 </span>
-                            </button>                           
+                            </button>
                         </mat-menu>
                     </div>
                 </div>

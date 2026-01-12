@@ -27,6 +27,8 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
     data: any;
     first: number = 0;
     rowsPerPage: number = 100;
+    searchBinName: string = '';
+    isLoading: boolean = false;
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -46,7 +48,14 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
         // 更新 first
         this.first = (page - 1) * this.rowsPerPage;
 
-        this._userActivityLogService.params = { 'page': page };
+        const params: any = { page };
+
+        // 保留搜索參數
+        if (this.searchBinName && this.searchBinName.trim()) {
+            params.search = this.searchBinName.trim();
+        }
+
+        this._userActivityLogService.params = params;
         this._userActivityLogService.getData()
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((res: any) => { });
@@ -57,7 +66,27 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
     }
 
     search(): void {
+        this.first = 0; // 重置到第一頁
+        const params: any = { page: 1 };
 
+        if (this.searchBinName && this.searchBinName.trim()) {
+            params.search = this.searchBinName.trim();
+        }
+
+        this.isLoading = true;
+        this._userActivityLogService.params = params;
+        this._userActivityLogService.getData()
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe({
+                next: () => {
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                },
+                error: () => {
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                }
+            });
     }
 
     onPageChange(event: TableLazyLoadEvent): void {
@@ -67,10 +96,148 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
         this.loadPage(page);
     }
 
-    onSaveCsv() {
+    onSaveCsv(): void {
+        const searchParams: any = {};
+        if (this.searchBinName && this.searchBinName.trim()) {
+            searchParams.search = this.searchBinName.trim();
+        }
+
+        this.isLoading = true;
+        this._userActivityLogService.getAllData(searchParams)
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe({
+                next: (response: any) => {
+                    const data = response?.results || [];
+                    if (data.length === 0) {
+                        this.isLoading = false;
+                        this._changeDetectorRef.markForCheck();
+                        return;
+                    }
+
+                    // 準備 CSV 標題
+                    const headers = ['帳號', '姓名', '功能名稱', '動作', '狀態', '時間戳記', 'IP 位址'];
+                    const csvContent = [
+                        headers.join(','),
+                        ...data.map((item: any) => {
+                            const timestamp = new Date(item.timestamp).toLocaleString('zh-TW', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                            });
+                            return [
+                                this.escapeCsvValue(item.email || ''),
+                                this.escapeCsvValue(item.username || ''),
+                                this.escapeCsvValue(item.function || ''),
+                                this.escapeCsvValue(item.action || ''),
+                                this.escapeCsvValue(item.status || ''),
+                                this.escapeCsvValue(timestamp),
+                                this.escapeCsvValue(item.ip_address || '')
+                            ].join(',');
+                        })
+                    ].join('\n');
+
+                    // 添加 BOM 以支持 Excel 正確顯示中文
+                    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    const url = URL.createObjectURL(blob);
+                    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `user_activity_log_${timestamp}.csv`);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                },
+                error: () => {
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                }
+            });
     }
 
-    onSaveTxt() {
+    onSaveTxt(): void {
+        const searchParams: any = {};
+        if (this.searchBinName && this.searchBinName.trim()) {
+            searchParams.search = this.searchBinName.trim();
+        }
+
+        this.isLoading = true;
+        this._userActivityLogService.getAllData(searchParams)
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe({
+                next: (response: any) => {
+                    const data = response?.results || [];
+                    if (data.length === 0) {
+                        this.isLoading = false;
+                        this._changeDetectorRef.markForCheck();
+                        return;
+                    }
+
+                    // 準備 TXT 內容
+                    const txtContent = [
+                        '使用者活動記錄',
+                        '=' .repeat(80),
+                        '',
+                        ...data.map((item: any, index: number) => {
+                            const timestamp = new Date(item.timestamp).toLocaleString('zh-TW', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                            });
+                            return [
+                                `記錄 ${index + 1}:`,
+                                `  帳號: ${item.email || 'N/A'}`,
+                                `  姓名: ${item.username || 'N/A'}`,
+                                `  功能名稱: ${item.function || 'N/A'}`,
+                                `  動作: ${item.action || 'N/A'}`,
+                                `  狀態: ${item.status || 'N/A'}`,
+                                `  時間戳記: ${timestamp}`,
+                                `  IP 位址: ${item.ip_address || 'N/A'}`,
+                                ''
+                            ].join('\n');
+                        })
+                    ].join('\n');
+
+                    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    const url = URL.createObjectURL(blob);
+                    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `user_activity_log_${timestamp}.txt`);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                },
+                error: () => {
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                }
+            });
+    }
+
+    private escapeCsvValue(value: string): string {
+        if (value === null || value === undefined) {
+            return '';
+        }
+        const stringValue = String(value);
+        // 如果包含逗號、引號或換行符，需要用雙引號包裹，並將內部的雙引號轉義
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
     }
 
     ngOnDestroy(): void {

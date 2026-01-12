@@ -627,6 +627,23 @@ class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelVie
     serializer_class = serializers.LogUserActivitySerializer
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search = self.request.query_params.get('search', None)
+
+        if search:
+            # 模糊查詢所有欄位
+            queryset = queryset.filter(
+                Q(user__username__icontains=search) |
+                Q(user__email__icontains=search) |
+                Q(function__icontains=search) |
+                Q(action__icontains=search) |
+                Q(status__icontains=search) |
+                Q(ip_address__icontains=search)
+            )
+
+        return queryset
+
 
 class DockerLogsView(APIView):
     def get(self, request, container_name):
