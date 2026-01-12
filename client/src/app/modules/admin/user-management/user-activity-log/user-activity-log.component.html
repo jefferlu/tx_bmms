@@ -30,13 +30,13 @@
                             <button mat-menu-item (click)="onSaveCsv()">
                                 <span class="flex items-center">
                                     <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
-                                    <span>CSV</span>
+                                    <span>{{t('download-csv')}}</span>
                                 </span>
                             </button>
                             <button mat-menu-item (click)="onSaveTxt()">
                                 <span class="flex items-center">
                                     <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
-                                    <span>TXT</span>
+                                    <span>{{t('download-txt')}}</span>
                                 </span>
                             </button>
                         </mat-menu>
@@ -80,7 +80,7 @@
                 <div class="flex flex-auto flex-col items-center justify-center text-secondary mb-10">
                     <mat-icon class="icon-size-16" [svgIcon]="'heroicons_outline:exclamation-circle'"></mat-icon>
                     <div class="mt-4 text-xl font-semibold tracking-tight">
-                        {{t('no-data-found')}} {{data?.count}}
+                        {{t('no-data-found')}}
                     </div>
                 </div>
                 }
