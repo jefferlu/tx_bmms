@@ -98,15 +98,24 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
     }
 
     onSaveCsv(): void {
-        const searchParams: any = {
-            lang: this._translocoService.getActiveLang()
-        };
+        // 使用 TranslocoService 獲取標題（支持多語系）
+        const headers = [
+            this._translocoService.translate('account'),
+            this._translocoService.translate('name'),
+            this._translocoService.translate('function-name'),
+            this._translocoService.translate('action'),
+            this._translocoService.translate('status'),
+            this._translocoService.translate('timestamp'),
+            this._translocoService.translate('ip-address')
+        ];
+
+        const searchParams: any = {};
         if (this.searchBinName && this.searchBinName.trim()) {
             searchParams.search = this.searchBinName.trim();
         }
 
         this.isLoading = true;
-        this._userActivityLogService.exportData('csv', searchParams)
+        this._userActivityLogService.exportData('csv', headers, searchParams)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
                 next: (blob: Blob) => {
@@ -132,15 +141,24 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
     }
 
     onSaveTxt(): void {
-        const searchParams: any = {
-            lang: this._translocoService.getActiveLang()
-        };
+        // 使用 TranslocoService 獲取標題（支持多語系）
+        const headers = [
+            this._translocoService.translate('account'),
+            this._translocoService.translate('name'),
+            this._translocoService.translate('function-name'),
+            this._translocoService.translate('action'),
+            this._translocoService.translate('status'),
+            this._translocoService.translate('timestamp'),
+            this._translocoService.translate('ip-address')
+        ];
+
+        const searchParams: any = {};
         if (this.searchBinName && this.searchBinName.trim()) {
             searchParams.search = this.searchBinName.trim();
         }
 
         this.isLoading = true;
-        this._userActivityLogService.exportData('txt', searchParams)
+        this._userActivityLogService.exportData('txt', headers, searchParams)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
                 next: (blob: Blob) => {

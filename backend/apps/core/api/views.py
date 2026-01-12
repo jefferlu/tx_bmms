@@ -645,19 +645,12 @@ class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelVie
 
         return queryset
 
-    def _get_headers(self, lang='zh'):
-        """根據語系返回標題"""
-        if lang == 'en':
-            return ['Account', 'Name', 'Function Name', 'Action', 'Status', 'Timestamp', 'IP Address']
-        else:  # 預設中文
-            return ['帳號', '姓名', '功能名稱', '動作', '狀態', '時間戳記', 'IP 位址']
-
-    def _generate_csv_rows(self, queryset, lang='zh'):
+    def _generate_csv_rows(self, queryset, headers):
         """生成 CSV 行的生成器"""
         # CSV 標題
         output = StringIO()
         writer = csv.writer(output)
-        writer.writerow(self._get_headers(lang))
+        writer.writerow(headers)
         yield '\ufeff' + output.getvalue()  # BOM + 標題
         output.truncate(0)
         output.seek(0)
@@ -678,10 +671,9 @@ class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelVie
             output.truncate(0)
             output.seek(0)
 
-    def _generate_txt_rows(self, queryset, lang='zh'):
+    def _generate_txt_rows(self, queryset, headers):
         """生成 TXT 行的生成器（Tab 分隔）"""
         # TXT 標題
-        headers = self._get_headers(lang)
         yield '\t'.join(headers) + '\n'
 
         # 數據行
@@ -696,11 +688,17 @@ class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelVie
 
     @action(detail=False, methods=['get'])
     def export_csv(self, request):
-        """導出 CSV 格式"""
-        lang = request.query_params.get('lang', 'zh')
+        """導出 CSV 格式（流式響應）"""
+        # 從查詢參數獲取標題（前端提供，逗號分隔）
+        headers_str = request.query_params.get('headers', '')
+        if headers_str:
+            headers = headers_str.split(',')
+        else:
+            headers = ['Account', 'Name', 'Function', 'Action', 'Status', 'Timestamp', 'IP Address']
+
         queryset = self.get_queryset()
         response = StreamingHttpResponse(
-            self._generate_csv_rows(queryset, lang),
+            self._generate_csv_rows(queryset, headers),
             content_type='text/csv; charset=utf-8'
         )
         filename = f"user_activity_log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
@@ -709,11 +707,17 @@ class LogUserActivityViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelVie
 
     @action(detail=False, methods=['get'])
     def export_txt(self, request):
-        """導出 TXT 格式（Tab 分隔）"""
-        lang = request.query_params.get('lang', 'zh')
+        """導出 TXT 格式（Tab 分隔，流式響應）"""
+        # 從查詢參數獲取標題（前端提供，逗號分隔）
+        headers_str = request.query_params.get('headers', '')
+        if headers_str:
+            headers = headers_str.split(',')
+        else:
+            headers = ['Account', 'Name', 'Function', 'Action', 'Status', 'Timestamp', 'IP Address']
+
         queryset = self.get_queryset()
         response = StreamingHttpResponse(
-            self._generate_txt_rows(queryset, lang),
+            self._generate_txt_rows(queryset, headers),
             content_type='text/plain; charset=utf-8'
         )
         filename = f"user_activity_log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt"
