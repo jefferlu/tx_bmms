@@ -21,6 +21,6 @@ export class UserActivityLogService extends BaseService {
             ...searchParams,
             size: 10000  // 設置一個很大的數字來獲取所有數據
         };
-        return this._appService.get(this.uri, params);
+        return this._appService.get('core/log-user-activity', params);
     }
 }
