@@ -108,63 +108,42 @@
 
                 <!-- 進階查詢 -->
                 <p-tabpanel [value]="'advanced'">
-                    <div class="flex w-full flex-col sm:flex-row gap-4">
+                    <div class="flex w-full flex-col gap-4">
+                        <!-- 已選條件顯示區域 -->
+                        <gts-alert
+                            [appearance]="'outline'"
+                            [showIcon]="false"
+                            [type]="conditions.length > 0 ? 'info' : 'basic'"
+                        >
+                            @if(conditions.length > 0){
+                            <div class="font-semibold mb-2">{{ t('selected-conditions') }}</div>
+                            @for (condition of conditions; track $index) {
+                            <div class="flex items-start mt-1">
+                                <span class="mr-2">{{ $index + 1 }}.</span>
+                                <span>{{ getConditionDescription(condition) }}</span>
+                                <button mat-icon-button class="ml-auto -mt-1 -mr-2" (click)="removeConditionGroup($index)">
+                                    <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+                                </button>
+                            </div>
+                            @if ($index < conditions.length - 1) {
+                            <div class="text-xs text-gray-400 ml-4 mt-1">{{ t('and') }}</div>
+                            }
+                            }
+                            } @else {
+                            <div class="text-center text-gray-400">{{ t('no-filter-conditions') }}</div>
+                            }
+                        </gts-alert>
 
-                        <p-select class="md:w-80 w-full" [options]="conditionNames" [(ngModel)]="conditions[0].condition1" optionLabel="description"
-                            [filter]="true" placeholder="選擇COBie" [checkmark]="true">
-                            <!-- 自訂選擇後的顯示內容 -->
-                            <ng-template #selectedItem let-selectedOption>
-                                @if(selectedOption){
-                                <span class="font-medium">{{ selectedOption.description }}</span>&nbsp;
-                                <span class="text-sm text-gray-400">{{ selectedOption.display_name }}</span>
-                                }
-                            </ng-template>
-
-                            <!-- 自訂下拉選單中的選項內容 -->
-                            <ng-template #item let-option>
-                                <div class="flex flex-col">
-                                    <span class="font-medium">{{ option.description }}</span>
-                                    <span class="text-sm text-gray-400">{{ option.display_name }}</span>
-                                </div>
-                            </ng-template>
-                        </p-select>
-
-                        <p-select class="md:w-40 w-full" [options]="conditionTypes" [(ngModel)]="conditions[0].condition2" optionLabel="label"
-                            placeholder="選擇類型" (onChange)="updateOperators(conditions[0])" />
-
-                        <p-select class="md:w-40 w-full" [options]="conditions[0].operators" [(ngModel)]="conditions[0].condition3" optionLabel="label"
-                            placeholder="選擇運算符" (onChange)="onOperatorChange($event, conditions[0])" />
-
-                        <!-- 範選條件 -->
-                        @if(conditions[0].condition3?.value==='range'){
-                        <input type="text"
-                            class="p-2 border rounded-md sm:w-[9.5rem] focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                            [placeholder]="t('min-value')" [(ngModel)]="conditions[0].min_value" />
-
-                        <input type="text"
-                            class="p-2 border rounded-md sm:w-[9.5rem] focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                            [placeholder]="t('max-value')" [(ngModel)]="conditions[0].max_value" />
-                        }
-                        <!-- 單一條件 -->
-                        @else{
-                        <input type="text"
-                            class="p-2 border rounded-md sm:min-w-80 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                            [placeholder]="t('condition-value')+'...'" [(ngModel)]="conditions[0].condition4" />
-                        }
-                        <!-- 展開按鈕 -->
-                        <div>
-                            <button mat-icon-button color="accent" (click)="toggleOverlay()">
+                        <!-- 操作按鈕區 -->
+                        <div class="flex gap-2 flex-wrap">
+                            <button mat-flat-button color="accent" (click)="toggleOverlay()">
                                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                                <span class="ml-2">{{ t('add-condition-group') }}</span>
                             </button>
-                        </div>
-                        <!-- 搜尋和管理條件按鈕 -->
-                        <div class="ml-auto">
-                            <button mat-flat-button (click)="onSearch()">
+                            <button mat-flat-button (click)="onSearch()" [disabled]="conditions.length === 0">
                                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
                                 <span class="ml-2">{{ t('search') }}</span>
                             </button>
-                        </div>
-                        <div>
                             <button mat-flat-button [matMenuTriggerFor]="manageCriteria">
                                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:cog-6-tooth'"></mat-icon>
                                 <span class="ml-2">{{ t('manage-criteria') }}</span>
@@ -264,27 +243,6 @@
                     </div>
 
                     <div class="flex flex-col flex-1 overflow-y-auto">
-                        <!-- 進階查詢條件顯示 -->
-                        @if(criteriaConditions && criteriaConditions.length > 0){
-                        <gts-alert
-                            class="mt-2 mx-4"
-                            [appearance]="'outline'"
-                            [showIcon]="false"
-                            [type]="'info'"
-                        >
-                            <div class="font-semibold mb-2">{{ t('selected-conditions') }}</div>
-                            @for (condition of criteriaConditions; track $index) {
-                            <div class="flex items-start mt-1">
-                                <span class="mr-2">{{ $index + 1 }}.</span>
-                                <span>{{ condition }}</span>
-                            </div>
-                            @if ($index < criteriaConditions.length - 1) {
-                            <div class="text-xs text-gray-400 ml-4 mt-1">{{ t('and') }}</div>
-                            }
-                            }
-                        </gts-alert>
-                        }
-
                         <!-- region -->
                         @if(criteriaRegion){
                         <div class="flex mt-2 px-4" [attr.data-index]="index">
@@ -420,10 +378,10 @@
     </ng-template>
 </div>
 
-<!-- Overlay 內容（第二組及後續條件） -->
+<!-- Overlay 內容（所有條件組） -->
 <ng-template cdkPortal #overlayContent="cdkPortal" *transloco="let t">
     <div class="bg-default p-4 flex flex-col gap-4 w-full overflow-auto">
-        @for (condition of conditions.slice(1); track con; let i = $index) {
+        @for (condition of conditions; track $index; let i = $index) {
         <div class="flex w-full flex-col sm:flex-row gap-4">
             <p-select class="md:w-80 w-full" [options]="conditionNames" [(ngModel)]="condition.condition1" optionLabel="description" [checkmark]="true"
                 [filter]="true" placeholder="選擇COBie" appendTo="body">
@@ -464,7 +422,7 @@
             }
 
             <!-- 移除按鈕 -->
-            <button mat-icon-button (click)="removeConditionGroup(i + 1)">
+            <button mat-icon-button (click)="removeConditionGroup(i)">
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
             </button>
         </div>
@@ -472,12 +430,12 @@
         <div class="flex justify-center gap-2">
             <button mat-flat-button (click)="addConditionGroup()">
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus-circle'"></mat-icon>
-                <span class="ml-2">添加條件組</span>
+                <span class="ml-2">{{ t('add-condition-group') }}</span>
             </button>
             <!-- 新增：關閉按鈕 -->
             <button mat-flat-button (click)="closeOverlay()">
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
-                <span class="ml-2">關閉</span>
+                <span class="ml-2">{{ t('close') }}</span>
             </button>
         </div>
     </div>

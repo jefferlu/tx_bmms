@@ -78,7 +78,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     criteriaRole: string = '';
     criteriaLevel: string = '';
     criteriaKeyword: string = '';
-    criteriaConditions: string[] = [];  // 存儲進階查詢條件的易讀描述
 
     nodeInfo: any;
 
@@ -114,10 +113,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     overlayRef: OverlayRef | null;
     isOverlayOpen = false;
 
-    conditions = [
-        { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], },// 主畫面條件組
-        { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], }, // overlay條件組
-    ];
+    conditions: any[] = [];
 
     constructor(
         private _route: ActivatedRoute,
@@ -149,18 +145,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 // this.conditionNames = this.cobies.filter((item, index, self) =>
                 //     index === self.findIndex(i => i.display_name === item.display_name)
                 // );
-
-                // 預設選取第一個選項
-                if (this.conditionNames.length > 0) {
-                    this.conditions[0].condition1 = this.conditionNames[0];
-                    this.conditions[1].condition1 = this.conditionNames[0];
-                }
-                if (this.conditionTypes.length > 0) {
-                    this.conditions[0].condition2 = this.conditionTypes[0];
-                    this.conditions[1].condition2 = this.conditionTypes[0];
-                }
-                this.conditions.forEach(condition => this.updateOperators(condition));
-
 
                 // res.data.conditions = this._transformData(res.data.conditions);
                 // const spaceNode = res.data.conditions.find(item => item.label === 'space');
@@ -396,17 +380,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     // 移除條件組
     removeConditionGroup(index: number) {
         this.conditions.splice(index, 1);
-        if (this.conditions.length <= 1) {
-            this.closeOverlay(); // 如果只剩第一組，關閉 overlay
-        }
+        this._changeDetectorRef.markForCheck();
     }
 
     removeAllConditinGroup() {
-        this.conditions = [
-            { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], },// 主畫面條件組
-            { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], }, // overlay條件組
-        ];
+        this.conditions = [];
         this.closeOverlay();
+        this._changeDetectorRef.markForCheck();
     }
 
     onSearch(): void {
@@ -862,53 +842,33 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
 
     updateCriteria() {
-        if (this.activeTab === 'basic') {
-            // 基本查詢模式
-            this.criteriaRegion = this.selectedRegion ? this.selectedRegion.label : undefined;
-            this.criteriaRole = this.selectedRole ? this.selectedRole.label : undefined;
-            this.criteriaLevel = this.selectedLevel ? this.selectedLevel.label : undefined;
-            this.criteriaKeyword = this.keyword;
-            this.criteriaConditions = [];  // 清空進階查詢條件
-        } else {
-            // 進階查詢模式：格式化條件組
-            const validConditions = this.conditions.filter(
-                condition =>
-                    (condition.condition3?.value === 'range'
-                        ? condition.min_value?.toString().trim() && condition.max_value?.toString().trim()
-                        : condition.condition4 != null && condition.condition4.toString().trim() !== '') &&
-                    condition.condition1?.display_name &&
-                    condition.condition2?.value &&
-                    condition.condition3?.value
-            );
-
-            this.criteriaConditions = validConditions.map(condition =>
-                this.formatConditionDescription(condition)
-            );
-
-            // 清空基本查詢條件
-            this.criteriaRegion = undefined;
-            this.criteriaRole = undefined;
-            this.criteriaLevel = undefined;
-            this.criteriaKeyword = undefined;
-        }
+        // 基本查詢模式
+        this.criteriaRegion = this.selectedRegion ? this.selectedRegion.label : undefined;
+        this.criteriaRole = this.selectedRole ? this.selectedRole.label : undefined;
+        this.criteriaLevel = this.selectedLevel ? this.selectedLevel.label : undefined;
+        this.criteriaKeyword = this.keyword;
     }
 
-    // 格式化條件描述為易讀文字
-    formatConditionDescription(condition: any): string {
-        const cobieLabel = condition.condition1?.description || condition.condition1?.display_name;
-        const operator = condition.condition3?.label || condition.condition3?.value;
+    // 獲取條件描述（即時顯示，包含未完整填寫的條件）
+    getConditionDescription(condition: any): string {
+        const cobieLabel = condition.condition1?.description || condition.condition1?.display_name || '(未選擇)';
+        const typeLabel = condition.condition2?.label || '';
+        const operator = condition.condition3?.label || condition.condition3?.value || '(未選擇)';
 
         if (condition.condition3?.value === 'range') {
-            return `${cobieLabel} ${operator} ${condition.min_value} ~ ${condition.max_value}`;
+            const minVal = condition.min_value || '?';
+            const maxVal = condition.max_value || '?';
+            return `${cobieLabel} [${typeLabel}] ${operator} ${minVal} ~ ${maxVal}`;
         } else {
+            const value = condition.condition4 || '(未填寫)';
             // 檢查是否有分號分隔的多個值
-            const value = condition.condition4;
             if (value && value.toString().includes(';')) {
                 const values = value.toString().split(';').map(v => v.trim()).filter(v => v);
-                return `${cobieLabel} ${operator} (${values.join(' 或 ')})`;
-            } else {
-                return `${cobieLabel} ${operator} ${value}`;
+                if (values.length > 1) {
+                    return `${cobieLabel} [${typeLabel}] ${operator} (${values.join(' 或 ')})`;
+                }
             }
+            return `${cobieLabel} [${typeLabel}] ${operator} ${value}`;
         }
     }
 

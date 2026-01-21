@@ -99,5 +99,8 @@
     "equals": "等於",
     "contains": "包含",
     "min-value": "最小值",
-    "max-value": "最大值"
+    "max-value": "最大值",
+    "no-filter-conditions": "未選取篩選條件",
+    "add-condition-group": "添加條件組",
+    "close": "關閉"
 }
