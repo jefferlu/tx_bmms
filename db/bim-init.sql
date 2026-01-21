@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict uwjguhQN6ScvPcdt6ne7XSJwdJ0YyAhUGrUaE6Oy8DhPxcXUwaNtvitiIHlCEj7
+\restrict At6dzyWQM6UrVjRpdWits4codPVH7Zv0bUra7lGEgFx0uqPnd60gAq1EuTv4EfR
 
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 18.0
 
--- Started on 2025-12-24 16:31:06
+-- Started on 2026-01-13 00:11:46
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1206,9 +1206,12 @@ ALTER TABLE public.token_blacklist_outstandingtoken ALTER COLUMN id ADD GENERATE
 --
 
 COPY public.account_user (id, password, last_login, is_superuser, first_name, last_name, is_staff, is_active, date_joined, email, username) FROM stdin;
-1	pbkdf2_sha256$870000$8EccJq8FBMzlgvC5WHzBdY$w2ie3AJZGFeWpHPPzqqzAOvpijDBFCeIbxrmRmX2EQs=	\N	f			f	t	2025-03-08 11:30:08.045544+00	user@example.com	使用者
-3	pbkdf2_sha256$870000$vgzxg5k4B4DvMltw2Ae0tW$OxbyTMc0EhcvPH0e4Xss634Knc2lpLiOaW8TfH0jB9Y=	2025-03-26 07:01:59.547044+00	t			t	t	2025-03-11 08:22:29.63179+00	zenithbim@example.com	ZenithBIM
-2	pbkdf2_sha256$870000$ypV8fNBgse2pRSuEgxlOdy$L/msZpGwd6JXmK2kRrgPro40o817K8BIvkiwLqsReOs=	2025-12-24 07:12:45.490916+00	t			t	t	2025-02-15 07:23:36.214256+00	admin@example.com	管理員
+1	pbkdf2_sha256$870000$O1FxJgZvbgcWOusNUCKiaF$hLrmrpRN8mF3fGWlweIZuCYC7uU4QNVLZ6GvhprWSbo=	2026-01-11 15:58:06.404702+00	f			f	t	2025-03-08 11:30:08.045544+00	user@example.com	一般使用者
+6	pbkdf2_sha256$870000$6B0gsSSYcP9TVkqysMhR72$qYu4q9H2iQUMu2iKe8kzbfzd+DstAS5cPZni2cJ3MGY=	2026-01-11 16:01:44.981823+00	f			f	t	2026-01-11 15:36:53.78074+00	operator@example.com	圖資作業人員
+5	pbkdf2_sha256$870000$3FTHpkLFLpA10w2UhnbgCY$mBVcudoaxqQKlDeIEMpxrAAXvS3RnJaHBfrhsKf8YlQ=	2026-01-11 16:02:05.378986+00	f			f	t	2026-01-11 15:36:38.482609+00	manager@example.com	圖資管理人員
+4	pbkdf2_sha256$870000$KbWx2KTsq9SuXH5gxKPSZY$V57wudU7u41zkSmLvFGKWoHyQi7AzNQnjGaHvo7/Sr0=	2026-01-11 16:08:54.287878+00	f			f	t	2026-01-11 15:35:51.008886+00	security@example.com	安控管理人員
+2	pbkdf2_sha256$870000$ypV8fNBgse2pRSuEgxlOdy$L/msZpGwd6JXmK2kRrgPro40o817K8BIvkiwLqsReOs=	2026-01-11 16:09:05.241601+00	t			t	t	2025-02-15 07:23:36.214256+00	admin@example.com	管理員
+3	pbkdf2_sha256$870000$vgzxg5k4B4DvMltw2Ae0tW$OxbyTMc0EhcvPH0e4Xss634Knc2lpLiOaW8TfH0jB9Y=	2026-01-11 14:07:03.918249+00	t			t	t	2025-03-11 08:22:29.63179+00	zenithbim@example.com	ZenithBIM
 \.
 
 
@@ -1219,6 +1222,12 @@ COPY public.account_user (id, password, last_login, is_superuser, first_name, la
 --
 
 COPY public.account_user_groups (id, user_id, group_id) FROM stdin;
+1	1	3
+2	2	5
+3	3	3
+4	4	1
+5	5	4
+6	6	2
 \.
 
 
@@ -1251,11 +1260,11 @@ COPY public.admin_interface_theme (id, name, active, title, title_visible, logo,
 --
 
 COPY public.auth_group (id, name) FROM stdin;
+5	系統管理員
 1	安控管理人員
-2	圖資作業人員
 3	一般查詢使用者
 4	圖模管理人員
-5	系統管理員
+2	圖資作業人員
 \.
 
 
@@ -1266,6 +1275,35 @@ COPY public.auth_group (id, name) FROM stdin;
 --
 
 COPY public.auth_group_permissions (id, group_id, permission_id) FROM stdin;
+1	5	81
+2	5	82
+3	5	83
+4	5	85
+5	5	86
+6	5	87
+7	5	88
+8	5	89
+9	5	90
+10	5	91
+11	5	92
+12	3	81
+13	3	86
+14	1	87
+15	1	88
+16	1	89
+17	1	90
+18	1	92
+19	4	81
+20	4	82
+21	4	83
+22	4	85
+23	4	86
+24	4	91
+25	2	81
+26	2	85
+27	2	86
+28	4	84
+29	2	84
 \.
 
 
@@ -7385,6 +7423,71 @@ COPY public.core_log_user_activity (id, function, action, "timestamp", status, i
 5943	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-24 07:44:15.885638+00	SUCCESS	127.0.0.1	2
 5944	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-24 08:10:34.569373+00	SUCCESS	127.0.0.1	2
 5945	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-24 08:21:21.212511+00	SUCCESS	127.0.0.1	2
+5946	使用者登入	登入系統	2025-12-24 08:51:49.853657+00	SUCCESS	127.0.0.1	2
+5947	模型匯入	匯入T3-TP16-XXX-XX-XXX-M3-XX-00001.nwd	2025-12-24 08:52:51.977166+00	SUCCESS	127.0.0.1	2
+5948	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-24 09:00:37.912964+00	SUCCESS	127.0.0.1	2
+5949	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-24 16:15:40.245024+00	SUCCESS	127.0.0.1	2
+5950	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-24 16:48:14.536761+00	SUCCESS	127.0.0.1	2
+5951	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-25 01:40:35.495043+00	SUCCESS	127.0.0.1	2
+5952	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-25 01:52:13.789665+00	SUCCESS	127.0.0.1	2
+5953	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-25 02:05:35.506837+00	SUCCESS	127.0.0.1	2
+5954	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-25 02:18:50.282934+00	SUCCESS	127.0.0.1	2
+5955	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-25 06:29:57.272014+00	SUCCESS	127.0.0.1	2
+5956	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-25 06:40:48.740739+00	SUCCESS	127.0.0.1	2
+5957	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-25 07:27:37.680625+00	SUCCESS	127.0.0.1	2
+5958	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-25 07:46:52.705753+00	SUCCESS	127.0.0.1	2
+5959	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-25 08:13:28.324643+00	SUCCESS	127.0.0.1	2
+5960	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-25 08:33:01.970004+00	SUCCESS	127.0.0.1	2
+5961	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-26 07:37:36.078328+00	SUCCESS	127.0.0.1	2
+5962	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-26 07:47:53.387386+00	SUCCESS	127.0.0.1	2
+5963	模型檢視	查詢	2025-12-26 07:50:52.774273+00	SUCCESS	127.0.0.1	2
+5964	模型檢視	查詢	2025-12-26 07:53:01.46646+00	SUCCESS	127.0.0.1	2
+5965	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-27 08:27:36.609129+00	SUCCESS	127.0.0.1	2
+5966	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2025-12-31 08:55:16.457528+00	SUCCESS	127.0.0.1	2
+5967	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2026-01-08 15:03:42.662103+00	SUCCESS	127.0.0.1	2
+5968	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2026-01-08 15:14:12.273901+00	SUCCESS	127.0.0.1	2
+5969	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2026-01-08 15:15:35.872057+00	SUCCESS	127.0.0.1	2
+5970	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2026-01-08 15:15:50.112977+00	SUCCESS	127.0.0.1	2
+5971	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2026-01-08 15:25:33.87355+00	SUCCESS	127.0.0.1	2
+5972	模型檢視	查詢	2026-01-08 15:25:50.109183+00	SUCCESS	127.0.0.1	2
+5973	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2026-01-08 15:40:30.419959+00	SUCCESS	127.0.0.1	2
+5974	使用者登入	登入系統	2026-01-09 05:37:01.793573+00	SUCCESS	127.0.0.1	2
+5975	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2026-01-09 05:37:03.102386+00	SUCCESS	127.0.0.1	2
+5976	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2026-01-09 05:54:49.703573+00	SUCCESS	127.0.0.1	2
+5977	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2026-01-09 15:58:08.304174+00	SUCCESS	127.0.0.1	2
+5978	權限設定	修改 系統管理員 成功	2026-01-11 13:51:24.049528+00	SUCCESS	127.0.0.1	2
+5979	使用者登入	登入系統	2026-01-11 14:07:03.951561+00	SUCCESS	127.0.0.1	3
+5980	使用者登入	登入系統	2026-01-11 14:07:42.910986+00	SUCCESS	127.0.0.1	1
+5981	使用者登入	登入系統	2026-01-11 14:07:52.718854+00	SUCCESS	127.0.0.1	2
+5982	圖資進階檢索	進階查詢 conditions: [{'display_name': 'COBie.Component.Space', 'operator': 'eq', 'value': '通風機房', 'type': 'string'}, {'display_name': 'COBie.Floor.Height', 'operator': 'range', 'min_value': '15', 'max_value': '16', 'type': 'number'}]	2026-01-11 14:07:53.798886+00	SUCCESS	127.0.0.1	2
+5983	權限設定	修改 一般查詢使用者 成功	2026-01-11 14:08:39.238979+00	SUCCESS	127.0.0.1	2
+5984	權限設定	修改 一般查詢使用者 成功	2026-01-11 14:09:36.715819+00	SUCCESS	127.0.0.1	2
+5985	權限設定	修改 安控管理人員 成功	2026-01-11 15:38:02.368197+00	SUCCESS	127.0.0.1	2
+5986	權限設定	修改 圖模管理人員 成功	2026-01-11 15:39:12.764299+00	SUCCESS	127.0.0.1	2
+5987	權限設定	修改 圖資作業人員 成功	2026-01-11 15:40:42.271706+00	SUCCESS	127.0.0.1	2
+5988	權限設定	修改 一般查詢使用者 成功	2026-01-11 15:41:07.294991+00	SUCCESS	127.0.0.1	2
+5989	帳戶管理	修改 user@example.com 成功	2026-01-11 15:41:22.00206+00	SUCCESS	127.0.0.1	2
+5990	帳戶管理	修改 admin@example.com 成功	2026-01-11 15:41:29.103467+00	SUCCESS	127.0.0.1	2
+5991	帳戶管理	修改 zenithbim@example.com 成功	2026-01-11 15:41:36.872591+00	SUCCESS	127.0.0.1	2
+5992	帳戶管理	修改 security@example.com 成功	2026-01-11 15:41:43.134412+00	SUCCESS	127.0.0.1	2
+5993	帳戶管理	修改 manager@example.com 成功	2026-01-11 15:41:47.984207+00	SUCCESS	127.0.0.1	2
+5994	帳戶管理	修改 operator@example.com 成功	2026-01-11 15:41:57.952992+00	SUCCESS	127.0.0.1	2
+5995	使用者登入	登入系統	2026-01-11 15:42:05.464715+00	SUCCESS	127.0.0.1	4
+5996	使用者登入	登入系統	2026-01-11 15:42:54.022755+00	SUCCESS	127.0.0.1	4
+5997	使用者登入	登入系統	2026-01-11 15:53:57.752447+00	SUCCESS	127.0.0.1	1
+5998	使用者登入	登入系統	2026-01-11 15:58:06.446215+00	SUCCESS	127.0.0.1	1
+5999	使用者登入	登入系統	2026-01-11 15:58:22.453851+00	SUCCESS	127.0.0.1	4
+6000	使用者登入	登入系統	2026-01-11 15:58:37.106657+00	SUCCESS	127.0.0.1	5
+6001	使用者登入	登入系統	2026-01-11 15:58:50.07047+00	SUCCESS	127.0.0.1	6
+6002	使用者登入	登入系統	2026-01-11 16:00:25.929593+00	SUCCESS	127.0.0.1	5
+6003	使用者登入	登入系統	2026-01-11 16:01:45.034289+00	SUCCESS	127.0.0.1	6
+6004	使用者登入	登入系統	2026-01-11 16:02:05.426041+00	SUCCESS	127.0.0.1	5
+6005	使用者登入	登入系統	2026-01-11 16:08:54.31818+00	SUCCESS	127.0.0.1	4
+6006	使用者登入	登入系統	2026-01-11 16:09:05.298824+00	SUCCESS	127.0.0.1	2
+6007	模型匯入	匯入T3-TP21A-XXX-XX-XXX-M3-XX-00001.nwd	2026-01-11 16:09:58.478484+00	SUCCESS	127.0.0.1	2
+6008	模型匯入	匯入T3-TP25-XXX-XX-XXX-M3-XX-00001.nwd	2026-01-11 16:10:00.446591+00	SUCCESS	127.0.0.1	2
+6009	模型匯入	匯入T3-TP16-XXX-XX-XXX-M3-XX-00001.nwd	2026-01-11 16:10:00.508423+00	SUCCESS	127.0.0.1	2
+6010	模型匯入	匯入T3-TP01-XXX-XX-XXX-M3-XX-00001.nwd	2026-01-11 16:10:01.856014+00	SUCCESS	127.0.0.1	2
 \.
 
 
@@ -7395,20 +7498,20 @@ COPY public.core_log_user_activity (id, function, action, "timestamp", status, i
 --
 
 COPY public.core_navigation (id, title_locale, subtitle_locale, type, icon, link, is_active, "order", lft, rght, tree_id, level, parent_id) FROM stdin;
-7	bim-management	\N	basic	heroicons_outline:arrow-path	/system-administration/bim-management	t	64	8	9	6	1	13
-11	aps-credentials	\N	basic	heroicons_outline:key	/system-administration/aps-credentials	t	63	6	7	6	1	13
-5	users	\N	basic	heroicons_outline:user-circle	/user-management/users	t	51	2	3	5	1	6
+14	sensor-bindings	\N	basic	heroicons_outline:cog-6-tooth	/system-administration/sensor-bindings	t	65	10	11	6	1	13
 1	bim-information-listing	\N	basic	heroicons_outline:magnifying-glass	/process-functions	t	1	1	2	1	0	\N
-2	bim-model-viewer	\N	basic	heroicons_outline:photo	bim-model-viewer	t	2	1	2	2	0	\N
 3	bim-data-import	\N	basic	heroicons_outline:inbox-arrow-down	/bim-data-import	t	4	1	2	4	0	\N
-4	bim-media-viewer	\N	basic	heroicons_outline:folder	/bim-media-viewer	t	3	1	2	3	0	\N
-8	user-group	\N	basic	heroicons_outline:user-group	/user-management/user-group	t	52	4	5	5	1	6
 9	user-activity-log	\N	basic	heroicons_outline:clipboard-document-list	/user-management/user-activity-log	t	53	6	7	5	1	6
-6	user-management	\N	aside	heroicons_outline:users	\N	t	5	1	8	5	0	\N
 12	backup-restore	\N	basic	heroicons_outline:circle-stack	/system-administration/backup-restore	t	61	2	3	6	1	13
 10	system-activity-log	\N	basic	heroicons_outline:clipboard-document-list	/system-administration/system-activity-log	t	62	4	5	6	1	13
+11	aps-credentials	\N	basic	heroicons_outline:key	/system-administration/aps-credentials	t	63	6	7	6	1	13
+7	bim-management	\N	basic	heroicons_outline:arrow-path	/system-administration/bim-management	t	64	8	9	6	1	13
+2	bim-model-viewer	\N	basic	heroicons_outline:photo	bim-model-viewer	t	2	1	2	2	0	\N
+4	bim-media-viewer	\N	basic	heroicons_outline:folder	/bim-media-viewer	t	3	1	2	3	0	\N
+5	users	\N	basic	heroicons_outline:user-circle	/user-management/users	t	51	2	3	5	1	6
 13	system-administration	\N	aside	heroicons_outline:cog-6-tooth	/system-administration	t	6	1	12	6	0	\N
-14	sensor-bindings	\N	basic	heroicons_outline:cog-6-tooth	/system-administration/sensor-bindings	t	65	10	11	6	1	13
+6	user-management	\N	aside	heroicons_outline:users	\N	t	5	1	8	5	0	\N
+8	user-group	\N	basic	heroicons_outline:user-group	/user-management/user-group	t	52	4	5	5	1	6
 \.
 
 
@@ -7419,6 +7522,17 @@ COPY public.core_navigation (id, title_locale, subtitle_locale, type, icon, link
 --
 
 COPY public.core_navigation_permissions (id, navigation_id, permission_id) FROM stdin;
+1	1	83
+2	2	86
+3	4	84
+4	3	83
+5	5	87
+6	8	88
+7	9	89
+8	12	91
+9	10	92
+10	11	90
+11	7	82
 \.
 
 
@@ -7622,7 +7736,6 @@ COPY public.core_translation (id, key, value, locale_id) FROM stdin;
 6686	version	版本	2
 6687	worng-email-format	請輸入有效的電子郵件地址	2
 6688	wrong-email-password	請確認帳號或密碼是否正確	2
-6398	3d-model-viewer	3D Model Viewer1	1
 6399	3d-model-viewer-desc	Can use 3D WebGL model viewer	1
 6400	account	Account	1
 6401	action	Action	1
@@ -7749,6 +7862,93 @@ COPY public.core_translation (id, key, value, locale_id) FROM stdin;
 6689	download-current-locale-file	確認是否下載語系資料檔?	2
 6716	upload-failed	Upload failed	1
 6717	upload-failed	上傳失敗	2
+6718	demo-account	Demo Account	1
+6719	select-account	Select Account	1
+6720	demo-account	示範帳戶	2
+6721	select-account	選擇帳戶	2
+6722	sensor-binding-management	Sensor Binding Management	1
+6723	add-binding	Add Binding	1
+6724	element-db-id	Element DB ID	1
+6725	element-name	Element Name	1
+6726	position-type	Position Type	1
+6727	active	Active	1
+6728	inactive	Inactive	1
+6729	no-binding-data	No binding data	1
+6730	click-add-binding-description	Click "Add Binding" button to start creating bindings between sensors and BIM elements	1
+6731	edit-binding	Edit Binding	1
+6732	model-urn	Model URN	1
+6733	element-external-id	Element External ID	1
+6734	position-offset-xyz	Position Offset (X, Y, Z)	1
+6735	icon-type	Icon Type	1
+6736	show-label	Show Label	1
+6737	enter-model-urn	Enter model URN	1
+6738	enter-element-db-id	Enter element DB ID	1
+6739	enter-element-name-optional	Enter element name (optional)	1
+6740	enter-element-external-id-optional	Enter element external ID (optional)	1
+6741	enter-icon-type-optional	Enter icon type (optional)	1
+6742	enter-color-optional	Enter color (optional)	1
+6743	enter-notes-optional	Enter notes (optional)	1
+6744	please-select-sensor	Please select a sensor	1
+6745	please-enter-model-urn	Please enter model URN	1
+6746	please-enter-element-db-id	Please enter element DB ID	1
+6747	please-fill-required-fields	Please fill in required fields	1
+6748	center	Center	1
+6749	top	Top	1
+6750	bottom	Bottom	1
+6751	custom	Custom	1
+6752	failed-to-load-data	Failed to load data	1
+6753	binding-updated	Binding updated	1
+6754	failed-to-update-binding	Failed to update binding	1
+6755	binding-created	Binding created	1
+6756	failed-to-create-binding	Failed to create binding	1
+6757	binding-deleted	Binding deleted	1
+6758	failed-to-delete-binding	Failed to delete binding	1
+6759	confirm-delete-binding	Confirm Delete	1
+6760	confirm-delete-binding-message	Are you sure you want to delete this binding?	1
+6761	sensor-binding-management	感測器綁定管理	2
+6762	add-binding	新增綁定	2
+6763	element-db-id	元件 DB ID	2
+6764	element-name	元件名稱	2
+6765	position-type	位置類型	2
+6766	active	啟用	2
+6767	inactive	停用	2
+6768	no-binding-data	尚無綁定資料	2
+6769	click-add-binding-description	點擊「新增綁定」按鈕開始建立感測器與 BIM 元件的綁定	2
+6770	edit-binding	編輯綁定	2
+6771	model-urn	模型 URN	2
+6772	element-external-id	元件外部 ID	2
+6773	position-offset-xyz	位置偏移 (X, Y, Z)	2
+6774	icon-type	圖示類型	2
+6775	show-label	顯示標籤	2
+6776	enter-model-urn	輸入模型 URN	2
+6777	enter-element-db-id	輸入元件 DB ID	2
+6778	enter-element-name-optional	輸入元件名稱 (選填)	2
+6779	enter-element-external-id-optional	輸入元件外部 ID (選填)	2
+6780	enter-icon-type-optional	輸入圖示類型 (選填)	2
+6781	enter-color-optional	輸入顏色 (選填)	2
+6782	enter-notes-optional	輸入備註 (選填)	2
+6783	please-select-sensor	請選擇感測器	2
+6784	please-enter-model-urn	請輸入模型 URN	2
+6785	please-enter-element-db-id	請輸入元件 DB ID	2
+6786	please-fill-required-fields	請填寫必填欄位	2
+6787	center	中心	2
+6788	top	頂部	2
+6789	bottom	底部	2
+6790	custom	自訂	2
+6791	failed-to-load-data	載入資料失敗	2
+6792	binding-updated	綁定已更新	2
+6793	failed-to-update-binding	更新綁定失敗	2
+6794	binding-created	綁定已建立	2
+6795	failed-to-create-binding	建立綁定失敗	2
+6796	binding-deleted	綁定已刪除	2
+6797	failed-to-delete-binding	刪除綁定失敗	2
+6798	confirm-delete-binding	確認刪除	2
+6799	confirm-delete-binding-message	確定要刪除此綁定嗎？	2
+6398	3d-model-viewer	3D Model Viewer	1
+6800	download-csv	Download CSV	1
+6802	download-txt	Download TXT	1
+6803	download-txt	下載 TXT	2
+6801	download-csv	下載 CSV	2
 \.
 
 
@@ -7762,6 +7962,9 @@ COPY public.core_userprofile (id, company_id, user_id, bim_criteria) FROM stdin;
 2	1	1	{}
 3	1	3	{}
 1	1	2	{"tab": "advanced", "page": 1, "conditions": [{"max_value": "", "min_value": "", "operators": [{"label": "等於", "value": "eq"}, {"label": "包含", "value": "contains"}], "condition1": {"description": "空間名稱", "display_name": "COBie.Component.Space"}, "condition2": {"label": "字串", "value": "string"}, "condition3": {"label": "等於", "value": "eq"}, "condition4": "通風機房"}, {"max_value": "16", "min_value": "15", "operators": [{"label": "=", "value": "eq"}, {"label": ">", "value": "gt"}, {"label": "<", "value": "lt"}, {"label": ">=", "value": "gte"}, {"label": "<=", "value": "lte"}, {"label": "範圍", "value": "range"}], "condition1": {"description": "高度", "display_name": "COBie.Floor.Height"}, "condition2": {"label": "數值", "value": "number"}, "condition3": {"label": "範圍", "value": "range"}, "condition4": ""}]}
+4	1	4	{}
+5	1	5	{}
+6	1	6	{}
 \.
 
 
@@ -8196,6 +8399,32 @@ COPY public.django_admin_log (id, action_time, object_id, object_repr, action_fl
 422	2025-12-20 04:38:14.91426+00	1	CO2_001 -> dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvVDMtVFAxNi1YWFgtWFgtWFhYLU0zLVhYLTAwMDAxLm53ZA:13813	3		35	2
 423	2025-12-20 04:38:14.91426+00	2	HUMID_001 -> dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvVDMtVFAxNi1YWFgtWFgtWFhYLU0zLVhYLTAwMDAxLm53ZA:13810	3		35	2
 424	2025-12-20 04:38:14.91426+00	3	HUMID_001 -> dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvVDMtVFAxNi1YWFgtWFgtWFhYLU0zLVhYLTAwMDAxLm53ZA:13813	3		35	2
+425	2026-01-08 15:14:03.074143+00	7	file-manager	2	[{"changed": {"fields": ["Title locale", "Link"]}}]	14	2
+426	2026-01-08 15:19:08.545932+00	7	bim-management	2	[{"changed": {"fields": ["Title locale", "Link"]}}]	14	2
+427	2026-01-11 13:55:56.798042+00	6398	en - 3d-model-viewer	2	[{"changed": {"fields": ["Value"]}}]	16	2
+428	2026-01-11 14:07:36.137357+00	1	user@example.com	2	[{"changed": {"fields": ["password"]}}]	9	2
+429	2026-01-11 15:35:51.600282+00	4	security@example.com	1	[{"added": {}}]	9	2
+430	2026-01-11 15:36:16.875115+00	1	user@example.com	2	[{"changed": {"fields": ["Username"]}}]	9	2
+431	2026-01-11 15:36:39.060214+00	5	manager@example.com	1	[{"added": {}}]	9	2
+432	2026-01-11 15:36:54.369631+00	6	operator@example.com	1	[{"added": {}}]	9	2
+433	2026-01-11 15:55:43.825076+00	1	bim-information-listing	2	[{"changed": {"fields": ["Permissions"]}}]	14	2
+434	2026-01-11 15:55:57.196456+00	2	bim-model-viewer	2	[{"changed": {"fields": ["Permissions"]}}]	14	2
+435	2026-01-11 15:56:07.602213+00	4	bim-media-viewer	2	[{"changed": {"fields": ["Permissions"]}}]	14	2
+436	2026-01-11 15:56:15.831374+00	3	bim-data-import	2	[{"changed": {"fields": ["Permissions"]}}]	14	2
+437	2026-01-11 15:56:23.851823+00	5	users	2	[{"changed": {"fields": ["Permissions"]}}]	14	2
+438	2026-01-11 15:56:31.045942+00	8	user-group	2	[{"changed": {"fields": ["Permissions"]}}]	14	2
+439	2026-01-11 15:56:41.016926+00	9	user-activity-log	2	[{"changed": {"fields": ["Permissions"]}}]	14	2
+440	2026-01-11 15:56:56.202912+00	12	backup-restore	2	[{"changed": {"fields": ["Permissions"]}}]	14	2
+441	2026-01-11 15:57:07.531252+00	10	system-activity-log	2	[{"changed": {"fields": ["Permissions"]}}]	14	2
+442	2026-01-11 15:57:17.732568+00	11	aps-credentials	2	[{"changed": {"fields": ["Permissions"]}}]	14	2
+443	2026-01-11 15:57:35.498713+00	7	bim-management	2	[{"changed": {"fields": ["Permissions"]}}]	14	2
+444	2026-01-11 16:01:24.951933+00	4	圖模管理人員	2	[{"changed": {"fields": ["Permissions"]}}]	4	2
+445	2026-01-11 16:01:31.187361+00	2	圖資作業人員	2	[{"changed": {"fields": ["Permissions"]}}]	4	2
+446	2026-01-12 15:29:42.789546+00	6800	en - download-csv	1	[{"added": {}}]	16	2
+447	2026-01-12 15:29:53.832195+00	6801	zh - Download CSV	1	[{"added": {}}]	16	2
+448	2026-01-12 15:30:11.988472+00	6802	en - download-txt	1	[{"added": {}}]	16	2
+449	2026-01-12 15:30:25.932768+00	6803	zh - download-txt	1	[{"added": {}}]	16	2
+450	2026-01-12 15:31:26.54964+00	6801	zh - download-csv	2	[{"changed": {"fields": ["Key"]}}]	16	2
 \.
 
 
@@ -8408,6 +8637,8 @@ hs981q4i7q6bwgk0zueyxnkm8jz60s1j	.eJxVjE0OgjAYRO_StWlKKVBcuucMzfdXi5o2obAy3l1IWO
 jng4o0czqfl362089e3dto11foxeenya	.eJxVjMsOwiAQRf-FtSGE4aVL934DmWFAqgaS0q4a_12bdKHbe865m4i4LjWuI89xYnERWpx-N8L0zG0H_MB27zL1tswTyV2RBx3y1jm_rof7d1Bx1G_tISnLOQRdkI1TKTn2JikklZ0DCGAKKkLSXgPkYEkVAs_m7It12or3B-suN8o:1vUKbm:rzQNxb3eYVR8nhOuQIz9c5ZTw7LgrPLWC4EBS31ldOc	2025-12-27 08:04:06.74705+00
 l205nv9z6qlb5r9vngxwacyemfv8m7nm	.eJxVjMsOwiAQRf-FtSGE4aVL934DmWFAqgaS0q4a_12bdKHbe865m4i4LjWuI89xYnERWpx-N8L0zG0H_MB27zL1tswTyV2RBx3y1jm_rof7d1Bx1G_tISnLOQRdkI1TKTn2JikklZ0DCGAKKkLSXgPkYEkVAs_m7It12or3B-suN8o:1vVXHY:dfLgL3qlpj8huX_flsPC8YW1v9R9WbLKTdNZ0GG9aV8	2025-12-30 15:48:12.406924+00
 lqlr14ym1gg23ynnd43chzz6fp437shq	.eJxVjMsOwiAQRf-FtSGE4aVL934DmWFAqgaS0q4a_12bdKHbe865m4i4LjWuI89xYnERWpx-N8L0zG0H_MB27zL1tswTyV2RBx3y1jm_rof7d1Bx1G_tISnLOQRdkI1TKTn2JikklZ0DCGAKKkLSXgPkYEkVAs_m7It12or3B-suN8o:1vW6kK:OYzZTOrbsIga8Qj2GtWqiT-h3bCRaHs3n90yu57jir0	2026-01-01 05:40:16.205591+00
+2jgtyokq3xxi6tjul3sni3z0kbkc9qoe	.eJxVjMsOwiAQRf-FtSGE4aVL934DmWFAqgaS0q4a_12bdKHbe865m4i4LjWuI89xYnERWpx-N8L0zG0H_MB27zL1tswTyV2RBx3y1jm_rof7d1Bx1G_tISnLOQRdkI1TKTn2JikklZ0DCGAKKkLSXgPkYEkVAs_m7It12or3B-suN8o:1vdrZZ:wOVSo5MSM97zmCBTVS6J6YYf0Jjurzh_5sy_LeAfH4M	2026-01-22 15:05:13.951464+00
+7antpjoub5w7bt878e3sr52tvva2m519	.eJxVjMsOwiAQRf-FtSGE4aVL934DmWFAqgaS0q4a_12bdKHbe865m4i4LjWuI89xYnERWpx-N8L0zG0H_MB27zL1tswTyV2RBx3y1jm_rof7d1Bx1G_tISnLOQRdkI1TKTn2JikklZ0DCGAKKkLSXgPkYEkVAs_m7It12or3B-suN8o:1vew6S:fy69mW1j-bxanPO9vmjyInXO7ITDroHTDDs7bojBbX8	2026-01-25 14:07:36.166463+00
 \.
 
 
@@ -8791,10 +9022,10 @@ COPY public.forge_zone_code (id, code, description, name, is_active) FROM stdin;
 --
 
 COPY public.sensor_bim_bindings (id, model_urn, element_dbid, element_external_id, element_name, position_type, position_offset, label_visible, icon_type, color, priority, notes, is_active, created_at, updated_at, sensor_id) FROM stdin;
-7	dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvVDMtVFAxNi1YWFgtWFgtWFhYLU0zLVhYLTAwMDAxLm53ZA	13813		實體	center	{"x": 0, "y": 0, "z": 0}	t			0		t	2025-12-20 07:00:40.155405+00	2025-12-20 07:00:40.155405+00	3
 8	dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvVDMtVFAxNi1YWFgtWFgtWFhYLU0zLVhYLTAwMDAxLm53ZA	13813		實體	center	{"x": 0, "y": 0, "z": 0}	t			0		t	2025-12-20 07:21:20.355031+00	2025-12-20 07:21:20.355552+00	2
 9	dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvVDMtVFAxNi1YWFgtWFgtWFhYLU0zLVhYLTAwMDAxLm53ZA	13813		實體	center	{"x": 0, "y": 0, "z": 0}	t			0		t	2025-12-24 08:22:45.364514+00	2025-12-24 08:22:45.364514+00	4
 10	dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvVDMtVFAxNi1YWFgtWFgtWFhYLU0zLVhYLTAwMDAxLm53ZA	13813		實體	center	{"x": 0, "y": 0, "z": 0}	t			0		t	2025-12-24 08:22:53.519182+00	2025-12-24 08:22:53.519182+00	1
+11	dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Ym1tc19vc3MvVDMtVFAxNi1YWFgtWFgtWFhYLU0zLVhYLTAwMDAxLm53ZA	3487		混凝土，現場澆注	center	{"x": 0, "y": 0, "z": 0}	t			0		t	2025-12-26 07:51:45.109555+00	2025-12-26 07:51:45.109572+00	3
 \.
 
 
@@ -8815,10 +9046,10 @@ COPY public.sensor_data_logs (id, value, raw_value, status, "timestamp", sensor_
 --
 
 COPY public.sensors (id, sensor_id, name, description, sensor_type, unit, mqtt_topic, mqtt_qos, modbus_address, modbus_register, api_endpoint, api_method, display_format, decimal_places, warning_threshold_min, warning_threshold_max, error_threshold_min, error_threshold_max, data_transform, is_active, last_seen, created_at, updated_at) FROM stdin;
-2	HUMID_001	會議室 101 濕度		humidity	%	sensors/humidity/room_101	1	\N	\N		GET	{value} {unit}	2	30	70	\N	\N	\N	t	2025-12-24 08:26:47.961913+00	2025-12-13 08:03:29.280955+00	2025-12-13 08:03:29.280955+00
-3	CO2_001	會議室 101 CO2		co2	ppm	sensors/co2/room_101	1	\N	\N		GET	{value} {unit}	2	\N	1000	\N	1500	\N	t	2025-12-24 08:26:47.969789+00	2025-12-13 08:03:29.290486+00	2025-12-13 08:03:29.290486+00
-4	POWER_001	空調主機功率		power	kW	sensors/power/hvac_main	1	\N	\N		GET	{value} {unit}	2	\N	\N	\N	\N	\N	t	2025-12-24 08:26:47.977885+00	2025-12-13 08:03:29.300234+00	2025-12-13 08:03:29.300234+00
-1	TEMP_001	會議室 101 溫度		temperature	°C	sensors/temperature/room_101	1	\N	\N		GET	{value} {unit}	2	18	28	15	32	\N	t	2025-12-24 08:26:47.95307+00	2025-12-13 08:03:29.270269+00	2025-12-13 08:03:29.270269+00
+3	CO2_001	會議室 101 CO2		co2	ppm	sensors/co2/room_101	1	\N	\N		GET	{value} {unit}	2	\N	1000	\N	1500	\N	t	2026-01-12 16:11:46.880022+00	2025-12-13 08:03:29.290486+00	2025-12-13 08:03:29.290486+00
+2	HUMID_001	會議室 101 濕度		humidity	%	sensors/humidity/room_101	1	\N	\N		GET	{value} {unit}	2	30	70	\N	\N	\N	t	2026-01-12 16:11:46.877018+00	2025-12-13 08:03:29.280955+00	2025-12-13 08:03:29.280955+00
+4	POWER_001	空調主機功率		power	kW	sensors/power/hvac_main	1	\N	\N		GET	{value} {unit}	2	\N	\N	\N	\N	\N	t	2026-01-12 16:11:46.882674+00	2025-12-13 08:03:29.300234+00	2025-12-13 08:03:29.300234+00
+1	TEMP_001	會議室 101 溫度		temperature	°C	sensors/temperature/room_101	1	\N	\N		GET	{value} {unit}	2	18	28	15	32	\N	t	2026-01-12 16:11:46.873179+00	2025-12-13 08:03:29.270269+00	2025-12-13 08:03:29.270269+00
 \.
 
 
@@ -9204,6 +9435,129 @@ COPY public.token_blacklist_blacklistedtoken (id, blacklisted_at, token_id) FROM
 5196	2025-12-24 08:21:19.869367+00	5246
 5197	2025-12-24 08:25:45.005825+00	5247
 5198	2025-12-24 08:26:04.949439+00	5248
+5199	2025-12-24 16:15:38.81613+00	5250
+5200	2025-12-24 16:48:12.745023+00	5251
+5201	2025-12-25 01:40:33.998955+00	5252
+5202	2025-12-25 01:52:12.600809+00	5253
+5203	2025-12-25 02:05:34.330957+00	5254
+5204	2025-12-25 02:09:17.067334+00	5255
+5205	2025-12-25 02:18:48.804192+00	5256
+5206	2025-12-25 06:29:49.117833+00	5257
+5207	2025-12-25 06:40:40.65496+00	5258
+5208	2025-12-25 07:27:27.575107+00	5259
+5209	2025-12-25 07:46:45.445461+00	5260
+5210	2025-12-25 08:13:22.760178+00	5261
+5211	2025-12-25 08:32:53.509565+00	5262
+5212	2025-12-25 09:10:47.791207+00	5263
+5213	2025-12-26 07:37:28.156247+00	5264
+5214	2025-12-26 07:47:46.977396+00	5265
+5215	2025-12-26 09:46:50.393793+00	5266
+5216	2025-12-27 08:27:35.172029+00	5267
+5217	2025-12-27 08:54:54.771972+00	5268
+5218	2025-12-27 08:55:07.894073+00	5269
+5219	2025-12-27 09:00:07.004296+00	5270
+5220	2025-12-27 09:00:13.901331+00	5271
+5221	2025-12-27 09:01:34.826381+00	5272
+5222	2025-12-29 04:13:02.802131+00	5273
+5223	2025-12-31 08:55:14.990413+00	5274
+5224	2025-12-31 08:56:28.180142+00	5275
+5225	2025-12-31 08:56:42.424966+00	5276
+5226	2026-01-02 00:55:55.408703+00	5277
+5227	2026-01-02 01:13:11.84459+00	5278
+5228	2026-01-02 01:13:54.980508+00	5279
+5229	2026-01-03 08:49:10.746884+00	5280
+5230	2026-01-05 15:37:07.842034+00	5281
+5231	2026-01-08 15:03:41.261332+00	5282
+5232	2026-01-08 15:04:59.39466+00	5283
+5233	2026-01-08 15:14:10.98954+00	5284
+5234	2026-01-08 15:15:34.342048+00	5285
+5235	2026-01-08 15:15:48.550579+00	5286
+5236	2026-01-08 15:25:32.560872+00	5287
+5237	2026-01-08 15:40:29.082034+00	5288
+5238	2026-01-09 00:31:00.951167+00	5289
+5239	2026-01-09 05:40:25.645574+00	5290
+5240	2026-01-09 05:54:48.527802+00	5291
+5241	2026-01-09 07:25:18.064101+00	5292
+5242	2026-01-09 07:27:29.664881+00	5293
+5243	2026-01-09 08:28:22.136665+00	5294
+5244	2026-01-09 08:29:20.179185+00	5295
+5245	2026-01-09 08:49:30.00979+00	5296
+5246	2026-01-09 09:16:54.979594+00	5297
+5247	2026-01-09 09:17:31.82873+00	5298
+5248	2026-01-09 09:26:03.267114+00	5299
+5249	2026-01-09 09:26:15.779037+00	5300
+5250	2026-01-09 15:58:06.816617+00	5301
+5251	2026-01-09 16:11:42.701261+00	5302
+5252	2026-01-09 16:21:32.227158+00	5303
+5253	2026-01-09 16:21:40.686599+00	5304
+5254	2026-01-09 16:22:53.538897+00	5305
+5255	2026-01-09 16:42:19.398835+00	5306
+5256	2026-01-09 16:42:36.736775+00	5307
+5257	2026-01-09 16:42:52.496181+00	5308
+5258	2026-01-09 16:43:17.162371+00	5309
+5259	2026-01-09 16:43:29.054226+00	5310
+5260	2026-01-09 16:43:52.01037+00	5311
+5261	2026-01-09 16:44:02.499126+00	5312
+5262	2026-01-09 16:44:13.18254+00	5313
+5263	2026-01-09 16:46:45.284531+00	5314
+5264	2026-01-09 16:47:04.826692+00	5315
+5265	2026-01-11 13:46:34.041061+00	5316
+5266	2026-01-11 13:51:26.29272+00	5317
+5267	2026-01-11 13:54:29.566222+00	5318
+5268	2026-01-11 13:54:58.475437+00	5319
+5269	2026-01-11 13:55:05.340085+00	5320
+5270	2026-01-11 13:55:22.267475+00	5321
+5271	2026-01-11 13:56:00.267365+00	5322
+5272	2026-01-11 14:36:42.918979+00	5325
+5273	2026-01-11 15:34:17.830893+00	5326
+5274	2026-01-11 16:08:46.91179+00	5336
+5275	2026-01-11 16:10:04.900912+00	5338
+5276	2026-01-12 14:14:13.088258+00	5339
+5277	2026-01-12 14:21:28.122221+00	5340
+5278	2026-01-12 14:23:00.054597+00	5341
+5279	2026-01-12 14:23:46.068777+00	5342
+5280	2026-01-12 14:24:11.149718+00	5343
+5281	2026-01-12 14:25:08.159156+00	5344
+5282	2026-01-12 14:25:37.074861+00	5345
+5283	2026-01-12 14:25:43.30568+00	5346
+5284	2026-01-12 14:27:16.521748+00	5347
+5285	2026-01-12 14:27:39.54048+00	5348
+5286	2026-01-12 14:27:48.590973+00	5349
+5287	2026-01-12 14:28:20.786796+00	5350
+5288	2026-01-12 14:28:51.56065+00	5351
+5289	2026-01-12 14:29:00.937996+00	5352
+5290	2026-01-12 14:29:25.496146+00	5353
+5291	2026-01-12 14:29:33.407728+00	5354
+5292	2026-01-12 14:29:42.072416+00	5355
+5293	2026-01-12 14:30:12.571411+00	5356
+5294	2026-01-12 14:30:37.822748+00	5357
+5295	2026-01-12 14:31:15.556192+00	5358
+5296	2026-01-12 14:31:39.769227+00	5359
+5297	2026-01-12 14:33:31.039042+00	5360
+5298	2026-01-12 14:33:51.944165+00	5361
+5299	2026-01-12 14:34:31.515606+00	5362
+5300	2026-01-12 14:34:46.428205+00	5363
+5301	2026-01-12 14:34:59.350206+00	5364
+5302	2026-01-12 14:55:56.298989+00	5365
+5303	2026-01-12 14:56:30.130288+00	5366
+5304	2026-01-12 14:57:11.908301+00	5367
+5305	2026-01-12 14:57:23.00882+00	5368
+5306	2026-01-12 14:57:46.557227+00	5369
+5307	2026-01-12 14:58:07.091801+00	5370
+5308	2026-01-12 15:00:09.555588+00	5371
+5309	2026-01-12 15:22:50.822557+00	5372
+5310	2026-01-12 15:23:33.86506+00	5373
+5311	2026-01-12 15:25:38.46512+00	5374
+5312	2026-01-12 15:25:51.900004+00	5375
+5313	2026-01-12 15:28:11.285414+00	5376
+5314	2026-01-12 15:30:31.420476+00	5377
+5315	2026-01-12 15:31:29.922088+00	5378
+5316	2026-01-12 15:37:50.613745+00	5379
+5317	2026-01-12 15:49:33.767389+00	5380
+5318	2026-01-12 16:05:54.886835+00	5381
+5319	2026-01-12 16:06:02.762356+00	5382
+5320	2026-01-12 16:08:23.334979+00	5383
+5321	2026-01-12 16:10:39.543204+00	5384
 \.
 
 
@@ -9592,6 +9946,142 @@ COPY public.token_blacklist_outstandingtoken (id, token, created_at, expires_at,
 5246	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTE1NTgzMywiaWF0IjoxNzY2NTYzODMzLCJqdGkiOiI5MmUyYTRjZTYyYjY0NzM0YWJhN2ZmMGQ0MjJkNWQ1ZSIsInVzZXJfaWQiOjJ9.52JJcaEy3IPRNQCExzEHQkEskG3jB14efVzH1oGNWdc	\N	2026-01-23 08:10:33+00	\N	92e2a4ce62b64734aba7ff0d422d5d5e
 5247	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTE1NjQ3OSwiaWF0IjoxNzY2NTY0NDc5LCJqdGkiOiIzODMzYTJlOWZhOGQ0ZTZkOGY2NmE5MDJhNDNhNzgyMSIsInVzZXJfaWQiOjJ9.6PWln7OP-yra4OOBrC5mb_bbQHZvCYghB4zg-0HcCgs	\N	2026-01-23 08:21:19+00	\N	3833a2e9fa8d4e6d8f66a902a43a7821
 5248	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTE1Njc0NCwiaWF0IjoxNzY2NTY0NzQ0LCJqdGkiOiJiYjBhZjQzMjg1MDE0MjlmOGQ3YTk1YTA3ZjBmNjFlZSIsInVzZXJfaWQiOjJ9.V7kTjjmxHArVlZvMhshVR-1vPZxPE_b0X6nGcdDGIQ0	\N	2026-01-23 08:25:44+00	\N	bb0af4328501429f8d7a95a07f0f61ee
+5249	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTE1ODMwOSwiaWF0IjoxNzY2NTY2MzA5LCJqdGkiOiJmYjkyMzI5NzIwNGE0ODQxYmU2ZWZmMzkzYjQ0NWZmMyIsInVzZXJfaWQiOjJ9.eLaXBVd35pgqxyXUjrs8mt-_F8IyYQ33w2b5_oc2jM0	2025-12-24 08:51:49.804728+00	2026-01-23 08:51:49+00	2	fb923297204a4841be6eff393b445ff3
+5250	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTE4MzM3MCwiaWF0IjoxNzY2NTkxMzcwLCJqdGkiOiJlYTJhZjY4YTk2NGM0MDc0YjVjMTU4MGRlNGQyNmRiMCIsInVzZXJfaWQiOjJ9.-N81QgEDaQvgpuSwO6EWm1Z17BUmRq5TcHVAhz9pyCc	\N	2026-01-23 15:49:30+00	\N	ea2af68a964c4074b5c1580de4d26db0
+5251	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTE4Njg5MiwiaWF0IjoxNzY2NTk0ODkyLCJqdGkiOiI2ZmMzMjk4ZTA0MjA0NjViOWJjOTA5MDI2MDUzMWE2YiIsInVzZXJfaWQiOjJ9.e5pAWdjZwDt1KXosTvGqndjIblwy81Bgxl4adAUThVQ	\N	2026-01-23 16:48:12+00	\N	6fc3298e0420465b9bc9090260531a6b
+5252	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTE4Nzk5MiwiaWF0IjoxNzY2NTk1OTkyLCJqdGkiOiIzYzM2Yzk3YzBlNjI0NTM2OWNkMTg5ZmRiNWY3ODFmMCIsInVzZXJfaWQiOjJ9.iw6V4VQuQ9Q3IxsAcSO3pgAPR8pRHdVUIE4a5As_eKk	\N	2026-01-23 17:06:32+00	\N	3c36c97c0e6245369cd189fdb5f781f0
+5253	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTIxODgzMywiaWF0IjoxNzY2NjI2ODMzLCJqdGkiOiI4OGVhYThhMDM4NzU0MjI2YTBjZjQwNTg1NDM5NjM3YyIsInVzZXJfaWQiOjJ9.Ybzbpv_qA1kfXBTMRRjYQ1FcNt-H5bg3pvdPycziyDI	\N	2026-01-24 01:40:33+00	\N	88eaa8a038754226a0cf40585439637c
+5254	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTIxOTUzMiwiaWF0IjoxNzY2NjI3NTMyLCJqdGkiOiJlNjVkZWRjNTdlZTc0ZTBhYWUwNDAxZGEwZDFlMTdiMCIsInVzZXJfaWQiOjJ9.fiuvq2eWiOZxad12MiuNi_tV6R2Sg96-cUXPhNG9uYw	\N	2026-01-24 01:52:12+00	\N	e65dedc57ee74e0aae0401da0d1e17b0
+5255	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTIyMDMzNCwiaWF0IjoxNzY2NjI4MzM0LCJqdGkiOiIzZGY2ZDYxYmM2MTc0YmZkYTlkZGVhZjVkYjQ1ZjVlMCIsInVzZXJfaWQiOjJ9.R7R65wLlXxlxKfT80PlFIsI1hbnrr3sP_dU4K_k6RbI	\N	2026-01-24 02:05:34+00	\N	3df6d61bc6174bfda9ddeaf5db45f5e0
+5256	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTIyMDU1NywiaWF0IjoxNzY2NjI4NTU3LCJqdGkiOiJiMWUxYjdiZmU2ZDQ0OTYzYWUyOGY0YmEwOGI0NWQ2YyIsInVzZXJfaWQiOjJ9.ENy2OfBA2-UDaO4Hh3eIaBmPhGbe1Bo09yif7OlMhWw	\N	2026-01-24 02:09:17+00	\N	b1e1b7bfe6d44963ae28f4ba08b45d6c
+5257	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTE1MzQxMCwiaWF0IjoxNzY2NTYxNDEwLCJqdGkiOiJiNTFiMGYyODMwMDc0ZGI1YTM2ZjgwNWU5MTU0NjkxYiIsInVzZXJfaWQiOjJ9.hT6v1vhBLzFvMT4fITIJc-dgNRAjLo_aDcr7PLkw_kA	\N	2026-01-23 07:30:10+00	\N	b51b0f2830074db5a36f805e9154691b
+5258	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTIzNjE4OCwiaWF0IjoxNzY2NjQ0MTg4LCJqdGkiOiI2NmQ4NmVhZGI2YjU0ODk3OTgwMjRmZjgzZGYzYmYyNCIsInVzZXJfaWQiOjJ9.sACQQBmldpdwnwbZRVLTqvk6vi93wwpfshE8FzsOLhI	\N	2026-01-24 06:29:48+00	\N	66d86eadb6b5489798024ff83df3bf24
+5259	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTIzNjgzOSwiaWF0IjoxNzY2NjQ0ODM5LCJqdGkiOiJhNzk2YzU1ZjhhYzI0NTExOTMyN2EzMmM3YWRiMmZjMSIsInVzZXJfaWQiOjJ9.5gtwer7yNfhZh5YmyZdsSRJs-rPe30JWk184FgtG7WM	\N	2026-01-24 06:40:39+00	\N	a796c55f8ac245119327a32c7adb2fc1
+5260	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTIzOTY0NiwiaWF0IjoxNzY2NjQ3NjQ2LCJqdGkiOiI2NjRlNzMyMDYwYTY0Y2YzODQzMmI5YzNmZTRmZTVkNSIsInVzZXJfaWQiOjJ9.PK6cHCFU4dcUgubsZGVFhrGrndzDJTse9Zjcu2LT9Yg	\N	2026-01-24 07:27:26+00	\N	664e732060a64cf38432b9c3fe4fe5d5
+5261	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTI0MDgwMywiaWF0IjoxNzY2NjQ4ODAzLCJqdGkiOiI1ZTIyNDFlM2E2ZjI0YzZlYmZkMmMxMjAyZDFkM2I0NiIsInVzZXJfaWQiOjJ9.JAxeJ1OTlUbcHCRBwU9DVBucqGNsVDuBZH7W-hC8ZNw	\N	2026-01-24 07:46:43+00	\N	5e2241e3a6f24c6ebfd2c1202d1d3b46
+5262	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTI0MjQwMiwiaWF0IjoxNzY2NjUwNDAyLCJqdGkiOiJhYTA0OGI1MWUxYzk0YWRiYTM4Yzc3MDg5NzlhODdmMSIsInVzZXJfaWQiOjJ9.-ZXdH67JVwz0FotJpsd_KPnkxzKFb6EF2CDk2ag-K5E	\N	2026-01-24 08:13:22+00	\N	aa048b51e1c94adba38c7708979a87f1
+5263	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTI0MzU3MCwiaWF0IjoxNzY2NjUxNTcwLCJqdGkiOiI3OTdiYjRiMzJmZDY0NmJjYTRlNDE5MzE3OTRmY2VmZiIsInVzZXJfaWQiOjJ9.QGpOcxNoOy9v3yNjEBDqHkSdWYAi2xJmC0MIrnHV28U	\N	2026-01-24 08:32:50+00	\N	797bb4b32fd646bca4e41931794fceff
+5264	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTI0NTg0NSwiaWF0IjoxNzY2NjUzODQ1LCJqdGkiOiJjZmY2Yzg1N2U2Mzc0ZjM2YWFmMmM0M2VhYTFmZDVkZiIsInVzZXJfaWQiOjJ9.qnb6OEw0Scb7e3vg4Uf0mreIvHhk5sMVyojzBRjh1WM	\N	2026-01-24 09:10:45+00	\N	cff6c857e6374f36aaf2c43eaa1fd5df
+5265	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTMyNjY0NywiaWF0IjoxNzY2NzM0NjQ3LCJqdGkiOiJjOWFmNDgxNjBjMGE0NmJhYTFkNTE3NWU1NzFkNjY2MSIsInVzZXJfaWQiOjJ9.PJq9rVjGSahZuc_qMpAe6soz8XjnEkRXavFlJRKjQDU	\N	2026-01-25 07:37:27+00	\N	c9af48160c0a46baa1d5175e571d6661
+5266	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTMyNzI2NiwiaWF0IjoxNzY2NzM1MjY2LCJqdGkiOiJkMTFkODI4OGFkOTQ0YzcwYTRkMTViNzkxNWQyYTAwMyIsInVzZXJfaWQiOjJ9.7txS8HHZOL-cu9weAZO7u8FwcoqLTOVy52DpRUXh7IY	\N	2026-01-25 07:47:46+00	\N	d11d8288ad944c70a4d15b7915d2a003
+5267	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTIyMTEyOCwiaWF0IjoxNzY2NjI5MTI4LCJqdGkiOiI2YzM0NzU3ZGNjNGQ0MmE0OWE0N2IzNTAyNTQzOGNhZiIsInVzZXJfaWQiOjJ9.pnzi6kgMYYDrS_hXUddf08yuCcjI2fJp_f5vunNogY8	\N	2026-01-24 02:18:48+00	\N	6c34757dcc4d42a49a47b35025438caf
+5268	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTQxNjA1NSwiaWF0IjoxNzY2ODI0MDU1LCJqdGkiOiJmY2NhYTgyNjFmYzc0NDkyYTliYTU1ZDQwOThjYWJiOCIsInVzZXJfaWQiOjJ9.A8tgSX7dcsEvquq1X-YD0UAU8_3aEnIXdaefBaIcOeA	\N	2026-01-26 08:27:35+00	\N	fccaa8261fc74492a9ba55d4098cabb8
+5269	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTQxNzY5NCwiaWF0IjoxNzY2ODI1Njk0LCJqdGkiOiI4YzlmOWU2OTgyNzI0ZGFmYjYwMGU2Y2ExOGNiYjRlOSIsInVzZXJfaWQiOjJ9._-HhS3kWKnK2LGiS4yF8lxKZtFii2zdlvjFf_JzEma8	\N	2026-01-26 08:54:54+00	\N	8c9f9e6982724dafb600e6ca18cbb4e9
+5270	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTQxNzc4NSwiaWF0IjoxNzY2ODI1Nzg1LCJqdGkiOiJhMTA3Yzc1ZGQzYTY0MmVhYjJiYjZmMzk1OTk5N2YyZCIsInVzZXJfaWQiOjJ9.0Rv6_fgJe838GFriZ-GSE8ttwI46YdrFOZ-mmax47_c	\N	2026-01-26 08:56:25+00	\N	a107c75dd3a642eab2bb6f3959997f2d
+5271	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTQxODAwNiwiaWF0IjoxNzY2ODI2MDA2LCJqdGkiOiJhMWE3ZmI2YzU2YWI0M2E1OWIxMjgyZjM4ZDU5MThmZCIsInVzZXJfaWQiOjJ9.M5ubN-yOEZykbqsLLpi2E86xUCskZ-D_swQljK_LAQU	\N	2026-01-26 09:00:06+00	\N	a1a7fb6c56ab43a59b1282f38d5918fd
+5272	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTQxODAxMywiaWF0IjoxNzY2ODI2MDEzLCJqdGkiOiJhZGY1MjJmNjRhYzU0NTU1YmU3ZWY0YWZmZDM2NzFjNSIsInVzZXJfaWQiOjJ9.03jFU2LpRjklB6Z1ZIBZfH55QipVpZK7gjCU9Hq0yu4	\N	2026-01-26 09:00:13+00	\N	adf522f64ac54555be7ef4affd3671c5
+5273	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTQxODA5NCwiaWF0IjoxNzY2ODI2MDk0LCJqdGkiOiJhMjc0MmE3MTgwNTM0ODJiOGNiMGMxNDM5ODgzZTk0NCIsInVzZXJfaWQiOjJ9.ePVf5d0j1nYsJGpzrx20FsffImsI-U1q5sVgcPRU0sA	\N	2026-01-26 09:01:34+00	\N	a2742a718053482b8cb0c1439883e944
+5274	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTU3MzU4MiwiaWF0IjoxNzY2OTgxNTgyLCJqdGkiOiI5MWU5MjMzMGZlNmY0Y2I1OWFmNTg2NzY3MTdlZTQ5YSIsInVzZXJfaWQiOjJ9.qiNp281p34Am1bfOHfzM3gjnisGNcSsggkCp1fJuuKk	\N	2026-01-28 04:13:02+00	\N	91e92330fe6f4cb59af58676717ee49a
+5275	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTc2MzMxNCwiaWF0IjoxNzY3MTcxMzE0LCJqdGkiOiIxYmM4YjRlYTk5Nzg0ZjllYmViMjNjN2NlZGQ3ZTg1ZSIsInVzZXJfaWQiOjJ9.rv1aBnBI4TY3YGNimrznqAG-WO5FSOZ9G9RoTGMwqRw	\N	2026-01-30 08:55:14+00	\N	1bc8b4ea99784f9ebeb23c7cedd7e85e
+5276	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTc2MzM4OCwiaWF0IjoxNzY3MTcxMzg4LCJqdGkiOiIzMmU5NmRjNWM3NTI0Mjk5OWJmZWFiMWRhYmYwY2QxMCIsInVzZXJfaWQiOjJ9.PkzOdNVMfvFZa1HQry_qeXiMkxUa97MYlfIWhwA8WaY	\N	2026-01-30 08:56:28+00	\N	32e96dc5c75242999bfeab1dabf0cd10
+5277	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTc2MzQwMiwiaWF0IjoxNzY3MTcxNDAyLCJqdGkiOiIxZjVhYWJhZTNjMWI0YzhlYThlZWM1ZjZhN2M2NmRlZiIsInVzZXJfaWQiOjJ9.RLb2SmY4AfBgSNr5O72FVLm1Sd_f5xwqdnfX5oW2ZWM	\N	2026-01-30 08:56:42+00	\N	1f5aabae3c1b4c8ea8eec5f6a7c66def
+5278	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTkwNzM1NSwiaWF0IjoxNzY3MzE1MzU1LCJqdGkiOiJlNjhhNTU3YWUzYjk0NDIwOGRhZTU2NDg1NmQ0NDEzMyIsInVzZXJfaWQiOjJ9.m5DrVXREYemtlNwCq2D9y6JId8AOgpZYFcupotHLtIQ	\N	2026-02-01 00:55:55+00	\N	e68a557ae3b944208dae564856d44133
+5279	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTkwODM5MSwiaWF0IjoxNzY3MzE2MzkxLCJqdGkiOiJmNmUwMjI4MGFmYmM0MzVhOTQwN2NkZDNlZDExNzU5NyIsInVzZXJfaWQiOjJ9.fCLncqoJ9p-gtM0e4R7jBFzAcDu93-IikzrFmndA5tA	\N	2026-02-01 01:13:11+00	\N	f6e02280afbc435a9407cdd3ed117597
+5280	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTkwOTk2NSwiaWF0IjoxNzY3MzE3OTY1LCJqdGkiOiJhNGI5ODRkZjA5NjY0MTJjYjRjYjVlOTZhOWU2Yzk1NSIsInVzZXJfaWQiOjJ9.Ejb4r3sqpxukA1qx1fRma0Rq_9z0SiEyImkw6z_VoOo	\N	2026-02-01 01:39:25+00	\N	a4b984df0966412cb4cb5e96a9e6c955
+5281	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDAyMjE2NSwiaWF0IjoxNzY3NDMwMTY1LCJqdGkiOiIzYzYwNDZlODE4MGU0MDczYTU4NWYyZTdjYWZhNjgxMSIsInVzZXJfaWQiOjJ9.rzeLVBV_KprwI8xAbuL4wjbAT6sMteMLmYtCq48w4ig	\N	2026-02-02 08:49:25+00	\N	3c6046e8180e4073a585f2e7cafa6811
+5282	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDIxOTQyNywiaWF0IjoxNzY3NjI3NDI3LCJqdGkiOiIyYWYwMmYyYjgzY2I0ZGU3YjQ2MmVhZjNlY2ZjYzZmZiIsInVzZXJfaWQiOjJ9.qh7emzzwiAzXhRyARC5tsQ83RgcqzWhp_lY4C3mjgU4	\N	2026-02-04 15:37:07+00	\N	2af02f2b83cb4de7b462eaf3ecfcc6ff
+5283	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDQ3NjYyMSwiaWF0IjoxNzY3ODg0NjIxLCJqdGkiOiJmZGU4ZDA2ZTExZmE0NWZmOWY3YzRiMjEzYmZjYzU2MyIsInVzZXJfaWQiOjJ9.w3FK8swPyfGReLP5GTK6uZoGoWqpwR96mv3Z05IBqXo	\N	2026-02-07 15:03:41+00	\N	fde8d06e11fa45ff9f7c4b213bfcc563
+5284	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDQ3NjY5OSwiaWF0IjoxNzY3ODg0Njk5LCJqdGkiOiIyZjg3Zjg2YTJlYTM0NzJkODQ4YTJmZmM5NjM5MzgxYyIsInVzZXJfaWQiOjJ9.g1aY7ghZck410-TO-g7DeBnblBavZUff0QAuGJqTZmk	\N	2026-02-07 15:04:59+00	\N	2f87f86a2ea3472d848a2ffc9639381c
+5285	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDQ3NzI1MCwiaWF0IjoxNzY3ODg1MjUwLCJqdGkiOiJjN2RjODY0Yjg1Y2Q0NGE3YjMzM2FiMjFjMDIyZTIwNyIsInVzZXJfaWQiOjJ9.nfpOH0YxfTQnAqwmf8sF7dDjZ7iCtRcPK4ZHiVBITII	\N	2026-02-07 15:14:10+00	\N	c7dc864b85cd44a7b333ab21c022e207
+5286	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDQ3NzMzNCwiaWF0IjoxNzY3ODg1MzM0LCJqdGkiOiI3MDY4ODdjMzgwMjQ0YTQyOTMyNThhMjMwN2YzMzc5ZiIsInVzZXJfaWQiOjJ9.02TGJngZeTnX9DYagOoC-3fpMBPpI0dKnQ_nNsWahQQ	\N	2026-02-07 15:15:34+00	\N	706887c380244a4293258a2307f3379f
+5287	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDQ3NzM0OCwiaWF0IjoxNzY3ODg1MzQ4LCJqdGkiOiJhNzI1ZGE4MjI0MmE0YTU3ODlhYjc4MTE0YWRlZjg0YyIsInVzZXJfaWQiOjJ9.NIrUBIHzF8xVs7Jh7tYzTYChLGdiBqR4Fbk8ZCfxklY	\N	2026-02-07 15:15:48+00	\N	a725da82242a4a5789ab78114adef84c
+5288	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDQ3NzkzMiwiaWF0IjoxNzY3ODg1OTMyLCJqdGkiOiIwNmVmZDYxNDYwNmI0N2I5ODczOWI3YjIxZjNmNzkyMCIsInVzZXJfaWQiOjJ9.o34V893Ufc5IDXCkBIG_2K-c3XhL2Ry2ACLjswV7oo0	\N	2026-02-07 15:25:32+00	\N	06efd614606b47b98739b7b21f3f7920
+5289	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDQ3ODgyOSwiaWF0IjoxNzY3ODg2ODI5LCJqdGkiOiI3OTQzMTNlMmNjNDk0MGFiOGRkZjI3YTBlZDgxY2Q0YSIsInVzZXJfaWQiOjJ9.mpjW9nKVmmOoE8cr2xjeTsT0zi2x_0cgWU9C_Cm6P7g	\N	2026-02-07 15:40:29+00	\N	794313e2cc4940ab8ddf27a0ed81cd4a
+5290	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDUyOTAyMSwiaWF0IjoxNzY3OTM3MDIxLCJqdGkiOiIwY2IyYWYzNTY2OWM0ZGM4OTE4ODdhNzRiMzE1MTYxMSIsInVzZXJfaWQiOjJ9.3rfwJGihFskuvwq81tcHmCShaMCVpottadkUZSUk64A	2026-01-09 05:37:01.75321+00	2026-02-08 05:37:01+00	2	0cb2af35669c4dc891887a74b3151611
+5291	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDUyOTIyNSwiaWF0IjoxNzY3OTM3MjI1LCJqdGkiOiI2N2I3MjAzNWE3Mzc0ZGUwOGY1ZjRkNWUyMzRmNmI4MSIsInVzZXJfaWQiOjJ9.pyvV_vf5xR88p8POQFEyJ049Zfw51DEy9_u2rTXxh98	\N	2026-02-08 05:40:25+00	\N	67b72035a7374de08f5f4d5e234f6b81
+5292	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2OTMzNDQwOCwiaWF0IjoxNzY2NzQyNDA4LCJqdGkiOiIzM2VkN2M5ZjUzNDQ0N2Y4OGEwYjZiYWVhM2VmYTE0MiIsInVzZXJfaWQiOjJ9.6queE4dcgqHFWRgtu9MuQqOnIGMly39-HnxxoZeZR_c	\N	2026-01-25 09:46:48+00	\N	33ed7c9f534447f88a0b6baea3efa142
+5293	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDUzNTUxNywiaWF0IjoxNzY3OTQzNTE3LCJqdGkiOiJlMGViYzg5NjE3NGY0Mzg5YjQxOGY5Y2E2ZTQ4YzhmZCIsInVzZXJfaWQiOjJ9.6FP_6F5ko1W5O3T8Jbgfah1_ALrliXpXbOpiIH9VvEc	\N	2026-02-08 07:25:17+00	\N	e0ebc896174f4389b418f9ca6e48c8fd
+5294	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDUzOTI2NiwiaWF0IjoxNzY3OTQ3MjY2LCJqdGkiOiJmMjcxODA3N2QwYTI0NThhYTVjYzI2ZjQwYmM1YTQyZiIsInVzZXJfaWQiOjJ9.FNP4-Spi5LL3ecOlSq0crjN6fsFEjavna6yW5kwmSS4	\N	2026-02-08 08:27:46+00	\N	f2718077d0a2458aa5cc26f40bc5a42f
+5295	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDUzOTMwMSwiaWF0IjoxNzY3OTQ3MzAxLCJqdGkiOiI1MjVhMzM5MmNiODg0NWE3ODc3ZjM4ZmUwNDcwMzJkMyIsInVzZXJfaWQiOjJ9.K9TEygw2tFgSQY8vbMCZBe_GIsSaZv-wEUb1FTYIzUE	\N	2026-02-08 08:28:21+00	\N	525a3392cb8845a7877f38fe047032d3
+5296	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDUzOTUyMywiaWF0IjoxNzY3OTQ3NTIzLCJqdGkiOiJlN2VhNjU1N2U1Y2Q0MjgwOTdjYjhiOTNkN2M5OTViZiIsInVzZXJfaWQiOjJ9.1Mpokn1fE-NlrHbony8WZa98VFAPmLpCufgku78XXhA	\N	2026-02-08 08:32:03+00	\N	e7ea6557e5cd428097cb8b93d7c995bf
+5297	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU0MTAwOSwiaWF0IjoxNzY3OTQ5MDA5LCJqdGkiOiJiMDBmZTgwM2Y0NzU0MWZkYjUzM2MzZmI5MGRjMTM4YyIsInVzZXJfaWQiOjJ9.XatC4r3OYZZk4XDLoE_z-plu9A0tGn9gfaQVpsBuc3U	\N	2026-02-08 08:56:49+00	\N	b00fe803f47541fdb533c3fb90dc138c
+5298	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU0MjIxNCwiaWF0IjoxNzY3OTUwMjE0LCJqdGkiOiJhZjkwNWIzMjQ0MGI0ZmQyYWUxMDkzNWJjODRmYmEwZiIsInVzZXJfaWQiOjJ9.9xulNraiKGdRknKaE4iZQUbt49P5Q1mu9cP5vWtQ9Eg	\N	2026-02-08 09:16:54+00	\N	af905b32440b4fd2ae10935bc84fba0f
+5299	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU0MjI1MSwiaWF0IjoxNzY3OTUwMjUxLCJqdGkiOiIxOTQ0Zjg1ZTU0MzU0YzhlOGQ0OTFjODJlNTQ3MDcyMyIsInVzZXJfaWQiOjJ9.dufG85zWApwJTlOI6KFYf-GomYGx3LY2aQX-355ixnQ	\N	2026-02-08 09:17:31+00	\N	1944f85e54354c8e8d491c82e5470723
+5300	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU0Mjc2MiwiaWF0IjoxNzY3OTUwNzYyLCJqdGkiOiI2MDJhNDMzODFmY2I0ZmIyYjU3MDVmODc2MjgxOTUwMSIsInVzZXJfaWQiOjJ9.kDCiP2eYKSq1RHr8mJYxHWYKNd3U4s9GCduCREw9ftE	\N	2026-02-08 09:26:02+00	\N	602a43381fcb4fb2b5705f8762819501
+5301	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2NDg4NSwiaWF0IjoxNzY3OTcyODg1LCJqdGkiOiI2MjA4MjJlNDA1ZmU0MGViYThlYTI5NzQ0YTE4NDI5MiIsInVzZXJfaWQiOjJ9.m5FYudBn1nC5QtBO-eTojjwxuqgHK15VE5tdSKRkCTs	\N	2026-02-08 15:34:45+00	\N	620822e405fe40eba8ea29744a184292
+5302	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2NjQ4NywiaWF0IjoxNzY3OTc0NDg3LCJqdGkiOiIyZmVlZjMxOGQyZjU0ODVjYmJlNGI2MDU4YWQxNzUxYSIsInVzZXJfaWQiOjJ9.TsshVbiptsGb0Nl4YruCGD0OTT4SrOPoN2--sczQgaw	\N	2026-02-08 16:01:27+00	\N	2feef318d2f5485cbbe4b6058ad1751a
+5303	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2NzEwMiwiaWF0IjoxNzY3OTc1MTAyLCJqdGkiOiI5ZmI3MzE4ZWMzNjQ0M2JiOWE5M2Q4NmI5YmMzM2NiZiIsInVzZXJfaWQiOjJ9.CCdUIqhTnc_vJjFQEKKAhZXbMRS9GcMm2YBjc6ull7U	\N	2026-02-08 16:11:42+00	\N	9fb7318ec36443bb9a93d86b9bc33cbf
+5304	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2NzY5MiwiaWF0IjoxNzY3OTc1NjkyLCJqdGkiOiJhMDViYTQyYWZkMTg0NmM3OTRmMGQ1MjMxZWNmNjhlZCIsInVzZXJfaWQiOjJ9.t2LYwzxbwobiE7tFHArTFpbW202hGPicqEp-ImgTj6M	\N	2026-02-08 16:21:32+00	\N	a05ba42afd1846c794f0d5231ecf68ed
+5305	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2NzcwMCwiaWF0IjoxNzY3OTc1NzAwLCJqdGkiOiI3YTVkZDAzMWM4MjE0MDg2YmQ2MWUzODZkM2Y2NjljMCIsInVzZXJfaWQiOjJ9.RVV8CxswdzHo9Qo3mmYmiQ19fQN2hokzRDNGmDhiNaE	\N	2026-02-08 16:21:40+00	\N	7a5dd031c8214086bd61e386d3f669c0
+5306	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2Nzc3MywiaWF0IjoxNzY3OTc1NzczLCJqdGkiOiJhY2UzMjI5NTQzY2M0YmZjYjE4NWU0ZDlkNmYxNjM3NiIsInVzZXJfaWQiOjJ9.GgOrIuYu_dSWj398Q6CJiZI6ItHew4jRtp7AnHSNhRE	\N	2026-02-08 16:22:53+00	\N	ace3229543cc4bfcb185e4d9d6f16376
+5307	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2ODkzOSwiaWF0IjoxNzY3OTc2OTM5LCJqdGkiOiJlNWE2OTlhMzBjMGY0YzJhYTMyMzg2NzdkNjMwYjRlNSIsInVzZXJfaWQiOjJ9.mwdrmykxMbhUHP5cXDFfofnPx-6SZs1N80nS4bjTnKo	\N	2026-02-08 16:42:19+00	\N	e5a699a30c0f4c2aa3238677d630b4e5
+5308	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2ODk1NiwiaWF0IjoxNzY3OTc2OTU2LCJqdGkiOiIxYzI1ZGQ5MmI5MGE0ODkyYWExZDNiMGEzM2I4Yzk0YyIsInVzZXJfaWQiOjJ9.7RVZOBO4n6ObTNd4MJApVE4PM2bhHWicFolMAZ_ICPg	\N	2026-02-08 16:42:36+00	\N	1c25dd92b90a4892aa1d3b0a33b8c94c
+5309	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2ODk3MiwiaWF0IjoxNzY3OTc2OTcyLCJqdGkiOiIyNDg4ZGJjMTkwMjY0NTc4YTY2MGFmYWQxMjNmNjM4YSIsInVzZXJfaWQiOjJ9.TJHMyXTMjdjwvJifcyRfwyAD5_BsXEs-EAmBUegXTiY	\N	2026-02-08 16:42:52+00	\N	2488dbc190264578a660afad123f638a
+5310	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2ODk5NywiaWF0IjoxNzY3OTc2OTk3LCJqdGkiOiI3MjVjN2ZhZDNhMGE0Njc4OWI3ZTU1ODFjNDY3YTcxNyIsInVzZXJfaWQiOjJ9.LgdgkMmjwGr6QysfzTCl7EASNML1u7pX4zyjAV5RcUI	\N	2026-02-08 16:43:17+00	\N	725c7fad3a0a46789b7e5581c467a717
+5311	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2OTAwOCwiaWF0IjoxNzY3OTc3MDA4LCJqdGkiOiJhNWFlMmYzZGY3YWQ0ZDliYjk3ZGIwM2M4YzM1ODg5NyIsInVzZXJfaWQiOjJ9.3F-FNVGzT2ulvEHxSwa1t48SBaAcPCTcdWaccancffo	\N	2026-02-08 16:43:28+00	\N	a5ae2f3df7ad4d9bb97db03c8c358897
+5312	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2OTAzMSwiaWF0IjoxNzY3OTc3MDMxLCJqdGkiOiI2MjBkNDM3ZDZjNmY0ZDg5ODg5YzBhMzdlOTg2MzY5YyIsInVzZXJfaWQiOjJ9.d5WcyNDqJxUxaiQyKJtF5EUPYLCAghzqsCGw3wJadk4	\N	2026-02-08 16:43:51+00	\N	620d437d6c6f4d89889c0a37e986369c
+5313	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2OTA0MiwiaWF0IjoxNzY3OTc3MDQyLCJqdGkiOiI1NzI0OWFjMjkyZjA0MTM2OTJjZWUxOGY5NzUyMjFjNyIsInVzZXJfaWQiOjJ9.vwrsiRMrUaPlff3Rl1zf4ahWd-cjlye71lnDd4dln4w	\N	2026-02-08 16:44:02+00	\N	57249ac292f0413692cee18f975221c7
+5314	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2OTA1MywiaWF0IjoxNzY3OTc3MDUzLCJqdGkiOiI3ZWE0ZWRiMDMyZWI0ZWZmODMxYWQyYjllOGUxMTU5NyIsInVzZXJfaWQiOjJ9.lqpuO4tUZT3c6vRc6QgVMD5YV6Iysk9SomF3OI5mfvc	\N	2026-02-08 16:44:13+00	\N	7ea4edb032eb4eff831ad2b9e8e11597
+5315	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2OTIwNSwiaWF0IjoxNzY3OTc3MjA1LCJqdGkiOiI3YjFjNzJiYWRiZmY0YWM2OGEzMTg4MTM0NTY1OTJjOSIsInVzZXJfaWQiOjJ9.35ifRSVXE0Ms_3EOMUXthtGg6E6LrBt0StYCWsiBNjw	\N	2026-02-08 16:46:45+00	\N	7b1c72badbff4ac68a318813456592c9
+5316	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDU2OTIyNCwiaWF0IjoxNzY3OTc3MjI0LCJqdGkiOiJmYTUzMDQ0NDUyNDY0MjFlYTRhNGQ5NTgxZmNjZjliMiIsInVzZXJfaWQiOjJ9.lR1XNvcIdqTJCtsuwERIxr8u1y_FVn33VSWHoOJJLE4	\N	2026-02-08 16:47:04+00	\N	fa5304445246421ea4a4d9581fccf9b2
+5317	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczMTE5MywiaWF0IjoxNzY4MTM5MTkzLCJqdGkiOiI1MGZjNDlhOGQxZWI0ZDY3OTFhZTVjMjFiMDAxZTZiMiIsInVzZXJfaWQiOjJ9.gnHTWUiOEtSepyN5rBI9YLf_MSktdNy34UO2WN9JYuI	\N	2026-02-10 13:46:33+00	\N	50fc49a8d1eb4d6791ae5c21b001e6b2
+5318	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczMTQ4NiwiaWF0IjoxNzY4MTM5NDg2LCJqdGkiOiJlYTFiYzZiZmVkYTk0ZTAxYjY3YjM5ZGZjMDY0MjRiYiIsInVzZXJfaWQiOjJ9.4KzpWAmyGRProWtiXM_vkdOgQVFJwsocDX_UR863A8E	\N	2026-02-10 13:51:26+00	\N	ea1bc6bfeda94e01b67b39dfc06424bb
+5319	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczMTY2OSwiaWF0IjoxNzY4MTM5NjY5LCJqdGkiOiI2MTFiMWYyOTE2ZGI0YmI4OWYxODk0MWE3YTFkYWUyNyIsInVzZXJfaWQiOjJ9.qKe4G7lhMzog00FXDBoXKvreMKTB7xDMTb17y9tmRrU	\N	2026-02-10 13:54:29+00	\N	611b1f2916db4bb89f18941a7a1dae27
+5320	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczMTY5OCwiaWF0IjoxNzY4MTM5Njk4LCJqdGkiOiI1M2NmOTA4OTA2Mjg0ZDNkOTc0ZmIzMmU0OGM5MTQ4MSIsInVzZXJfaWQiOjJ9.-SAf8WK3oN6f2pbGqOxYIim2l5JObty0qv1Us-BPUug	\N	2026-02-10 13:54:58+00	\N	53cf908906284d3d974fb32e48c91481
+5321	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczMTcwNSwiaWF0IjoxNzY4MTM5NzA1LCJqdGkiOiI3MTg0OGE3ZWM4OTE0ODc3YTdlZDhhNDBhMjM4MjY0NCIsInVzZXJfaWQiOjJ9.NdlycsG5Dzcegf4_kCkpvv1x8VeQnfyE_tHPQM9q3es	\N	2026-02-10 13:55:05+00	\N	71848a7ec8914877a7ed8a40a2382644
+5322	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczMTcyMiwiaWF0IjoxNzY4MTM5NzIyLCJqdGkiOiI3OGNmZjZmZDEwYWM0NDU4YjZhNjk0OTA5MzNjZGQyMiIsInVzZXJfaWQiOjJ9.8OyIxFHylTX1rJ8nOip8N9iZrnCI0Ry25zc2JFqEObA	\N	2026-02-10 13:55:22+00	\N	78cff6fd10ac4458b6a69490933cdd22
+5323	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczMjQyMywiaWF0IjoxNzY4MTQwNDIzLCJqdGkiOiJkOWQxODUwZjFlNjg0NDQxYThmMDJiNDliMDQ2YTAwNyIsInVzZXJfaWQiOjN9.fvUY5p_nniWYwtmDwhlJXOs3sEOT4NxkHqco-UDtm3E	2026-01-11 14:07:03.907188+00	2026-02-10 14:07:03+00	3	d9d1850f1e684441a8f02b49b046a007
+5324	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczMjQ2MiwiaWF0IjoxNzY4MTQwNDYyLCJqdGkiOiIxNDU2YjI3ZWViMmI0MjgwYmIyZGZjOWQzOTcwZjE5MiIsInVzZXJfaWQiOjF9.vd1qJpL9TeZuMzCyHa-WXviQOJcmwHHHOGRfHEFdIWA	2026-01-11 14:07:42.867785+00	2026-02-10 14:07:42+00	1	1456b27eeb2b4280bb2dfc9d3970f192
+5325	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczMjQ3MiwiaWF0IjoxNzY4MTQwNDcyLCJqdGkiOiIxMmM3YzkwNzcwZTE0ZDJiYTZiZDIxYTY4Njk3YTU4MyIsInVzZXJfaWQiOjJ9.KO_1USiWaStyZGnbHOS0btzj6UOPlFnS1zBERYTDeCI	2026-01-11 14:07:52.676706+00	2026-02-10 14:07:52+00	2	12c7c90770e14d2ba6bd21a68697a583
+5326	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczNDIwMiwiaWF0IjoxNzY4MTQyMjAyLCJqdGkiOiIxZGI2ZTI2MDQ5YjE0M2Q3YjgxY2Q1MzQxNjczNzA1MCIsInVzZXJfaWQiOjJ9.ik73vEqplVtxiKnwvP0i9M3XBQI_s1z8bK88NGdEmXo	\N	2026-02-10 14:36:42+00	\N	1db6e26049b143d7b81cd53416737050
+5327	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczODEyNSwiaWF0IjoxNzY4MTQ2MTI1LCJqdGkiOiI2NTMzNDY2MDVjMzk0ZjY2YmRlOGIwZTg4MGQ2NGUyOSIsInVzZXJfaWQiOjR9.2tYd0cbKA8opLTrbqYd96Y835ciTjZkhxLu8FjXjx94	2026-01-11 15:42:05.401068+00	2026-02-10 15:42:05+00	4	653346605c394f66bde8b0e880d64e29
+5328	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczODE3MywiaWF0IjoxNzY4MTQ2MTczLCJqdGkiOiJlMjIzMzJkZTA1MzY0NDQ4YTY5NDQ5ZjgzZTFiMGZjZCIsInVzZXJfaWQiOjR9.pQ_ibVYogDbsEMtjEi8SzJ0_XCrQcySZ0gyoPTSjavA	2026-01-11 15:42:53.971796+00	2026-02-10 15:42:53+00	4	e22332de05364448a69449f83e1b0fcd
+5329	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczODgzNywiaWF0IjoxNzY4MTQ2ODM3LCJqdGkiOiIwM2UzMGQ1NjdiMDg0OTA5YjAyMmI1OTIzZDMxYzc4MyIsInVzZXJfaWQiOjF9.nsV3nftuMyckuSCE2rMjmCY3VNjssrrK9DMYX_hGlNw	2026-01-11 15:53:57.71329+00	2026-02-10 15:53:57+00	1	03e30d567b084909b022b5923d31c783
+5330	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczOTA4NiwiaWF0IjoxNzY4MTQ3MDg2LCJqdGkiOiI3ZGVjYmRhY2Y2MDc0ODA1YmRhMTk4MjczZDIyMGM4ZCIsInVzZXJfaWQiOjF9.tjQIku20oNMmfqlrbChvycdLXgb0SYCUuV0qghWb9t0	2026-01-11 15:58:06.398604+00	2026-02-10 15:58:06+00	1	7decbdacf6074805bda198273d220c8d
+5331	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczOTEwMiwiaWF0IjoxNzY4MTQ3MTAyLCJqdGkiOiIwZTk4YjQ0OGE1Mzc0ZWQ3OGY4ZmRjZDJlOWYzZDhhYiIsInVzZXJfaWQiOjR9.ylIxdWFez6IFTX6I4iCZdY2XkNGyl7QVjSVvxVQZ0TA	2026-01-11 15:58:22.412738+00	2026-02-10 15:58:22+00	4	0e98b448a5374ed78f8fdcd2e9f3d8ab
+5332	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczOTExNywiaWF0IjoxNzY4MTQ3MTE3LCJqdGkiOiJiZDBjZjc1MGM2YTQ0MDRiOGNiMGUxMjgxODhjMGJlYiIsInVzZXJfaWQiOjV9.hlNu9r7Nirr-fFR7pyJLRngEFLWWcbmAH7pSEgJ4GI4	2026-01-11 15:58:37.053911+00	2026-02-10 15:58:37+00	5	bd0cf750c6a4404b8cb0e128188c0beb
+5333	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczOTEzMCwiaWF0IjoxNzY4MTQ3MTMwLCJqdGkiOiJkYjgyMDViYjI1MWU0OGE4YjBkNjg4MzI1NzMxNDBjNCIsInVzZXJfaWQiOjZ9.wWGwT1I1StZ1G0UM5LtYTln3fItgzO6ZEn38mmYXnZM	2026-01-11 15:58:50.001356+00	2026-02-10 15:58:50+00	6	db8205bb251e48a8b0d68832573140c4
+5334	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczOTIyNSwiaWF0IjoxNzY4MTQ3MjI1LCJqdGkiOiJhMWFmYmU4NGU1MDg0YTk1ODRhNDA3YjA0MGRjMzM5NSIsInVzZXJfaWQiOjV9.18Hu7XKqDgG-mbbmTEwgJ34g7jEyUCWjr5QkEGkjcNc	2026-01-11 16:00:25.86994+00	2026-02-10 16:00:25+00	5	a1afbe84e5084a9584a407b040dc3395
+5335	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczOTMwNCwiaWF0IjoxNzY4MTQ3MzA0LCJqdGkiOiI4MTAwNThmMWNlMjg0MjlkOTFkYTYxOTVkMWVmODZjMCIsInVzZXJfaWQiOjZ9.B7mdl0q85WTUuKs_J5foaJiV5HkEmj0oXuWttWEBcJ0	2026-01-11 16:01:44.975986+00	2026-02-10 16:01:44+00	6	810058f1ce28429d91da6195d1ef86c0
+5336	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczOTMyNSwiaWF0IjoxNzY4MTQ3MzI1LCJqdGkiOiJlMjFkOWY3NWRjZmU0YTc2YWM0YWE5OGFiOGI5ZGY0YSIsInVzZXJfaWQiOjV9.qv0oXrQYvyu1dm3Iaw8S3s5FxEaGh3D8OJsGRyT9Lhw	2026-01-11 16:02:05.376871+00	2026-02-10 16:02:05+00	5	e21d9f75dcfe4a76ac4aa98ab8b9df4a
+5337	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczOTczNCwiaWF0IjoxNzY4MTQ3NzM0LCJqdGkiOiI5NmM0OTE3ZWU4NTk0MzkyOWI3YTBmZWQ3NDFjZTljMyIsInVzZXJfaWQiOjR9.ImuC5SwEg0f0Wk0TNYRpiShPKqcUhpEz_OV1Uyu80rg	2026-01-11 16:08:54.283692+00	2026-02-10 16:08:54+00	4	96c4917ee85943929b7a0fed741ce9c3
+5338	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczOTc0NSwiaWF0IjoxNzY4MTQ3NzQ1LCJqdGkiOiJlOTljYWI1NjA1OGU0NDE5ODQ1NTA5ZWUwOTdiZmIzMSIsInVzZXJfaWQiOjJ9.RzpAzG9EuvPnD0PBNJ_Te8hfRpcQJpqHEVWrjGSwTAg	2026-01-11 16:09:05.228841+00	2026-02-10 16:09:05+00	2	e99cab56058e4419845509ee097bfb31
+5339	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDczOTgwNCwiaWF0IjoxNzY4MTQ3ODA0LCJqdGkiOiI1MWUyMjE5ZmJhZGE0MTE3YTA3MGI1YmRjYTU5NDczYSIsInVzZXJfaWQiOjJ9.X-AWyzVFWXgQjy6R0bdjFuy8jWBjZrsTE15_UEBnnnQ	\N	2026-02-10 16:10:04+00	\N	51e2219fbada4117a070b5bdca59473a
+5340	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgxOTI1MywiaWF0IjoxNzY4MjI3MjUzLCJqdGkiOiIzZjNjN2U0ZmU4ZWE0YzJmODE4OTJkMjIyMWE1ODQxNyIsInVzZXJfaWQiOjJ9.TkRgcvMCw22UQ4MXsWikIDiMnY1-pEo2m86qN4USTXM	\N	2026-02-11 14:14:13+00	\N	3f3c7e4fe8ea4c2f81892d2221a58417
+5341	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgxOTY4OCwiaWF0IjoxNzY4MjI3Njg4LCJqdGkiOiJhMGQ2OWY2YmQ1YzU0YmUwODBiOWVjMDgyYmQwYzMyYyIsInVzZXJfaWQiOjJ9.UHbeYiNC3BIyJRuKzx_xUXARZ9n5T4c-xiKj2NP5E_k	\N	2026-02-11 14:21:28+00	\N	a0d69f6bd5c54be080b9ec082bd0c32c
+5342	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgxOTc3OSwiaWF0IjoxNzY4MjI3Nzc5LCJqdGkiOiI0OWJhZDE3M2YxZDY0M2NlYTQwOTRiMjlmNWMxNjE4ZSIsInVzZXJfaWQiOjJ9.hjj1HUHCwC2EIt3WzrME0P6mS3ff8d1MwdSFF_Q2oZw	\N	2026-02-11 14:22:59+00	\N	49bad173f1d643cea4094b29f5c1618e
+5343	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgxOTgyNSwiaWF0IjoxNzY4MjI3ODI1LCJqdGkiOiJiOGVkOTk5OWU1MTM0MDVlYWIxMzFhOTdmYTA5MzhkYSIsInVzZXJfaWQiOjJ9.RyC5TDQMQDJukkAViZuk3MpRO3bPiBTZSAMe1FVCijs	\N	2026-02-11 14:23:45+00	\N	b8ed9999e513405eab131a97fa0938da
+5344	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgxOTg1MSwiaWF0IjoxNzY4MjI3ODUxLCJqdGkiOiJiNjUzYzA0Mzk5MDA0MDM3YWYwNjg5Mjk5ZTNhMGMzOSIsInVzZXJfaWQiOjJ9.ug31FXuLV6eqyofo5rlyRxpVN9G5AYQmtd7040tW0UQ	\N	2026-02-11 14:24:11+00	\N	b653c04399004037af0689299e3a0c39
+5345	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgxOTkwOCwiaWF0IjoxNzY4MjI3OTA4LCJqdGkiOiI1NDMzYzhhYjJkY2U0YWUxOTllNGQzOWQ1ZWVlMzgyMyIsInVzZXJfaWQiOjJ9.iwQqbpjyEkLQhgUmouYqkxJbJmQviWFI3EHaldzZIGw	\N	2026-02-11 14:25:08+00	\N	5433c8ab2dce4ae199e4d39d5eee3823
+5346	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgxOTkzNywiaWF0IjoxNzY4MjI3OTM3LCJqdGkiOiJkOTY2MzU1NmRlZTY0NjhkOTc2ZWU5ZmJhZmUyZjM2NCIsInVzZXJfaWQiOjJ9.EjKWmzym7nlUCRd0H41t0ciYyToZoBVJou6LcFl4lKw	\N	2026-02-11 14:25:37+00	\N	d9663556dee6468d976ee9fbafe2f364
+5347	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgxOTk0MywiaWF0IjoxNzY4MjI3OTQzLCJqdGkiOiI5MTZlYWJlMWJjNzc0ZGRkYmVmYjJmNDE3YjhjNjEyNCIsInVzZXJfaWQiOjJ9.kCkPMJA8AV_heJqbRKhUuqz6bhU72GOdOxLqjePBhmE	\N	2026-02-11 14:25:43+00	\N	916eabe1bc774dddbefb2f417b8c6124
+5348	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDAzNiwiaWF0IjoxNzY4MjI4MDM2LCJqdGkiOiI0OGIyMjU0ZWRhMGY0MjQ2YmNiYTNmNzI1NzI1ZGY1YiIsInVzZXJfaWQiOjJ9.-vmpWUrnhaL15_DTqdKtEvRpsws7j76abeN4XqjtSm4	\N	2026-02-11 14:27:16+00	\N	48b2254eda0f4246bcba3f725725df5b
+5349	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDA1OSwiaWF0IjoxNzY4MjI4MDU5LCJqdGkiOiIxMzZhYTVhZjI1ZTg0MzkyYjUxMDUwYmYwYzI1OTNjZSIsInVzZXJfaWQiOjJ9.nivi7EqdOIcbibZkZKX74gmcsJsDPs_UxbNJeTF3-NY	\N	2026-02-11 14:27:39+00	\N	136aa5af25e84392b51050bf0c2593ce
+5350	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDA2OCwiaWF0IjoxNzY4MjI4MDY4LCJqdGkiOiJmMThlNTQzYjFlODQ0N2UzODUzNDliNGM5YTZiMGE1MyIsInVzZXJfaWQiOjJ9.PWOd-tnj1PsNNTdDF95t01n1XZMbKySCqcJSRjxUBH0	\N	2026-02-11 14:27:48+00	\N	f18e543b1e8447e385349b4c9a6b0a53
+5351	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDEwMCwiaWF0IjoxNzY4MjI4MTAwLCJqdGkiOiI5YmIwMmQxNmRkYjY0NjMyOGIxNzEyN2QzZDczMGVkOSIsInVzZXJfaWQiOjJ9.UrciV63LPRtLTV_E80JsWa-rlk8Cs91IqNhKxgaAk28	\N	2026-02-11 14:28:20+00	\N	9bb02d16ddb646328b17127d3d730ed9
+5352	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDEzMSwiaWF0IjoxNzY4MjI4MTMxLCJqdGkiOiIwMzBhZmFiODY1YWQ0OTk0OTQxMmJmY2EwNTZiNWRjMCIsInVzZXJfaWQiOjJ9.SeGPLaZQNvazf6jAnoipXBoX1vGg9hbUK4NRkSbvW_s	\N	2026-02-11 14:28:51+00	\N	030afab865ad49949412bfca056b5dc0
+5353	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDE0MCwiaWF0IjoxNzY4MjI4MTQwLCJqdGkiOiJmNjFkZDYxNDIwMjA0ZTAwYmFjYzFkMGJmMzc2ODIyNyIsInVzZXJfaWQiOjJ9.lu2Z5NTNKGY3SwWgbFI4j8KjiMRHYRdqU-hOPAXvknU	\N	2026-02-11 14:29:00+00	\N	f61dd61420204e00bacc1d0bf3768227
+5354	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDE2NSwiaWF0IjoxNzY4MjI4MTY1LCJqdGkiOiIwNzlmYjI1MjU1YjQ0MTI3ODcyNjUyNzE2Mzg2MWExZCIsInVzZXJfaWQiOjJ9.Wv-Ga3fDoh-gob_dA0llUX-D_VDV0uCIM_YhWC5qGgg	\N	2026-02-11 14:29:25+00	\N	079fb25255b441278726527163861a1d
+5355	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDE3MywiaWF0IjoxNzY4MjI4MTczLCJqdGkiOiJiOTYxNjY1ZDg1YmI0OTFhYWQwZTI5NDNkY2Q0NjUxZiIsInVzZXJfaWQiOjJ9.NavE6lR5tpHbjtz-RFhpmeaJAPm-5cjAA_7UX7UG3Mc	\N	2026-02-11 14:29:33+00	\N	b961665d85bb491aad0e2943dcd4651f
+5356	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDE4MSwiaWF0IjoxNzY4MjI4MTgxLCJqdGkiOiJmMGI1OWI5YTA5MDc0MTYzYjM0MjVlZDZiN2E5NmRjOSIsInVzZXJfaWQiOjJ9.gaRD_iqdcSQB5XfPU5-a7wuAn3hzrj-JqbdKvaIRPtQ	\N	2026-02-11 14:29:41+00	\N	f0b59b9a09074163b3425ed6b7a96dc9
+5357	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDIxMiwiaWF0IjoxNzY4MjI4MjEyLCJqdGkiOiJjZTQ5NzgzY2VjMmE0MDlkYTc5MzQ5NjVjZjYwMTQwZCIsInVzZXJfaWQiOjJ9.DtFtlbqRWvSoOO-72tR4-LlO-i3ODQIkZdS_cq7O23I	\N	2026-02-11 14:30:12+00	\N	ce49783cec2a409da7934965cf60140d
+5358	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDIzNywiaWF0IjoxNzY4MjI4MjM3LCJqdGkiOiI5NmQ1MjJkMWZhMTE0MGQ3YmYyYTZkNzdhMGZkOTQ0MyIsInVzZXJfaWQiOjJ9.vaIMoL9rcFLv83OqV71hLM2fCsGrGgpQyh38Cf-OBIM	\N	2026-02-11 14:30:37+00	\N	96d522d1fa1140d7bf2a6d77a0fd9443
+5359	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDI3NSwiaWF0IjoxNzY4MjI4Mjc1LCJqdGkiOiIxMGZlNDRmMWYxNGI0ZmQ3ODMzNWY3YjBjOGFjNzgxOSIsInVzZXJfaWQiOjJ9.bQmMGMpontgYLGU_ra7WyTRkpHLfbB8DGi6DueD26mY	\N	2026-02-11 14:31:15+00	\N	10fe44f1f14b4fd78335f7b0c8ac7819
+5360	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDI5OSwiaWF0IjoxNzY4MjI4Mjk5LCJqdGkiOiIwMGNjNDg0NmViY2E0ZGM0YjUxNThkMGMzOWEzYzBiZiIsInVzZXJfaWQiOjJ9.A-ZicGy7rweQlUp1ewyIVFJq_-av9Ky5NbWztHfRqBs	\N	2026-02-11 14:31:39+00	\N	00cc4846ebca4dc4b5158d0c39a3c0bf
+5361	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDQxMCwiaWF0IjoxNzY4MjI4NDEwLCJqdGkiOiIyMzFlZDEyOTQ5ZjE0ZjVmOGExNTg1Zjc5MjIwZTVkOCIsInVzZXJfaWQiOjJ9.fihucqqJ26bVUig6nJ_usjRhww-_wmSr7NwUeCbWTLI	\N	2026-02-11 14:33:30+00	\N	231ed12949f14f5f8a1585f79220e5d8
+5362	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDQzMSwiaWF0IjoxNzY4MjI4NDMxLCJqdGkiOiI5MGQ3YjBmYzJmZWE0MGU3YjA1Njg4MjFhZWEzMzgzNyIsInVzZXJfaWQiOjJ9.24rd7nLO3G9zB8ChLjDU8IhtqfaWpqu2SgXu03B3GMo	\N	2026-02-11 14:33:51+00	\N	90d7b0fc2fea40e7b0568821aea33837
+5363	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDQ3MSwiaWF0IjoxNzY4MjI4NDcxLCJqdGkiOiI4OTM3ZDY3ODcyNTA0ODI5Yjg0ODVhOTU2YWNmMjQzOCIsInVzZXJfaWQiOjJ9.dA87PeWyVehH57TmOsEsbo68b2g5FznCwdGYz_pPaFo	\N	2026-02-11 14:34:31+00	\N	8937d67872504829b8485a956acf2438
+5364	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDQ4NiwiaWF0IjoxNzY4MjI4NDg2LCJqdGkiOiI2NGZiMjM3YzEzNjg0NWM4OGYyNzNkYmZhYmE3Zjg0NCIsInVzZXJfaWQiOjJ9.aBj_6siCDnECL80GueeiZbCuACsk5q7tLKl-xFAJEgA	\N	2026-02-11 14:34:46+00	\N	64fb237c136845c88f273dbfaba7f844
+5365	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMDQ5OSwiaWF0IjoxNzY4MjI4NDk5LCJqdGkiOiIzMzdkODE0MmRkMTM0MzliYWUwMzc5MjY1ZjlmNmEwNCIsInVzZXJfaWQiOjJ9.6qk5t35n-G9SKw5NaouSN0eMAupxZXBW4M9o9l7whns	\N	2026-02-11 14:34:59+00	\N	337d8142dd13439bae0379265f9f6a04
+5366	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMTc1NiwiaWF0IjoxNzY4MjI5NzU2LCJqdGkiOiI5NzI2OTMyNzdjZWI0NGZiYjEwOGUxOTZhYTY3ZDhhZiIsInVzZXJfaWQiOjJ9.xPtRvcHEddFj6iCOY5Rj_5sXnkr3YhQ_oFKmSqzR5lM	\N	2026-02-11 14:55:56+00	\N	972693277ceb44fbb108e196aa67d8af
+5367	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMTc5MCwiaWF0IjoxNzY4MjI5NzkwLCJqdGkiOiI1ZmNmNGU2YzgyNzc0OGQxODhkOGIyODYyODkyYTI3YyIsInVzZXJfaWQiOjJ9._BZQYGqg3cJRB69X2KD7cCiYTpkonYzqg5T9GptP-Ww	\N	2026-02-11 14:56:30+00	\N	5fcf4e6c827748d188d8b2862892a27c
+5368	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMTgzMSwiaWF0IjoxNzY4MjI5ODMxLCJqdGkiOiJhNDczNTVkNDA4NjQ0NjdlYWQ1MGFiZTlhOGMzMDQ5MCIsInVzZXJfaWQiOjJ9.SNpzedhQ9R4p71Jv23DXkER-zWw8hcIJ5xCWbf9hLDM	\N	2026-02-11 14:57:11+00	\N	a47355d40864467ead50abe9a8c30490
+5369	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMTg0MiwiaWF0IjoxNzY4MjI5ODQyLCJqdGkiOiI3ZWQ5Y2U4YzlhYzA0ZmNjYjhiY2IxNjk2YjMxM2UzYiIsInVzZXJfaWQiOjJ9.B9i3MC8oo6wGoaBlm8YpW9QHiEtTexPQyNfROvZzEvY	\N	2026-02-11 14:57:22+00	\N	7ed9ce8c9ac04fccb8bcb1696b313e3b
+5370	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMTg2NiwiaWF0IjoxNzY4MjI5ODY2LCJqdGkiOiI3NTc0YmFlMzhlZWM0MGRmYjY0Yzk0YWIzYTEyODZiNSIsInVzZXJfaWQiOjJ9.zsAqcLOCpXFE2IxmIcGVGeQK-lgXk8dU2XOnZU-fmtM	\N	2026-02-11 14:57:46+00	\N	7574bae38eec40dfb64c94ab3a1286b5
+5371	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMTg4NywiaWF0IjoxNzY4MjI5ODg3LCJqdGkiOiJlOWYwMTY0M2EyYjI0OTUyYmE3NTkyNDE1MTM0YzE4MyIsInVzZXJfaWQiOjJ9._Wq4DryPWZMDoRhWwkRvgOmas9rfNvujcDyfP6KRmC4	\N	2026-02-11 14:58:07+00	\N	e9f01643a2b24952ba7592415134c183
+5372	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMjAwOSwiaWF0IjoxNzY4MjMwMDA5LCJqdGkiOiI3M2RlN2I4ZTdkZmM0OGU3OTlmYjE3MjNmNjFjOGM2NyIsInVzZXJfaWQiOjJ9.0rERUhJSdEF-sywgEfs5RICaR5ySK0ptYfY6G9LcU3Y	\N	2026-02-11 15:00:09+00	\N	73de7b8e7dfc48e799fb1723f61c8c67
+5373	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMzM3MCwiaWF0IjoxNzY4MjMxMzcwLCJqdGkiOiI1YzUxODQ1OTc4YTY0ODQ2YjM3OTQ1NGU1OGYyMDFlYSIsInVzZXJfaWQiOjJ9.OucyN_0E9yWgR7xldAP9TuIQSbZIKG8rIs1C4dOgqLI	\N	2026-02-11 15:22:50+00	\N	5c51845978a64846b379454e58f201ea
+5374	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMzQxMywiaWF0IjoxNzY4MjMxNDEzLCJqdGkiOiJmOWFmM2E4MjIyYzY0ZGFkYThkNmQzMmI1MTg5OTQ3NCIsInVzZXJfaWQiOjJ9.7TG6G6eZ-DfzcVtYvOO6pVzpMNwZupkJmS3wF_INkDo	\N	2026-02-11 15:23:33+00	\N	f9af3a8222c64dada8d6d32b51899474
+5375	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMzUzOCwiaWF0IjoxNzY4MjMxNTM4LCJqdGkiOiIxZWRkNjRmMjA2MmM0ODE2YWY0MzIyNjJiMWU0ZDBiZiIsInVzZXJfaWQiOjJ9.GbC4SeDrNxxcMX3Zy9OYmcRhzIGVRwdjJv4kPVshMuc	\N	2026-02-11 15:25:38+00	\N	1edd64f2062c4816af432262b1e4d0bf
+5376	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMzU1MSwiaWF0IjoxNzY4MjMxNTUxLCJqdGkiOiI0MzNkZjVlYTM5MzE0NTA3YWY3ZjIxZDZjZGRjZmI5YyIsInVzZXJfaWQiOjJ9.abWPclLxO1JgM3U1TsYgkzERpkVMXoCn5Tm3qEXXgOY	\N	2026-02-11 15:25:51+00	\N	433df5ea39314507af7f21d6cddcfb9c
+5377	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMzY5MSwiaWF0IjoxNzY4MjMxNjkxLCJqdGkiOiIyY2E4NTAxMmI5ZGQ0NDYwODEwODk0YTVlOWViMjNjMiIsInVzZXJfaWQiOjJ9.3Itn_zCXFz3vzQRPONAmjAsGpQLe7ka47O-69R2qM0s	\N	2026-02-11 15:28:11+00	\N	2ca85012b9dd4460810894a5e9eb23c2
+5378	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMzgzMSwiaWF0IjoxNzY4MjMxODMxLCJqdGkiOiJhZWExOGRlMTBmZDg0ZWI0OThhNzhmMjMyNTBiMGUyZCIsInVzZXJfaWQiOjJ9.BeoyCsxxg_qwdXdvPWxy6D4RryoRzUZN2CT0VxnoRsQ	\N	2026-02-11 15:30:31+00	\N	aea18de10fd84eb498a78f23250b0e2d
+5379	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyMzg4OSwiaWF0IjoxNzY4MjMxODg5LCJqdGkiOiJjYzFhMDk5ZTVlMDg0ZmM2YjgxNTNhYTg5YjEyODI3MyIsInVzZXJfaWQiOjJ9.9wMV0RlIbfEe471nsKICZS83kT8HrSWxd_T6gc6MW90	\N	2026-02-11 15:31:29+00	\N	cc1a099e5e084fc6b8153aa89b128273
+5380	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyNDI3MCwiaWF0IjoxNzY4MjMyMjcwLCJqdGkiOiI0MDU5ZWE5MTdkNzk0ZjUzYjI4ODFkM2JiNDNlZDIxNSIsInVzZXJfaWQiOjJ9.J4sAxmjQjs65P4CZm-yvU9YQ-s7XrbIdns8AgFzpbek	\N	2026-02-11 15:37:50+00	\N	4059ea917d794f53b2881d3bb43ed215
+5381	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyNDk3MywiaWF0IjoxNzY4MjMyOTczLCJqdGkiOiIwYmRhZDA2ZmExOWI0OTM0YTRmZjMzOWRlNDIxYmMzMiIsInVzZXJfaWQiOjJ9.8fuzKynf3YWinGxwSy_8w_OjLNeaRgC0JgbJhBywzJ4	\N	2026-02-11 15:49:33+00	\N	0bdad06fa19b4934a4ff339de421bc32
+5382	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyNTk1NCwiaWF0IjoxNzY4MjMzOTU0LCJqdGkiOiI4NzU5MTUzY2Q0YWE0M2M2OGE5NmEyNmQ1YzJkODQzZiIsInVzZXJfaWQiOjJ9.TD350rpYMP8wslLBjvorIdQA4HHnTS-UY2veoAkFIaA	\N	2026-02-11 16:05:54+00	\N	8759153cd4aa43c68a96a26d5c2d843f
+5383	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyNTk2MiwiaWF0IjoxNzY4MjMzOTYyLCJqdGkiOiJhNzk2YjM2YTIxMTY0OGM3OTY4MDIzZGFjNmJjMDhjYiIsInVzZXJfaWQiOjJ9.EIfy8zvhA_o2P1e4mUDPMHGyBNZcx9H55OfcEtVMn60	\N	2026-02-11 16:06:02+00	\N	a796b36a211648c7968023dac6bc08cb
+5384	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MDgyNjEwMywiaWF0IjoxNzY4MjM0MTAzLCJqdGkiOiIxZTYwNmZkMDQ0MzM0ZTU1ODkwYTRhZmQ1YTg0N2RkOSIsInVzZXJfaWQiOjJ9.tJqBXaYTrpeUZcKJMXrK_tOkdMoc02ccQLpqzPzE_84	\N	2026-02-11 16:08:23+00	\N	1e606fd044334e55890a4afd5a847dd9
 \.
 
 
@@ -9601,7 +10091,7 @@ COPY public.token_blacklist_outstandingtoken (id, token, created_at, expires_at,
 -- Name: account_user_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.account_user_groups_id_seq', 1, false);
+SELECT pg_catalog.setval('public.account_user_groups_id_seq', 6, true);
 
 
 --
@@ -9610,7 +10100,7 @@ SELECT pg_catalog.setval('public.account_user_groups_id_seq', 1, false);
 -- Name: account_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.account_user_id_seq', 3, true);
+SELECT pg_catalog.setval('public.account_user_id_seq', 6, true);
 
 
 --
@@ -9646,7 +10136,7 @@ SELECT pg_catalog.setval('public.auth_group_id_seq', 5, true);
 -- Name: auth_group_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
+SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 29, true);
 
 
 --
@@ -9691,7 +10181,7 @@ SELECT pg_catalog.setval('public.core_locale_id_seq', 2, true);
 -- Name: core_log_user_activity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.core_log_user_activity_id_seq', 5945, true);
+SELECT pg_catalog.setval('public.core_log_user_activity_id_seq', 6010, true);
 
 
 --
@@ -9709,7 +10199,7 @@ SELECT pg_catalog.setval('public.core_navigation_id_seq', 14, true);
 -- Name: core_navigation_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.core_navigation_permissions_id_seq', 1, false);
+SELECT pg_catalog.setval('public.core_navigation_permissions_id_seq', 11, true);
 
 
 --
@@ -9718,7 +10208,7 @@ SELECT pg_catalog.setval('public.core_navigation_permissions_id_seq', 1, false);
 -- Name: core_translation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.core_translation_id_seq', 6717, true);
+SELECT pg_catalog.setval('public.core_translation_id_seq', 6803, true);
 
 
 --
@@ -9727,7 +10217,7 @@ SELECT pg_catalog.setval('public.core_translation_id_seq', 6717, true);
 -- Name: core_userprofile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.core_userprofile_id_seq', 3, true);
+SELECT pg_catalog.setval('public.core_userprofile_id_seq', 6, true);
 
 
 --
@@ -9736,7 +10226,7 @@ SELECT pg_catalog.setval('public.core_userprofile_id_seq', 3, true);
 -- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.django_admin_log_id_seq', 424, true);
+SELECT pg_catalog.setval('public.django_admin_log_id_seq', 450, true);
 
 
 --
@@ -9763,7 +10253,7 @@ SELECT pg_catalog.setval('public.django_migrations_id_seq', 121, true);
 -- Name: forge_bim_category_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.forge_bim_category_id_seq', 18118, true);
+SELECT pg_catalog.setval('public.forge_bim_category_id_seq', 18129, true);
 
 
 --
@@ -9790,7 +10280,7 @@ SELECT pg_catalog.setval('public.forge_bim_condition_id_seq', 45, true);
 -- Name: forge_bim_model_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.forge_bim_model_id_seq', 135, true);
+SELECT pg_catalog.setval('public.forge_bim_model_id_seq', 136, true);
 
 
 --
@@ -9799,7 +10289,7 @@ SELECT pg_catalog.setval('public.forge_bim_model_id_seq', 135, true);
 -- Name: forge_bim_object_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.forge_bim_object_id_seq', 239023586, true);
+SELECT pg_catalog.setval('public.forge_bim_object_id_seq', 241429616, true);
 
 
 --
@@ -9808,7 +10298,7 @@ SELECT pg_catalog.setval('public.forge_bim_object_id_seq', 239023586, true);
 -- Name: forge_bim_region_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.forge_bim_region_id_seq', 2557, true);
+SELECT pg_catalog.setval('public.forge_bim_region_id_seq', 2572, true);
 
 
 --
@@ -9853,7 +10343,7 @@ SELECT pg_catalog.setval('public.forge_zone_code_id_seq', 213, true);
 -- Name: sensor_bim_bindings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.sensor_bim_bindings_id_seq', 10, true);
+SELECT pg_catalog.setval('public.sensor_bim_bindings_id_seq', 11, true);
 
 
 --
@@ -9880,7 +10370,7 @@ SELECT pg_catalog.setval('public.sensors_id_seq', 4, true);
 -- Name: token_blacklist_blacklistedtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 5198, true);
+SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 5321, true);
 
 
 --
@@ -9889,7 +10379,7 @@ SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 5198,
 -- Name: token_blacklist_outstandingtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bmms
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 5248, true);
+SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 5384, true);
 
 
 --
@@ -11301,11 +11791,11 @@ REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2025-12-24 16:31:07
+-- Completed on 2026-01-13 00:11:47
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict uwjguhQN6ScvPcdt6ne7XSJwdJ0YyAhUGrUaE6Oy8DhPxcXUwaNtvitiIHlCEj7
+\unrestrict At6dzyWQM6UrVjRpdWits4codPVH7Zv0bUra7lGEgFx0uqPnd60gAq1EuTv4EfR
 
