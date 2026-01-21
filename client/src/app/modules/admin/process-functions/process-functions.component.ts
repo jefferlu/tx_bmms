@@ -19,6 +19,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { NgTemplateOutlet } from '@angular/common';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { GtsConfirmationService } from '@gts/services/confirmation';
+import { GtsAlertComponent } from '@gts/components/alert';
 
 @Component({
     selector: 'app-process-functions',
@@ -31,7 +32,7 @@ import { GtsConfirmationService } from '@gts/services/confirmation';
         MatButtonModule, MatIconModule, MatMenuModule,
         TableModule, TranslocoModule, TabsModule,
         SelectModule, TreeSelectModule, OverlayModule, PortalModule,
-        AutoCompleteModule, ApsViewerComponent
+        AutoCompleteModule, ApsViewerComponent, GtsAlertComponent
     ],
     standalone: true
 })
@@ -867,7 +868,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         this.criteriaRole = this.selectedRole ? this.selectedRole.label : undefined;
         this.criteriaLevel = this.selectedLevel ? this.selectedLevel.label : undefined;
         // this.criteriaKeyword = this.keyword ? this.keyword.label : undefined;
-        this.criteriaKeyword=this.keyword;
+        this.criteriaKeyword = this.keyword;
     }
 
     // 處理從 ApsViewerComponent 發送的節點屬性
