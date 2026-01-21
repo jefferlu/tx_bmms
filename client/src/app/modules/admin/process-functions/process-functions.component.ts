@@ -19,6 +19,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { NgTemplateOutlet } from '@angular/common';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { GtsConfirmationService } from '@gts/services/confirmation';
+import { GtsAlertComponent } from '@gts/components/alert';
 
 @Component({
     selector: 'app-process-functions',
@@ -31,7 +32,7 @@ import { GtsConfirmationService } from '@gts/services/confirmation';
         MatButtonModule, MatIconModule, MatMenuModule,
         TableModule, TranslocoModule, TabsModule,
         SelectModule, TreeSelectModule, OverlayModule, PortalModule,
-        AutoCompleteModule, ApsViewerComponent
+        AutoCompleteModule, ApsViewerComponent, GtsAlertComponent
     ],
     standalone: true
 })
@@ -77,6 +78,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     criteriaRole: string = '';
     criteriaLevel: string = '';
     criteriaKeyword: string = '';
+    criteriaConditions: string[] = [];  // 存儲進階查詢條件的易讀描述
 
     nodeInfo: any;
 
@@ -860,14 +862,54 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
 
     updateCriteria() {
-        // this.criteriaRegions = this.formatCriteria(this.selectedRegion);
-        // this.criteriaSpaces = this.formatCriteria(this.selectedSpaces);
-        // this.criteriaSystems = this.formatCriteria(this.selectedSystems);
-        this.criteriaRegion = this.selectedRegion ? this.selectedRegion.label : undefined;
-        this.criteriaRole = this.selectedRole ? this.selectedRole.label : undefined;
-        this.criteriaLevel = this.selectedLevel ? this.selectedLevel.label : undefined;
-        // this.criteriaKeyword = this.keyword ? this.keyword.label : undefined;
-        this.criteriaKeyword=this.keyword;
+        if (this.activeTab === 'basic') {
+            // 基本查詢模式
+            this.criteriaRegion = this.selectedRegion ? this.selectedRegion.label : undefined;
+            this.criteriaRole = this.selectedRole ? this.selectedRole.label : undefined;
+            this.criteriaLevel = this.selectedLevel ? this.selectedLevel.label : undefined;
+            this.criteriaKeyword = this.keyword;
+            this.criteriaConditions = [];  // 清空進階查詢條件
+        } else {
+            // 進階查詢模式：格式化條件組
+            const validConditions = this.conditions.filter(
+                condition =>
+                    (condition.condition3?.value === 'range'
+                        ? condition.min_value?.toString().trim() && condition.max_value?.toString().trim()
+                        : condition.condition4 != null && condition.condition4.toString().trim() !== '') &&
+                    condition.condition1?.display_name &&
+                    condition.condition2?.value &&
+                    condition.condition3?.value
+            );
+
+            this.criteriaConditions = validConditions.map(condition =>
+                this.formatConditionDescription(condition)
+            );
+
+            // 清空基本查詢條件
+            this.criteriaRegion = undefined;
+            this.criteriaRole = undefined;
+            this.criteriaLevel = undefined;
+            this.criteriaKeyword = undefined;
+        }
+    }
+
+    // 格式化條件描述為易讀文字
+    formatConditionDescription(condition: any): string {
+        const cobieLabel = condition.condition1?.description || condition.condition1?.display_name;
+        const operator = condition.condition3?.label || condition.condition3?.value;
+
+        if (condition.condition3?.value === 'range') {
+            return `${cobieLabel} ${operator} ${condition.min_value} ~ ${condition.max_value}`;
+        } else {
+            // 檢查是否有分號分隔的多個值
+            const value = condition.condition4;
+            if (value && value.toString().includes(';')) {
+                const values = value.toString().split(';').map(v => v.trim()).filter(v => v);
+                return `${cobieLabel} ${operator} (${values.join(' 或 ')})`;
+            } else {
+                return `${cobieLabel} ${operator} ${value}`;
+            }
+        }
     }
 
     // 處理從 ApsViewerComponent 發送的節點屬性

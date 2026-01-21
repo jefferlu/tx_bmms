@@ -264,6 +264,27 @@
                     </div>
 
                     <div class="flex flex-col flex-1 overflow-y-auto">
+                        <!-- 進階查詢條件顯示 -->
+                        @if(criteriaConditions && criteriaConditions.length > 0){
+                        <gts-alert
+                            class="mt-2 mx-4"
+                            [appearance]="'outline'"
+                            [showIcon]="false"
+                            [type]="'info'"
+                        >
+                            <div class="font-semibold mb-2">{{ t('selected-conditions') }}</div>
+                            @for (condition of criteriaConditions; track $index) {
+                            <div class="flex items-start mt-1">
+                                <span class="mr-2">{{ $index + 1 }}.</span>
+                                <span>{{ condition }}</span>
+                            </div>
+                            @if ($index < criteriaConditions.length - 1) {
+                            <div class="text-xs text-gray-400 ml-4 mt-1">{{ t('and') }}</div>
+                            }
+                            }
+                        </gts-alert>
+                        }
+
                         <!-- region -->
                         @if(criteriaRegion){
                         <div class="flex mt-2 px-4" [attr.data-index]="index">
