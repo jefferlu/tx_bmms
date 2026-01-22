@@ -108,17 +108,17 @@
 
                 <!-- 進階查詢 -->
                 <p-tabpanel [value]="'advanced'">
-                    <div class="flex w-full flex-col sm:flex-row gap-4 items-start">
+                    <div class="flex w-full flex-col sm:flex-row gap-4 sm:items-center items-start">
                         <!-- 已選條件顯示區域 -->
                         <gts-alert
-                            class="flex-1 min-w-0"
+                            class="flex-1 min-w-0 cursor-pointer group"
                             [appearance]="'outline'"
                             [showIcon]="false"
                             [type]="conditions.length > 0 ? 'info' : 'basic'"
+                            (click)="toggleOverlay()"
                         >
                             @if(conditions.length > 0){
-                            <div class="font-semibold mb-2">{{ t('selected-conditions') }}</div>
-                            <div class="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                            <div class="flex flex-wrap gap-2 h-12 overflow-hidden group-hover:h-auto group-hover:max-h-96 group-hover:overflow-y-auto transition-all duration-300">
                                 @for (condition of conditions; track $index) {
                                 <div class="flex items-center gap-1 bg-blue-900/30 px-3 py-1 rounded-md whitespace-nowrap">
                                     <span class="text-sm font-medium">{{ $index + 1 }}.</span>
@@ -130,16 +130,12 @@
                                 }
                             </div>
                             } @else {
-                            <div class="text-center text-gray-400">{{ t('no-filter-conditions') }}</div>
+                            <div class="text-center text-gray-400 py-2">{{ t('no-filter-conditions') }}</div>
                             }
                         </gts-alert>
 
                         <!-- 操作按鈕區 -->
                         <div class="flex gap-2 flex-wrap flex-shrink-0">
-                            <button mat-flat-button color="accent" (click)="toggleOverlay()">
-                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus'"></mat-icon>
-                                <span class="ml-2">{{ t('add-condition-group') }}</span>
-                            </button>
                             <button mat-flat-button (click)="onSearch()" [disabled]="conditions.length === 0">
                                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
                                 <span class="ml-2">{{ t('search') }}</span>
