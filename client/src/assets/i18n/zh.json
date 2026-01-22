@@ -91,6 +91,7 @@
     "ip-address": "IP 位址",
     "no-data-found": "查無資料",
     "condition-value": "條件值（多個值請用 ; 分隔）",
+    "condition-value-number": "數值條件",
     "selected-conditions": "所選條件組合",
     "and": "且",
     "range": "範圍",

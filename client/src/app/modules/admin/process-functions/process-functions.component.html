@@ -442,7 +442,7 @@
             <!-- 單一條件 -->
             @else{
             <input type="text" class="p-2 border rounded-md sm:min-w-80 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                [placeholder]="t('condition-value')+'...'" [(ngModel)]="condition.condition4" />
+                [placeholder]="(condition.condition2?.value === 'number' ? t('condition-value-number') : t('condition-value'))+'...'" [(ngModel)]="condition.condition4" />
             }
 
             <!-- 移除按鈕 -->

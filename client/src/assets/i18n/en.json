@@ -91,6 +91,7 @@
     "ip-address": "IP Address",
     "no-data-found": "No data found",
     "condition-value": "Condition Value (separate multiple values with ;)",
+    "condition-value-number": "Numeric Value",
     "selected-conditions": "Selected Conditions",
     "and": "AND",
     "range": "Range",
