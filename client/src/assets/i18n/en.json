@@ -103,5 +103,6 @@
     "max-value": "Max Value",
     "no-filter-conditions": "No filter conditions selected. Click here to add conditions",
     "add-condition-group": "Add Condition Group",
+    "clear-all-conditions": "Clear All",
     "close": "Close"
 }

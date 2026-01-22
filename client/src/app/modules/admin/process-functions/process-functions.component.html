@@ -456,7 +456,12 @@
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus-circle'"></mat-icon>
                 <span class="ml-2">{{ t('add-condition-group') }}</span>
             </button>
-            <!-- 新增：關閉按鈕 -->
+            <!-- 刪除全部按鈕 -->
+            <button mat-flat-button color="warn" (click)="removeAllConditinGroup()" [disabled]="conditions.length === 0">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                <span class="ml-2">{{ t('clear-all-conditions') }}</span>
+            </button>
+            <!-- 關閉按鈕 -->
             <button mat-flat-button (click)="closeOverlay()">
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
                 <span class="ml-2">{{ t('close') }}</span>

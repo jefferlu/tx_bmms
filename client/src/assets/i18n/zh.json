@@ -103,5 +103,6 @@
     "max-value": "最大值",
     "no-filter-conditions": "未選取篩選條件，點擊此處添加條件",
     "add-condition-group": "添加條件組",
+    "clear-all-conditions": "刪除全部",
     "close": "關閉"
 }
