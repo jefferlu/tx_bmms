@@ -110,7 +110,7 @@
                 <p-tabpanel [value]="'advanced'">
                     <div class="flex w-full flex-col sm:flex-row gap-4 sm:items-center items-start">
                         <!-- 已選條件顯示區域 -->
-                        <div class="flex-1 min-w-0 relative group condition-group-container">
+                        <div class="flex-1 min-w-0 relative group">
                             <!-- 預設顯示 (與按鈕同高) -->
                             <gts-alert
                                 class="cursor-pointer condition-alert"
@@ -138,7 +138,7 @@
 
                             <!-- Hover 時顯示的完整內容 (overlay) -->
                             @if(conditions.length > 0){
-                            <div class="absolute top-0 left-0 right-0 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-200 condition-overlay">
+                            <div class="absolute top-0 left-0 right-0 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-200">
                                 <gts-alert
                                     class="cursor-pointer condition-alert shadow-2xl"
                                     [appearance]="'outline'"

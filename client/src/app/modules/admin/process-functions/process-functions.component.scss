@@ -36,12 +36,7 @@
   padding: 12px !important;
 }
 
-/* 條件組容器的 z-index 設定，確保不會覆蓋側邊導航 (z-200) */
-.condition-group-container {
-  z-index: 0 !important;
-}
-
-/* 條件組 overlay 的 z-index，由於 opacity 創建了堆疊上下文，需要明確設定 */
-.condition-overlay {
-  z-index: -1 !important;
+/* CDK Overlay 的 z-index 設定，確保低於側邊導航 (z-200) */
+::ng-deep .condition-group-overlay-pane {
+  z-index: 100 !important;
 }
