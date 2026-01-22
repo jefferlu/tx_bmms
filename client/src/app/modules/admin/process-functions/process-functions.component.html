@@ -110,29 +110,57 @@
                 <p-tabpanel [value]="'advanced'">
                     <div class="flex w-full flex-col sm:flex-row gap-4 sm:items-center items-start">
                         <!-- 已選條件顯示區域 -->
-                        <gts-alert
-                            class="flex-1 min-w-0 cursor-pointer group"
-                            [appearance]="'outline'"
-                            [showIcon]="false"
-                            [type]="conditions.length > 0 ? 'info' : 'basic'"
-                            (click)="toggleOverlay()"
-                        >
-                            @if(conditions.length > 0){
-                            <div class="flex flex-wrap gap-2 h-12 overflow-hidden group-hover:h-auto group-hover:max-h-96 group-hover:overflow-y-auto transition-all duration-300">
-                                @for (condition of conditions; track $index) {
-                                <div class="flex items-center gap-1 bg-blue-900/30 px-3 py-1 rounded-md whitespace-nowrap">
-                                    <span class="text-sm font-medium">{{ $index + 1 }}.</span>
-                                    <span class="text-sm">{{ getConditionDescription(condition) }}</span>
+                        <div class="flex-1 min-w-0 relative group">
+                            <!-- 預設顯示 (與按鈕同高) -->
+                            <gts-alert
+                                class="cursor-pointer"
+                                [appearance]="'outline'"
+                                [showIcon]="false"
+                                [type]="conditions.length > 0 ? 'info' : 'basic'"
+                                (click)="toggleOverlay()"
+                            >
+                                @if(conditions.length > 0){
+                                <div class="flex flex-wrap gap-2 min-h-[40px] items-center overflow-hidden">
+                                    @for (condition of conditions; track $index) {
+                                    <div class="flex items-center gap-1 bg-blue-900/30 px-3 py-1 rounded-md whitespace-nowrap">
+                                        <span class="text-sm font-medium">{{ $index + 1 }}.</span>
+                                        <span class="text-sm">{{ getConditionDescription(condition) }}</span>
+                                    </div>
+                                    @if ($index < conditions.length - 1) {
+                                    <span class="text-xs text-gray-400 flex items-center">{{ t('and') }}</span>
+                                    }
+                                    }
                                 </div>
-                                @if ($index < conditions.length - 1) {
-                                <span class="text-xs text-gray-400 flex items-center">{{ t('and') }}</span>
+                                } @else {
+                                <div class="text-center text-gray-400 py-2">{{ t('no-filter-conditions') }}</div>
                                 }
-                                }
+                            </gts-alert>
+
+                            <!-- Hover 時顯示的完整內容 (overlay) -->
+                            @if(conditions.length > 0){
+                            <div class="absolute top-0 left-0 right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+                                <gts-alert
+                                    class="cursor-pointer shadow-2xl"
+                                    [appearance]="'outline'"
+                                    [showIcon]="false"
+                                    [type]="'info'"
+                                    (click)="toggleOverlay()"
+                                >
+                                    <div class="flex flex-wrap gap-2 max-h-96 overflow-y-auto">
+                                        @for (condition of conditions; track $index) {
+                                        <div class="flex items-center gap-1 bg-blue-900/30 px-3 py-1 rounded-md whitespace-nowrap">
+                                            <span class="text-sm font-medium">{{ $index + 1 }}.</span>
+                                            <span class="text-sm">{{ getConditionDescription(condition) }}</span>
+                                        </div>
+                                        @if ($index < conditions.length - 1) {
+                                        <span class="text-xs text-gray-400 flex items-center">{{ t('and') }}</span>
+                                        }
+                                        }
+                                    </div>
+                                </gts-alert>
                             </div>
-                            } @else {
-                            <div class="text-center text-gray-400 py-2">{{ t('no-filter-conditions') }}</div>
                             }
-                        </gts-alert>
+                        </div>
 
                         <!-- 操作按鈕區 -->
                         <div class="flex gap-2 flex-wrap flex-shrink-0">
