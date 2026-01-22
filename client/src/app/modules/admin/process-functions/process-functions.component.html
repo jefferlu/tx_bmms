@@ -108,34 +108,34 @@
 
                 <!-- 進階查詢 -->
                 <p-tabpanel [value]="'advanced'">
-                    <div class="flex w-full flex-col gap-4">
+                    <div class="flex w-full flex-col sm:flex-row gap-4 items-start">
                         <!-- 已選條件顯示區域 -->
                         <gts-alert
+                            class="flex-1 min-w-0"
                             [appearance]="'outline'"
                             [showIcon]="false"
                             [type]="conditions.length > 0 ? 'info' : 'basic'"
                         >
                             @if(conditions.length > 0){
                             <div class="font-semibold mb-2">{{ t('selected-conditions') }}</div>
-                            @for (condition of conditions; track $index) {
-                            <div class="flex items-start mt-1">
-                                <span class="mr-2">{{ $index + 1 }}.</span>
-                                <span>{{ getConditionDescription(condition) }}</span>
-                                <button mat-icon-button class="ml-auto -mt-1 -mr-2" (click)="removeConditionGroup($index)">
-                                    <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
-                                </button>
+                            <div class="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                                @for (condition of conditions; track $index) {
+                                <div class="flex items-center gap-1 bg-blue-900/30 px-3 py-1 rounded-md whitespace-nowrap">
+                                    <span class="text-sm font-medium">{{ $index + 1 }}.</span>
+                                    <span class="text-sm">{{ getConditionDescription(condition) }}</span>
+                                </div>
+                                @if ($index < conditions.length - 1) {
+                                <span class="text-xs text-gray-400 flex items-center">{{ t('and') }}</span>
+                                }
+                                }
                             </div>
-                            @if ($index < conditions.length - 1) {
-                            <div class="text-xs text-gray-400 ml-4 mt-1">{{ t('and') }}</div>
-                            }
-                            }
                             } @else {
                             <div class="text-center text-gray-400">{{ t('no-filter-conditions') }}</div>
                             }
                         </gts-alert>
 
                         <!-- 操作按鈕區 -->
-                        <div class="flex gap-2 flex-wrap">
+                        <div class="flex gap-2 flex-wrap flex-shrink-0">
                             <button mat-flat-button color="accent" (click)="toggleOverlay()">
                                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus'"></mat-icon>
                                 <span class="ml-2">{{ t('add-condition-group') }}</span>
