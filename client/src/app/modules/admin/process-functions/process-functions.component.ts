@@ -113,10 +113,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     overlayRef: OverlayRef | null;
     isOverlayOpen = false;
 
-    conditions = [
-        { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], },// 主畫面條件組
-        { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], }, // overlay條件組
-    ];
+    conditions: any[] = [];
 
     constructor(
         private _route: ActivatedRoute,
@@ -148,18 +145,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 // this.conditionNames = this.cobies.filter((item, index, self) =>
                 //     index === self.findIndex(i => i.display_name === item.display_name)
                 // );
-
-                // 預設選取第一個選項
-                if (this.conditionNames.length > 0) {
-                    this.conditions[0].condition1 = this.conditionNames[0];
-                    this.conditions[1].condition1 = this.conditionNames[0];
-                }
-                if (this.conditionTypes.length > 0) {
-                    this.conditions[0].condition2 = this.conditionTypes[0];
-                    this.conditions[1].condition2 = this.conditionTypes[0];
-                }
-                this.conditions.forEach(condition => this.updateOperators(condition));
-
 
                 // res.data.conditions = this._transformData(res.data.conditions);
                 // const spaceNode = res.data.conditions.find(item => item.label === 'space');
@@ -395,17 +380,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     // 移除條件組
     removeConditionGroup(index: number) {
         this.conditions.splice(index, 1);
-        if (this.conditions.length <= 1) {
-            this.closeOverlay(); // 如果只剩第一組，關閉 overlay
-        }
+        this._changeDetectorRef.markForCheck();
     }
 
     removeAllConditinGroup() {
-        this.conditions = [
-            { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], },// 主畫面條件組
-            { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], }, // overlay條件組
-        ];
+        this.conditions = [];
         this.closeOverlay();
+        this._changeDetectorRef.markForCheck();
     }
 
     onSearch(): void {
@@ -861,14 +842,34 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
 
     updateCriteria() {
-        // this.criteriaRegions = this.formatCriteria(this.selectedRegion);
-        // this.criteriaSpaces = this.formatCriteria(this.selectedSpaces);
-        // this.criteriaSystems = this.formatCriteria(this.selectedSystems);
+        // 基本查詢模式
         this.criteriaRegion = this.selectedRegion ? this.selectedRegion.label : undefined;
         this.criteriaRole = this.selectedRole ? this.selectedRole.label : undefined;
         this.criteriaLevel = this.selectedLevel ? this.selectedLevel.label : undefined;
-        // this.criteriaKeyword = this.keyword ? this.keyword.label : undefined;
         this.criteriaKeyword = this.keyword;
+    }
+
+    // 獲取條件描述（即時顯示，包含未完整填寫的條件）
+    getConditionDescription(condition: any): string {
+        const cobieLabel = condition.condition1?.description || condition.condition1?.display_name || '(未選擇)';
+        const typeLabel = condition.condition2?.label || '';
+        const operator = condition.condition3?.label || condition.condition3?.value || '(未選擇)';
+
+        if (condition.condition3?.value === 'range') {
+            const minVal = condition.min_value || '?';
+            const maxVal = condition.max_value || '?';
+            return `${cobieLabel} [${typeLabel}] ${operator} ${minVal} ~ ${maxVal}`;
+        } else {
+            const value = condition.condition4 || '(未填寫)';
+            // 檢查是否有分號分隔的多個值
+            if (value && value.toString().includes(';')) {
+                const values = value.toString().split(';').map(v => v.trim()).filter(v => v);
+                if (values.length > 1) {
+                    return `${cobieLabel} [${typeLabel}] ${operator} (${values.join(' 或 ')})`;
+                }
+            }
+            return `${cobieLabel} [${typeLabel}] ${operator} ${value}`;
+        }
     }
 
     // 處理從 ApsViewerComponent 發送的節點屬性

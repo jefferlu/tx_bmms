@@ -89,5 +89,18 @@
     "status": "Status",
     "timestamp": "Timestamp",
     "ip-address": "IP Address",
-    "no-data-found": "No data found"
+    "no-data-found": "No data found",
+    "condition-value": "Condition Value (separate multiple values with ;)",
+    "selected-conditions": "Selected Conditions",
+    "and": "AND",
+    "range": "Range",
+    "string": "String",
+    "number": "Number",
+    "equals": "Equals",
+    "contains": "Contains",
+    "min-value": "Min Value",
+    "max-value": "Max Value",
+    "no-filter-conditions": "No filter conditions selected",
+    "add-condition-group": "Add Condition Group",
+    "close": "Close"
 }
