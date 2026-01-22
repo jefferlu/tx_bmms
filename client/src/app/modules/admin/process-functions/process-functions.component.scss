@@ -1,3 +1,9 @@
+/* 確保整個組件的 z-index 低於導航系統 (z-200) */
+:host {
+  position: relative;
+  z-index: 1;
+}
+
 /* p-select */
 .p-select-overlay {
   @apply text-base dark:text-white dark:bg-card;
