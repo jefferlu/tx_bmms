@@ -22,3 +22,8 @@
 .p-select-option-check-icon {
   @apply dark:text-white;
 }
+
+/* 覆寫 gts-alert 的 padding，讓高度與按鈕一致 */
+.condition-alert ::ng-deep .gts-alert-container {
+  padding: 8px 12px !important;
+}
