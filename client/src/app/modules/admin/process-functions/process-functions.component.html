@@ -84,7 +84,7 @@
                             </button>
                             <mat-menu #manageCriteria="matMenu">
                                 <button mat-menu-item (click)="onSaveCriteria()">
-                                    <span class="flex items-center">
+                                    <span class="flex items-center" `>
                                         <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:bookmark-square'"></mat-icon>
                                         <span>{{t('save-criteria')}}</span>
                                     </span>
@@ -123,11 +123,11 @@
                                 <div class="flex flex-wrap gap-2 max-h-[28px] items-center overflow-hidden">
                                     @for (condition of conditions; track $index) {
                                     <div class="flex items-center gap-1 bg-blue-900/30 px-3 py-1 rounded-md whitespace-nowrap">
-                                        <span class="text-sm font-medium">{{ $index + 1 }}.</span>
-                                        <span class="text-sm">{{ getConditionDescription(condition) }}</span>
+                                        <span class="font-medium">{{ $index + 1 }}.</span>
+                                        <span class="">{{ getConditionDescription(condition) }}</span>
                                     </div>
                                     @if ($index < conditions.length - 1) {
-                                    <span class="text-xs text-gray-400 flex items-center">{{ t('and') }}</span>
+                                    <span class="text-sm text-gray-100 flex items-center">{{ t('and') }}</span>
                                     }
                                     }
                                 </div>

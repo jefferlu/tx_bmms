@@ -27,6 +27,10 @@
   @apply dark:text-white;
 }
 
+.p-tabpanels {
+  @apply dark:pb-[14px];
+}
+
 /* 覆寫 gts-alert 的 padding，讓高度與按鈕一致 */
 .gts-alert-container {
   padding: 12px !important;
