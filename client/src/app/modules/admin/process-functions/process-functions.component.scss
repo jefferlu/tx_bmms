@@ -3,6 +3,10 @@
   @apply text-base dark:text-white dark:bg-card;
 }
 
+.p-select-list-container {
+  max-height: 400px !important;
+}
+
 .p-select-option {
   @apply dark:text-white;
 }
