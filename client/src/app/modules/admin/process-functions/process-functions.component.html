@@ -110,17 +110,17 @@
                 <p-tabpanel [value]="'advanced'">
                     <div class="flex w-full flex-col sm:flex-row gap-4 sm:items-center items-start">
                         <!-- 已選條件顯示區域 -->
-                        <div class="flex-1 min-w-0 relative group h-[40px]">
+                        <div class="flex-1 min-w-0 relative group">
                             <!-- 預設顯示 (與按鈕同高) -->
                             <gts-alert
-                                class="cursor-pointer condition-alert h-full"
+                                class="cursor-pointer condition-alert"
                                 [appearance]="'outline'"
                                 [showIcon]="false"
                                 [type]="conditions.length > 0 ? 'info' : 'basic'"
                                 (click)="toggleOverlay()"
                             >
                                 @if(conditions.length > 0){
-                                <div class="flex flex-wrap gap-2 h-full items-center overflow-hidden">
+                                <div class="flex flex-wrap gap-2 max-h-[24px] items-center overflow-hidden">
                                     @for (condition of conditions; track $index) {
                                     <div class="flex items-center gap-1 bg-blue-900/30 px-3 py-1 rounded-md whitespace-nowrap">
                                         <span class="text-sm font-medium">{{ $index + 1 }}.</span>
@@ -132,13 +132,13 @@
                                     }
                                 </div>
                                 } @else {
-                                <div class="flex items-center justify-center h-full text-gray-400">{{ t('no-filter-conditions') }}</div>
+                                <div class="text-center text-gray-400 py-1">{{ t('no-filter-conditions') }}</div>
                                 }
                             </gts-alert>
 
                             <!-- Hover 時顯示的完整內容 (overlay) -->
                             @if(conditions.length > 0){
-                            <div class="absolute top-0 left-0 right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+                            <div class="absolute top-0 left-0 right-0 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-200 z-50">
                                 <gts-alert
                                     class="cursor-pointer condition-alert shadow-2xl"
                                     [appearance]="'outline'"
