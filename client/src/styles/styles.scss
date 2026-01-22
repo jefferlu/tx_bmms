@@ -2,3 +2,13 @@
 @use "angular-material";
 @use "primeng";
 
+/* CDK Overlay z-index 設定：確保條件組 overlay 低於側邊導航 (z-200)
+   導航系統的 z-index 為 200，因此這裡設定為 1 確保永遠低於導航 */
+.cdk-overlay-container .condition-group-overlay-pane {
+  z-index: 1 !important;
+}
+
+/* 增加選擇器優先級 */
+.cdk-overlay-pane.condition-group-overlay-pane {
+  z-index: 1 !important;
+}

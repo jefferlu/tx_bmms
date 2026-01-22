@@ -35,8 +35,3 @@
 .gts-alert-container {
   padding: 12px !important;
 }
-
-/* CDK Overlay 的 z-index 設定，確保低於側邊導航 (z-200) */
-::ng-deep .condition-group-overlay-pane {
-  z-index: 100 !important;
-}
