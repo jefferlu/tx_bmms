@@ -35,16 +35,3 @@
 .gts-alert-container {
   padding: 12px !important;
 }
-
-/* 刪除全部按鈕的紅色樣式 */
-button[color="warn"].mat-mdc-button {
-  --mdc-text-button-label-text-color: #ef4444 !important;
-
-  &:hover:not([disabled]) {
-    background-color: rgba(239, 68, 68, 0.1) !important;
-  }
-
-  &[disabled] {
-    --mdc-text-button-label-text-color: rgba(239, 68, 68, 0.3) !important;
-  }
-}
