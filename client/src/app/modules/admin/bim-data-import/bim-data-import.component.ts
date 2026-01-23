@@ -332,6 +332,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
 
     private _batchDelete(): void {
         this.isLoading = true;
+        this._changeDetectorRef.markForCheck(); // 立即顯示 loading spinner
 
         // 分離 ready 狀態和其他狀態的文件
         const readyFiles = this.selectedFiles.filter(f => f.status === 'ready');
