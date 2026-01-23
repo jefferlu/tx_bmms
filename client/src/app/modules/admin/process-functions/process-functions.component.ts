@@ -717,7 +717,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         }
         else {
             const validConditions = this.conditions.filter(
-                condition => condition.condition4 != null && condition.condition4.toString().trim() !== ''
+                condition =>
+                    (condition.condition3?.value === 'range'
+                        ? condition.min_value?.trim() && condition.max_value?.trim()
+                        : condition.condition4 != null && condition.condition4.toString().trim() !== '') &&
+                    condition.condition1?.display_name &&
+                    condition.condition2?.value &&
+                    condition.condition3?.value
             );
 
             // 如果沒有有效條件，直接返回 null 或拋出錯誤
@@ -725,7 +731,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 bimCriteria = {
                     page: this.request.page || 1,
                     tab: this.activeTab,
-                    conditions: this.conditions
+                    conditions: validConditions
                 }
             }
         }
