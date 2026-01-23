@@ -10,25 +10,32 @@
                 </div>
 
                 <!-- Actions -->
-                <div>
+                <div class="flex gap-2">
                     <input #fileInput class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file" [multiple]="true"
                         (change)="onFileSelected($event)">
-                    <a mat-flat-button (click)="triggerFileInput()">
-                        <span class="inline-flex items-center cursor-pointer">
-                            <mat-icon class="mr-2 icon-size-5" [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
-                            <span>{{t('select-file')}}</span>
-                        </span>
-                    </a>
+                    <button mat-flat-button (click)="triggerFileInput()">
+                        <mat-icon class="mr-2 icon-size-5" [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
+                        <span>{{t('select-file')}}</span>
+                    </button>
+                    <button mat-flat-button color="warn" (click)="onBatchDelete()" [disabled]="selectedFiles.length === 0">
+                        <mat-icon class="mr-2 icon-size-5" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                        <span>{{t('batch-delete')}} @if(selectedFiles.length > 0) {({{selectedFiles.length}})}</span>
+                    </button>
                 </div>
             </div>
 
             <!-- Content -->
             <div class="flex h-full overflow-y-auto bg-card rounded-md">
                 <!-- @if(files?.length>0){ -->
-                <p-table class="w-full" [value]="files" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [loading]="isLoading">
+                <p-table #dataTable class="w-full" [value]="files" [(selection)]="selectedFiles" dataKey="name" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [loading]="isLoading">
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
-                            <th class="w-20 py-4 pl-8">NO</th>
+                            <th class="w-16 py-4 pl-8">
+                                <p-checkbox [binary]="true"
+                                    [checked]="isAllDeletableFilesSelected()"
+                                    (onChange)="toggleSelectAll()" />
+                            </th>
+                            <th class="w-20 py-4">NO</th>
                             <th class="w-100">{{t('file-name')}}</th>
                             <th class="w-40">{{t('file-size')}}</th>
                             <th class="w-40 text-center">{{t('status')}}</th>
@@ -37,8 +44,13 @@
                         </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-file let-index="rowIndex">
-                        <tr [pSelectableRow]="file" class="hover:bg-hover">
-                            <td class="pl-8">{{index+1}}</td>
+                        <tr (click)="toggleRowSelection(file, $event)" [pSelectableRowDisabled]="!['ready', 'complete', 'error'].includes(file.status)" class="hover:bg-hover cursor-pointer">
+                            <td class="pl-8">
+                                @if(['ready', 'complete', 'error'].includes(file.status)) {
+                                <p-tableCheckbox [value]="file" />
+                                }
+                            </td>
+                            <td>{{index+1}}</td>
                             <td>{{file.name}}</td>
                             <td>{{file.size}}</td>
                             <td class="text-center sm:min-w-52">
@@ -53,27 +65,19 @@
                             <td class="text-sm">{{file.message}}</td>
                             <td class="text-center">
                                 @if(['ready'].includes(file.status)){
-                                <button mat-icon-button (click)="onBimDataImport(file)">
+                                <button mat-icon-button (click)="onBimDataImport(file); $event.stopPropagation()">
                                     <mat-icon [svgIcon]="'heroicons_outline:arrow-up-tray'"></mat-icon>
                                 </button>
                                 }
                                 @else if(['complete'].includes(file.status)){
                                 <mat-icon class="text-green-400 m-2" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
-                                <!-- <button mat-icon-button (click)="onBimDataImport(file)">
-                                    <mat-icon class="text-green-400 m-2" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
-                                </button> -->
                                 }
-                                <!-- @else if(['error'].includes(file.status)){
-                                <button mat-icon-button (click)="onBimDataImport(file)">
-                                    <mat-icon [svgIcon]="'heroicons_outline:arrow-path-rounded-square'"></mat-icon>
-                                </button>
-                                } -->
                                 @else {
                                 <mat-progress-spinner class="m-3" color="accent" [diameter]="16" [mode]="'indeterminate'"></mat-progress-spinner>
                                 }
 
                                 @if(['ready','complete', 'error'].includes(file.status)){
-                                <button class="" mat-icon-button (click)="onDelete(file)">
+                                <button class="" mat-icon-button (click)="onDelete(file); $event.stopPropagation()">
                                     <mat-icon class="text-red-400" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
                                 </button>
                                 }

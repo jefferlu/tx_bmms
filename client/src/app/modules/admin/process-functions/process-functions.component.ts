@@ -700,7 +700,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         let bimCriteria = undefined;
         if (this.activeTab === 'basic') {
             if (![this.selectedRegion, this.selectedRole, this.selectedLevel].every(val => val == null) || this.keyword) {
-                // 構建要儲存的 bim_criteria 資料        
+                // 構建要儲存的 bim_criteria 資料
                 bimCriteria = {
                     page: this.request.page || 1,
                     tab: this.activeTab,
@@ -716,18 +716,43 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             }
         }
         else {
+            // 確保 this.conditions 是陣列
+            if (!Array.isArray(this.conditions)) {
+                console.error('this.conditions is not an array:', this.conditions);
+                this._toastService.open({ message: '查詢條件格式錯誤，請重新設定' });
+                return;
+            }
+
+            console.log('All conditions before filter:', this.conditions);
+
             const validConditions = this.conditions.filter(
-                condition => condition.condition4 != null && condition.condition4.toString().trim() !== ''
+                condition =>
+                    (condition.condition3?.value === 'range'
+                        ? condition.min_value?.trim() && condition.max_value?.trim()
+                        : condition.condition4 != null && condition.condition4.toString().trim() !== '') &&
+                    condition.condition1?.display_name &&
+                    condition.condition2?.value &&
+                    condition.condition3?.value
             );
 
+            console.log('Valid conditions after filter:', validConditions);
+
             // 如果沒有有效條件，直接返回 null 或拋出錯誤
-            if (validConditions.length) {
+            if (validConditions.length > 0) {
                 bimCriteria = {
                     page: this.request.page || 1,
                     tab: this.activeTab,
-                    conditions: this.conditions
+                    conditions: validConditions
                 }
             }
+        }
+
+        // 檢查是否有要儲存的條件
+        if (!bimCriteria) {
+            this._toastService.open({
+                message: `${this._translocoService.translate('no-criteria-to-save')}.`
+            });
+            return;
         }
 
         // 調用服務發送資料到後端
