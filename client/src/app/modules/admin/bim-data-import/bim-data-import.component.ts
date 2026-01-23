@@ -30,6 +30,8 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     files: any[] = [];
+    selectedFiles: any[] = [];
+    selectAll: boolean = false;
     isLoading: boolean = false;
 
     constructor(
@@ -271,7 +273,140 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         });
     }
 
+    // 切換全選狀態
+    toggleSelectAll(): void {
+        this.selectAll = !this.selectAll;
+        if (this.selectAll) {
+            // 只選擇狀態為 ready, complete, error 的文件（可刪除的）
+            this.selectedFiles = this.files.filter(file =>
+                ['ready', 'complete', 'error'].includes(file.status)
+            );
+        } else {
+            this.selectedFiles = [];
+        }
+        this._changeDetectorRef.markForCheck();
+    }
 
+    // 切換單個文件的選擇狀態
+    toggleSelection(file: any): void {
+        const index = this.selectedFiles.findIndex(f => f.name === file.name);
+        if (index > -1) {
+            this.selectedFiles.splice(index, 1);
+        } else {
+            this.selectedFiles.push(file);
+        }
+        // 更新全選狀態
+        const deletableFiles = this.files.filter(f =>
+            ['ready', 'complete', 'error'].includes(f.status)
+        );
+        this.selectAll = deletableFiles.length > 0 &&
+                         this.selectedFiles.length === deletableFiles.length;
+        this._changeDetectorRef.markForCheck();
+    }
+
+    // 檢查文件是否被選中
+    isSelected(file: any): boolean {
+        return this.selectedFiles.some(f => f.name === file.name);
+    }
+
+    // 批量刪除
+    onBatchDelete(): void {
+        if (this.selectedFiles.length === 0) {
+            this._toastService.open({
+                message: this._translocoService.translate('no-files-selected')
+            });
+            return;
+        }
+
+        const dialogRef = this._gtsConfirmationService.open({
+            title: this._translocoService.translate('confirm-action'),
+            message: this._translocoService.translate('batch-delete-confirm', {
+                count: this.selectedFiles.length
+            }),
+            icon: { color: 'warn' },
+            actions: {
+                confirm: { label: this._translocoService.translate('delete') },
+                cancel: { label: this._translocoService.translate('cancel') }
+            }
+        });
+
+        dialogRef.afterClosed().subscribe(res => {
+            if (res === 'confirmed') {
+                this._batchDelete();
+            }
+        });
+    }
+
+    private _batchDelete(): void {
+        this.isLoading = true;
+
+        // 分離 ready 狀態和其他狀態的文件
+        const readyFiles = this.selectedFiles.filter(f => f.status === 'ready');
+        const otherFiles = this.selectedFiles.filter(f => f.status !== 'ready');
+
+        // 直接從列表移除 ready 狀態的文件
+        readyFiles.forEach(file => {
+            this.files = this.files.filter(e => e.name !== file.name);
+        });
+
+        // 如果沒有需要調用 API 刪除的文件，直接結束
+        if (otherFiles.length === 0) {
+            this.selectedFiles = [];
+            this.selectAll = false;
+            this.isLoading = false;
+            this._toastService.open({
+                message: this._translocoService.translate('delete-success')
+            });
+            this._changeDetectorRef.markForCheck();
+            return;
+        }
+
+        // 刪除其他狀態的文件（需要調用 API）
+        let completedCount = 0;
+        let errorCount = 0;
+
+        otherFiles.forEach(file => {
+            this._bimDataImportService.delete(file.name).subscribe({
+                next: () => {
+                    this.files = this.files.filter(item => item.name !== file.name);
+                    completedCount++;
+
+                    if (completedCount + errorCount === otherFiles.length) {
+                        this._finalizeBatchDelete(completedCount, errorCount);
+                    }
+                },
+                error: (err) => {
+                    console.error(`Failed to delete ${file.name}:`, err);
+                    errorCount++;
+
+                    if (completedCount + errorCount === otherFiles.length) {
+                        this._finalizeBatchDelete(completedCount, errorCount);
+                    }
+                }
+            });
+        });
+    }
+
+    private _finalizeBatchDelete(successCount: number, errorCount: number): void {
+        this.selectedFiles = [];
+        this.selectAll = false;
+        this.isLoading = false;
+
+        if (errorCount > 0) {
+            this._toastService.open({
+                message: this._translocoService.translate('batch-delete-partial', {
+                    success: successCount,
+                    error: errorCount
+                })
+            });
+        } else {
+            this._toastService.open({
+                message: this._translocoService.translate('delete-success')
+            });
+        }
+
+        this._changeDetectorRef.markForCheck();
+    }
 
     ngOnDestroy(): void {
         this._unsubscribeAll.next(null);

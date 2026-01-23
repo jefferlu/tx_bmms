@@ -104,5 +104,14 @@
     "no-filter-conditions": "No filter conditions selected. Click here to add conditions",
     "add-condition-group": "Add Condition Group",
     "clear-all-conditions": "Clear All",
-    "close": "Close"
+    "close": "Close",
+    "batch-delete": "Batch Delete",
+    "select-file": "Select File",
+    "file-name": "File Name",
+    "file-size": "File Size",
+    "no-files-selected": "No files selected",
+    "batch-delete-confirm": "Are you sure you want to delete {{count}} selected file(s)?",
+    "batch-delete-partial": "Batch delete completed: {{success}} succeeded, {{error}} failed",
+    "delete-success": "Delete successful",
+    "delete-confirm": "Are you sure you want to delete this file?"
 }
