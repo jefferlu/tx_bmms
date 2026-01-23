@@ -108,22 +108,66 @@
 
                 <!-- 進階查詢 -->
                 <p-tabpanel [value]="'advanced'">
-                    <div class="flex w-full flex-col sm:flex-row gap-4">
+                    <div class="flex w-full flex-col sm:flex-row gap-4 sm:items-center items-start">
+                        <!-- 已選條件顯示區域 -->
+                        <div class="flex-1 min-w-0 relative group">
+                            <!-- 預設顯示 (與按鈕同高) -->
+                            <gts-alert
+                                class="cursor-pointer condition-alert"
+                                [appearance]="'outline'"
+                                [showIcon]="false"
+                                [type]="conditions.length > 0 ? 'info' : 'basic'"
+                                (click)="toggleOverlay()"
+                            >
+                                @if(conditions.length > 0){
+                                <div class="flex flex-wrap gap-2 max-h-[28px] items-center overflow-hidden">
+                                    @for (condition of conditions; track $index) {
+                                    <div class="flex items-center gap-1 bg-blue-900/30 px-3 py-1 rounded-md whitespace-nowrap">
+                                        <span class="text-sm font-medium">{{ $index + 1 }}.</span>
+                                        <span class="text-sm">{{ getConditionDescription(condition) }}</span>
+                                    </div>
+                                    @if ($index < conditions.length - 1) {
+                                    <span class="text-xs text-gray-400 flex items-center">{{ t('and') }}</span>
+                                    }
+                                    }
+                                </div>
+                                } @else {
+                                <div class="text-center text-gray-400 py-1">{{ t('no-filter-conditions') }}</div>
+                                }
+                            </gts-alert>
 
-                        <!-- 展開按鈕 -->
-                        <div>
-                            <button mat-icon-button color="accent" (click)="toggleOverlay()">
-                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:adjustments-horizontal'"></mat-icon>
-                            </button>
+                            <!-- Hover 時顯示的完整內容 (overlay) -->
+                            @if(conditions.length > 0){
+                            <div class="absolute top-0 left-0 right-0 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-200 z-50">
+                                <gts-alert
+                                    class="cursor-pointer condition-alert shadow-2xl"
+                                    [appearance]="'outline'"
+                                    [showIcon]="false"
+                                    [type]="'info'"
+                                    (click)="toggleOverlay()"
+                                >
+                                    <div class="flex flex-wrap gap-2 items-center overflow-y-auto">
+                                        @for (condition of conditions; track $index) {
+                                        <div class="flex items-center gap-1 bg-blue-900/30 px-3 py-1 rounded-md whitespace-nowrap">
+                                            <span class="text-sm font-medium">{{ $index + 1 }}.</span>
+                                            <span class="text-sm">{{ getConditionDescription(condition) }}</span>
+                                        </div>
+                                        @if ($index < conditions.length - 1) {
+                                        <span class="text-xs text-gray-400 flex items-center">{{ t('and') }}</span>
+                                        }
+                                        }
+                                    </div>
+                                </gts-alert>
+                            </div>
+                            }
                         </div>
-                        <!-- 搜尋和管理條件按鈕 -->
-                        <div class="ml-auto">
-                            <button mat-flat-button (click)="onSearch()">
+
+                        <!-- 操作按鈕區 -->
+                        <div class="flex gap-2 flex-wrap flex-shrink-0">
+                            <button mat-flat-button (click)="onSearch()" [disabled]="conditions.length === 0">
                                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
                                 <span class="ml-2">{{ t('search') }}</span>
                             </button>
-                        </div>
-                        <div>
                             <button mat-flat-button [matMenuTriggerFor]="manageCriteria">
                                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:cog-6-tooth'"></mat-icon>
                                 <span class="ml-2">{{ t('manage-criteria') }}</span>
@@ -358,10 +402,10 @@
     </ng-template>
 </div>
 
-<!-- Overlay 內容（第二組及後續條件） -->
+<!-- Overlay 內容（所有條件組） -->
 <ng-template cdkPortal #overlayContent="cdkPortal" *transloco="let t">
     <div class="bg-default p-4 flex flex-col gap-4 w-full overflow-auto">
-        @for (condition of conditions.slice(1); track con; let i = $index) {
+        @for (condition of conditions; track $index; let i = $index) {
         <div class="flex w-full flex-col sm:flex-row gap-4">
             <p-select class="md:w-80 w-full" [options]="conditionNames" [(ngModel)]="condition.condition1" optionLabel="description" [checkmark]="true"
                 [filter]="true" placeholder="選擇COBie" appendTo="body">
@@ -398,11 +442,11 @@
             <!-- 單一條件 -->
             @else{
             <input type="text" class="p-2 border rounded-md sm:min-w-80 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                [placeholder]="t('condition-value')+'...'" [(ngModel)]="condition.condition4" />
+                [placeholder]="t('condition-value')" [(ngModel)]="condition.condition4" />
             }
 
             <!-- 移除按鈕 -->
-            <button mat-icon-button (click)="removeConditionGroup(i + 1)">
+            <button mat-icon-button (click)="removeConditionGroup(i)">
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
             </button>
         </div>
@@ -410,12 +454,12 @@
         <div class="flex justify-center gap-2">
             <button mat-flat-button (click)="addConditionGroup()">
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus-circle'"></mat-icon>
-                <span class="ml-2">添加條件組</span>
+                <span class="ml-2">{{ t('add-condition-group') }}</span>
             </button>
             <!-- 新增：關閉按鈕 -->
             <button mat-flat-button (click)="closeOverlay()">
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
-                <span class="ml-2">關閉</span>
+                <span class="ml-2">{{ t('close') }}</span>
             </button>
         </div>
     </div>
