@@ -272,6 +272,29 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         });
     }
 
+    // 切換 row 的選擇狀態
+    toggleRowSelection(file: any, event: Event): void {
+        // 如果文件狀態不是可刪除的，直接返回
+        if (!['ready', 'complete', 'error'].includes(file.status)) {
+            return;
+        }
+
+        // 檢查是否點擊了按鈕或其子元素
+        const target = event.target as HTMLElement;
+        if (target.closest('button') || target.closest('mat-icon') || target.closest('mat-progress-spinner')) {
+            return;
+        }
+
+        // 切換選擇狀態
+        const index = this.selectedFiles.findIndex(f => f.name === file.name);
+        if (index > -1) {
+            this.selectedFiles.splice(index, 1);
+        } else {
+            this.selectedFiles.push(file);
+        }
+        this._changeDetectorRef.markForCheck();
+    }
+
     // 批量刪除
     onBatchDelete(): void {
         if (this.selectedFiles.length === 0) {
