@@ -280,6 +280,31 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         });
     }
 
+    // 檢查是否所有可刪除的文件都已被選中
+    isAllDeletableFilesSelected(): boolean {
+        const deletableFiles = this.files.filter(f =>
+            ['ready', 'complete', 'error'].includes(f.status)
+        );
+        return deletableFiles.length > 0 &&
+               this.selectedFiles.length === deletableFiles.length;
+    }
+
+    // 切換全選狀態（只選擇可刪除的文件）
+    toggleSelectAll(): void {
+        const deletableFiles = this.files.filter(f =>
+            ['ready', 'complete', 'error'].includes(f.status)
+        );
+
+        if (this.isAllDeletableFilesSelected()) {
+            // 取消全選
+            this.selectedFiles = [];
+        } else {
+            // 全選可刪除的文件
+            this.selectedFiles = [...deletableFiles];
+        }
+        this._changeDetectorRef.markForCheck();
+    }
+
     // 切換 row 的選擇狀態
     toggleRowSelection(file: any, event: Event): void {
         // 如果文件狀態不是可刪除的，直接返回
