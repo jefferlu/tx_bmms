@@ -98,25 +98,32 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         if (event.target.files) {
             const selectedFiles = this._calculateFileSize(event.target.files)
 
+            // 過濾掉重複的文件
+            const newFilesToUpload = selectedFiles.filter(selectedFile => {
+                const isDuplicate = this.files.some(existingFile => existingFile.name === selectedFile.name);
+
+                if (isDuplicate) {
+                    this._toastService.open({ message: `${selectedFile.name} ${this._translocoService.translate('already-exists')}.` });
+                }
+
+                return !isDuplicate;
+            });
+
             // 合併檔案
-            const newFiles = [
-                ...selectedFiles.filter(selectedFile => {
-                    const isDuplicate = this.files.some(existingFile => existingFile.name === selectedFile.name);
+            this.files = [...newFilesToUpload, ...this.files];
 
-                    if (isDuplicate)
-                        this._toastService.open({ message: `${selectedFile.name} ${this._translocoService.translate('already-exists')}.` });
-
-                    return !isDuplicate;
-                }),
-                ...this.files,
-            ];
-
-            this.files = newFiles;
+            // 自動上傳新添加的文件
+            newFilesToUpload.forEach(file => {
+                // 延遲一點時間讓 UI 更新後再開始上傳
+                setTimeout(() => {
+                    this.onBimDataImport(file);
+                }, 100);
+            });
 
             // 重置 input 的值
             event.target.value = '';
 
-            // console.log(this.files)
+            this._changeDetectorRef.markForCheck();
         }
     }
 
