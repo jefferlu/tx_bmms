@@ -31,7 +31,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
 
     files: any[] = [];
     selectedFiles: any[] = [];
-    selectAll: boolean = false;
     isLoading: boolean = false;
 
     constructor(
@@ -273,42 +272,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         });
     }
 
-    // 切換全選狀態
-    toggleSelectAll(): void {
-        this.selectAll = !this.selectAll;
-        if (this.selectAll) {
-            // 只選擇狀態為 ready, complete, error 的文件（可刪除的）
-            this.selectedFiles = this.files.filter(file =>
-                ['ready', 'complete', 'error'].includes(file.status)
-            );
-        } else {
-            this.selectedFiles = [];
-        }
-        this._changeDetectorRef.markForCheck();
-    }
-
-    // 切換單個文件的選擇狀態
-    toggleSelection(file: any): void {
-        const index = this.selectedFiles.findIndex(f => f.name === file.name);
-        if (index > -1) {
-            this.selectedFiles.splice(index, 1);
-        } else {
-            this.selectedFiles.push(file);
-        }
-        // 更新全選狀態
-        const deletableFiles = this.files.filter(f =>
-            ['ready', 'complete', 'error'].includes(f.status)
-        );
-        this.selectAll = deletableFiles.length > 0 &&
-                         this.selectedFiles.length === deletableFiles.length;
-        this._changeDetectorRef.markForCheck();
-    }
-
-    // 檢查文件是否被選中
-    isSelected(file: any): boolean {
-        return this.selectedFiles.some(f => f.name === file.name);
-    }
-
     // 批量刪除
     onBatchDelete(): void {
         if (this.selectedFiles.length === 0) {
@@ -352,7 +315,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         // 如果沒有需要調用 API 刪除的文件，直接結束
         if (otherFiles.length === 0) {
             this.selectedFiles = [];
-            this.selectAll = false;
             this.isLoading = false;
             this._toastService.open({
                 message: this._translocoService.translate('delete-success')
@@ -389,7 +351,6 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
 
     private _finalizeBatchDelete(successCount: number, errorCount: number): void {
         this.selectedFiles = [];
-        this.selectAll = false;
         this.isLoading = false;
 
         if (errorCount > 0) {

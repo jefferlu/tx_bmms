@@ -27,11 +27,11 @@
             <!-- Content -->
             <div class="flex h-full overflow-y-auto bg-card rounded-md">
                 <!-- @if(files?.length>0){ -->
-                <p-table class="w-full" [value]="files" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [loading]="isLoading">
+                <p-table class="w-full" [value]="files" [(selection)]="selectedFiles" dataKey="name" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [loading]="isLoading">
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
                             <th class="w-16 py-4 pl-8">
-                                <input type="checkbox" class="cursor-pointer w-4 h-4" [checked]="selectAll" (change)="toggleSelectAll()" />
+                                <p-tableHeaderCheckbox />
                             </th>
                             <th class="w-20 py-4">NO</th>
                             <th class="w-100">{{t('file-name')}}</th>
@@ -45,7 +45,7 @@
                         <tr [pSelectableRow]="file" class="hover:bg-hover">
                             <td class="pl-8">
                                 @if(['ready', 'complete', 'error'].includes(file.status)) {
-                                <input type="checkbox" class="cursor-pointer w-4 h-4" [checked]="isSelected(file)" (change)="toggleSelection(file)" />
+                                <p-tableCheckbox [value]="file" />
                                 }
                             </td>
                             <td>{{index+1}}</td>
