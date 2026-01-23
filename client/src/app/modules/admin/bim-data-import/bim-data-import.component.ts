@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { BimDataImportService } from './bim-data-import.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Table, TableModule } from 'primeng/table';
+import { CheckboxModule } from 'primeng/checkbox';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { WebsocketService } from 'app/core/services/websocket/websocket.service';
 import { ToastService } from 'app/layout/common/toast/toast.service';
@@ -20,7 +21,7 @@ import { GtsConfirmationService } from '@gts/services/confirmation';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-        TranslocoModule, TableModule, NgClass
+        TranslocoModule, TableModule, CheckboxModule, NgClass
     ]
 })
 export class BimDataImportComponent implements OnInit, OnDestroy {

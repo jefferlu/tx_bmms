@@ -31,9 +31,9 @@
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
                             <th class="w-16 py-4 pl-8">
-                                <input type="checkbox" class="cursor-pointer w-4 h-4"
+                                <p-checkbox [binary]="true"
                                     [checked]="isAllDeletableFilesSelected()"
-                                    (change)="toggleSelectAll()" />
+                                    (onChange)="toggleSelectAll()" />
                             </th>
                             <th class="w-20 py-4">NO</th>
                             <th class="w-100">{{t('file-name')}}</th>
