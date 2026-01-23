@@ -280,9 +280,13 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
             return;
         }
 
-        // 檢查是否點擊了按鈕或其子元素
+        // 檢查是否點擊了按鈕、checkbox 或其子元素
         const target = event.target as HTMLElement;
-        if (target.closest('button') || target.closest('mat-icon') || target.closest('mat-progress-spinner')) {
+        if (target.closest('button') ||
+            target.closest('mat-icon') ||
+            target.closest('mat-progress-spinner') ||
+            target.closest('p-tablecheckbox') ||
+            target.closest('.p-checkbox')) {
             return;
         }
 
