@@ -42,7 +42,7 @@
                         </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-file let-index="rowIndex">
-                        <tr [pSelectableRow]="file" class="hover:bg-hover">
+                        <tr [pSelectableRow]="file" [pSelectableRowDisabled]="!['ready', 'complete', 'error'].includes(file.status)" class="hover:bg-hover">
                             <td class="pl-8">
                                 @if(['ready', 'complete', 'error'].includes(file.status)) {
                                 <p-tableCheckbox [value]="file" />
@@ -63,18 +63,18 @@
                             <td class="text-sm">{{file.message}}</td>
                             <td class="text-center">
                                 @if(['ready'].includes(file.status)){
-                                <button mat-icon-button (click)="onBimDataImport(file)">
+                                <button mat-icon-button (click)="onBimDataImport(file); $event.stopPropagation()">
                                     <mat-icon [svgIcon]="'heroicons_outline:arrow-up-tray'"></mat-icon>
                                 </button>
                                 }
                                 @else if(['complete'].includes(file.status)){
                                 <mat-icon class="text-green-400 m-2" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
-                                <!-- <button mat-icon-button (click)="onBimDataImport(file)">
+                                <!-- <button mat-icon-button (click)="onBimDataImport(file); $event.stopPropagation()">
                                     <mat-icon class="text-green-400 m-2" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
                                 </button> -->
                                 }
                                 <!-- @else if(['error'].includes(file.status)){
-                                <button mat-icon-button (click)="onBimDataImport(file)">
+                                <button mat-icon-button (click)="onBimDataImport(file); $event.stopPropagation()">
                                     <mat-icon [svgIcon]="'heroicons_outline:arrow-path-rounded-square'"></mat-icon>
                                 </button>
                                 } -->
@@ -83,7 +83,7 @@
                                 }
 
                                 @if(['ready','complete', 'error'].includes(file.status)){
-                                <button class="" mat-icon-button (click)="onDelete(file)">
+                                <button class="" mat-icon-button (click)="onDelete(file); $event.stopPropagation()">
                                     <mat-icon class="text-red-400" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
                                 </button>
                                 }
