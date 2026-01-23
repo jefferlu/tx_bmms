@@ -91,6 +91,7 @@
     "ip-address": "IP 位址",
     "no-data-found": "查無資料",
     "condition-value": "條件值（多個值請用 ; 分隔）",
+    "condition-value-number": "數值條件",
     "selected-conditions": "所選條件組合",
     "and": "且",
     "range": "範圍",
@@ -100,7 +101,8 @@
     "contains": "包含",
     "min-value": "最小值",
     "max-value": "最大值",
-    "no-filter-conditions": "未選取篩選條件",
+    "no-filter-conditions": "未選取篩選條件，點擊此處添加條件",
     "add-condition-group": "添加條件組",
+    "clear-all-conditions": "刪除全部",
     "close": "關閉"
 }

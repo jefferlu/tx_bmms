@@ -84,7 +84,7 @@
                             </button>
                             <mat-menu #manageCriteria="matMenu">
                                 <button mat-menu-item (click)="onSaveCriteria()">
-                                    <span class="flex items-center">
+                                    <span class="flex items-center" `>
                                         <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:bookmark-square'"></mat-icon>
                                         <span>{{t('save-criteria')}}</span>
                                     </span>
@@ -123,22 +123,22 @@
                                 <div class="flex flex-wrap gap-2 max-h-[28px] items-center overflow-hidden">
                                     @for (condition of conditions; track $index) {
                                     <div class="flex items-center gap-1 bg-blue-900/30 px-3 py-1 rounded-md whitespace-nowrap">
-                                        <span class="text-sm font-medium">{{ $index + 1 }}.</span>
-                                        <span class="text-sm">{{ getConditionDescription(condition) }}</span>
+                                        <span class="font-medium">{{ $index + 1 }}.</span>
+                                        <span class="">{{ getConditionDescription(condition) }}</span>
                                     </div>
                                     @if ($index < conditions.length - 1) {
-                                    <span class="text-xs text-gray-400 flex items-center">{{ t('and') }}</span>
+                                    <span class="text-sm text-gray-100 flex items-center">{{ t('and') }}</span>
                                     }
                                     }
                                 </div>
                                 } @else {
-                                <div class="text-center text-gray-400 py-1">{{ t('no-filter-conditions') }}</div>
+                                <div class="text-center text-gray-100 py-1">{{ t('no-filter-conditions') }}</div>
                                 }
                             </gts-alert>
 
                             <!-- Hover 時顯示的完整內容 (overlay) -->
                             @if(conditions.length > 0){
-                            <div class="absolute top-0 left-0 right-0 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-200 z-50">
+                            <div class="absolute top-0 left-0 right-0 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-200">
                                 <gts-alert
                                     class="cursor-pointer condition-alert shadow-2xl"
                                     [appearance]="'outline'"
@@ -149,11 +149,11 @@
                                     <div class="flex flex-wrap gap-2 items-center overflow-y-auto">
                                         @for (condition of conditions; track $index) {
                                         <div class="flex items-center gap-1 bg-blue-900/30 px-3 py-1 rounded-md whitespace-nowrap">
-                                            <span class="text-sm font-medium">{{ $index + 1 }}.</span>
-                                            <span class="text-sm">{{ getConditionDescription(condition) }}</span>
+                                            <span class="font-medium">{{ $index + 1 }}.</span>
+                                            <span class="">{{ getConditionDescription(condition) }}</span>
                                         </div>
                                         @if ($index < conditions.length - 1) {
-                                        <span class="text-xs text-gray-400 flex items-center">{{ t('and') }}</span>
+                                        <span class="text-sm text-gray-100 flex items-center">{{ t('and') }}</span>
                                         }
                                         }
                                     </div>
@@ -442,7 +442,7 @@
             <!-- 單一條件 -->
             @else{
             <input type="text" class="p-2 border rounded-md sm:min-w-80 focus:border-white bg-gray-800 border-gray-700 placeholder:text-gray-400 text-white"
-                [placeholder]="t('condition-value')" [(ngModel)]="condition.condition4" />
+                [placeholder]="(condition.condition2?.value === 'number' ? t('condition-value-number') : t('condition-value'))+'...'" [(ngModel)]="condition.condition4" />
             }
 
             <!-- 移除按鈕 -->
@@ -456,7 +456,12 @@
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus-circle'"></mat-icon>
                 <span class="ml-2">{{ t('add-condition-group') }}</span>
             </button>
-            <!-- 新增：關閉按鈕 -->
+            <!-- 刪除全部按鈕 -->
+            <button mat-flat-button color="warn" (click)="removeAllConditinGroup()" [disabled]="conditions.length === 0">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                <span class="ml-2">{{ t('clear-all-conditions') }}</span>
+            </button>
+            <!-- 關閉按鈕 -->
             <button mat-flat-button (click)="closeOverlay()">
                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
                 <span class="ml-2">{{ t('close') }}</span>

@@ -3,6 +3,10 @@
   @apply text-base dark:text-white dark:bg-card;
 }
 
+.p-select-list-container {
+  max-height: 400px !important;
+}
+
 .p-select-option {
   @apply dark:text-white;
 }
@@ -21,6 +25,10 @@
 
 .p-select-option-check-icon {
   @apply dark:text-white;
+}
+
+.p-tabpanels {
+  @apply dark:pb-[14px];
 }
 
 /* 覆寫 gts-alert 的 padding，讓高度與按鈕一致 */
