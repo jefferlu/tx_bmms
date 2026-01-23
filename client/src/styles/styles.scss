@@ -3,12 +3,21 @@
 @use "primeng";
 
 /* CDK Overlay z-index 設定：確保條件組 overlay 低於側邊導航 (z-200)
-   導航系統的 z-index 為 200，因此這裡設定為 1 確保永遠低於導航 */
+
+   問題根源：stacking context 的父層比較
+   - gts-vertical-navigation (z-200) 和 .cdk-overlay-container 是兩個獨立的 stacking context
+   - 需要設定 .cdk-overlay-container 的 z-index 低於 200，而不只是內部元素
+
+   使用 :has() 選擇器只針對包含條件組 overlay 的容器 */
+.cdk-overlay-container:has(.condition-group-overlay-pane) {
+  z-index: 100 !important;
+}
+
+/* 如果瀏覽器不支持 :has()，使用通用設定（可能影響其他 overlay） */
 .cdk-overlay-container .condition-group-overlay-pane {
   z-index: 1 !important;
 }
 
-/* 增加選擇器優先級 */
 .cdk-overlay-pane.condition-group-overlay-pane {
   z-index: 1 !important;
 }
