@@ -304,7 +304,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             hasBackdrop: false,
             backdropClass: 'cdk-overlay-transparent-backdrop',
             width: this.firstConditionGroup.nativeElement.offsetWidth,
-            panelClass: 'condition-group-overlay-pane',
+            panelClass: 'condition-group-overlay-pane', //styles.scss自訂
         });
 
         this.overlayRef.attach(this.overlayContent);
