@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { BimDataImportService } from './bim-data-import.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { WebsocketService } from 'app/core/services/websocket/websocket.service';
 import { ToastService } from 'app/layout/common/toast/toast.service';
@@ -26,6 +26,7 @@ import { GtsConfirmationService } from '@gts/services/confirmation';
 export class BimDataImportComponent implements OnInit, OnDestroy {
 
     @ViewChild('fileInput') fileInput!: ElementRef;
+    @ViewChild('dataTable') dataTable!: Table;
     private _subscription: Subscription = new Subscription();
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
@@ -288,9 +289,11 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         // 切換選擇狀態
         const index = this.selectedFiles.findIndex(f => f.name === file.name);
         if (index > -1) {
-            this.selectedFiles.splice(index, 1);
+            // 移除選擇：創建新數組以觸發變更檢測
+            this.selectedFiles = this.selectedFiles.filter(f => f.name !== file.name);
         } else {
-            this.selectedFiles.push(file);
+            // 添加選擇：創建新數組以觸發變更檢測
+            this.selectedFiles = [...this.selectedFiles, file];
         }
         this._changeDetectorRef.markForCheck();
     }
