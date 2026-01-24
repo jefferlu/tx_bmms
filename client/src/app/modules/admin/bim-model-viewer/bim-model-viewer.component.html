@@ -11,7 +11,7 @@
                 <div class="flex items-center space-x-3 sm:ml-2 sm:mt-0">
                     <button mat-flat-button (click)="onClickAggregated()">
                         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:cube'"></mat-icon>
-                        <span class="ml-2">{{t('bim-aggregated')}}</span>
+                        <span class="ml-2">{{t('bim-aggregated')}} @if(selectedItems.length > 0) {({{selectedItems.length}})}</span>
                     </button>
                 </div>
             </div>
@@ -23,7 +23,11 @@
 
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
-                            <th class="w-20"></th>
+                            <th class="w-20 pl-8">
+                                <p-checkbox [binary]="true"
+                                    [checked]="isAllSelectableFilesSelected()"
+                                    (onChange)="toggleSelectAll()" />
+                            </th>
                             <th class="min-w-20 py-4">{{t('file-label')}}</th>
                             <th class="text-center w-40">{{t('version')}}</th>
                             <th>{{t('upload-time')}}</th>
@@ -36,13 +40,15 @@
                     </ng-template>
 
                     <ng-template #groupheader let-item let-index="rowIndex" let-expanded="expanded">
-                        <tr>
+                        <tr (click)="toggleGroupRowSelection(item.tender, $event)" class="hover:bg-hover cursor-pointer">
                             <td colspan="9">
                                 <span class="flex items-center">
                                     <button pButton pRipple [pRowToggler]="item" text rounded plain class="mr-2 w-8 h-8 text-default bg-transparent"
                                         [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
                                     </button>
-                                    <!-- <p-tableHeaderCheckbox /> -->
+                                    <p-checkbox [binary]="true"
+                                        [checked]="isGroupSelected(item.tender)"
+                                        (onChange)="toggleGroupSelection(item.tender)" />
                                     <span class="ml-2">{{item.tender}}</span>
                                 </span>
                             </td>
@@ -50,7 +56,7 @@
                     </ng-template>
 
                     <ng-template #expandedrow let-item>
-                        <tr class="hover:bg-hover">
+                        <tr (click)="toggleRowSelection(item, $event)" class="hover:bg-hover cursor-pointer">
                             <td class="pl-12">
                                 @if(!item.status||item.status==='complete'){
                                 <p-tableCheckbox [value]="item" />

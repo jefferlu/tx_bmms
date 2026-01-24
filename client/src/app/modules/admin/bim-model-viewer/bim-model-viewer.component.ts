@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
+import { CheckboxModule } from 'primeng/checkbox';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component';
@@ -25,7 +26,7 @@ import { Subject, Subscription, takeUntil } from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule,
-        MatIconModule, MatButtonModule, MatInputModule, NgClass
+        MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule
     ]
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {
@@ -34,7 +35,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     data: any;
-    selectedItems!: any;
+    selectedItems: any[] = [];
     isLoading: boolean = false;
 
     constructor(
@@ -100,8 +101,108 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         });
     }
 
+    // 获取所有可选择的文件（status 为空或 complete）
+    getSelectableFiles(): any[] {
+        if (!this.data) return [];
+        return this.data.filter(item => !item.status || item.status === 'complete');
+    }
+
+    // 检查是否所有可选文件都已被选中
+    isAllSelectableFilesSelected(): boolean {
+        const selectableFiles = this.getSelectableFiles();
+        return selectableFiles.length > 0 &&
+            this.selectedItems.length === selectableFiles.length;
+    }
+
+    // 全选/取消全选
+    toggleSelectAll(): void {
+        const selectableFiles = this.getSelectableFiles();
+
+        if (this.isAllSelectableFilesSelected()) {
+            this.selectedItems = [];
+        } else {
+            this.selectedItems = [...selectableFiles];
+        }
+        this._changeDetectorRef.markForCheck();
+    }
+
+    // 获取分组下的所有可选文件
+    getGroupSelectableFiles(tender: string): any[] {
+        if (!this.data) return [];
+        return this.data.filter(item =>
+            item.tender === tender &&
+            (!item.status || item.status === 'complete')
+        );
+    }
+
+    // 检查分组是否全选
+    isGroupSelected(tender: string): boolean {
+        const groupFiles = this.getGroupSelectableFiles(tender);
+        if (groupFiles.length === 0) return false;
+
+        return groupFiles.every(file =>
+            this.selectedItems.some(selected => selected.name === file.name)
+        );
+    }
+
+    // 分组全选/取消全选
+    toggleGroupSelection(tender: string): void {
+        const groupFiles = this.getGroupSelectableFiles(tender);
+
+        if (this.isGroupSelected(tender)) {
+            // 取消选择该分组的所有文件
+            this.selectedItems = this.selectedItems.filter(selected =>
+                !groupFiles.some(file => file.name === selected.name)
+            );
+        } else {
+            // 选择该分组的所有文件
+            const newSelections = groupFiles.filter(file =>
+                !this.selectedItems.some(selected => selected.name === file.name)
+            );
+            this.selectedItems = [...this.selectedItems, ...newSelections];
+        }
+        this._changeDetectorRef.markForCheck();
+    }
+
+    // 行点击切换选择（用于文件行）
+    toggleRowSelection(file: any, event: Event): void {
+        if (file.status && file.status !== 'complete') {
+            return;
+        }
+
+        const target = event.target as HTMLElement;
+        // 检查是否点击了按钮或图标
+        if (target.closest('button') ||
+            target.closest('mat-icon') ||
+            target.closest('p-tablecheckbox') ||
+            target.closest('.p-checkbox')) {
+            return;
+        }
+
+        const index = this.selectedItems.findIndex(f => f.name === file.name);
+        if (index > -1) {
+            this.selectedItems = this.selectedItems.filter(f => f.name !== file.name);
+        } else {
+            this.selectedItems = [...this.selectedItems, file];
+        }
+        this._changeDetectorRef.markForCheck();
+    }
+
+    // 分组行点击切换选择
+    toggleGroupRowSelection(tender: string, event: Event): void {
+        const target = event.target as HTMLElement;
+        // 检查是否点击了展开按钮或 checkbox
+        if (target.closest('button') ||
+            target.closest('p-checkbox') ||
+            target.closest('.p-checkbox')) {
+            return;
+        }
+
+        this.toggleGroupSelection(tender);
+    }
+
     onClickAggregated(): void {
-        if (!this.selectedItems) {
+        if (!this.selectedItems || this.selectedItems.length === 0) {
             this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-model')}.` });
             return;
         }
@@ -118,7 +219,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     }
 
     onClickCompare(): void {
-        if (!this.selectedItems) {
+        if (!this.selectedItems || this.selectedItems.length === 0) {
             this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-model')}.` });
             return;
         }
