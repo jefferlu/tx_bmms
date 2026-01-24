@@ -131,6 +131,8 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
             // 更新所有分组状态为选中
             this.updateAllGroupStates();
         }
+        console.log('toggleSelectAll - groupCheckboxStates:', this.groupCheckboxStates);
+        console.log('toggleSelectAll - selectedItems count:', this.selectedItems.length);
         this._changeDetectorRef.detectChanges();
     }
 
@@ -170,7 +172,9 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     // 获取分组 checkbox 的显示状态（用于模板绑定）
     getGroupCheckboxState(tender: string): boolean {
-        return this.groupCheckboxStates[tender] || false;
+        const state = this.groupCheckboxStates[tender] || false;
+        console.log(`getGroupCheckboxState(${tender}):`, state);
+        return state;
     }
 
     // 分组全选/取消全选
