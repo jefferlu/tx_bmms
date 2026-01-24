@@ -48,7 +48,7 @@
                                         [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
                                     </button>
                                     <p-checkbox [binary]="true"
-                                        [checked]="isGroupSelected(item.tender)"
+                                        [checked]="getGroupCheckboxState(item.tender)"
                                         (onChange)="toggleGroupSelection(item.tender)" />
                                     <span class="ml-2">{{item.tender}}</span>
                                 </span>

@@ -37,6 +37,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     data: any;
     selectedItems: any[] = [];
     isLoading: boolean = false;
+    groupCheckboxStates: Map<string, boolean> = new Map();
 
     constructor(
         private _route: ActivatedRoute,
@@ -123,10 +124,26 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
         if (this.isAllSelectableFilesSelected()) {
             this.selectedItems = [];
+            // 清除所有分组状态
+            this.groupCheckboxStates.clear();
         } else {
             this.selectedItems = [...selectableFiles];
+            // 更新所有分组状态为选中
+            this.updateAllGroupStates();
         }
         this._changeDetectorRef.detectChanges();
+    }
+
+    // 更新所有分组的 checkbox 状态
+    private updateAllGroupStates(): void {
+        if (!this.data) return;
+
+        // 获取所有唯一的 tender
+        const tenders = [...new Set(this.data.map(item => item.tender))];
+
+        tenders.forEach(tender => {
+            this.groupCheckboxStates.set(tender, this.isGroupSelected(tender));
+        });
     }
 
     // 获取分组下的所有可选文件
@@ -138,7 +155,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         );
     }
 
-    // 检查分组是否全选
+    // 检查分组是否全选（用于内部逻辑判断）
     isGroupSelected(tender: string): boolean {
         const groupFiles = this.getGroupSelectableFiles(tender);
         if (groupFiles.length === 0) return false;
@@ -148,21 +165,29 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         );
     }
 
+    // 获取分组 checkbox 的显示状态（用于模板绑定）
+    getGroupCheckboxState(tender: string): boolean {
+        return this.groupCheckboxStates.get(tender) || false;
+    }
+
     // 分组全选/取消全选
     toggleGroupSelection(tender: string): void {
         const groupFiles = this.getGroupSelectableFiles(tender);
+        const currentState = this.groupCheckboxStates.get(tender) || false;
 
-        if (this.isGroupSelected(tender)) {
+        if (currentState) {
             // 取消选择该分组的所有文件
             this.selectedItems = this.selectedItems.filter(selected =>
                 !groupFiles.some(file => file.name === selected.name)
             );
+            this.groupCheckboxStates.set(tender, false);
         } else {
             // 选择该分组的所有文件
             const newSelections = groupFiles.filter(file =>
                 !this.selectedItems.some(selected => selected.name === file.name)
             );
             this.selectedItems = [...this.selectedItems, ...newSelections];
+            this.groupCheckboxStates.set(tender, true);
         }
         this._changeDetectorRef.detectChanges();
     }
@@ -188,6 +213,12 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         } else {
             this.selectedItems = [...this.selectedItems, file];
         }
+
+        // 更新该文件所属分组的状态
+        if (file.tender) {
+            this.groupCheckboxStates.set(file.tender, this.isGroupSelected(file.tender));
+        }
+
         this._changeDetectorRef.detectChanges();
     }
 
@@ -206,6 +237,8 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     // 监听 PrimeNG 选择变化事件，触发变更检测
     onSelectionChange(): void {
+        // 当文件选择变化时，更新所有分组的状态
+        this.updateAllGroupStates();
         this._changeDetectorRef.detectChanges();
     }
 
