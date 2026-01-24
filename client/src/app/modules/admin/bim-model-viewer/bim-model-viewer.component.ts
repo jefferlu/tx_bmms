@@ -139,11 +139,11 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         if (!this.data) return;
 
         // 获取所有唯一的 tender
-        const tenders = [...new Set(this.data.map(item => item.tender))];
+        const tenders = [...new Set(this.data.map((item: any) => item.tender as string))];
 
         // 创建新对象以触发变更检测
         const newStates: { [key: string]: boolean } = {};
-        tenders.forEach(tender => {
+        tenders.forEach((tender: string) => {
             newStates[tender] = this.isGroupSelected(tender);
         });
         this.groupCheckboxStates = newStates;
