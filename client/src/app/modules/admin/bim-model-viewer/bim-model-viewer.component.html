@@ -26,8 +26,8 @@
                         <tr class="border-b-2">
                             <th class="w-20 pl-8">
                                 <p-checkbox [binary]="true"
-                                    [checked]="isAllSelectableFilesSelected()"
-                                    (onChange)="toggleSelectAll()" />
+                                    [ngModel]="isAllSelectableFilesSelected()"
+                                    (ngModelChange)="toggleSelectAll()" />
                             </th>
                             <th class="min-w-20 py-4">{{t('file-label')}}</th>
                             <th class="text-center w-40">{{t('version')}}</th>
@@ -48,8 +48,8 @@
                                         [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
                                     </button>
                                     <p-checkbox [binary]="true"
-                                        [checked]="getGroupCheckboxState(item.tender)"
-                                        (onChange)="toggleGroupSelection(item.tender)" />
+                                        [ngModel]="getGroupCheckboxState(item.tender)"
+                                        (ngModelChange)="toggleGroupSelection(item.tender)" />
                                     <span class="ml-2">{{item.tender}}</span>
                                 </span>
                             </td>
