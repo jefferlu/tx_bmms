@@ -126,7 +126,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         } else {
             this.selectedItems = [...selectableFiles];
         }
-        this._changeDetectorRef.markForCheck();
+        this._changeDetectorRef.detectChanges();
     }
 
     // 获取分组下的所有可选文件
@@ -164,7 +164,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
             );
             this.selectedItems = [...this.selectedItems, ...newSelections];
         }
-        this._changeDetectorRef.markForCheck();
+        this._changeDetectorRef.detectChanges();
     }
 
     // 行点击切换选择（用于文件行）
@@ -188,7 +188,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         } else {
             this.selectedItems = [...this.selectedItems, file];
         }
-        this._changeDetectorRef.markForCheck();
+        this._changeDetectorRef.detectChanges();
     }
 
     // 分组行点击切换选择
@@ -206,7 +206,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
     // 监听 PrimeNG 选择变化事件，触发变更检测
     onSelectionChange(): void {
-        this._changeDetectorRef.markForCheck();
+        this._changeDetectorRef.detectChanges();
     }
 
     onClickAggregated(): void {
