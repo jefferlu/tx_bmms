@@ -19,7 +19,8 @@
             <!-- Content -->
             <div class="flex h-full overflow-y-auto bg-card rounded-md">
                 <p-table class="w-full" [value]="data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [size]="'small'"
-                    rowGroupMode="subheader" groupRowsBy="tender" [(selection)]="selectedItems" [loading]="isLoading">
+                    rowGroupMode="subheader" groupRowsBy="tender" [(selection)]="selectedItems" [loading]="isLoading"
+                    (onRowSelect)="onSelectionChange()" (onRowUnselect)="onSelectionChange()">
 
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">

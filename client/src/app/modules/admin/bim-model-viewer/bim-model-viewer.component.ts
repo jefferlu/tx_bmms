@@ -110,8 +110,11 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     // 检查是否所有可选文件都已被选中
     isAllSelectableFilesSelected(): boolean {
         const selectableFiles = this.getSelectableFiles();
-        return selectableFiles.length > 0 &&
-            this.selectedItems.length === selectableFiles.length;
+        if (selectableFiles.length === 0) return false;
+
+        return selectableFiles.every(file =>
+            this.selectedItems.some(selected => selected.name === file.name)
+        );
     }
 
     // 全选/取消全选
@@ -199,6 +202,11 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         }
 
         this.toggleGroupSelection(tender);
+    }
+
+    // 监听 PrimeNG 选择变化事件，触发变更检测
+    onSelectionChange(): void {
+        this._changeDetectorRef.markForCheck();
     }
 
     onClickAggregated(): void {
