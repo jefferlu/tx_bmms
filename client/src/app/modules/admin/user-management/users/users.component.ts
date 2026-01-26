@@ -94,7 +94,7 @@ export class UsersComponent implements OnInit, OnDestroy {
 
         // Data form
         this.form = this._formBuilder.group({
-            username: [''],
+            username: ['', [Validators.required]],
             email: ['', [Validators.required, Validators.email]],
             // groups_obj: [[this.page.groupData[0]]],  //寫入預設值
             groups_obj: [],
