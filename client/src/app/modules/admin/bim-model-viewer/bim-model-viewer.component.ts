@@ -38,6 +38,8 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     selectedItems: any[] = [];
     isLoading: boolean = false;
     groupCheckboxStates: { [key: string]: boolean } = {};
+    expandedRowKeys: { [key: string]: boolean } = {};
+    isAllExpanded: boolean = true;
 
     constructor(
         private _route: ActivatedRoute,
@@ -91,12 +93,44 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         this._route.data.subscribe({
             next: (res) => {
                 this.data = res.data;
-                this._changeDetectorRef.markForCheck();                
+                this.initializeExpandedState();
+                this._changeDetectorRef.markForCheck();
             },
             error: (e) => {
                 console.error('Error loading data:', e);
             }
         });
+    }
+
+    // 初始化展開狀態（預設全部展開）
+    initializeExpandedState(): void {
+        if (!this.data) return;
+
+        const tenders = [...new Set(this.data.map((item: any) => item.tender as string))];
+        const newExpandedKeys: { [key: string]: boolean } = {};
+        tenders.forEach((tender: string) => {
+            newExpandedKeys[tender] = true; // 預設全部展開
+        });
+        this.expandedRowKeys = newExpandedKeys;
+        this.isAllExpanded = true;
+    }
+
+    // 切換全部展開/收合
+    toggleExpandAll(): void {
+        if (!this.data) return;
+
+        const tenders = [...new Set(this.data.map((item: any) => item.tender as string))];
+        const newExpandedKeys: { [key: string]: boolean } = {};
+
+        // 如果當前是全部展開，則全部收合；否則全部展開
+        const newState = !this.isAllExpanded;
+        tenders.forEach((tender: string) => {
+            newExpandedKeys[tender] = newState;
+        });
+
+        this.expandedRowKeys = newExpandedKeys;
+        this.isAllExpanded = newState;
+        this._changeDetectorRef.detectChanges();
     }
 
     // 获取所有可选择的文件（status 为空或 complete）

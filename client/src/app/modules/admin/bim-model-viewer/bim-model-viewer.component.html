@@ -20,14 +20,22 @@
             <div class="flex h-full overflow-y-auto bg-card rounded-md">
                 <p-table class="w-full" [value]="data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [size]="'small'"
                     rowGroupMode="subheader" groupRowsBy="tender" [(selection)]="selectedItems" [loading]="isLoading"
+                    [(expandedRowKeys)]="expandedRowKeys"
                     (onRowSelect)="onSelectionChange()" (onRowUnselect)="onSelectionChange()">
 
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
                             <th class="w-20 pl-8">
-                                <p-checkbox [binary]="true"
-                                    [ngModel]="isAllSelectableFilesSelected()"
-                                    (ngModelChange)="toggleSelectAll()" />
+                                <div class="flex items-center space-x-2">
+                                    <button pButton pRipple text rounded plain
+                                        class="w-8 h-8 text-default bg-transparent"
+                                        [icon]="isAllExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                                        (click)="toggleExpandAll()">
+                                    </button>
+                                    <p-checkbox [binary]="true"
+                                        [ngModel]="isAllSelectableFilesSelected()"
+                                        (ngModelChange)="toggleSelectAll()" />
+                                </div>
                             </th>
                             <th class="min-w-20 py-4">{{t('file-label')}}</th>
                             <th class="text-center w-40">{{t('version')}}</th>
