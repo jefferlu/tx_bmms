@@ -317,18 +317,19 @@
 }
 
 .p-panel-header {
-    @apply dark:text-white;
+  @apply dark:text-white;
 }
 .p-button-text.p-button-secondary:not(:disabled):hover {
-    @apply dark:text-white dark:bg-slate-700;
+  @apply dark:text-white dark:bg-slate-700;
 }
 
 /* Breadcrumb */
-.p-breadcrumb {
-  .p-menuitem-link {
-    .p-menuitem-text,
-    .p-menuitem-icon {
-      color: var(--fuse-text-default) !important;
-    }
-  }
+.p-breadcrumb-separator {
+  @apply dark:text-slate-400;
+}
+.p-breadcrumb-item-icon {
+  @apply dark:text-slate-400;
+}
+.p-breadcrumb-item-link {
+  @apply dark:text-slate-400;
 }
