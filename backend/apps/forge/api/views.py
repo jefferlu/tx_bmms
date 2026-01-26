@@ -599,21 +599,7 @@ class BimRegionViewSet(viewsets.ReadOnlyModelViewSet):
             zone_data['children'] = roles_data
             tree_data.append(zone_data)
 
-        return Response(tree_data)    
-
-
-class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
-    """ 只查詢 BIMModel """
-    permission_classes = (IsAuthenticated,)
-    queryset = models.BimModel.objects.all().order_by('-created_at')  # 直接查詢 BimModel，不依賴 BimConversion
-    serializer_class = serializers.BimModelSerializer
-    pagination_class = StandardResultsSetPagination
-
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        ip_address = request.META.get('REMOTE_ADDR')
-        log_user_activity(self.request.user, '模型檢視', '查詢', 'SUCCESS', ip_address)
-        return response
+        return Response(tree_data)
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -644,6 +630,20 @@ class StandardResultsSetPagination(PageNumberPagination):
             return int(size)
         except (ValueError, TypeError):
             return self.page_size
+
+
+class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
+    """ 只查詢 BIMModel """
+    permission_classes = (IsAuthenticated,)
+    queryset = models.BimModel.objects.all().order_by('-created_at')  # 直接查詢 BimModel，不依賴 BimConversion
+    serializer_class = serializers.BimModelSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        ip_address = request.META.get('REMOTE_ADDR')
+        log_user_activity(self.request.user, '模型檢視', '查詢', 'SUCCESS', ip_address)
+        return response
 
 
 class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
