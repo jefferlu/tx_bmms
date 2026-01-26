@@ -26,6 +26,12 @@ import { Subject, Subscription, takeUntil } from 'rxjs';
     templateUrl: './bim-model-viewer.component.html',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
+    styles: [`
+        app-bim-model-viewer .p-breadcrumb .p-menuitem-link .p-menuitem-text,
+        app-bim-model-viewer .p-breadcrumb .p-menuitem-link .p-menuitem-icon {
+            color: var(--fuse-text-default) !important;
+        }
+    `],
     imports: [
         DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule,
         MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule, BreadcrumbModule
