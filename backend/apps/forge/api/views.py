@@ -278,8 +278,8 @@ class BimDataImportView(APIView):
         except Exception as e:
             return Response({"error": f"處理檔案版本時發生錯誤：{str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # 執行 Celery 任務
-        bim_data_import.delay(client_id, client_secret, bucket_key, file_name, 'progress_group', user_id=request.user.id)
+        # 執行 Celery 任務 (传递 user_id 作为位置参数)
+        bim_data_import.delay(client_id, client_secret, bucket_key, file_name, 'progress_group', request.user.id)
 
         # 記錄操作
         ip_address = request.META.get('REMOTE_ADDR')

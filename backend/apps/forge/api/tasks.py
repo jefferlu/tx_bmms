@@ -53,6 +53,7 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         )
 
     start_time = time.time()
+    logger.info(f"bim_data_import called with user_id={user_id} for file={file_name}")
 
     try:
         # Authenticate with Autodesk Forge
@@ -245,8 +246,11 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
                 try:
                     from apps.account.models import User
                     uploader = User.objects.get(id=user_id)
+                    logger.info(f"Found uploader: {uploader.username} (id={user_id})")
                 except User.DoesNotExist:
                     logger.warning(f"User with id={user_id} not found.")
+            else:
+                logger.warning(f"user_id is None, uploader will not be set")
 
             bim_model, created = models.BimModel.objects.get_or_create(
                 name=file_name,
@@ -258,10 +262,14 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
                 # 更新 uploader (只在第一次上传时设置，之后版本更新不改变 uploader)
                 if not bim_model.uploader and uploader:
                     bim_model.uploader = uploader
+                    logger.info(f"Updated existing BimModel uploader to {uploader.username}")
+            else:
+                logger.info(f"Created new BimModel with uploader={uploader}")
             # 更新 svf_path 和 sqlite_path 為相對路徑
             bim_model.svf_path = svf_name
             bim_model.sqlite_path = sqlite_path
             bim_model.save()
+            logger.info(f"BimModel saved: name={bim_model.name}, uploader_id={bim_model.uploader_id}")
             send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) updated.')
 
         # Process categories, regions, hierarchies, and objects
