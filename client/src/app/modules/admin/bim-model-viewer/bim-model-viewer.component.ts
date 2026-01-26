@@ -133,13 +133,13 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         this._changeDetectorRef.detectChanges();
     }
 
-    // 获取所有可选择的文件（status 为空或 complete）
+    // 獲取所有可選擇的檔案（status 為空或 complete）
     getSelectableFiles(): any[] {
         if (!this.data) return [];
         return this.data.filter(item => !item.status || item.status === 'complete');
     }
 
-    // 检查是否所有可选文件都已被选中
+    // 檢查是否所有可選檔案都已被選中
     isAllSelectableFilesSelected(): boolean {
         const selectableFiles = this.getSelectableFiles();
         if (selectableFiles.length === 0) return false;
@@ -149,30 +149,30 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         );
     }
 
-    // 全选/取消全选
+    // 全選/取消全選
     toggleSelectAll(): void {
         const selectableFiles = this.getSelectableFiles();
 
         if (this.isAllSelectableFilesSelected()) {
             this.selectedItems = [];
-            // 清除所有分组状态 - 创建新对象以触发变更检测
+            // 清除所有分組狀態 - 創建新物件以觸發變更檢測
             this.groupCheckboxStates = {};
         } else {
             this.selectedItems = [...selectableFiles];
-            // 更新所有分组状态为选中
+            // 更新所有分組狀態為選中
             this.updateAllGroupStates();
         }
         this._changeDetectorRef.detectChanges();
     }
 
-    // 更新所有分组的 checkbox 状态
+    // 更新所有分組的 checkbox 狀態
     private updateAllGroupStates(): void {
         if (!this.data) return;
 
-        // 获取所有唯一的 tender
+        // 獲取所有唯一的 tender
         const tenders = [...new Set(this.data.map((item: any) => item.tender as string))];
 
-        // 创建新对象以触发变更检测
+        // 創建新物件以觸發變更檢測
         const newStates: { [key: string]: boolean } = {};
         tenders.forEach((tender: string) => {
             newStates[tender] = this.isGroupSelected(tender);
@@ -180,7 +180,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         this.groupCheckboxStates = newStates;
     }
 
-    // 获取分组下的所有可选文件
+    // 獲取分組下的所有可選檔案
     getGroupSelectableFiles(tender: string): any[] {
         if (!this.data) return [];
         return this.data.filter(item =>
@@ -189,7 +189,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         );
     }
 
-    // 检查分组是否全选（用于内部逻辑判断）
+    // 檢查分組是否全選（用於內部邏輯判斷）
     isGroupSelected(tender: string): boolean {
         const groupFiles = this.getGroupSelectableFiles(tender);
         if (groupFiles.length === 0) return false;
@@ -199,31 +199,31 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         );
     }
 
-    // 获取分组 checkbox 的显示状态（用于模板绑定）
+    // 獲取分組 checkbox 的顯示狀態（用於模板綁定）
     getGroupCheckboxState(tender: string): boolean {
         const state = this.groupCheckboxStates[tender] || false;
         return state;
     }
 
-    // 分组全选/取消全选
+    // 分組全選/取消全選
     toggleGroupSelection(tender: string): void {
         const groupFiles = this.getGroupSelectableFiles(tender);
         const currentState = this.groupCheckboxStates[tender] || false;
 
         if (currentState) {
-            // 取消选择该分组的所有文件
+            // 取消選擇該分組的所有檔案
             this.selectedItems = this.selectedItems.filter(selected =>
                 !groupFiles.some(file => file.name === selected.name)
             );
         } else {
-            // 选择该分组的所有文件
+            // 選擇該分組的所有檔案
             const newSelections = groupFiles.filter(file =>
                 !this.selectedItems.some(selected => selected.name === file.name)
             );
             this.selectedItems = [...this.selectedItems, ...newSelections];
         }
 
-        // 创建新对象以触发变更检测
+        // 創建新物件以觸發變更檢測
         this.groupCheckboxStates = {
             ...this.groupCheckboxStates,
             [tender]: !currentState
@@ -231,14 +231,14 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         this._changeDetectorRef.detectChanges();
     }
 
-    // 行点击切换选择（用于文件行）
+    // 行點擊切換選擇（用於檔案行）
     toggleRowSelection(file: any, event: Event): void {
         if (file.status && file.status !== 'complete') {
             return;
         }
 
         const target = event.target as HTMLElement;
-        // 检查是否点击了按钮或图标
+        // 檢查是否點擊了按鈕或圖標
         if (target.closest('button') ||
             target.closest('mat-icon') ||
             target.closest('p-tablecheckbox') ||
@@ -253,7 +253,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
             this.selectedItems = [...this.selectedItems, file];
         }
 
-        // 更新该文件所属分组的状态 - 创建新对象以触发变更检测
+        // 更新該檔案所屬分組的狀態 - 創建新物件以觸發變更檢測
         if (file.tender) {
             this.groupCheckboxStates = {
                 ...this.groupCheckboxStates,
@@ -264,10 +264,10 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         this._changeDetectorRef.detectChanges();
     }
 
-    // 分组行点击切换选择
+    // 分組行點擊切換選擇
     toggleGroupRowSelection(tender: string, event: Event): void {
         const target = event.target as HTMLElement;
-        // 检查是否点击了展开按钮或 checkbox
+        // 檢查是否點擊了展開按鈕或 checkbox
         if (target.closest('button') ||
             target.closest('p-checkbox') ||
             target.closest('.p-checkbox')) {
@@ -277,9 +277,9 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         this.toggleGroupSelection(tender);
     }
 
-    // 监听 PrimeNG 选择变化事件，触发变更检测
+    // 監聽 PrimeNG 選擇變化事件，觸發變更檢測
     onSelectionChange(): void {
-        // 当文件选择变化时，更新所有分组的状态
+        // 當檔案選擇變化時，更新所有分組的狀態
         this.updateAllGroupStates();
         this._changeDetectorRef.detectChanges();
     }
