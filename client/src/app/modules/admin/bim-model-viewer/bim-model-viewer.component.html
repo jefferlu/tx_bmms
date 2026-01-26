@@ -24,8 +24,8 @@
                     (onRowSelect)="onSelectionChange()" (onRowUnselect)="onSelectionChange()">
 
                     <ng-template pTemplate="header">
-                        <tr class="border-b-2">
-                            <th class="w-20 pl-8">
+                        <tr>
+                            <th class="w-20">
                                 <div class="flex items-center space-x-2">
                                     <button pButton pRipple text rounded plain
                                         class="w-8 h-8 text-default bg-transparent"
@@ -37,7 +37,7 @@
                                         (ngModelChange)="toggleSelectAll()" />
                                 </div>
                             </th>
-                            <th class="min-w-20 py-4">{{t('file-label')}}</th>
+                            <th class="min-w-20">{{t('file-label')}}</th>
                             <th class="text-center w-40">{{t('version')}}</th>
                             <th>{{t('upload-time')}}</th>
                             <th>{{t('uploader')}}</th>
@@ -58,7 +58,7 @@
                                     <p-checkbox [binary]="true"
                                         [ngModel]="getGroupCheckboxState(item.tender)"
                                         (ngModelChange)="toggleGroupSelection(item.tender)" />
-                                    <span class="ml-2">{{item.tender}}</span>
+                                    <span class="ml-5">{{item.tender}}</span>
                                 </span>
                             </td>
                         </tr>
