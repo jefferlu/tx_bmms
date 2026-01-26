@@ -70,6 +70,7 @@ class BimModel(models.Model):
     version = models.IntegerField()
     svf_path = models.CharField(max_length=255, null=True, blank=True)
     sqlite_path = models.CharField(max_length=255, null=True, blank=True)
+    uploader = models.ForeignKey('account.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='uploaded_bim_models')
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_processed_version = models.IntegerField(null=True, blank=True)
