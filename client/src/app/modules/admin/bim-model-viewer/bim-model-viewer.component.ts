@@ -56,7 +56,6 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         this._subscription.add(
             this._websocketService.onMessage('update-category').subscribe({
                 next: (res) => {
-                    // console.log(res)
                     // this.isLoading = true;
                     // this._changeDetectorRef.markForCheck();
 
@@ -73,8 +72,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
                             };
                         }
 
-                        if (res.status === 'complete') {
-                            console.log('complete')
+                        if (res.status === 'complete') {                            
                             d.version += 1;
                             // this.isLoading = false;
                             this._changeDetectorRef.markForCheck();
@@ -93,8 +91,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         this._route.data.subscribe({
             next: (res) => {
                 this.data = res.data;
-                this._changeDetectorRef.markForCheck();
-                console.log('Data loaded:', this.data);
+                this._changeDetectorRef.markForCheck();                
             },
             error: (e) => {
                 console.error('Error loading data:', e);
@@ -131,8 +128,6 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
             // 更新所有分组状态为选中
             this.updateAllGroupStates();
         }
-        console.log('toggleSelectAll - groupCheckboxStates:', this.groupCheckboxStates);
-        console.log('toggleSelectAll - selectedItems count:', this.selectedItems.length);
         this._changeDetectorRef.detectChanges();
     }
 
@@ -173,7 +168,6 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     // 获取分组 checkbox 的显示状态（用于模板绑定）
     getGroupCheckboxState(tender: string): boolean {
         const state = this.groupCheckboxStates[tender] || false;
-        console.log(`getGroupCheckboxState(${tender}):`, state);
         return state;
     }
 
@@ -265,7 +259,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         //     this._toastService.open({ message: `${this._translocoService.translate('unsupported-aggregated-view')}.` });
         //     return;
         // }
-        console.log(this.selectedItems);
+        
         this._matDialog.open(ApsViewerComponent, {
             width: '99vw',
             height: '95vh',
