@@ -605,8 +605,9 @@ class BimRegionViewSet(viewsets.ReadOnlyModelViewSet):
 class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
     """ 只查詢 BIMModel """
     permission_classes = (IsAuthenticated,)
-    queryset = models.BimModel.objects.all()  # 直接查詢 BimModel，不依賴 BimConversion
+    queryset = models.BimModel.objects.all().order_by('-created_at')  # 直接查詢 BimModel，不依賴 BimConversion
     serializer_class = serializers.BimModelSerializer
+    pagination_class = StandardResultsSetPagination
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)

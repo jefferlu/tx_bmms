@@ -7,8 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
-import { TableModule } from 'primeng/table';
+import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { MenuItem } from 'primeng/api';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component';
@@ -26,7 +28,7 @@ import { Subject, Subscription, takeUntil } from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule,
-        MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule
+        MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule, BreadcrumbModule
     ]
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {
@@ -34,12 +36,17 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     private _subscription: Subscription = new Subscription();
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-    data: any;
+    data: any[] = [];
+    totalRecords: number = 0;
+    first: number = 0;
+    rowsPerPage: number = 10;
     selectedItems: any[] = [];
     isLoading: boolean = false;
     groupCheckboxStates: { [key: string]: boolean } = {};
     expandedRowKeys: { [key: string]: boolean } = {};
     isAllExpanded: boolean = true;
+    breadcrumbItems: MenuItem[] = [];
+    homeBreadcrumbItem: MenuItem = {};
 
     constructor(
         private _route: ActivatedRoute,
@@ -53,6 +60,16 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.initBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.initBreadcrumb();
+            });
+
         // Subscribe webSocket message
         this._websocketService.connect('update-category');
         this._subscription.add(
@@ -92,14 +109,68 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
         this._route.data.subscribe({
             next: (res) => {
-                this.data = res.data;
-                this.initializeExpandedState();
+                if (res.data) {
+                    this.data = res.data.results || res.data;
+                    this.totalRecords = res.data.count || this.data.length;
+                    this.initializeExpandedState();
+                }
                 this._changeDetectorRef.markForCheck();
             },
             error: (e) => {
                 console.error('Error loading data:', e);
             }
         });
+    }
+
+    // 載入指定頁面的資料
+    loadPage(page: number): void {
+        this.isLoading = true;
+        const params = {
+            page: page,
+            size: this.rowsPerPage
+        };
+
+        this._bimModelViewerService.getData(params)
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe({
+                next: (res) => {
+                    this.data = res.results || res;
+                    this.totalRecords = res.count || this.data.length;
+                    this.initializeExpandedState();
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                },
+                error: (e) => {
+                    console.error('Error loading data:', e);
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                }
+            });
+    }
+
+    // 處理分頁變化事件
+    onPageChange(event: TableLazyLoadEvent): void {
+        this.first = event.first || 0;
+        this.rowsPerPage = event.rows || this.rowsPerPage;
+        const page = this.first / this.rowsPerPage + 1;
+        this.loadPage(page);
+    }
+
+    // 初始化 breadcrumb
+    initBreadcrumb(): void {
+        this.homeBreadcrumbItem = {
+            icon: 'pi pi-home',
+            routerLink: '/'
+        };
+
+        this.breadcrumbItems = [
+            {
+                label: this._translocoService.translate('bim-file-management')
+            },
+            {
+                label: this._translocoService.translate('bim-model-viewer')
+            }
+        ];
     }
 
     // 初始化展開狀態（預設全部展開）

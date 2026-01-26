@@ -2,6 +2,11 @@
     <div class="mx-auto flex w-full h-full flex-wrap p-6">
         <div class="flex flex-auto flex-col h-full sm:col-span-2 lg:col-span-3">
 
+            <!-- Breadcrumb -->
+            <div class="pt-4 pb-2">
+                <p-breadcrumb [model]="breadcrumbItems" [home]="homeBreadcrumbItem"></p-breadcrumb>
+            </div>
+
             <!-- Header -->
             <div class="flex flex-row items-center justify-between pt-6 pb-2">
 
@@ -9,7 +14,7 @@
 
                 <!-- Aggregated -->
                 <div class="flex items-center space-x-3 sm:ml-2 sm:mt-0">
-                    <button mat-flat-button (click)="onClickAggregated()">
+                    <button mat-flat-button (click)="onClickAggregated()" [disabled]="selectedItems.length === 0">
                         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:cube'"></mat-icon>
                         <span class="ml-2">{{t('bim-aggregated')}} @if(selectedItems.length > 0) {({{selectedItems.length}})}</span>
                     </button>
@@ -18,10 +23,13 @@
 
             <!-- Content -->
             <div class="flex h-full overflow-y-auto bg-card rounded-md">
-                <p-table class="w-full" [value]="data" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'" [size]="'small'"
+                <p-table class="w-full" [value]="data" [totalRecords]="totalRecords" [scrollable]="true" scrollHeight="flex"
+                    [styleClass]="'p-datatable-lg'" [size]="'small'" [rows]="rowsPerPage" [first]="first"
+                    [paginator]="true" [pageLinks]="5" [lazy]="true" [lazyLoadOnInit]="false"
                     rowGroupMode="subheader" groupRowsBy="tender" [(selection)]="selectedItems" [loading]="isLoading"
                     [(expandedRowKeys)]="expandedRowKeys"
-                    (onRowSelect)="onSelectionChange()" (onRowUnselect)="onSelectionChange()">
+                    (onRowSelect)="onSelectionChange()" (onRowUnselect)="onSelectionChange()"
+                    (onLazyLoad)="onPageChange($event)">
 
                     <ng-template pTemplate="header">
                         <tr>
