@@ -1,11 +1,10 @@
+<!-- Breadcrumb -->
+<div class="px-4">
+    <p-breadcrumb [model]="breadcrumbItems" [home]="homeBreadcrumbItem" styleClass="bg-transparent border-none"></p-breadcrumb>
+</div>
 <div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full" *transloco="let t">
     <div class="mx-auto flex w-full h-full flex-wrap p-6">
         <div class="flex flex-auto flex-col h-full sm:col-span-2 lg:col-span-3">
-
-            <!-- Breadcrumb -->
-            <div class="pt-4 pb-2 text-default">
-                <p-breadcrumb [model]="breadcrumbItems" [home]="homeBreadcrumbItem" styleClass="bg-transparent border-none"></p-breadcrumb>
-            </div>
 
             <!-- Header -->
             <div class="flex flex-row items-center justify-between pt-6 pb-2">
@@ -23,26 +22,19 @@
 
             <!-- Content -->
             <div class="flex h-full overflow-y-auto bg-card rounded-md">
-                <p-table class="w-full" [value]="data" [totalRecords]="totalRecords" [scrollable]="true" scrollHeight="flex"
-                    [styleClass]="'p-datatable-lg'" [size]="'small'" [rows]="rowsPerPage" [first]="first"
-                    [paginator]="true" [pageLinks]="5" [lazy]="true" [lazyLoadOnInit]="false"
-                    rowGroupMode="subheader" groupRowsBy="tender" [(selection)]="selectedItems" [loading]="isLoading"
-                    [(expandedRowKeys)]="expandedRowKeys"
-                    (onRowSelect)="onSelectionChange()" (onRowUnselect)="onSelectionChange()"
-                    (onLazyLoad)="onPageChange($event)">
+                <p-table class="w-full" [value]="data" [totalRecords]="totalRecords" [scrollable]="true" scrollHeight="flex" [styleClass]="'p-datatable-lg'"
+                    [size]="'small'" [rows]="rowsPerPage" [first]="first" [paginator]="true" [pageLinks]="5" [lazy]="true" [lazyLoadOnInit]="false"
+                    rowGroupMode="subheader" groupRowsBy="tender" [(selection)]="selectedItems" [loading]="isLoading" [(expandedRowKeys)]="expandedRowKeys"
+                    (onRowSelect)="onSelectionChange()" (onRowUnselect)="onSelectionChange()" (onLazyLoad)="onPageChange($event)">
 
                     <ng-template pTemplate="header">
                         <tr>
                             <th class="w-20">
                                 <div class="flex items-center space-x-2">
-                                    <button pButton pRipple text rounded plain
-                                        class="w-8 h-8 text-default bg-transparent"
-                                        [icon]="isAllExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-                                        (click)="toggleExpandAll()">
+                                    <button pButton pRipple text rounded plain class="w-8 h-8 text-default bg-transparent"
+                                        [icon]="isAllExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" (click)="toggleExpandAll()">
                                     </button>
-                                    <p-checkbox [binary]="true"
-                                        [ngModel]="isAllSelectableFilesSelected()"
-                                        (ngModelChange)="toggleSelectAll()" />
+                                    <p-checkbox [binary]="true" [ngModel]="isAllSelectableFilesSelected()" (ngModelChange)="toggleSelectAll()" />
                                 </div>
                             </th>
                             <th class="min-w-20">{{t('file-label')}}</th>
@@ -63,8 +55,7 @@
                                     <button pButton pRipple [pRowToggler]="item" text rounded plain class="mr-2 w-8 h-8 text-default bg-transparent"
                                         [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
                                     </button>
-                                    <p-checkbox [binary]="true"
-                                        [ngModel]="getGroupCheckboxState(item.tender)"
+                                    <p-checkbox [binary]="true" [ngModel]="getGroupCheckboxState(item.tender)"
                                         (ngModelChange)="toggleGroupSelection(item.tender)" />
                                     <span class="ml-5">{{item.tender}}</span>
                                 </span>

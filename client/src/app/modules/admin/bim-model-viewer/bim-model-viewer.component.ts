@@ -91,7 +91,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
                             };
                         }
 
-                        if (res.status === 'complete') {                            
+                        if (res.status === 'complete') {
                             d.version += 1;
                             // this.isLoading = false;
                             this._changeDetectorRef.markForCheck();
@@ -163,14 +163,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
             routerLink: '/'
         };
 
-        this.breadcrumbItems = [
-            {
-                label: this._translocoService.translate('bim-file-management')
-            },
-            {
-                label: this._translocoService.translate('bim-model-viewer')
-            }
-        ];
+        this.breadcrumbItems = [{ label: this._translocoService.translate('bim-model-viewer') }];
     }
 
     // 初始化展開狀態（預設全部展開）
@@ -364,7 +357,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         //     this._toastService.open({ message: `${this._translocoService.translate('unsupported-aggregated-view')}.` });
         //     return;
         // }
-        
+
         this._matDialog.open(ApsViewerComponent, {
             width: '99vw',
             height: '95vh',
