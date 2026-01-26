@@ -11,6 +11,8 @@ import { SelectModule } from 'primeng/select';
 import { TreeSelectModule } from 'primeng/treeselect';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { TabsModule } from 'primeng/tabs';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { MenuItem } from 'primeng/api';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { ProcessFunctionsService } from './process-functions.service';
 import { FormsModule } from '@angular/forms';
@@ -32,7 +34,7 @@ import { GtsAlertComponent } from '@gts/components/alert';
         MatButtonModule, MatIconModule, MatMenuModule,
         TableModule, TranslocoModule, TabsModule,
         SelectModule, TreeSelectModule, OverlayModule, PortalModule,
-        AutoCompleteModule, ApsViewerComponent, GtsAlertComponent
+        AutoCompleteModule, ApsViewerComponent, GtsAlertComponent, BreadcrumbModule
     ],
     standalone: true
 })
@@ -44,6 +46,9 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     private _cache = new Map<string, any>();
     private _unsubscribeAll: Subject<void> = new Subject<void>();
+
+    breadcrumbItems: MenuItem[] = [];
+    homeBreadcrumbItem: MenuItem = {};
 
     // bimCriteria: any;
     regions: any;
@@ -126,6 +131,16 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.initBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.initBreadcrumb();
+            });
+
         this._route.data.subscribe({
             next: (res: any) => {
                 // this.regions = this.transformRegions(res.data.regions);
@@ -189,6 +204,20 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         //         this._changeDetectorRef.markForCheck();
         //     });
 
+    }
+
+    // 初始化 breadcrumb
+    initBreadcrumb(): void {
+        this.homeBreadcrumbItem = {
+            icon: 'pi pi-home',
+            routerLink: '/'
+        };
+
+        this.breadcrumbItems = [
+            {
+                label: this._translocoService.translate('bim-information-listing')
+            }
+        ];
     }
 
     // onNodeSelect() {

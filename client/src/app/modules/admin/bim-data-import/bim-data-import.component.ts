@@ -7,6 +7,8 @@ import { BimDataImportService } from './bim-data-import.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Table, TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { MenuItem } from 'primeng/api';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { WebsocketService } from 'app/core/services/websocket/websocket.service';
 import { ToastService } from 'app/layout/common/toast/toast.service';
@@ -21,7 +23,7 @@ import { GtsConfirmationService } from '@gts/services/confirmation';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-        TranslocoModule, TableModule, CheckboxModule, NgClass
+        TranslocoModule, TableModule, CheckboxModule, NgClass, BreadcrumbModule
     ]
 })
 export class BimDataImportComponent implements OnInit, OnDestroy {
@@ -34,6 +36,8 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     files: any[] = [];
     selectedFiles: any[] = [];
     isLoading: boolean = false;
+    breadcrumbItems: MenuItem[] = [];
+    homeBreadcrumbItem: MenuItem = {};
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -45,6 +49,16 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.initBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.initBreadcrumb();
+            });
+
         // Subscribe webSocket message
         this._websocketService.connect('progress');
         this._subscription.add(
@@ -88,6 +102,23 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                     console.error('Error loading data:', e);
                 }
             })
+    }
+
+    // 初始化 breadcrumb
+    initBreadcrumb(): void {
+        this.homeBreadcrumbItem = {
+            icon: 'pi pi-home',
+            routerLink: '/'
+        };
+
+        this.breadcrumbItems = [
+            {
+                label: this._translocoService.translate('bim-file-management')
+            },
+            {
+                label: this._translocoService.translate('bim-data-import')
+            }
+        ];
     }
 
     triggerFileInput(): void {
