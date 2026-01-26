@@ -4,13 +4,6 @@ from ..services import get_tender_name
 from .. import models
 
 
-class UploaderSerializer(serializers.Serializer):
-    """简化的用户序列化器，用于显示上传者信息"""
-    id = serializers.IntegerField()
-    username = serializers.CharField()
-    email = serializers.EmailField()
-
-
 class ModelSerializer(serializers.Serializer):
     bim_model_id = serializers.IntegerField()
     dbid = serializers.IntegerField()
@@ -44,7 +37,7 @@ class ObjectSerializer(serializers.Serializer):
 
 class BimModelSerializer(serializers.ModelSerializer):
     tender = serializers.SerializerMethodField()
-    uploader = UploaderSerializer(read_only=True)
+    uploader = serializers.SerializerMethodField()
 
     class Meta:
         model = models.BimModel
@@ -52,6 +45,15 @@ class BimModelSerializer(serializers.ModelSerializer):
 
     def get_tender(self, obj):
         return get_tender_name(obj.name)
+
+    def get_uploader(self, obj):
+        if obj.uploader:
+            return {
+                'id': obj.uploader.id,
+                'username': obj.uploader.username,
+                'email': obj.uploader.email
+            }
+        return None
 
 
 class BimCategorySerializer(serializers.ModelSerializer):
