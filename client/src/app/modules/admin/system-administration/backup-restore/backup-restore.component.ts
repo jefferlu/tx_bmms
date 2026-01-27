@@ -8,8 +8,8 @@ import { GtsAlertComponent } from '@gts/components/alert';
 import { TranslocoModule, TranslocoService, TranslocoEvents } from '@jsverse/transloco';
 import { BackupRestoreService } from './backup-restore.service';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
-import { filter, map, distinctUntilChanged } from 'rxjs/operators';
-import { map, Subject, Subscription, takeUntil, merge } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { map, Subject, Subscription, takeUntil } from 'rxjs';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { WebsocketService } from 'app/core/services/websocket/websocket.service';
@@ -49,18 +49,101 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 同時監聽語系切換和翻譯文件加載完成事件
-        // langChanges$: 當用戶切換語系時立即更新
-        // translationLoadSuccess: 當翻譯文件首次加載完成時更新
-        merge(
-            this._translocoService.langChanges$,
-            this._translocoService.events$.pipe(
+        // 監聽翻譯文件加載完成事件以更新 breadcrumb
+        this._translocoService.events$
+            .pipe(
                 filter(e => e.type === 'translationLoadSuccess'),
-                map(() => this._translocoService.getActiveLang())
+                takeUntil(this._unsubscribeAll)
             )
-        ).pipe(
-            distinctUntilChanged(),
-            takeUntil(this._unsubscribeAll)
-        ).subscribe(() => {
-            this.updateBreadcrumb();
+            .subscribe(() => {
+                this.updateBreadcrumb();
+            });
+
+        // Subscribe webSocket message
+        this._websocketService.connect('database');
+        this._subscription.add(
+            this._websocketService.onMessage('database').subscribe({
+                next: (res) => {
+
+                    // res.name = decodeURIComponent(res.name);
+                    // this.message += res.message + '\n';
+                    this.message = res.message;
+                    if (res.file) this.data.latest_backup = res.file;
+                    this._changeDetectorRef.markForCheck();
+                },
+                error: (err) => console.error('WebSocket error:', err),
+                complete: () => console.log('WebSocket connection closed.'),
+            })
+        );
+
+
+        // Get latest backup filename
+        this._backupRestoreService.getData('core/latest-backup')
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((data: any) => {
+                this.data = data;
+                this._changeDetectorRef.markForCheck();
+            });
+
+    }
+
+    onClick(): void {
+
+        const title = this._translocoService.translate('confirm-action');
+        const message = this._translocoService.translate('confirm-execution');
+        const executeLabel = this._translocoService.translate('start-execution');
+        const cancelLabel = this._translocoService.translate('cancel');
+
+        let dialogRef = this._gtsConfirmationService.open({
+            title: title,
+            message: message,
+            icon: { color: 'warn' },
+            actions: { confirm: { label: executeLabel, color: 'warn' }, cancel: { label: cancelLabel } }
+
         });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result === 'confirmed') {
+                this.execute();
+                this._changeDetectorRef.markForCheck();
+            }
+        });
+    }
+
+    execute(): void {
+        if (this.plan === 'backup') {
+            // execute backup
+            this._backupRestoreService.getData('core/db-backup')
+                .pipe(takeUntil(this._unsubscribeAll))
+                .subscribe((data: any) => { });
+        }
+        else {
+            // execute restore
+            this._backupRestoreService.getData('core/db-restore')
+                .pipe(takeUntil(this._unsubscribeAll))
+                .subscribe((data: any) => { });
+        }
+
+
+    }
+
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            {
+                label: this._translocoService.translate('system-administration')
+            },
+            {
+                label: this._translocoService.translate('backup-restore')
+            }
+        ]);
+    }
+
+    ngOnDestroy(): void {
+        this._breadcrumbService.clear();
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
+        this._subscription.unsubscribe();
+        this._websocketService.close('database');
+    }
+}
