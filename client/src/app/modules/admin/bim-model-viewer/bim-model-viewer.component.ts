@@ -9,8 +9,6 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
-import { BreadcrumbModule } from 'primeng/breadcrumb';
-import { MenuItem } from 'primeng/api';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component';
@@ -18,6 +16,7 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { WebsocketService } from 'app/core/services/websocket/websocket.service';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { Subject, Subscription, takeUntil } from 'rxjs';
 
 
@@ -28,7 +27,7 @@ import { Subject, Subscription, takeUntil } from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule,
-        MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule, BreadcrumbModule
+        MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule
     ]
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {
@@ -45,8 +44,6 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     groupCheckboxStates: { [key: string]: boolean } = {};
     expandedRowKeys: { [key: string]: boolean } = {};
     isAllExpanded: boolean = true;
-    breadcrumbItems: MenuItem[] = [];
-    homeBreadcrumbItem: MenuItem = {};
 
     constructor(
         private _route: ActivatedRoute,
@@ -56,18 +53,19 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         private _matDialog: MatDialog,
         private _gtsConfirmationService: GtsConfirmationService,
         private _bimModelViewerService: BimModelViewerService,
-        private _websocketService: WebsocketService
+        private _websocketService: WebsocketService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
         // 初始化 breadcrumb
-        this.initBreadcrumb();
+        this.updateBreadcrumb();
 
         // 監聽語系變化以更新 breadcrumb
         this._translocoService.langChanges$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(() => {
-                this.initBreadcrumb();
+                this.updateBreadcrumb();
             });
 
         // Subscribe webSocket message
@@ -156,14 +154,11 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         this.loadPage(page);
     }
 
-    // 初始化 breadcrumb
-    initBreadcrumb(): void {
-        this.homeBreadcrumbItem = {
-            icon: 'pi pi-home',
-            routerLink: '/'
-        };
-
-        this.breadcrumbItems = [{ label: this._translocoService.translate('bim-model-viewer') }];
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            { label: this._translocoService.translate('bim-model-viewer') }
+        ]);
     }
 
     // 初始化展開狀態（預設全部展開）
@@ -509,6 +504,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
         this._subscription.unsubscribe();

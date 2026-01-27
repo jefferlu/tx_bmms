@@ -6,9 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { TableModule } from 'primeng/table';
-import { BreadcrumbModule } from 'primeng/breadcrumb';
-import { MenuItem } from 'primeng/api';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { finalize, Subject, takeUntil } from 'rxjs';
 import { UsersService } from './users.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -33,7 +32,7 @@ import { UserGroupService } from '../user-group/user-group.service';
         NgTemplateOutlet, FormsModule, ReactiveFormsModule, DatePipe,
         MatInputModule, MatIconModule, MatFormFieldModule, MatSelectModule, MatDividerModule,
         MatSidenavModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatCheckboxModule,
-        MatProgressSpinnerModule, TranslocoModule, TableModule, MultiSelectModule, GtsMapByName, BreadcrumbModule
+        MatProgressSpinnerModule, TranslocoModule, TableModule, MultiSelectModule, GtsMapByName
     ],
 })
 export class UsersComponent implements OnInit, OnDestroy {
@@ -45,8 +44,6 @@ export class UsersComponent implements OnInit, OnDestroy {
     drawerMode: 'side' | 'over';
 
     form: UntypedFormGroup;
-    breadcrumbItems: MenuItem[] = [];
-    homeBreadcrumbItem: MenuItem = {};
 
     page: any = {
         data: null,
@@ -64,18 +61,19 @@ export class UsersComponent implements OnInit, OnDestroy {
         private _toastService: ToastService,
         private _translocoService: TranslocoService,
         private _groupsService: UserGroupService,
-        private _usersService: UsersService
+        private _usersService: UsersService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
         // 初始化 breadcrumb
-        this.initBreadcrumb();
+        this.updateBreadcrumb();
 
         // 監聽語系變化以更新 breadcrumb
         this._translocoService.langChanges$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(() => {
-                this.initBreadcrumb();
+                this.updateBreadcrumb();
             });
 
         this._gtsMediaWatcherService.onMediaChange$
@@ -260,24 +258,20 @@ export class UsersComponent implements OnInit, OnDestroy {
         return item.id || index;
     }
 
-    // 初始化 breadcrumb
-    initBreadcrumb(): void {
-        this.homeBreadcrumbItem = {
-            icon: 'pi pi-home',
-            routerLink: '/'
-        };
-
-        this.breadcrumbItems = [
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
             {
                 label: this._translocoService.translate('user-management')
             },
             {
                 label: this._translocoService.translate('user')
             }
-        ];
+        ]);
     }
 
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         // Unsubscribe from all subscriptions
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();

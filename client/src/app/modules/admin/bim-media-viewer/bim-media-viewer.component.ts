@@ -1,10 +1,9 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { BreadcrumbModule } from 'primeng/breadcrumb';
-import { MenuItem } from 'primeng/api';
 import { Subject, takeUntil } from 'rxjs';
 import { environment } from 'environments/environment';
 import { AuthService } from 'app/core/auth/auth.service';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 
 declare var $: any;
 const endpoint = environment.elfinder;
@@ -15,7 +14,7 @@ const endpoint = environment.elfinder;
     styleUrl: './bim-media-viewer.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [TranslocoModule, BreadcrumbModule]
+    imports: [TranslocoModule]
 })
 export class BimMediaViewerComponent implements OnInit, OnDestroy {
 
@@ -24,23 +23,22 @@ export class BimMediaViewerComponent implements OnInit, OnDestroy {
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     lang: any;
-    breadcrumbItems: MenuItem[] = [];
-    homeBreadcrumbItem: MenuItem = {};
 
     constructor(
         private _translocoService: TranslocoService,
-        private _authService: AuthService
+        private _authService: AuthService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
         // 初始化 breadcrumb
-        this.initBreadcrumb();
+        this.updateBreadcrumb();
 
         // 監聽語系變化以更新 breadcrumb
         this._translocoService.langChanges$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(() => {
-                this.initBreadcrumb();
+                this.updateBreadcrumb();
             });
     }
 
@@ -77,18 +75,13 @@ export class BimMediaViewerComponent implements OnInit, OnDestroy {
 
     }
 
-    // 初始化 breadcrumb
-    initBreadcrumb(): void {
-        this.homeBreadcrumbItem = {
-            icon: 'pi pi-home',
-            routerLink: '/'
-        };
-
-        this.breadcrumbItems = [
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
             {
                 label: this._translocoService.translate('digital-files')
             }
-        ];
+        ]);
     }
 
     private getViewerLanguage(lang: string): string {
@@ -102,6 +95,7 @@ export class BimMediaViewerComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
     }

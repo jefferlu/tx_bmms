@@ -11,9 +11,8 @@ import { SelectModule } from 'primeng/select';
 import { TreeSelectModule } from 'primeng/treeselect';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { TabsModule } from 'primeng/tabs';
-import { BreadcrumbModule } from 'primeng/breadcrumb';
-import { MenuItem } from 'primeng/api';
 import { ToastService } from 'app/layout/common/toast/toast.service';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { ProcessFunctionsService } from './process-functions.service';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -34,7 +33,7 @@ import { GtsAlertComponent } from '@gts/components/alert';
         MatButtonModule, MatIconModule, MatMenuModule,
         TableModule, TranslocoModule, TabsModule,
         SelectModule, TreeSelectModule, OverlayModule, PortalModule,
-        AutoCompleteModule, ApsViewerComponent, GtsAlertComponent, BreadcrumbModule
+        AutoCompleteModule, ApsViewerComponent, GtsAlertComponent
     ],
     standalone: true
 })
@@ -46,9 +45,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     private _cache = new Map<string, any>();
     private _unsubscribeAll: Subject<void> = new Subject<void>();
-
-    breadcrumbItems: MenuItem[] = [];
-    homeBreadcrumbItem: MenuItem = {};
 
     // bimCriteria: any;
     regions: any;
@@ -127,18 +123,19 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         private _translocoService: TranslocoService,
         private _gtsConfirmationService: GtsConfirmationService,
         private _toastService: ToastService,
-        private _processFunctionsService: ProcessFunctionsService
+        private _processFunctionsService: ProcessFunctionsService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
         // 初始化 breadcrumb
-        this.initBreadcrumb();
+        this.updateBreadcrumb();
 
         // 監聽語系變化以更新 breadcrumb
         this._translocoService.langChanges$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(() => {
-                this.initBreadcrumb();
+                this.updateBreadcrumb();
             });
 
         this._route.data.subscribe({
@@ -206,18 +203,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
     }
 
-    // 初始化 breadcrumb
-    initBreadcrumb(): void {
-        this.homeBreadcrumbItem = {
-            icon: 'pi pi-home',
-            routerLink: '/'
-        };
-
-        this.breadcrumbItems = [
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
             {
                 label: this._translocoService.translate('bim-information-listing')
             }
-        ];
+        ]);
     }
 
     // onNodeSelect() {
@@ -944,6 +936,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
     }

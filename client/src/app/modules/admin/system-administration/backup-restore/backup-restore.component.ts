@@ -6,9 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatRadioModule } from '@angular/material/radio';;
 import { GtsAlertComponent } from '@gts/components/alert';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { BreadcrumbModule } from 'primeng/breadcrumb';
-import { MenuItem } from 'primeng/api';
 import { BackupRestoreService } from './backup-restore.service';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { map, Subject, Subscription, takeUntil } from 'rxjs';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { ToastService } from 'app/layout/common/toast/toast.service';
@@ -23,7 +22,7 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
     imports: [
         TranslocoModule, NgClass, FormsModule,
         MatButtonModule, MatIconModule, MatRadioModule,
-        GtsAlertComponent, ScrollPanelModule, BreadcrumbModule
+        GtsAlertComponent, ScrollPanelModule
     ]
 })
 export class BackupRestoreComponent implements OnInit, OnDestroy {
@@ -34,8 +33,6 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
     data: any;
     plan: string = 'backup';
     message: string = '';
-    breadcrumbItems: MenuItem[] = [];
-    homeBreadcrumbItem: MenuItem = {};
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -43,18 +40,19 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
         private _toastService: ToastService,
         private _gtsConfirmationService: GtsConfirmationService,
         private _websocketService: WebsocketService,
-        private _backupRestoreService: BackupRestoreService
+        private _backupRestoreService: BackupRestoreService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
         // 初始化 breadcrumb
-        this.initBreadcrumb();
+        this.updateBreadcrumb();
 
         // 監聽語系變化以更新 breadcrumb
         this._translocoService.langChanges$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(() => {
-                this.initBreadcrumb();
+                this.updateBreadcrumb();
             });
 
         // Subscribe webSocket message
@@ -125,24 +123,20 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
 
     }
 
-    // 初始化 breadcrumb
-    initBreadcrumb(): void {
-        this.homeBreadcrumbItem = {
-            icon: 'pi pi-home',
-            routerLink: '/'
-        };
-
-        this.breadcrumbItems = [
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
             {
                 label: this._translocoService.translate('system-administration')
             },
             {
                 label: this._translocoService.translate('backup-restore')
             }
-        ];
+        ]);
     }
 
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
         this._subscription.unsubscribe();
