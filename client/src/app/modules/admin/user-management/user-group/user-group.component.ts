@@ -16,6 +16,8 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { TableModule } from 'primeng/table';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { MenuItem } from 'primeng/api';
 
 import { GtsMediaWatcherService } from '@gts/services/media-watcher';
 import { GtsConfirmationService } from '@gts/services/confirmation';
@@ -33,7 +35,7 @@ import { PermissionService, UserGroupService } from './user-group.service';
         NgTemplateOutlet, FormsModule, ReactiveFormsModule, ToggleSwitchModule,
         MatInputModule, MatIconModule, MatFormFieldModule, MatSelectModule, MatDividerModule,
         MatSidenavModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatCheckboxModule,
-        MatProgressSpinnerModule, TranslocoModule, TableModule, MultiSelectModule,
+        MatProgressSpinnerModule, TranslocoModule, TableModule, MultiSelectModule, BreadcrumbModule
     ],
 })
 export class UserGroupComponent implements OnInit, OnDestroy {
@@ -46,6 +48,8 @@ export class UserGroupComponent implements OnInit, OnDestroy {
     form: any = {
 
     }
+    breadcrumbItems: MenuItem[] = [];
+    homeBreadcrumbItem: MenuItem = {};
 
     page: any = {
         name: null,
@@ -69,6 +73,15 @@ export class UserGroupComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.initBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.initBreadcrumb();
+            });
 
         this._gtsMediaWatcherService.onMediaChange$
             .pipe(takeUntil(this._unsubscribeAll))
@@ -317,7 +330,25 @@ export class UserGroupComponent implements OnInit, OnDestroy {
         return item.id || index;
     }
 
-    ngOnDestroy(): void {
+    // 初始化 breadcrumb
+    initBreadcrumb(): void {
+        this.homeBreadcrumbItem = {
+            icon: 'pi pi-home',
+            routerLink: '/'
+        };
 
+        this.breadcrumbItems = [
+            {
+                label: this._translocoService.translate('user-management')
+            },
+            {
+                label: this._translocoService.translate('role')
+            }
+        ];
+    }
+
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
     }
 }
