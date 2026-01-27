@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { TranslocoModule, TranslocoService, TranslocoEvents } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { Subject, takeUntil } from 'rxjs';
-import { filter } from 'rxjs/operators';
 import { environment } from 'environments/environment';
 import { AuthService } from 'app/core/auth/auth.service';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
@@ -35,12 +34,9 @@ export class BimMediaViewerComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽翻譯文件加載完成事件以更新 breadcrumb
-        this._translocoService.events$
-            .pipe(
-                filter(e => e.type === 'translationLoadSuccess'),
-                takeUntil(this._unsubscribeAll)
-            )
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(() => {
                 this.updateBreadcrumb();
             });

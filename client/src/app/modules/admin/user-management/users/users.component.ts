@@ -6,10 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { TableModule } from 'primeng/table';
-import { TranslocoModule, TranslocoService, TranslocoEvents } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { finalize, Subject, takeUntil } from 'rxjs';
-import { filter } from 'rxjs/operators';
 import { UsersService } from './users.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -70,12 +69,9 @@ export class UsersComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽翻譯文件加載完成事件以更新 breadcrumb
-        this._translocoService.events$
-            .pipe(
-                filter(e => e.type === 'translationLoadSuccess'),
-                takeUntil(this._unsubscribeAll)
-            )
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(() => {
                 this.updateBreadcrumb();
             });

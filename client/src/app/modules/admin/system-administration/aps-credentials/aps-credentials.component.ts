@@ -6,11 +6,10 @@ import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { TranslocoModule, TranslocoService, TranslocoEvents } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ApsCredentialsService } from './aps-credentials.service';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
-import { filter } from 'rxjs/operators';
 
 
 @Component({
@@ -43,12 +42,9 @@ export class ApsCredentialsComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽翻譯文件加載完成事件以更新 breadcrumb
-        this._translocoService.events$
-            .pipe(
-                filter(e => e.type === 'translationLoadSuccess'),
-                takeUntil(this._unsubscribeAll)
-            )
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(() => {
                 this.updateBreadcrumb();
             });

@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, ElementRef, TemplateRef } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil, finalize, filter } from 'rxjs/operators';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
-import { TranslocoModule, TranslocoService, TranslocoEvents } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { TreeSelectModule } from 'primeng/treeselect';
@@ -131,13 +131,9 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽翻譯文件加載完成事件以更新 breadcrumb
-        // 使用 events$ 而不是 langChanges$ 以確保翻譯文件已完全加載
-        this._translocoService.events$
-            .pipe(
-                filter(e => e.type === 'translationLoadSuccess'),
-                takeUntil(this._unsubscribeAll)
-            )
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(() => {
                 this.updateBreadcrumb();
             });

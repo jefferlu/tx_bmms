@@ -6,8 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
-import { TranslocoModule, TranslocoService, TranslocoEvents } from '@jsverse/transloco';
-import { filter } from 'rxjs/operators';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -75,12 +74,9 @@ export class UserGroupComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽翻譯文件加載完成事件以更新 breadcrumb
-        this._translocoService.events$
-            .pipe(
-                filter(e => e.type === 'translationLoadSuccess'),
-                takeUntil(this._unsubscribeAll)
-            )
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(() => {
                 this.updateBreadcrumb();
             });
