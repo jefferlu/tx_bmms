@@ -5,9 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRadioModule } from '@angular/material/radio';;
 import { GtsAlertComponent } from '@gts/components/alert';
-import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService, TranslocoEvents } from '@jsverse/transloco';
 import { BackupRestoreService } from './backup-restore.service';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
+import { filter } from 'rxjs/operators';
 import { map, Subject, Subscription, takeUntil } from 'rxjs';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { ToastService } from 'app/layout/common/toast/toast.service';
@@ -48,9 +49,12 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽語系變化以更新 breadcrumb
-        this._translocoService.langChanges$
-            .pipe(takeUntil(this._unsubscribeAll))
+        // 監聽翻譯文件加載完成事件以更新 breadcrumb
+        this._translocoService.events$
+            .pipe(
+                filter(e => e.type === 'translationLoadSuccess'),
+                takeUntil(this._unsubscribeAll)
+            )
             .subscribe(() => {
                 this.updateBreadcrumb();
             });

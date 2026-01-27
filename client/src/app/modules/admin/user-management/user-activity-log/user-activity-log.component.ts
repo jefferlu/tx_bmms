@@ -4,9 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService, TranslocoEvents } from '@jsverse/transloco';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { UserActivityLogService } from './user-activity-log.service';
 import { MatMenuModule } from '@angular/material/menu';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
@@ -42,9 +43,12 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽語系變化以更新 breadcrumb
-        this._translocoService.langChanges$
-            .pipe(takeUntil(this._unsubscribeAll))
+        // 監聽翻譯文件加載完成事件以更新 breadcrumb
+        this._translocoService.events$
+            .pipe(
+                filter(e => e.type === 'translationLoadSuccess'),
+                takeUntil(this._unsubscribeAll)
+            )
             .subscribe(() => {
                 this.updateBreadcrumb();
             });
