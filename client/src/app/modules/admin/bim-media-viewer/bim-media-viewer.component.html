@@ -1,1 +1,15 @@
-<div #elfinder></div>
+<div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full" *transloco="let t">
+    <div class="mx-auto flex w-full h-full flex-wrap p-6">
+        <div class="flex flex-auto flex-col h-full">
+
+            <!-- Breadcrumb -->
+            <div class="pt-4 pb-2 text-default">
+                <p-breadcrumb [model]="breadcrumbItems" [home]="homeBreadcrumbItem" styleClass="bg-transparent border-none"></p-breadcrumb>
+            </div>
+
+            <!-- Content -->
+            <div #elfinder class="flex-auto"></div>
+
+        </div>
+    </div>
+</div>

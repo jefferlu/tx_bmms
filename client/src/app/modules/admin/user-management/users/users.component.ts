@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { TableModule } from 'primeng/table';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { MenuItem } from 'primeng/api';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { finalize, Subject, takeUntil } from 'rxjs';
 import { UsersService } from './users.service';
@@ -31,7 +33,7 @@ import { UserGroupService } from '../user-group/user-group.service';
         NgTemplateOutlet, FormsModule, ReactiveFormsModule, DatePipe,
         MatInputModule, MatIconModule, MatFormFieldModule, MatSelectModule, MatDividerModule,
         MatSidenavModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatCheckboxModule,
-        MatProgressSpinnerModule, TranslocoModule, TableModule, MultiSelectModule, GtsMapByName
+        MatProgressSpinnerModule, TranslocoModule, TableModule, MultiSelectModule, GtsMapByName, BreadcrumbModule
     ],
 })
 export class UsersComponent implements OnInit, OnDestroy {
@@ -43,6 +45,8 @@ export class UsersComponent implements OnInit, OnDestroy {
     drawerMode: 'side' | 'over';
 
     form: UntypedFormGroup;
+    breadcrumbItems: MenuItem[] = [];
+    homeBreadcrumbItem: MenuItem = {};
 
     page: any = {
         data: null,
@@ -64,6 +68,16 @@ export class UsersComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.initBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.initBreadcrumb();
+            });
+
         this._gtsMediaWatcherService.onMediaChange$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(({ matchingAliases }) => {
@@ -244,6 +258,23 @@ export class UsersComponent implements OnInit, OnDestroy {
 
     trackByFn(index: number, item: any): any {
         return item.id || index;
+    }
+
+    // 初始化 breadcrumb
+    initBreadcrumb(): void {
+        this.homeBreadcrumbItem = {
+            icon: 'pi pi-home',
+            routerLink: '/'
+        };
+
+        this.breadcrumbItems = [
+            {
+                label: this._translocoService.translate('user-management')
+            },
+            {
+                label: this._translocoService.translate('user')
+            }
+        ];
     }
 
     ngOnDestroy(): void {
