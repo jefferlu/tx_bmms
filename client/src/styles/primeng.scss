@@ -324,12 +324,15 @@
 }
 
 /* Breadcrumb */
+.p-breadcrumb {
+  @apply pb-2 dark:pb-2;
+}
 .p-breadcrumb-separator {
-  @apply dark:text-slate-400;
+  @apply dark:text-white;
 }
 .p-breadcrumb-item-icon {
-  @apply dark:text-slate-400;
+  @apply dark:text-white;
 }
 .p-breadcrumb-item-link {
-  @apply dark:text-slate-400;
+  @apply dark:text-white;
 }
