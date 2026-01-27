@@ -1,6 +1,11 @@
 <div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full">
 
     <div class="flex flex-auto flex-col h-full bg-white dark:bg-gray-900" *transloco="let t">
+        <!-- Breadcrumb -->
+        <div class="pt-4 pb-2 px-6 text-default">
+            <p-breadcrumb [model]="breadcrumbItems" [home]="homeBreadcrumbItem" styleClass="bg-transparent border-none"></p-breadcrumb>
+        </div>
+
         <!-- Header -->
         <div class="flex flex-row items-center px-6 py-6 md:px-8">
             <div class="ml-4 flex min-w-0 flex-col">

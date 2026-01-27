@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatRadioModule } from '@angular/material/radio';;
 import { GtsAlertComponent } from '@gts/components/alert';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { MenuItem } from 'primeng/api';
 import { BackupRestoreService } from './backup-restore.service';
 import { map, Subject, Subscription, takeUntil } from 'rxjs';
 import { GtsConfirmationService } from '@gts/services/confirmation';
@@ -21,7 +23,7 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
     imports: [
         TranslocoModule, NgClass, FormsModule,
         MatButtonModule, MatIconModule, MatRadioModule,
-        GtsAlertComponent, ScrollPanelModule
+        GtsAlertComponent, ScrollPanelModule, BreadcrumbModule
     ]
 })
 export class BackupRestoreComponent implements OnInit, OnDestroy {
@@ -32,6 +34,8 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
     data: any;
     plan: string = 'backup';
     message: string = '';
+    breadcrumbItems: MenuItem[] = [];
+    homeBreadcrumbItem: MenuItem = {};
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -43,6 +47,15 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.initBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.initBreadcrumb();
+            });
 
         // Subscribe webSocket message
         this._websocketService.connect('database');
@@ -110,6 +123,23 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
         }
 
 
+    }
+
+    // 初始化 breadcrumb
+    initBreadcrumb(): void {
+        this.homeBreadcrumbItem = {
+            icon: 'pi pi-home',
+            routerLink: '/'
+        };
+
+        this.breadcrumbItems = [
+            {
+                label: this._translocoService.translate('system-administration')
+            },
+            {
+                label: this._translocoService.translate('backup-restore')
+            }
+        ];
     }
 
     ngOnDestroy(): void {

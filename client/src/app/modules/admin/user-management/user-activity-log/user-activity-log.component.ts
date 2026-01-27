@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { MenuItem } from 'primeng/api';
 import { Subject, takeUntil } from 'rxjs';
 import { UserActivityLogService } from './user-activity-log.service';
 import { MatMenuModule } from '@angular/material/menu';
@@ -17,7 +19,7 @@ import { MatMenuModule } from '@angular/material/menu';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         FormsModule, TranslocoModule, TableModule, DatePipe,
-        MatIconModule, MatButtonModule, MatInputModule, MatMenuModule
+        MatIconModule, MatButtonModule, MatInputModule, MatMenuModule, BreadcrumbModule
     ],
 })
 export class UserActivityLogComponent implements OnInit, OnDestroy {
@@ -29,6 +31,8 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
     rowsPerPage: number = 100;
     searchBinName: string = '';
     isLoading: boolean = false;
+    breadcrumbItems: MenuItem[] = [];
+    homeBreadcrumbItem: MenuItem = {};
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -37,6 +41,16 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.initBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.initBreadcrumb();
+            });
+
         this._userActivityLogService.data$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((data: any) => {
@@ -181,6 +195,23 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
                     this._changeDetectorRef.markForCheck();
                 }
             });
+    }
+
+    // 初始化 breadcrumb
+    initBreadcrumb(): void {
+        this.homeBreadcrumbItem = {
+            icon: 'pi pi-home',
+            routerLink: '/'
+        };
+
+        this.breadcrumbItems = [
+            {
+                label: this._translocoService.translate('user-management')
+            },
+            {
+                label: this._translocoService.translate('user-activity-log')
+            }
+        ];
     }
 
     ngOnDestroy(): void {
