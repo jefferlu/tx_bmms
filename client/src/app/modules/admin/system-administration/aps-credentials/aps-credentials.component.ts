@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { finalize, Subject, takeUntil } from 'rxjs';
+import { finalize, Subject, takeUntil, merge } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,7 +10,7 @@ import { TranslocoModule, TranslocoService, TranslocoEvents } from '@jsverse/tra
 import { ApsCredentialsService } from './aps-credentials.service';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
-import { filter } from 'rxjs/operators';
+import { filter, map, distinctUntilChanged } from 'rxjs/operators';
 
 
 @Component({
@@ -43,71 +43,18 @@ export class ApsCredentialsComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽翻譯文件加載完成事件以更新 breadcrumb
-        this._translocoService.events$
-            .pipe(
+        // 同時監聽語系切換和翻譯文件加載完成事件
+        // langChanges$: 當用戶切換語系時立即更新
+        // translationLoadSuccess: 當翻譯文件首次加載完成時更新
+        merge(
+            this._translocoService.langChanges$,
+            this._translocoService.events$.pipe(
                 filter(e => e.type === 'translationLoadSuccess'),
-                takeUntil(this._unsubscribeAll)
+                map(() => this._translocoService.getActiveLang())
             )
-            .subscribe(() => {
-                this.updateBreadcrumb();
-            });
-
-        this._apsCredentialsService.getData()
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((data: any) => {
-                this.data = data[0];
-                this.form.patchValue({
-                    client_id: data[0].client_id,
-                    client_secret: data[0].client_secret
-                })
-            })
-
-        this.form = this._formBuilder.group({
-            client_id: ['', Validators.required],
-            client_secret: ['', Validators.required],
+        ).pipe(
+            distinctUntilChanged(),
+            takeUntil(this._unsubscribeAll)
+        ).subscribe(() => {
+            this.updateBreadcrumb();
         });
-    }
-
-    onSave(): void {
-
-        if (this.form.invalid) return;
-
-        let request = this.form.value;
-        
-        // Update
-        if (this.data.id) {
-            request.id = this.data.id;
-            request.company=this.data.company;
-
-            this._apsCredentialsService.update(request).pipe(
-                finalize(() => {
-                })
-            ).subscribe({
-                next: (res) => {
-                    if (res) {
-                        this._toastService.open({ message: this._translocoService.translate('update-success') });
-                    }
-                }
-            });
-        }
-    }
-
-    // 更新 breadcrumb
-    private updateBreadcrumb(): void {
-        this._breadcrumbService.setBreadcrumb([
-            {
-                label: this._translocoService.translate('system-administration')
-            },
-            {
-                label: this._translocoService.translate('aps-account')
-            }
-        ]);
-    }
-
-    ngOnDestroy(): void {
-        this._breadcrumbService.clear();
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
-}

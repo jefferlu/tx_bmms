@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
-import { finalize, Subject, Subscription, takeUntil } from 'rxjs';
+import { finalize, Subject, Subscription, takeUntil, merge } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { BimDataImportService } from './bim-data-import.service';
@@ -13,7 +13,7 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
 import { NgClass } from '@angular/common';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
-import { filter } from 'rxjs/operators';
+import { filter, map, distinctUntilChanged } from 'rxjs/operators';
 
 
 @Component({
@@ -51,15 +51,21 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽翻譯文件加載完成事件以更新 breadcrumb
-        this._translocoService.events$
-            .pipe(
+        // 同時監聽語系切換和翻譯文件加載完成事件
+        // langChanges$: 當用戶切換語系時立即更新
+        // translationLoadSuccess: 當翻譯文件首次加載完成時更新
+        merge(
+            this._translocoService.langChanges$,
+            this._translocoService.events$.pipe(
                 filter(e => e.type === 'translationLoadSuccess'),
-                takeUntil(this._unsubscribeAll)
+                map(() => this._translocoService.getActiveLang())
             )
-            .subscribe(() => {
-                this.updateBreadcrumb();
-            });
+        ).pipe(
+            distinctUntilChanged(),
+            takeUntil(this._unsubscribeAll)
+        ).subscribe(() => {
+            this.updateBreadcrumb();
+        });
 
         // Subscribe webSocket message
         this._websocketService.connect('progress');

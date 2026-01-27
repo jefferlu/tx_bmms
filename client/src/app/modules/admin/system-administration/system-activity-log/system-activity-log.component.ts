@@ -6,8 +6,8 @@ import { MatInputModule } from '@angular/material/input';
 import { TranslocoModule, TranslocoService, TranslocoEvents } from '@jsverse/transloco';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { RadioButtonModule } from 'primeng/radiobutton';
-import { Subject, takeUntil } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { Subject, takeUntil, merge } from 'rxjs';
+import { filter, map, distinctUntilChanged } from 'rxjs/operators';
 import { SystemActivityLogService } from './system-activity-log.service';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 
@@ -42,50 +42,18 @@ export class SystemActivityLogComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽翻譯文件加載完成事件以更新 breadcrumb
-        this._translocoService.events$
-            .pipe(
+        // 同時監聽語系切換和翻譯文件加載完成事件
+        // langChanges$: 當用戶切換語系時立即更新
+        // translationLoadSuccess: 當翻譯文件首次加載完成時更新
+        merge(
+            this._translocoService.langChanges$,
+            this._translocoService.events$.pipe(
                 filter(e => e.type === 'translationLoadSuccess'),
-                takeUntil(this._unsubscribeAll)
+                map(() => this._translocoService.getActiveLang())
             )
-            .subscribe(() => {
-                this.updateBreadcrumb();
-            });
-
-        // Get groups data
-        this._systemActivityLogService.getData(this.container, { lines: LINES })
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((data: any) => {
-                this.data = data;
-                this._changeDetectorRef.markForCheck();
-            });
-    }
-
-    onClick(container): void {
-        // Get groups data
-        this._systemActivityLogService.getData(container, { lines: LINES })
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((data: any) => {
-                this.data = data;
-                this._changeDetectorRef.markForCheck();
-            });
-    }
-
-    // 更新 breadcrumb
-    private updateBreadcrumb(): void {
-        this._breadcrumbService.setBreadcrumb([
-            {
-                label: this._translocoService.translate('system-administration')
-            },
-            {
-                label: this._translocoService.translate('system-log-query')
-            }
-        ]);
-    }
-
-    ngOnDestroy(): void {
-        this._breadcrumbService.clear();
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
-}
+        ).pipe(
+            distinctUntilChanged(),
+            takeUntil(this._unsubscribeAll)
+        ).subscribe(() => {
+            this.updateBreadcrumb();
+        });

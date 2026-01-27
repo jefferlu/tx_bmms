@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { TranslocoModule, TranslocoService, TranslocoEvents } from '@jsverse/transloco';
-import { Subject, takeUntil } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { Subject, takeUntil, merge } from 'rxjs';
+import { filter, map, distinctUntilChanged } from 'rxjs/operators';
 import { environment } from 'environments/environment';
 import { AuthService } from 'app/core/auth/auth.service';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
@@ -35,72 +35,18 @@ export class BimMediaViewerComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽翻譯文件加載完成事件以更新 breadcrumb
-        this._translocoService.events$
-            .pipe(
+        // 同時監聽語系切換和翻譯文件加載完成事件
+        // langChanges$: 當用戶切換語系時立即更新
+        // translationLoadSuccess: 當翻譯文件首次加載完成時更新
+        merge(
+            this._translocoService.langChanges$,
+            this._translocoService.events$.pipe(
                 filter(e => e.type === 'translationLoadSuccess'),
-                takeUntil(this._unsubscribeAll)
+                map(() => this._translocoService.getActiveLang())
             )
-            .subscribe(() => {
-                this.updateBreadcrumb();
-            });
-    }
-
-    ngAfterViewInit(): void {
-
-        this.lang = this.getViewerLanguage(this._translocoService.getActiveLang());
-
-        $(this.elfinderDiv.nativeElement).elfinder({
-            cssAutoLoad: false,               // Disable CSS auto loading
-            baseUrl: './elfinder/',
-            url: `${endpoint}/elfinder/php/connector.minimal.php`,  // connector URL (REQUIRED)
-            lang: this.lang,                // language (OPTIONAL)
-            height: 'auto',
-            width: '100%',
-            customHeaders: {
-                'Authorization': `Bearer ${this._authService.accessToken}`
-            }
-        }, (fm: any) => {
-            // `init` event callback function
-            fm.bind('init', function () { });
-            // Optional for set document.title dynamically.
-            var title = document.title;
-            fm.bind('open', function () {
-                var path = '',
-                    cwd = fm.cwd();
-                if (cwd) {
-                    path = fm.path(cwd.hash) || null;
-                }
-                document.title = path ? path + ':' + title : title;
-            }).bind('destroy', function () {
-                document.title = title;
-            });
+        ).pipe(
+            distinctUntilChanged(),
+            takeUntil(this._unsubscribeAll)
+        ).subscribe(() => {
+            this.updateBreadcrumb();
         });
-
-    }
-
-    // 更新 breadcrumb
-    private updateBreadcrumb(): void {
-        this._breadcrumbService.setBreadcrumb([
-            {
-                label: this._translocoService.translate('digital-files')
-            }
-        ]);
-    }
-
-    private getViewerLanguage(lang: string): string {
-        switch (lang) {
-            case 'zh':
-                return 'zh_TW';  // Fixed: use underscore to match actual file name
-            case 'en':
-            default:  // 默認為英文
-                return 'en';
-        }
-    }
-
-    ngOnDestroy(): void {
-        this._breadcrumbService.clear();
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
-}

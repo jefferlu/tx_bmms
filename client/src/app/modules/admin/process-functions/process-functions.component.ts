@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, ElementRef, TemplateRef } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil, finalize, filter } from 'rxjs/operators';
+import { Subject, merge } from 'rxjs';
+import { takeUntil, finalize, filter, map, distinctUntilChanged } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
@@ -131,16 +131,21 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         // 初始化 breadcrumb
         this.updateBreadcrumb();
 
-        // 監聽翻譯文件加載完成事件以更新 breadcrumb
-        // 使用 events$ 而不是 langChanges$ 以確保翻譯文件已完全加載
-        this._translocoService.events$
-            .pipe(
+        // 同時監聽語系切換和翻譯文件加載完成事件
+        // langChanges$: 當用戶切換語系時立即更新
+        // translationLoadSuccess: 當翻譯文件首次加載完成時更新
+        merge(
+            this._translocoService.langChanges$,
+            this._translocoService.events$.pipe(
                 filter(e => e.type === 'translationLoadSuccess'),
-                takeUntil(this._unsubscribeAll)
+                map(() => this._translocoService.getActiveLang())
             )
-            .subscribe(() => {
-                this.updateBreadcrumb();
-            });
+        ).pipe(
+            distinctUntilChanged(),
+            takeUntil(this._unsubscribeAll)
+        ).subscribe(() => {
+            this.updateBreadcrumb();
+        });
 
         this._route.data.subscribe({
             next: (res: any) => {
