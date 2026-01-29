@@ -9,8 +9,8 @@ export class BimModelViewerService {
 
     constructor(private _appService: AppService) { }
 
-    getData(slug?: any): Observable<any> {
-        return this._appService.get('forge/bim-model', slug);
+    getData(params?: any): Observable<any> {
+        return this._appService.get('forge/bim-model', params);
     }
 
     downloadCsv(fileName: string) {

@@ -12,6 +12,7 @@ import { TreeSelectModule } from 'primeng/treeselect';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { TabsModule } from 'primeng/tabs';
 import { ToastService } from 'app/layout/common/toast/toast.service';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { ProcessFunctionsService } from './process-functions.service';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -122,10 +123,21 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         private _translocoService: TranslocoService,
         private _gtsConfirmationService: GtsConfirmationService,
         private _toastService: ToastService,
-        private _processFunctionsService: ProcessFunctionsService
+        private _processFunctionsService: ProcessFunctionsService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.updateBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.updateBreadcrumb();
+            });
+
         this._route.data.subscribe({
             next: (res: any) => {
                 // this.regions = this.transformRegions(res.data.regions);
@@ -189,6 +201,15 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         //         this._changeDetectorRef.markForCheck();
         //     });
 
+    }
+
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            {
+                label: this._translocoService.translate('bim-information-listing')
+            }
+        ]);
     }
 
     // onNodeSelect() {
@@ -915,6 +936,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
     }

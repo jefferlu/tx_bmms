@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { finalize, Subject, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ApsCredentialsService } from './aps-credentials.service';
 import { ToastService } from 'app/layout/common/toast/toast.service';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 
 
 @Component({
@@ -22,7 +23,7 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
         MatButtonModule, MatIconModule, MatDialogModule, MatFormFieldModule, MatInputModule
     ],
 })
-export class ApsCredentialsComponent implements OnInit {
+export class ApsCredentialsComponent implements OnInit, OnDestroy {
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
@@ -33,10 +34,21 @@ export class ApsCredentialsComponent implements OnInit {
         private _formBuilder: UntypedFormBuilder,
         private _translocoService: TranslocoService,
         private _toastService: ToastService,
-        private _apsCredentialsService: ApsCredentialsService
+        private _apsCredentialsService: ApsCredentialsService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.updateBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.updateBreadcrumb();
+            });
+
         this._apsCredentialsService.getData()
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((data: any) => {
@@ -75,5 +87,23 @@ export class ApsCredentialsComponent implements OnInit {
                 }
             });
         }
+    }
+
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            {
+                label: this._translocoService.translate('system-administration')
+            },
+            {
+                label: this._translocoService.translate('aps-account')
+            }
+        ]);
+    }
+
+    ngOnDestroy(): void {
+        this._breadcrumbService.clear();
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
     }
 }

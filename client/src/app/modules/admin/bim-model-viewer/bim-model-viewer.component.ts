@@ -7,7 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
-import { TableModule } from 'primeng/table';
+import { TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { CheckboxModule } from 'primeng/checkbox';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component';
@@ -15,6 +16,7 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { WebsocketService } from 'app/core/services/websocket/websocket.service';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { Subject, Subscription, takeUntil } from 'rxjs';
 
 
@@ -25,7 +27,7 @@ import { Subject, Subscription, takeUntil } from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule,
-        MatIconModule, MatButtonModule, MatInputModule, NgClass
+        MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule
     ]
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {
@@ -33,9 +35,15 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     private _subscription: Subscription = new Subscription();
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-    data: any;
-    selectedItems!: any;
+    data: any[] = [];
+    totalRecords: number = 0;
+    first: number = 0;
+    rowsPerPage: number = 10;
+    selectedItems: any[] = [];
     isLoading: boolean = false;
+    groupCheckboxStates: { [key: string]: boolean } = {};
+    expandedRowKeys: { [key: string]: boolean } = {};
+    isAllExpanded: boolean = true;
 
     constructor(
         private _route: ActivatedRoute,
@@ -45,16 +53,26 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         private _matDialog: MatDialog,
         private _gtsConfirmationService: GtsConfirmationService,
         private _bimModelViewerService: BimModelViewerService,
-        private _websocketService: WebsocketService
+        private _websocketService: WebsocketService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.updateBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.updateBreadcrumb();
+            });
+
         // Subscribe webSocket message
         this._websocketService.connect('update-category');
         this._subscription.add(
             this._websocketService.onMessage('update-category').subscribe({
                 next: (res) => {
-                    // console.log(res)
                     // this.isLoading = true;
                     // this._changeDetectorRef.markForCheck();
 
@@ -72,7 +90,6 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
                         }
 
                         if (res.status === 'complete') {
-                            console.log('complete')
                             d.version += 1;
                             // this.isLoading = false;
                             this._changeDetectorRef.markForCheck();
@@ -90,9 +107,12 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
         this._route.data.subscribe({
             next: (res) => {
-                this.data = res.data;
+                if (res.data) {
+                    this.data = res.data.results || res.data;
+                    this.totalRecords = res.data.count || this.data.length;
+                    this.initializeExpandedState();
+                }
                 this._changeDetectorRef.markForCheck();
-                console.log('Data loaded:', this.data);
             },
             error: (e) => {
                 console.error('Error loading data:', e);
@@ -100,8 +120,231 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         });
     }
 
+    // 載入指定頁面的資料
+    loadPage(page: number): void {
+        this.isLoading = true;
+        const params = {
+            page: page,
+            size: this.rowsPerPage
+        };
+
+        this._bimModelViewerService.getData(params)
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe({
+                next: (res) => {
+                    this.data = res.results || res;
+                    this.totalRecords = res.count || this.data.length;
+                    this.initializeExpandedState();
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                },
+                error: (e) => {
+                    console.error('Error loading data:', e);
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                }
+            });
+    }
+
+    // 處理分頁變化事件
+    onPageChange(event: TableLazyLoadEvent): void {
+        this.first = event.first || 0;
+        this.rowsPerPage = event.rows || this.rowsPerPage;
+        const page = this.first / this.rowsPerPage + 1;
+        this.loadPage(page);
+    }
+
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            { label: this._translocoService.translate('bim-model-viewer') }
+        ]);
+    }
+
+    // 初始化展開狀態（預設全部展開）
+    initializeExpandedState(): void {
+        if (!this.data) return;
+
+        const tenders = [...new Set(this.data.map((item: any) => item.tender as string))];
+        const newExpandedKeys: { [key: string]: boolean } = {};
+        tenders.forEach((tender: string) => {
+            newExpandedKeys[tender] = false; // 預設全部收合
+        });
+        this.expandedRowKeys = newExpandedKeys;
+        this.isAllExpanded = false;
+    }
+
+    // 切換全部展開/收合
+    toggleExpandAll(): void {
+        if (!this.data) return;
+
+        const tenders = [...new Set(this.data.map((item: any) => item.tender as string))];
+        const newExpandedKeys: { [key: string]: boolean } = {};
+
+        // 如果當前是全部展開，則全部收合；否則全部展開
+        const newState = !this.isAllExpanded;
+        tenders.forEach((tender: string) => {
+            newExpandedKeys[tender] = newState;
+        });
+
+        this.expandedRowKeys = newExpandedKeys;
+        this.isAllExpanded = newState;
+        this._changeDetectorRef.detectChanges();
+    }
+
+    // 獲取所有可選擇的檔案（status 為空或 complete）
+    getSelectableFiles(): any[] {
+        if (!this.data) return [];
+        return this.data.filter(item => !item.status || item.status === 'complete');
+    }
+
+    // 檢查是否所有可選檔案都已被選中
+    isAllSelectableFilesSelected(): boolean {
+        const selectableFiles = this.getSelectableFiles();
+        if (selectableFiles.length === 0) return false;
+
+        return selectableFiles.every(file =>
+            this.selectedItems.some(selected => selected.name === file.name)
+        );
+    }
+
+    // 全選/取消全選
+    toggleSelectAll(): void {
+        const selectableFiles = this.getSelectableFiles();
+
+        if (this.isAllSelectableFilesSelected()) {
+            this.selectedItems = [];
+            // 清除所有分組狀態 - 創建新物件以觸發變更檢測
+            this.groupCheckboxStates = {};
+        } else {
+            this.selectedItems = [...selectableFiles];
+            // 更新所有分組狀態為選中
+            this.updateAllGroupStates();
+        }
+        this._changeDetectorRef.detectChanges();
+    }
+
+    // 更新所有分組的 checkbox 狀態
+    private updateAllGroupStates(): void {
+        if (!this.data) return;
+
+        // 獲取所有唯一的 tender
+        const tenders = [...new Set(this.data.map((item: any) => item.tender as string))];
+
+        // 創建新物件以觸發變更檢測
+        const newStates: { [key: string]: boolean } = {};
+        tenders.forEach((tender: string) => {
+            newStates[tender] = this.isGroupSelected(tender);
+        });
+        this.groupCheckboxStates = newStates;
+    }
+
+    // 獲取分組下的所有可選檔案
+    getGroupSelectableFiles(tender: string): any[] {
+        if (!this.data) return [];
+        return this.data.filter(item =>
+            item.tender === tender &&
+            (!item.status || item.status === 'complete')
+        );
+    }
+
+    // 檢查分組是否全選（用於內部邏輯判斷）
+    isGroupSelected(tender: string): boolean {
+        const groupFiles = this.getGroupSelectableFiles(tender);
+        if (groupFiles.length === 0) return false;
+
+        return groupFiles.every(file =>
+            this.selectedItems.some(selected => selected.name === file.name)
+        );
+    }
+
+    // 獲取分組 checkbox 的顯示狀態（用於模板綁定）
+    getGroupCheckboxState(tender: string): boolean {
+        const state = this.groupCheckboxStates[tender] || false;
+        return state;
+    }
+
+    // 分組全選/取消全選
+    toggleGroupSelection(tender: string): void {
+        const groupFiles = this.getGroupSelectableFiles(tender);
+        const currentState = this.groupCheckboxStates[tender] || false;
+
+        if (currentState) {
+            // 取消選擇該分組的所有檔案
+            this.selectedItems = this.selectedItems.filter(selected =>
+                !groupFiles.some(file => file.name === selected.name)
+            );
+        } else {
+            // 選擇該分組的所有檔案
+            const newSelections = groupFiles.filter(file =>
+                !this.selectedItems.some(selected => selected.name === file.name)
+            );
+            this.selectedItems = [...this.selectedItems, ...newSelections];
+        }
+
+        // 創建新物件以觸發變更檢測
+        this.groupCheckboxStates = {
+            ...this.groupCheckboxStates,
+            [tender]: !currentState
+        };
+        this._changeDetectorRef.detectChanges();
+    }
+
+    // 行點擊切換選擇（用於檔案行）
+    toggleRowSelection(file: any, event: Event): void {
+        if (file.status && file.status !== 'complete') {
+            return;
+        }
+
+        const target = event.target as HTMLElement;
+        // 檢查是否點擊了按鈕或圖標
+        if (target.closest('button') ||
+            target.closest('mat-icon') ||
+            target.closest('p-tablecheckbox') ||
+            target.closest('.p-checkbox')) {
+            return;
+        }
+
+        const index = this.selectedItems.findIndex(f => f.name === file.name);
+        if (index > -1) {
+            this.selectedItems = this.selectedItems.filter(f => f.name !== file.name);
+        } else {
+            this.selectedItems = [...this.selectedItems, file];
+        }
+
+        // 更新該檔案所屬分組的狀態 - 創建新物件以觸發變更檢測
+        if (file.tender) {
+            this.groupCheckboxStates = {
+                ...this.groupCheckboxStates,
+                [file.tender]: this.isGroupSelected(file.tender)
+            };
+        }
+
+        this._changeDetectorRef.detectChanges();
+    }
+
+    // 分組行點擊切換選擇
+    toggleGroupRowSelection(tender: string, event: Event): void {
+        const target = event.target as HTMLElement;
+        // 檢查是否點擊了展開按鈕或 checkbox
+        if (target.closest('button') ||
+            target.closest('p-checkbox') ||
+            target.closest('.p-checkbox')) {
+            return;
+        }
+
+        this.toggleGroupSelection(tender);
+    }
+
+    // 監聽 PrimeNG 選擇變化事件，觸發變更檢測
+    onSelectionChange(): void {
+        // 當檔案選擇變化時，更新所有分組的狀態
+        this.updateAllGroupStates();
+        this._changeDetectorRef.detectChanges();
+    }
+
     onClickAggregated(): void {
-        if (!this.selectedItems) {
+        if (!this.selectedItems || this.selectedItems.length === 0) {
             this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-model')}.` });
             return;
         }
@@ -109,7 +352,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         //     this._toastService.open({ message: `${this._translocoService.translate('unsupported-aggregated-view')}.` });
         //     return;
         // }
-        console.log(this.selectedItems);
+
         this._matDialog.open(ApsViewerComponent, {
             width: '99vw',
             height: '95vh',
@@ -118,7 +361,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     }
 
     onClickCompare(): void {
-        if (!this.selectedItems) {
+        if (!this.selectedItems || this.selectedItems.length === 0) {
             this._toastService.open({ message: `${this._translocoService.translate('select-at-least-one-model')}.` });
             return;
         }
@@ -261,6 +504,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
         this._subscription.unsubscribe();

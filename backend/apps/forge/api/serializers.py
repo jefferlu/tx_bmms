@@ -37,13 +37,23 @@ class ObjectSerializer(serializers.Serializer):
 
 class BimModelSerializer(serializers.ModelSerializer):
     tender = serializers.SerializerMethodField()
+    uploader = serializers.SerializerMethodField()
 
     class Meta:
         model = models.BimModel
-        fields = ['id', 'tender', 'name', 'urn', 'svf_path', 'sqlite_path', 'version', 'created_at', 'updated_at']
+        fields = ['id', 'tender', 'name', 'urn', 'svf_path', 'sqlite_path', 'version', 'uploader', 'created_at', 'updated_at']
 
     def get_tender(self, obj):
         return get_tender_name(obj.name)
+
+    def get_uploader(self, obj):
+        if obj.uploader:
+            return {
+                'id': obj.uploader.id,
+                'username': obj.uploader.username,
+                'email': obj.uploader.email
+            }
+        return None
 
 
 class BimCategorySerializer(serializers.ModelSerializer):

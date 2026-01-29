@@ -7,6 +7,7 @@ import { MatRadioModule } from '@angular/material/radio';;
 import { GtsAlertComponent } from '@gts/components/alert';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { BackupRestoreService } from './backup-restore.service';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { map, Subject, Subscription, takeUntil } from 'rxjs';
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { ToastService } from 'app/layout/common/toast/toast.service';
@@ -39,10 +40,20 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
         private _toastService: ToastService,
         private _gtsConfirmationService: GtsConfirmationService,
         private _websocketService: WebsocketService,
-        private _backupRestoreService: BackupRestoreService
+        private _backupRestoreService: BackupRestoreService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.updateBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.updateBreadcrumb();
+            });
 
         // Subscribe webSocket message
         this._websocketService.connect('database');
@@ -112,7 +123,20 @@ export class BackupRestoreComponent implements OnInit, OnDestroy {
 
     }
 
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            {
+                label: this._translocoService.translate('system-administration')
+            },
+            {
+                label: this._translocoService.translate('backup-restore')
+            }
+        ]);
+    }
+
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
         this._subscription.unsubscribe();

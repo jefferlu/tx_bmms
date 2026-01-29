@@ -22,6 +22,7 @@ import { GtsConfirmationService } from '@gts/services/confirmation';
 import { GtsValidators } from '@gts/validators';
 import { GtsMapByName } from '@gts/pipes/map-by-name.pipe';
 import { PermissionService, UserGroupService } from './user-group.service';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 
 @Component({
     selector: 'app-user-group',
@@ -33,7 +34,7 @@ import { PermissionService, UserGroupService } from './user-group.service';
         NgTemplateOutlet, FormsModule, ReactiveFormsModule, ToggleSwitchModule,
         MatInputModule, MatIconModule, MatFormFieldModule, MatSelectModule, MatDividerModule,
         MatSidenavModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatCheckboxModule,
-        MatProgressSpinnerModule, TranslocoModule, TableModule, MultiSelectModule,
+        MatProgressSpinnerModule, TranslocoModule, TableModule, MultiSelectModule
     ],
 })
 export class UserGroupComponent implements OnInit, OnDestroy {
@@ -65,10 +66,20 @@ export class UserGroupComponent implements OnInit, OnDestroy {
         private _toastService: ToastService,
         private _translocoService: TranslocoService,
         private _userGroupService: UserGroupService,
-        private _permissionService: PermissionService
+        private _permissionService: PermissionService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.updateBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.updateBreadcrumb();
+            });
 
         this._gtsMediaWatcherService.onMediaChange$
             .pipe(takeUntil(this._unsubscribeAll))
@@ -317,7 +328,21 @@ export class UserGroupComponent implements OnInit, OnDestroy {
         return item.id || index;
     }
 
-    ngOnDestroy(): void {
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            {
+                label: this._translocoService.translate('user-management')
+            },
+            {
+                label: this._translocoService.translate('role')
+            }
+        ]);
+    }
 
+    ngOnDestroy(): void {
+        this._breadcrumbService.clear();
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
     }
 }

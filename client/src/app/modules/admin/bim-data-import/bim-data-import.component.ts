@@ -12,6 +12,7 @@ import { WebsocketService } from 'app/core/services/websocket/websocket.service'
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { NgClass } from '@angular/common';
 import { GtsConfirmationService } from '@gts/services/confirmation';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 
 
 @Component({
@@ -42,9 +43,20 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
         private _gtsConfirmationService: GtsConfirmationService,
         private _websocketService: WebsocketService,
         private _bimDataImportService: BimDataImportService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.updateBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.updateBreadcrumb();
+            });
+
         // Subscribe webSocket message
         this._websocketService.connect('progress');
         this._subscription.add(
@@ -88,6 +100,18 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
                     console.error('Error loading data:', e);
                 }
             })
+    }
+
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            {
+                label: this._translocoService.translate('bim-file-management')
+            },
+            {
+                label: this._translocoService.translate('bim-data-import')
+            }
+        ]);
     }
 
     triggerFileInput(): void {
@@ -434,6 +458,7 @@ export class BimDataImportComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
         this._subscription.unsubscribe();

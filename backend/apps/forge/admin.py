@@ -46,7 +46,8 @@ class BimRegionAdmin(admin.ModelAdmin):
 
 @admin.register(models.BimModel)
 class BimModelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'urn',  'version', 'svf_path', 'sqlite_path', 'created_at', 'updated_at', 'last_processed_version',)
+    list_display = ('name', 'urn',  'version', 'svf_path', 'sqlite_path',
+                    'created_at', 'updated_at', 'last_processed_version', 'uploader',)
 
 
 @admin.register(models.BimObject)

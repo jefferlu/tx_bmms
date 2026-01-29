@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
@@ -10,8 +10,10 @@ import { NavigationService } from 'app/core/navigation/navigation.service';
 import { Navigation } from 'app/core/navigation/navigation.types';
 import { LanguagesComponent } from 'app/layout/common/languages/languages.component';
 import { UserComponent } from 'app/layout/common/user/user.component';
+import { BreadcrumbService, BreadcrumbConfig } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -22,13 +24,14 @@ import { Subject, takeUntil } from 'rxjs';
         RouterOutlet, TranslocoModule,
         MatButtonModule, MatIconModule, TranslocoModule,
         GtsVerticalNavigationComponent, ToastModule,
-        LanguagesComponent, UserComponent
+        LanguagesComponent, UserComponent, BreadcrumbModule
     ],
     providers: [MessageService]
 })
 export class CompactLayoutComponent implements OnInit, OnDestroy {
     isScreenSmall: boolean;
     navigation: Navigation;
+    breadcrumbConfig: BreadcrumbConfig = { items: [], home: { icon: 'pi pi-home', routerLink: '/' } };
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     /**
@@ -40,6 +43,8 @@ export class CompactLayoutComponent implements OnInit, OnDestroy {
         private _navigationService: NavigationService,
         private _gtsMediaWatcherService: GtsMediaWatcherService,
         private _gtsNavigationService: GtsNavigationService,
+        private _breadcrumbService: BreadcrumbService,
+        private _changeDetectorRef: ChangeDetectorRef
     ) {
     }
 
@@ -75,6 +80,14 @@ export class CompactLayoutComponent implements OnInit, OnDestroy {
             .subscribe(({ matchingAliases }) => {
                 // Check if the screen is small
                 this.isScreenSmall = !matchingAliases.includes('md');
+            });
+
+        // Subscribe to breadcrumb changes
+        this._breadcrumbService.breadcrumb$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(config => {
+                this.breadcrumbConfig = config;
+                this._changeDetectorRef.markForCheck();
             });
     }
 
