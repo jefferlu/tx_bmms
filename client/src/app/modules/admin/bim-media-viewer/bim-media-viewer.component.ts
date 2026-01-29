@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
-import { TranslocoService } from '@jsverse/transloco';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { Subject, takeUntil } from 'rxjs';
 import { environment } from 'environments/environment';
 import { AuthService } from 'app/core/auth/auth.service';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 
 declare var $: any;
 const endpoint = environment.elfinder;
@@ -12,18 +14,34 @@ const endpoint = environment.elfinder;
     styleUrl: './bim-media-viewer.component.scss',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: []
+    imports: [TranslocoModule]
 })
-export class BimMediaViewerComponent {
+export class BimMediaViewerComponent implements OnInit, OnDestroy {
 
     @ViewChild('elfinder') elfinderDiv!: ElementRef;
+
+    private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     lang: any;
 
     constructor(
         private _translocoService: TranslocoService,
-        private _authService: AuthService
+        private _authService: AuthService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
+
+    ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.updateBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.updateBreadcrumb();
+            });
+    }
+
     ngAfterViewInit(): void {
 
         this.lang = this.getViewerLanguage(this._translocoService.getActiveLang());
@@ -57,6 +75,15 @@ export class BimMediaViewerComponent {
 
     }
 
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            {
+                label: this._translocoService.translate('digital-files')
+            }
+        ]);
+    }
+
     private getViewerLanguage(lang: string): string {
         switch (lang) {
             case 'zh':
@@ -65,5 +92,11 @@ export class BimMediaViewerComponent {
             default:  // 默認為英文
                 return 'en';
         }
+    }
+
+    ngOnDestroy(): void {
+        this._breadcrumbService.clear();
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
     }
 }

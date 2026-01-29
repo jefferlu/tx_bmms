@@ -24,7 +24,7 @@ logger = get_task_logger(__name__)
 
 
 @shared_task
-def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name, is_reload=False):
+def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name, user_id=None, is_reload=False):
     """
     Import BIM data from a file, including upload to Autodesk OSS, translation, and data processing.
 
@@ -34,6 +34,7 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         bucket_key (str): Autodesk OSS bucket key.
         file_name (str): Name of the file to process (e.g., 'T3-TP16-A06-1F-145-M3-AR-00001-7000').
         group_name (str): Channels group name for progress updates.
+        user_id (int): ID of the user who uploaded the file.
         is_reload (bool): Whether to reload an existing object from the bucket.
 
     Returns:
@@ -52,6 +53,7 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         )
 
     start_time = time.time()
+    logger.info(f"bim_data_import called with user_id={user_id} for file={file_name}")
 
     try:
         # Authenticate with Autodesk Forge
@@ -85,7 +87,7 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
             urn = get_aps_urn(object_data['objectId'])
 
         # Process translation and data extraction
-        result = process_translation(urn, token, file_name, object_data, send_progress, is_reload)
+        result = process_translation(urn, token, file_name, object_data, send_progress, is_reload, user_id)
 
         elapsed_time = time.time() - start_time
         send_progress('complete', f'BIM data import completed in {elapsed_time:.2f} seconds.')
@@ -97,7 +99,7 @@ def bim_data_import(client_id, client_secret, bucket_key, file_name, group_name,
         return {"status": f"BIM data import failed: {str(e)}", "file": file_name, "elapsed_time": elapsed_time}
 
 
-def process_translation(urn, token, file_name, object_data, send_progress, is_reload):
+def process_translation(urn, token, file_name, object_data, send_progress, is_reload, user_id=None):
     """
     Process translation job, download SVF and SQLite, and update BimModel data.
 
@@ -108,6 +110,7 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
         object_data (dict): Object data from Autodesk OSS.
         send_progress (callable): Function to send progress updates.
         is_reload (bool): Whether to reload an existing object.
+        user_id (int): ID of the user who uploaded the file.
 
     Returns:
         dict: Processing results (categories, zones, hierarchies, objects).
@@ -237,17 +240,36 @@ def process_translation(urn, token, file_name, object_data, send_progress, is_re
             except models.BimModel.DoesNotExist:
                 raise ValueError(f"BimModel with name '{file_name}' not found during reload.")
         else:
+            # 获取 User 对象
+            uploader = None
+            if user_id:
+                try:
+                    from apps.account.models import User
+                    uploader = User.objects.get(id=user_id)
+                    logger.info(f"Found uploader: {uploader.username} (id={user_id})")
+                except User.DoesNotExist:
+                    logger.warning(f"User with id={user_id} not found.")
+            else:
+                logger.warning(f"user_id is None, uploader will not be set")
+
             bim_model, created = models.BimModel.objects.get_or_create(
                 name=file_name,
-                defaults={'urn': urn, 'version': 1}
+                defaults={'urn': urn, 'version': 1, 'uploader': uploader}
             )
             if not created:
                 bim_model.urn = urn
                 bim_model.version += 1
+                # 更新 uploader (只在第一次上传时设置，之后版本更新不改变 uploader)
+                if not bim_model.uploader and uploader:
+                    bim_model.uploader = uploader
+                    logger.info(f"Updated existing BimModel uploader to {uploader.username}")
+            else:
+                logger.info(f"Created new BimModel with uploader={uploader}")
             # 更新 svf_path 和 sqlite_path 為相對路徑
             bim_model.svf_path = svf_name
             bim_model.sqlite_path = sqlite_path
             bim_model.save()
+            logger.info(f"BimModel saved: name={bim_model.name}, uploader_id={bim_model.uploader_id}")
             send_progress('process-model-conversion', f'BimModel {bim_model.name} (v{bim_model.version}) updated.')
 
         # Process categories, regions, hierarchies, and objects

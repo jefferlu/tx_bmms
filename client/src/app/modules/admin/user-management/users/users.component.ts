@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { TableModule } from 'primeng/table';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { finalize, Subject, takeUntil } from 'rxjs';
 import { UsersService } from './users.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -60,10 +61,21 @@ export class UsersComponent implements OnInit, OnDestroy {
         private _toastService: ToastService,
         private _translocoService: TranslocoService,
         private _groupsService: UserGroupService,
-        private _usersService: UsersService
+        private _usersService: UsersService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.updateBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.updateBreadcrumb();
+            });
+
         this._gtsMediaWatcherService.onMediaChange$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(({ matchingAliases }) => {
@@ -94,7 +106,7 @@ export class UsersComponent implements OnInit, OnDestroy {
 
         // Data form
         this.form = this._formBuilder.group({
-            username: [''],
+            username: ['', [Validators.required]],
             email: ['', [Validators.required, Validators.email]],
             // groups_obj: [[this.page.groupData[0]]],  //寫入預設值
             groups_obj: [],
@@ -246,7 +258,20 @@ export class UsersComponent implements OnInit, OnDestroy {
         return item.id || index;
     }
 
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            {
+                label: this._translocoService.translate('user-management')
+            },
+            {
+                label: this._translocoService.translate('user')
+            }
+        ]);
+    }
+
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         // Unsubscribe from all subscriptions
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();

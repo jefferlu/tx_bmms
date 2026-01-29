@@ -103,6 +103,7 @@
                         <mat-label>{{ t('name') }}</mat-label>
                         <!-- <mat-icon matPrefix class="hidden sm:flex icon-size-5" [svgIcon]="'heroicons_outline:user'"></mat-icon> -->
                         <input matInput [formControlName]="'username'" [spellcheck]="false">
+                        @if(form.get('username').hasError('required')) {<mat-error> {{t('name')}}{{t('is-required')}} </mat-error>}
                     </mat-form-field>
                 </div>
 

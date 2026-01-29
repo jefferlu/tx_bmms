@@ -12,6 +12,7 @@ import { TreeSelectModule } from 'primeng/treeselect';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { TabsModule } from 'primeng/tabs';
 import { ToastService } from 'app/layout/common/toast/toast.service';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { ProcessFunctionsService } from './process-functions.service';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -19,6 +20,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { NgTemplateOutlet } from '@angular/common';
 import { ApsViewerComponent } from 'app/layout/common/aps-viewer/aps-viewer.component';
 import { GtsConfirmationService } from '@gts/services/confirmation';
+import { GtsAlertComponent } from '@gts/components/alert';
 
 @Component({
     selector: 'app-process-functions',
@@ -31,7 +33,7 @@ import { GtsConfirmationService } from '@gts/services/confirmation';
         MatButtonModule, MatIconModule, MatMenuModule,
         TableModule, TranslocoModule, TabsModule,
         SelectModule, TreeSelectModule, OverlayModule, PortalModule,
-        AutoCompleteModule, ApsViewerComponent
+        AutoCompleteModule, ApsViewerComponent, GtsAlertComponent
     ],
     standalone: true
 })
@@ -112,10 +114,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     overlayRef: OverlayRef | null;
     isOverlayOpen = false;
 
-    conditions = [
-        { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], },// 主畫面條件組
-        { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], }, // overlay條件組
-    ];
+    conditions: any[] = [];
 
     constructor(
         private _route: ActivatedRoute,
@@ -124,10 +123,21 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         private _translocoService: TranslocoService,
         private _gtsConfirmationService: GtsConfirmationService,
         private _toastService: ToastService,
-        private _processFunctionsService: ProcessFunctionsService
+        private _processFunctionsService: ProcessFunctionsService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.updateBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.updateBreadcrumb();
+            });
+
         this._route.data.subscribe({
             next: (res: any) => {
                 // this.regions = this.transformRegions(res.data.regions);
@@ -147,18 +157,6 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
                 // this.conditionNames = this.cobies.filter((item, index, self) =>
                 //     index === self.findIndex(i => i.display_name === item.display_name)
                 // );
-
-                // 預設選取第一個選項
-                if (this.conditionNames.length > 0) {
-                    this.conditions[0].condition1 = this.conditionNames[0];
-                    this.conditions[1].condition1 = this.conditionNames[0];
-                }
-                if (this.conditionTypes.length > 0) {
-                    this.conditions[0].condition2 = this.conditionTypes[0];
-                    this.conditions[1].condition2 = this.conditionTypes[0];
-                }
-                this.conditions.forEach(condition => this.updateOperators(condition));
-
 
                 // res.data.conditions = this._transformData(res.data.conditions);
                 // const spaceNode = res.data.conditions.find(item => item.label === 'space');
@@ -203,6 +201,15 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         //         this._changeDetectorRef.markForCheck();
         //     });
 
+    }
+
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            {
+                label: this._translocoService.translate('bim-information-listing')
+            }
+        ]);
     }
 
     // onNodeSelect() {
@@ -318,6 +325,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             hasBackdrop: false,
             backdropClass: 'cdk-overlay-transparent-backdrop',
             width: this.firstConditionGroup.nativeElement.offsetWidth,
+            panelClass: 'condition-group-overlay-pane', //styles.scss自訂
         });
 
         this.overlayRef.attach(this.overlayContent);
@@ -394,17 +402,13 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     // 移除條件組
     removeConditionGroup(index: number) {
         this.conditions.splice(index, 1);
-        if (this.conditions.length <= 1) {
-            this.closeOverlay(); // 如果只剩第一組，關閉 overlay
-        }
+        this._changeDetectorRef.markForCheck();
     }
 
     removeAllConditinGroup() {
-        this.conditions = [
-            { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], },// 主畫面條件組
-            { condition1: null, condition2: null, condition3: null, condition4: '', min_value: '', max_value: '', operators: [], }, // overlay條件組
-        ];
+        this.conditions = [];
         this.closeOverlay();
+        this._changeDetectorRef.markForCheck();
     }
 
     onSearch(): void {
@@ -717,7 +721,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
         let bimCriteria = undefined;
         if (this.activeTab === 'basic') {
             if (![this.selectedRegion, this.selectedRole, this.selectedLevel].every(val => val == null) || this.keyword) {
-                // 構建要儲存的 bim_criteria 資料        
+                // 構建要儲存的 bim_criteria 資料
                 bimCriteria = {
                     page: this.request.page || 1,
                     tab: this.activeTab,
@@ -733,18 +737,43 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
             }
         }
         else {
+            // 確保 this.conditions 是陣列
+            if (!Array.isArray(this.conditions)) {
+                console.error('this.conditions is not an array:', this.conditions);
+                this._toastService.open({ message: '查詢條件格式錯誤，請重新設定' });
+                return;
+            }
+
+            console.log('All conditions before filter:', this.conditions);
+
             const validConditions = this.conditions.filter(
-                condition => condition.condition4 != null && condition.condition4.toString().trim() !== ''
+                condition =>
+                    (condition.condition3?.value === 'range'
+                        ? condition.min_value?.trim() && condition.max_value?.trim()
+                        : condition.condition4 != null && condition.condition4.toString().trim() !== '') &&
+                    condition.condition1?.display_name &&
+                    condition.condition2?.value &&
+                    condition.condition3?.value
             );
 
+            console.log('Valid conditions after filter:', validConditions);
+
             // 如果沒有有效條件，直接返回 null 或拋出錯誤
-            if (validConditions.length) {
+            if (validConditions.length > 0) {
                 bimCriteria = {
                     page: this.request.page || 1,
                     tab: this.activeTab,
-                    conditions: this.conditions
+                    conditions: validConditions
                 }
             }
+        }
+
+        // 檢查是否有要儲存的條件
+        if (!bimCriteria) {
+            this._toastService.open({
+                message: `${this._translocoService.translate('no-criteria-to-save')}.`
+            });
+            return;
         }
 
         // 調用服務發送資料到後端
@@ -860,14 +889,34 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
 
 
     updateCriteria() {
-        // this.criteriaRegions = this.formatCriteria(this.selectedRegion);
-        // this.criteriaSpaces = this.formatCriteria(this.selectedSpaces);
-        // this.criteriaSystems = this.formatCriteria(this.selectedSystems);
+        // 基本查詢模式
         this.criteriaRegion = this.selectedRegion ? this.selectedRegion.label : undefined;
         this.criteriaRole = this.selectedRole ? this.selectedRole.label : undefined;
         this.criteriaLevel = this.selectedLevel ? this.selectedLevel.label : undefined;
-        // this.criteriaKeyword = this.keyword ? this.keyword.label : undefined;
-        this.criteriaKeyword=this.keyword;
+        this.criteriaKeyword = this.keyword;
+    }
+
+    // 獲取條件描述（即時顯示，包含未完整填寫的條件）
+    getConditionDescription(condition: any): string {
+        const cobieLabel = condition.condition1?.description || condition.condition1?.display_name || '(未選擇)';
+        const typeLabel = condition.condition2?.label || '';
+        const operator = condition.condition3?.label || condition.condition3?.value || '(未選擇)';
+
+        if (condition.condition3?.value === 'range') {
+            const minVal = condition.min_value || '?';
+            const maxVal = condition.max_value || '?';
+            return `${cobieLabel} [${typeLabel}] ${operator} ${minVal} ~ ${maxVal}`;
+        } else {
+            const value = condition.condition4 || '(未填寫)';
+            // 檢查是否有分號分隔的多個值
+            if (value && value.toString().includes(';')) {
+                const values = value.toString().split(';').map(v => v.trim()).filter(v => v);
+                if (values.length > 1) {
+                    return `${cobieLabel} [${typeLabel}] ${operator} (${values.join(' 或 ')})`;
+                }
+            }
+            return `${cobieLabel} [${typeLabel}] ${operator} ${value}`;
+        }
     }
 
     // 處理從 ApsViewerComponent 發送的節點屬性
@@ -887,6 +936,7 @@ export class ProcessFunctionsComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
     }

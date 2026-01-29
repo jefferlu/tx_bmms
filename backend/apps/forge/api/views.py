@@ -278,8 +278,8 @@ class BimDataImportView(APIView):
         except Exception as e:
             return Response({"error": f"處理檔案版本時發生錯誤：{str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # 執行 Celery 任務
-        bim_data_import.delay(client_id, client_secret, bucket_key, file_name, 'progress_group')
+        # 執行 Celery 任務 (传递 user_id 作为位置参数)
+        bim_data_import.delay(client_id, client_secret, bucket_key, file_name, 'progress_group', request.user.id)
 
         # 記錄操作
         ip_address = request.META.get('REMOTE_ADDR')
@@ -599,20 +599,7 @@ class BimRegionViewSet(viewsets.ReadOnlyModelViewSet):
             zone_data['children'] = roles_data
             tree_data.append(zone_data)
 
-        return Response(tree_data)    
-
-
-class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
-    """ 只查詢 BIMModel """
-    permission_classes = (IsAuthenticated,)
-    queryset = models.BimModel.objects.all()  # 直接查詢 BimModel，不依賴 BimConversion
-    serializer_class = serializers.BimModelSerializer
-
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        ip_address = request.META.get('REMOTE_ADDR')
-        log_user_activity(self.request.user, '模型檢視', '查詢', 'SUCCESS', ip_address)
-        return response
+        return Response(tree_data)
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -643,6 +630,20 @@ class StandardResultsSetPagination(PageNumberPagination):
             return int(size)
         except (ValueError, TypeError):
             return self.page_size
+
+
+class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
+    """ 只查詢 BIMModel """
+    permission_classes = (IsAuthenticated,)
+    queryset = models.BimModel.objects.all().order_by('-created_at')  # 直接查詢 BimModel，不依賴 BimConversion
+    serializer_class = serializers.BimModelSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        ip_address = request.META.get('REMOTE_ADDR')
+        log_user_activity(self.request.user, '模型檢視', '查詢', 'SUCCESS', ip_address)
+        return response
 
 
 class BimObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):

@@ -9,6 +9,7 @@ import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
 import { UserActivityLogService } from './user-activity-log.service';
 import { MatMenuModule } from '@angular/material/menu';
+import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 
 @Component({
     selector: 'app-user-activity-log',
@@ -33,10 +34,21 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _userActivityLogService: UserActivityLogService,
-        private _translocoService: TranslocoService
+        private _translocoService: TranslocoService,
+        private _breadcrumbService: BreadcrumbService
     ) { }
 
     ngOnInit(): void {
+        // 初始化 breadcrumb
+        this.updateBreadcrumb();
+
+        // 監聽語系變化以更新 breadcrumb
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this.updateBreadcrumb();
+            });
+
         this._userActivityLogService.data$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((data: any) => {
@@ -183,7 +195,20 @@ export class UserActivityLogComponent implements OnInit, OnDestroy {
             });
     }
 
+    // 更新 breadcrumb
+    private updateBreadcrumb(): void {
+        this._breadcrumbService.setBreadcrumb([
+            {
+                label: this._translocoService.translate('user-management')
+            },
+            {
+                label: this._translocoService.translate('user-activity-log')
+            }
+        ]);
+    }
+
     ngOnDestroy(): void {
+        this._breadcrumbService.clear();
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
     }
