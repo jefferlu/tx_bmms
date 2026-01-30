@@ -168,10 +168,10 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         const tenders = [...new Set(this.data.map((item: any) => item.tender as string))];
         const newExpandedKeys: { [key: string]: boolean } = {};
         tenders.forEach((tender: string) => {
-            newExpandedKeys[tender] = false; // 預設全部收合
+            newExpandedKeys[tender] = true; // 預設全部收合
         });
         this.expandedRowKeys = newExpandedKeys;
-        this.isAllExpanded = false;
+        this.isAllExpanded = true;
     }
 
     // 切換全部展開/收合

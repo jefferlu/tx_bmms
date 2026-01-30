@@ -29,7 +29,7 @@ const themes = {
         },
         warn: {
             ...colors.red,
-            DEFAULT: colors.slate[600]
+            DEFAULT: colors.red[500]
         },
         'on-warn': {
             500: colors.red['50']
