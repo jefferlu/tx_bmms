@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict GXKKWFcWtiluph8beqyOZxdhaRrTUfCrQU1hL91wSyPN5dSDykOr8e7RfMqUqeL
+\restrict FZkSne8fE6DPEUyIqQ3D2c4dPo3qvgNepmJ0b2kTkBI8ddJnsetaDjOkuedLhL4
 
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 18.0
 
--- Started on 2026-01-29 18:14:23
+-- Started on 2026-01-29 18:13:33
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -9334,10 +9334,10 @@ COPY public.sensor_data_logs (id, value, raw_value, status, "timestamp", sensor_
 --
 
 COPY public.sensors (id, sensor_id, name, description, sensor_type, unit, mqtt_topic, mqtt_qos, modbus_address, modbus_register, api_endpoint, api_method, display_format, decimal_places, warning_threshold_min, warning_threshold_max, error_threshold_min, error_threshold_max, data_transform, is_active, last_seen, created_at, updated_at) FROM stdin;
-2	HUMID_001	會議室 101 濕度		humidity	%	sensors/humidity/room_101	1	\N	\N		GET	{value} {unit}	2	30	70	\N	\N	\N	t	2026-01-29 10:14:22.311926+00	2025-12-13 08:03:29.280955+00	2025-12-13 08:03:29.280955+00
-1	TEMP_001	會議室 101 溫度		temperature	°C	sensors/temperature/room_101	1	\N	\N		GET	{value} {unit}	2	18	28	15	32	\N	t	2026-01-29 10:14:22.30507+00	2025-12-13 08:03:29.270269+00	2025-12-13 08:03:29.270269+00
-3	CO2_001	會議室 101 CO2		co2	ppm	sensors/co2/room_101	1	\N	\N		GET	{value} {unit}	2	\N	1000	\N	1500	\N	t	2026-01-29 10:14:22.318793+00	2025-12-13 08:03:29.290486+00	2025-12-13 08:03:29.290486+00
-4	POWER_001	空調主機功率		power	kW	sensors/power/hvac_main	1	\N	\N		GET	{value} {unit}	2	\N	\N	\N	\N	\N	t	2026-01-29 10:14:22.324141+00	2025-12-13 08:03:29.300234+00	2025-12-13 08:03:29.300234+00
+2	HUMID_001	會議室 101 濕度		humidity	%	sensors/humidity/room_101	1	\N	\N		GET	{value} {unit}	2	30	70	\N	\N	\N	t	2026-01-29 10:13:33.239372+00	2025-12-13 08:03:29.280955+00	2025-12-13 08:03:29.280955+00
+1	TEMP_001	會議室 101 溫度		temperature	°C	sensors/temperature/room_101	1	\N	\N		GET	{value} {unit}	2	18	28	15	32	\N	t	2026-01-29 10:13:33.22944+00	2025-12-13 08:03:29.270269+00	2025-12-13 08:03:29.270269+00
+3	CO2_001	會議室 101 CO2		co2	ppm	sensors/co2/room_101	1	\N	\N		GET	{value} {unit}	2	\N	1000	\N	1500	\N	t	2026-01-29 10:13:33.246128+00	2025-12-13 08:03:29.290486+00	2025-12-13 08:03:29.290486+00
+4	POWER_001	空調主機功率		power	kW	sensors/power/hvac_main	1	\N	\N		GET	{value} {unit}	2	\N	\N	\N	\N	\N	t	2026-01-29 10:13:33.252635+00	2025-12-13 08:03:29.300234+00	2025-12-13 08:03:29.300234+00
 \.
 
 
@@ -12976,11 +12976,11 @@ REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2026-01-29 18:14:23
+-- Completed on 2026-01-29 18:13:34
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GXKKWFcWtiluph8beqyOZxdhaRrTUfCrQU1hL91wSyPN5dSDykOr8e7RfMqUqeL
+\unrestrict FZkSne8fE6DPEUyIqQ3D2c4dPo3qvgNepmJ0b2kTkBI8ddJnsetaDjOkuedLhL4
 
