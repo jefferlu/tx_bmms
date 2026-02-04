@@ -86,8 +86,10 @@ export class CompactLayoutComponent implements OnInit, OnDestroy {
         this._breadcrumbService.breadcrumb$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(config => {
-                this.breadcrumbConfig = config;
-                this._changeDetectorRef.markForCheck();
+                Promise.resolve().then(() => {
+                    this.breadcrumbConfig = config;
+                    this._changeDetectorRef.markForCheck();
+                });
             });
     }
 
