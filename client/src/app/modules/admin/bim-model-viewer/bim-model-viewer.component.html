@@ -4,13 +4,11 @@
 
             <!-- Header -->
             <div class="flex flex-row items-center justify-between pb-2">
-
+                <!-- Search -->
                 <div>
                     <div class="card flex justify-center items-center gap-2">
-                        <input type="text" class="sm:min-w-80" pInputText [(ngModel)]="keyword" (keydown.enter)="onSearch()" />
-                        <button mat-icon-button (click)="onSearch()">
-                            <mat-icon [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
-                        </button>
+                        <input type="text" class="sm:min-w-80" pInputText [(ngModel)]="keyword" [placeholder]="t('search-placeholder')"
+                            (keydown.enter)="onSearch()" />
                     </div>
                 </div>
 

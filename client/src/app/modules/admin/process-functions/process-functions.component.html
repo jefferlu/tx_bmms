@@ -12,13 +12,13 @@
                     <div class="flex w-full flex-col sm:flex-row gap-4">
                         <!-- 區域 -->
                         <p-select class="md:w-80 w-full" [options]="regions" [(ngModel)]="selectedRegion" optionLabel="label" [checkmark]="true"
-                            [showClear]="true" placeholder="選擇區域" (onChange)="onChangeRegion()" (onClear)="onClear()" />
+                            [showClear]="true" [placeholder]="t('select-area')" [emptyMessage]="t('no-data')" (onChange)="onChangeRegion()" (onClear)="onClear()" />
 
                         <p-select class="md:w-80 w-full" [options]="selectedRegion?.children" [(ngModel)]="selectedRole" optionLabel="label" [checkmark]="true"
-                            [showClear]="true" placeholder="選擇空間/系統" emptyMessage="無資料" (onChange)="onChangeRole()" (onClear)="onClear()" />
+                            [showClear]="true" [placeholder]="t('select-space-system')" [emptyMessage]="t('no-data')" (onChange)="onChangeRole()" (onClear)="onClear()" />
 
                         <p-select class="md:w-80 w-full" [options]="selectedRole?.children" [(ngModel)]="selectedLevel" optionLabel="label" [checkmark]="true"
-                            [showClear]="true" placeholder="選擇樓層" emptyMessage="無資料" (onClear)="onClear()" />
+                            [showClear]="true" [placeholder]="t('select-floor')" [emptyMessage]="t('no-data')" (onClear)="onClear()" />
 
                         <!-- <p-treeselect class="md:w-80 w-full" containerStyleClass="w-full" selectionMode="multiple" [showClear]="true" [(ngModel)]="selectedRegions"
                         [options]="regions" placeholder="區域" (onNodeSelect)="onNodeSelect()" (onNodeUnselect)="onNodeSelect()"
@@ -49,7 +49,7 @@
 
                         <!-- 關鍵字查詢 -->
                         <p-autocomplete inputStyleClass="sm:min-w-80" [suggestions]="keywordItems" [(ngModel)]="keyword"
-                            (completeMethod)="keywordSearch($event)" placeholder="請輸入關鍵字..." emptyMessage="無資料">
+                            (completeMethod)="keywordSearch($event)" [placeholder]="t('search-placeholder')" [emptyMessage]="t('no-data')">
 
                             <!-- 自訂下拉選單中的選項內容 -->
                             <ng-template #item let-item>
@@ -62,7 +62,7 @@
                                     </div> -->
                                     <div class="flex flex-col">
                                         <span class="font-medium">{{ item.label }}</span>
-                                        <span class="text-sm text-gray-400">{{ this.cobieMap[item.display_name] || "未定義" }} {{ item.display_name }}</span>
+                                        <span class="text-sm text-gray-400">{{ this.cobieMap[item.display_name] || t('not-defined') }} {{ item.display_name }}</span>
                                     </div>
                                 </div>
                             </ng-template>
