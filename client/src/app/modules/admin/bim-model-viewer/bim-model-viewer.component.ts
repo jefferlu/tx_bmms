@@ -9,6 +9,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
+import { InputTextModule } from 'primeng/inputtext';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component';
@@ -26,7 +27,7 @@ import { Subject, Subscription, takeUntil } from 'rxjs';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule,
+        DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule, InputTextModule,
         MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule
     ]
 })
