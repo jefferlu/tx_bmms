@@ -32,7 +32,8 @@ const themes = {
             DEFAULT: colors.red[500]
         },
         'on-warn': {
-            500: colors.red['50']
+            500: colors.red['50'],
+            DEFAULT: '#FFFFFF'
         }
     },
     // Rest of the themes will use the 'default' as the base
