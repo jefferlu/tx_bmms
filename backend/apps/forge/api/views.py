@@ -639,6 +639,19 @@ class BimModelViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.BimModelSerializer
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        keyword = self.request.query_params.get('keyword', '').strip()
+        if keyword:
+            queryset = queryset.filter(
+                Q(name__icontains=keyword)
+                | Q(urn__icontains=keyword)
+                | Q(svf_path__icontains=keyword)
+                | Q(sqlite_path__icontains=keyword)
+                | Q(uploader__username__icontains=keyword)
+            )
+        return queryset
+
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         ip_address = request.META.get('REMOTE_ADDR')

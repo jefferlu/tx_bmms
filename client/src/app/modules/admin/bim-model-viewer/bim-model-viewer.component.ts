@@ -9,6 +9,9 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
+import { InputTextModule } from 'primeng/inputtext';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component';
@@ -26,8 +29,9 @@ import { Subject, Subscription, takeUntil } from 'rxjs';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule,
-        MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule
+        DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule, InputTextModule,
+        MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule,
+        IconField, InputIcon
     ]
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {
@@ -44,6 +48,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     groupCheckboxStates: { [key: string]: boolean } = {};
     expandedRowKeys: { [key: string]: boolean } = {};
     isAllExpanded: boolean = true;
+    keyword: string = '';
 
     constructor(
         private _route: ActivatedRoute,
@@ -120,13 +125,22 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         });
     }
 
+    // 搜索關鍵字
+    onSearch(): void {
+        this.first = 0;
+        this.loadPage(1);
+    }
+
     // 載入指定頁面的資料
     loadPage(page: number): void {
         this.isLoading = true;
-        const params = {
+        const params: any = {
             page: page,
             size: this.rowsPerPage
         };
+        if (this.keyword?.trim()) {
+            params.keyword = this.keyword.trim();
+        }
 
         this._bimModelViewerService.getData(params)
             .pipe(takeUntil(this._unsubscribeAll))
