@@ -45,6 +45,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     groupCheckboxStates: { [key: string]: boolean } = {};
     expandedRowKeys: { [key: string]: boolean } = {};
     isAllExpanded: boolean = true;
+    keyword: string = '';
 
     constructor(
         private _route: ActivatedRoute,
@@ -121,13 +122,22 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
         });
     }
 
+    // 搜索關鍵字
+    onSearch(): void {
+        this.first = 0;
+        this.loadPage(1);
+    }
+
     // 載入指定頁面的資料
     loadPage(page: number): void {
         this.isLoading = true;
-        const params = {
+        const params: any = {
             page: page,
             size: this.rowsPerPage
         };
+        if (this.keyword?.trim()) {
+            params.keyword = this.keyword.trim();
+        }
 
         this._bimModelViewerService.getData(params)
             .pipe(takeUntil(this._unsubscribeAll))
