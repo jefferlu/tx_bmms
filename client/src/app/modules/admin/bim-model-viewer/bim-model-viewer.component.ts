@@ -10,6 +10,8 @@ import { ButtonModule } from 'primeng/button';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
 import { BimModelViewerService } from './bim-model-viewer.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ApsDiffComponent } from 'app/layout/common/aps-diff/aps-diff.component';
@@ -28,7 +30,8 @@ import { Subject, Subscription, takeUntil } from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         DatePipe, FormsModule, TranslocoModule, TableModule, ButtonModule, InputTextModule,
-        MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule
+        MatIconModule, MatButtonModule, MatInputModule, NgClass, CheckboxModule,
+        IconField, InputIcon
     ]
 })
 export class BimModelViewerComponent implements OnInit, OnDestroy {

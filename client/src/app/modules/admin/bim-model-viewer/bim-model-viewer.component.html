@@ -7,8 +7,11 @@
                 <!-- Search -->
                 <div>
                     <div class="card flex justify-center items-center gap-2">
-                        <input type="text" class="sm:min-w-80" pInputText [(ngModel)]="keyword" [placeholder]="t('search-placeholder')"
-                            (keydown.enter)="onSearch()" />
+                        <p-iconfield class="sm:min-w-80">
+                            <p-inputicon class="pi pi-search" />
+                            <input type="text" pInputText [(ngModel)]="keyword" [placeholder]="t('search-placeholder')"
+                                (keydown.enter)="onSearch()" />
+                        </p-iconfield>
                     </div>
                 </div>
 
