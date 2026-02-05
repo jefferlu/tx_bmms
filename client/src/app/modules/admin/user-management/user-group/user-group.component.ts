@@ -25,6 +25,7 @@ interface PermissionDef {
 
 interface GroupRow {
     id?: number;
+    tempId?: string;  // 用於新增行的唯一識別
     name: string;
     permissions: { [codename: string]: boolean };
     isNew?: boolean;
@@ -175,6 +176,7 @@ export class UserGroupComponent implements OnInit, OnDestroy {
         });
 
         const newGroup: GroupRow = {
+            tempId: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             name: '',
             permissions,
             isNew: true,
@@ -202,7 +204,8 @@ export class UserGroupComponent implements OnInit, OnDestroy {
             .filter(col => group.permissions[col.codename])
             .map(col => ({ id: col.id, codename: col.codename }));
 
-        const saveKey = group.id ? group.id.toString() : 'new';
+        // 使用 id 或 tempId 作為唯一的 saveKey
+        const saveKey = group.id ? group.id.toString() : group.tempId;
         this.isSaving[saveKey] = true;
         this._changeDetectorRef.markForCheck();
 
@@ -481,8 +484,8 @@ export class UserGroupComponent implements OnInit, OnDestroy {
 
     // ==================== 工具函數 ====================
 
-    trackByFn(index: number, item: any): any {
-        return item.id || index;
+    trackByFn(index: number, item: GroupRow): any {
+        return item.id || item.tempId || index;
     }
 
     private updateBreadcrumb(): void {

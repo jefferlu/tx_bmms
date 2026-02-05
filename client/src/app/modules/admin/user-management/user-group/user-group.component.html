@@ -93,7 +93,7 @@
 
                             <!-- Actions -->
                             <td class="text-center" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
-                                @if(isSaving[group.id || 'new']) {
+                                @if(isSaving[group.id || group.tempId]) {
                                     <mat-progress-spinner class="mx-auto" [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>
                                 } @else {
                                     @if(group.isNew || group.isEditing) {
