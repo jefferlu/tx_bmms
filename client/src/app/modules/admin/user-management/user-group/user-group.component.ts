@@ -30,6 +30,10 @@ interface GroupRow {
     permissions: { [codename: string]: boolean };
     isNew?: boolean;
     isEditing?: boolean;
+    _original?: {  // 編輯前的備份，用於取消時還原
+        name: string;
+        permissions: { [codename: string]: boolean };
+    };
 }
 
 @Component({
@@ -241,6 +245,7 @@ export class UserGroupComponent implements OnInit, OnDestroy {
             ).subscribe({
                 next: (res) => {
                     if (res) {
+                        delete group._original;  // 清除備份
                         group.isEditing = false;
                         this._toastService.open({
                             message: this._translocoService.translate('update-success')
@@ -276,13 +281,19 @@ export class UserGroupComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * 取消編輯（針對新增的行直接移除）
+     * 取消編輯（針對新增的行直接移除，已存在的行還原為原始值）
      */
     onCancelEdit(group: GroupRow, index: number): void {
         if (group.isNew) {
             this.groups.splice(index, 1);
             this.groups = [...this.groups];
         } else {
+            // 還原為原始值
+            if (group._original) {
+                group.name = group._original.name;
+                group.permissions = { ...group._original.permissions };
+                delete group._original;
+            }
             group.isEditing = false;
         }
         this._changeDetectorRef.markForCheck();
@@ -292,6 +303,11 @@ export class UserGroupComponent implements OnInit, OnDestroy {
      * 開始編輯群組
      */
     onEditGroup(group: GroupRow): void {
+        // 備份原始資料，用於取消時還原
+        group._original = {
+            name: group.name,
+            permissions: { ...group.permissions }
+        };
         group.isEditing = true;
         this._changeDetectorRef.markForCheck();
     }
