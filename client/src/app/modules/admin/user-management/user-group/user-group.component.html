@@ -48,17 +48,17 @@
 
                     <ng-template pTemplate="body" let-group let-index="rowIndex">
                         <tr (click)="toggleRowSelection(group, $event)" [pSelectableRowDisabled]="group.isNew"
-                            [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}" class="hover:bg-hover cursor-pointer">
+                            [ngClass]="{'bg-slate-50 dark:bg-slate-900/20': group.isNew || group.isEditing}" class="hover:bg-hover cursor-pointer">
 
                             <!-- Row Checkbox -->
-                            <td class="pl-6" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
+                            <td class="pl-6">
                                 @if(!group.isNew) {
                                 <p-tableCheckbox [value]="group" />
                                 }
                             </td>
 
                             <!-- Group Name -->
-                            <td class="w-48" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
+                            <td>
                                 @if(group.isNew || group.isEditing) {
                                 <input type="text" pInputText class="w-40" [(ngModel)]="group.name" [placeholder]="t('enter-group-name')"
                                     (click)="$event.stopPropagation()">
@@ -76,7 +76,7 @@
                             }
 
                             <!-- Actions -->
-                            <td class="text-center" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
+                            <td class="text-center">
                                 @if(isSaving[group.id || group.tempId]) {
                                 <mat-progress-spinner class="mx-auto" [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>
                                 } @else {
