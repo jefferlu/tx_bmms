@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { ToastService } from 'app/layout/common/toast/toast.service';
 import { TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
+import { InputTextModule } from 'primeng/inputtext';
 
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { PermissionService, UserGroupService } from './user-group.service';
@@ -40,7 +41,7 @@ interface GroupRow {
         NgClass, FormsModule,
         MatInputModule, MatIconModule, MatFormFieldModule,
         MatButtonModule, MatProgressSpinnerModule,
-        TranslocoModule, TableModule, CheckboxModule
+        TranslocoModule, TableModule, CheckboxModule, InputTextModule
     ],
 })
 export class UserGroupComponent implements OnInit, OnDestroy {
