@@ -36,21 +36,21 @@
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
                             <!-- Select All Checkbox -->
-                            <th class="w-16 py-3 pl-6 sticky-col bg-card">
+                            <th class="w-16 py-4 pl-6">
                                 <p-checkbox [binary]="true"
                                     [checked]="isAllDeletableGroupsSelected()"
                                     (onChange)="toggleSelectAll()" />
                             </th>
                             <!-- Group Name -->
-                            <th class="min-w-48 py-3 sticky-col-name bg-card">{{t('name')}}</th>
+                            <th class="min-w-48 py-3">{{t('name')}}</th>
                             <!-- Permission Columns -->
                             @for (col of permissionColumns; track col.codename) {
                                 <th class="text-center min-w-28 py-3">
-                                    <span class="text-xs">{{col.name}}</span>
+                                    <span class="text-base">{{col.name}}</span>
                                 </th>
                             }
                             <!-- Actions -->
-                            <th class="w-40 text-center py-3 sticky-col-action bg-card">{{t('action')}}</th>
+                            <th class="w-40 text-center py-3">{{t('action')}}</th>
                         </tr>
                     </ng-template>
 
@@ -61,14 +61,14 @@
                             class="hover:bg-hover cursor-pointer">
 
                             <!-- Row Checkbox -->
-                            <td class="pl-6 sticky-col bg-card" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
+                            <td class="pl-6" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
                                 @if(!group.isNew) {
                                     <p-tableCheckbox [value]="group" />
                                 }
                             </td>
 
                             <!-- Group Name -->
-                            <td class="sticky-col-name bg-card" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
+                            <td [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
                                 @if(group.isNew || group.isEditing) {
                                     <input type="text"
                                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -92,7 +92,7 @@
                             }
 
                             <!-- Actions -->
-                            <td class="text-center sticky-col-action bg-card" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
+                            <td class="text-center" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
                                 @if(isSaving[group.id || 'new']) {
                                     <mat-progress-spinner class="mx-auto" [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>
                                 } @else {
