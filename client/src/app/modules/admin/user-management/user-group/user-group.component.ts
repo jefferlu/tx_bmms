@@ -176,7 +176,7 @@ export class UserGroupComponent implements OnInit, OnDestroy {
         });
 
         const newGroup: GroupRow = {
-            tempId: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            tempId: `temp_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
             name: '',
             permissions,
             isNew: true,
