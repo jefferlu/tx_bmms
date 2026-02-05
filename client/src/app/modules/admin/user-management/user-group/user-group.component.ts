@@ -135,9 +135,22 @@ export class UserGroupComponent implements OnInit, OnDestroy {
 
     /**
      * 根據後端資料建立群組行
+     * 保留正在編輯中的 row 的狀態和資料
      */
     private _buildGroupRows(data: any[]): void {
-        this.groups = data.map(group => {
+        // 保存新增中的 row（尚未儲存到後端）
+        const newRows = this.groups.filter(g => g.isNew);
+
+        // 建立後端資料的 row
+        const updatedGroups = data.map(group => {
+            // 檢查這個 group 是否正在被編輯
+            const existingGroup = this.groups.find(g => g.id === group.id);
+            if (existingGroup && existingGroup.isEditing) {
+                // 保留編輯中的狀態和資料
+                return existingGroup;
+            }
+
+            // 非編輯中的 row，用後端資料建立
             const permissions: { [codename: string]: boolean } = {};
 
             // 初始化所有權限為 false
@@ -162,6 +175,9 @@ export class UserGroupComponent implements OnInit, OnDestroy {
                 isEditing: false
             };
         });
+
+        // 合併：新增中的 row 放在最前面
+        this.groups = [...newRows, ...updatedGroups];
 
         this._changeDetectorRef.markForCheck();
     }
