@@ -1,28 +1,34 @@
-import { DatePipe, NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { FormsModule, NgForm, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { finalize, Subject, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDividerModule } from '@angular/material/divider';
 import { ToastService } from 'app/layout/common/toast/toast.service';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { TableModule } from 'primeng/table';
-import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { CheckboxModule } from 'primeng/checkbox';
 
-import { GtsMediaWatcherService } from '@gts/services/media-watcher';
 import { GtsConfirmationService } from '@gts/services/confirmation';
-import { GtsValidators } from '@gts/validators';
-import { GtsMapByName } from '@gts/pipes/map-by-name.pipe';
 import { PermissionService, UserGroupService } from './user-group.service';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
+
+interface PermissionDef {
+    codename: string;
+    name: string;
+    id?: number;
+}
+
+interface GroupRow {
+    id?: number;
+    name: string;
+    permissions: { [codename: string]: boolean };
+    isNew?: boolean;
+    isEditing?: boolean;
+}
 
 @Component({
     selector: 'app-user-group',
@@ -31,37 +37,33 @@ import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.servi
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        NgTemplateOutlet, FormsModule, ReactiveFormsModule, ToggleSwitchModule,
-        MatInputModule, MatIconModule, MatFormFieldModule, MatSelectModule, MatDividerModule,
-        MatSidenavModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatCheckboxModule,
-        MatProgressSpinnerModule, TranslocoModule, TableModule, MultiSelectModule
+        NgClass, FormsModule,
+        MatInputModule, MatIconModule, MatFormFieldModule,
+        MatButtonModule, MatProgressSpinnerModule,
+        TranslocoModule, TableModule, CheckboxModule
     ],
 })
 export class UserGroupComponent implements OnInit, OnDestroy {
-    @ViewChild('matDrawer', { static: true }) matDrawer: MatDrawer;
-    @ViewChild('ngForm') ngForm: NgForm;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-    drawerMode: 'side' | 'over';
+    // 權限定義列表 (作為表格欄位)
+    permissionColumns: PermissionDef[] = [];
 
-    form: any = {
+    // 權限資料（從後端獲取）
+    permissionsData: any[] = [];
 
-    }
+    // 群組資料列表
+    groups: GroupRow[] = [];
 
-    page: any = {
-        name: null,
-        data: null,
-        permissions: null,
-        restruct: null,
-        record: null,
-    };
+    // 多選刪除相關
+    selectedGroups: GroupRow[] = [];
 
-    isLoading: boolean;
+    // 載入狀態
+    isLoading: boolean = false;
+    isSaving: { [id: string]: boolean } = {};
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
-        private _formBuilder: UntypedFormBuilder,
-        private _gtsMediaWatcherService: GtsMediaWatcherService,
         private _gtsConfirmationService: GtsConfirmationService,
         private _toastService: ToastService,
         private _translocoService: TranslocoService,
@@ -79,256 +81,409 @@ export class UserGroupComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(() => {
                 this.updateBreadcrumb();
+                this._initPermissionColumns();
+                this._changeDetectorRef.markForCheck();
             });
 
-        this._gtsMediaWatcherService.onMediaChange$
+        // Get permission data first
+        this._permissionService.data$
             .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(({ matchingAliases }) => {
-                // Set the drawerMode if the given breakpoint is active
-                if (matchingAliases.includes('lg')) {
-                    this.drawerMode = 'side';
-                } else {
-                    this.drawerMode = 'over';
-                }
-
-                // Mark for check
-                this._changeDetectorRef.markForCheck();
+            .subscribe((data: any) => {
+                this.permissionsData = data || [];
+                this._initPermissionColumns();
             });
 
         // Get group data
         this._userGroupService.data$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((data: any) => {
-                this.page.data = data;
-            });
-
-        // Get permission data
-        this._permissionService.data$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((data: any) => {
-                this.page.permissions = data;
-                this._managePermission();
-            });
-
-        // Listen to language changes and update permissions
-        this._translocoService.langChanges$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(() => {
-                if (this.page.permissions) {
-                    this._managePermission();
-                    this._changeDetectorRef.markForCheck();
-                }
+                this._buildGroupRows(data || []);
             });
     }
 
-    onOpenDrawer(event?: any) {
+    /**
+     * 初始化權限欄位定義
+     */
+    private _initPermissionColumns(): void {
+        const permissionDefs: PermissionDef[] = [
+            { codename: 'view_process_function', name: this._translocoService.translate('bim-information-search') },
+            { codename: 'view_bim_model', name: this._translocoService.translate('3d-model-viewer') },
+            { codename: 'manage_bim_model', name: this._translocoService.translate('bim-file-management') },
+            { codename: 'manage_media_data', name: this._translocoService.translate('digital-files') },
+            { codename: 'manage_data_import', name: this._translocoService.translate('model-import-operations') },
+            { codename: 'manage_users', name: this._translocoService.translate('user-management') },
+            { codename: 'manage_user_groups', name: this._translocoService.translate('permission-group-management') },
+            { codename: 'view_user_activity_log', name: this._translocoService.translate('user-log-query') },
+            { codename: 'manage_aps_credentials', name: this._translocoService.translate('aps-account') },
+            { codename: 'manage_backup_restore', name: this._translocoService.translate('database-management') },
+            { codename: 'view_system_activity_log', name: this._translocoService.translate('system-log-query') }
+        ];
 
-        this.page.record = event?.data || {};
-        this.page.name = this.page.record.name;
+        // 將後端的 permission id 對應到定義中
+        const permissionsDict = this.permissionsData.reduce((acc, p) => {
+            acc[p.codename] = p.id;
+            return acc;
+        }, {});
 
-        // Create
-        if (!this.page.record.id) {
-            this.page.record = {};
-        }
+        this.permissionColumns = permissionDefs.map(def => ({
+            ...def,
+            id: permissionsDict[def.codename]
+        }));
+    }
 
-        if (Object.keys(this.page.record).length === 0) {
-            // 如果 this.page.record 是空的，表示為新增資料
-            this.page.restruct.forEach(r => {
-                r.permissions.forEach(permission => {
-                    permission.status = false; // 設置所有權限的 status 為 false
-                });
+    /**
+     * 根據後端資料建立群組行
+     */
+    private _buildGroupRows(data: any[]): void {
+        this.groups = data.map(group => {
+            const permissions: { [codename: string]: boolean } = {};
+
+            // 初始化所有權限為 false
+            this.permissionColumns.forEach(col => {
+                permissions[col.codename] = false;
             });
-        } else {
-            // 如果 this.page.record 不為空，則根據後端資料設置權限的狀態
-            this.page.restruct.forEach(r => {
-                r.permissions.forEach(permission => {
-                    const permissionFromGroup = this.page.record.permissions.find((p: any) => p.codename === permission.codename);
-                    if (permissionFromGroup) {
-                        permission.status = true; // 如果權限在 group 中找到，設置為 true
-                    } else {
-                        permission.status = false;
+
+            // 根據群組的權限設定為 true
+            if (group.permissions) {
+                group.permissions.forEach((p: any) => {
+                    if (permissions.hasOwnProperty(p.codename)) {
+                        permissions[p.codename] = true;
                     }
                 });
+            }
+
+            return {
+                id: group.id,
+                name: group.name,
+                permissions,
+                isNew: false,
+                isEditing: false
+            };
+        });
+
+        this._changeDetectorRef.markForCheck();
+    }
+
+    /**
+     * 新增一筆群組
+     */
+    onAddGroup(): void {
+        const permissions: { [codename: string]: boolean } = {};
+        this.permissionColumns.forEach(col => {
+            permissions[col.codename] = false;
+        });
+
+        const newGroup: GroupRow = {
+            name: '',
+            permissions,
+            isNew: true,
+            isEditing: true
+        };
+
+        // 加到列表最前面
+        this.groups = [newGroup, ...this.groups];
+        this._changeDetectorRef.markForCheck();
+    }
+
+    /**
+     * 儲存群組（新增或更新）
+     */
+    onSaveGroup(group: GroupRow): void {
+        if (!group.name || group.name.trim() === '') {
+            this._toastService.open({
+                message: this._translocoService.translate('name-required')
             });
+            return;
         }
+
+        // 收集啟用的權限
+        const enabledPermissions = this.permissionColumns
+            .filter(col => group.permissions[col.codename])
+            .map(col => ({ id: col.id, codename: col.codename }));
+
+        const saveKey = group.id ? group.id.toString() : 'new';
+        this.isSaving[saveKey] = true;
         this._changeDetectorRef.markForCheck();
-        console.log(this.page.restruct)
-        
-        this.matDrawer.open();
-        
-    }
 
-    onCloseDrawer() {
-        this.matDrawer.close();
-        this._changeDetectorRef.markForCheck();
-    }
-
-    onSave(): void {
-
-
-        let request: any;
-
-        const permissions = this.page.restruct.flatMap((group: any) =>
-            group.permissions.filter(permission => permission.status === true)
-        );
-
-        console.log(this.page.record)
-
-        this.isLoading = true;
-        // Update
-        if (this.page.record.id) {
-            request = {
-                id: this.page.record.id,
-                name: this.page.name,
-                permissions: permissions
+        if (group.id) {
+            // 更新
+            const request = {
+                id: group.id,
+                name: group.name,
+                permissions: enabledPermissions
             };
 
             this._userGroupService.update(request).pipe(
                 finalize(() => {
-                    this.isLoading = false;
+                    this.isSaving[saveKey] = false;
                     this._changeDetectorRef.markForCheck();
                 })
             ).subscribe({
                 next: (res) => {
                     if (res) {
-                        this._toastService.open({ message: this._translocoService.translate('update-success') });
+                        group.isEditing = false;
+                        this._toastService.open({
+                            message: this._translocoService.translate('update-success')
+                        });
                     }
                 }
             });
-        }
-
-        // Create
-        else {
-            request = {
-                name: this.page.name,
-                permissions: permissions
+        } else {
+            // 新增
+            const request = {
+                name: group.name,
+                permissions: enabledPermissions
             };
 
             this._userGroupService.create(request).pipe(
                 finalize(() => {
-                    this.isLoading = false;
+                    this.isSaving[saveKey] = false;
                     this._changeDetectorRef.markForCheck();
                 })
             ).subscribe({
-                next: (res) => {
+                next: (res: any) => {
                     if (res) {
-                        this.ngForm.resetForm();
-                        this._toastService.open({ message: this._translocoService.translate('create-success') });
+                        group.id = res.id;
+                        group.isNew = false;
+                        group.isEditing = false;
+                        this._toastService.open({
+                            message: this._translocoService.translate('create-success')
+                        });
                     }
                 }
             });
         }
     }
 
-    onDelete(): void {
+    /**
+     * 取消編輯（針對新增的行直接移除）
+     */
+    onCancelEdit(group: GroupRow, index: number): void {
+        if (group.isNew) {
+            this.groups.splice(index, 1);
+            this.groups = [...this.groups];
+        } else {
+            group.isEditing = false;
+        }
+        this._changeDetectorRef.markForCheck();
+    }
 
-        const title = this._translocoService.translate('confirm-action');
-        const message = this._translocoService.translate('delete-confirm');
-        const deleteLabel = this._translocoService.translate('delete');
-        const cancelLabel = this._translocoService.translate('cancel');
+    /**
+     * 開始編輯群組
+     */
+    onEditGroup(group: GroupRow): void {
+        group.isEditing = true;
+        this._changeDetectorRef.markForCheck();
+    }
 
+    /**
+     * 單筆刪除
+     */
+    onDeleteGroup(group: GroupRow, index: number): void {
+        // 如果是新增但尚未儲存的行，直接移除
+        if (group.isNew) {
+            this.groups.splice(index, 1);
+            this.groups = [...this.groups];
+            this._changeDetectorRef.markForCheck();
+            return;
+        }
 
-        let dialogRef = this._gtsConfirmationService.open({
-            title: title,
-            message: message,
+        const dialogRef = this._gtsConfirmationService.open({
+            title: this._translocoService.translate('confirm-action'),
+            message: this._translocoService.translate('delete-confirm'),
             icon: { color: 'warn' },
-            actions: { confirm: { label: deleteLabel, color: 'warn' }, cancel: { label: cancelLabel } }
-
+            actions: {
+                confirm: { label: this._translocoService.translate('delete'), color: 'warn' },
+                cancel: { label: this._translocoService.translate('cancel') }
+            }
         });
 
         dialogRef.afterClosed().subscribe(result => {
             if (result === 'confirmed') {
-                this.delete();
-                this._changeDetectorRef.markForCheck();
+                this._deleteGroup(group);
             }
         });
     }
 
-    delete(): void {
+    private _deleteGroup(group: GroupRow): void {
         this.isLoading = true;
-        this._userGroupService.delete(this.page.record.id).pipe(
+        this._userGroupService.delete(group.id).pipe(
             finalize(() => {
                 this.isLoading = false;
                 this._changeDetectorRef.markForCheck();
-                this.onCloseDrawer();
             })
         ).subscribe({
-            next: (res) => {
-                this._toastService.open({ message: this._translocoService.translate('delete-success') });
+            next: () => {
+                this.groups = this.groups.filter(g => g.id !== group.id);
+                this.selectedGroups = this.selectedGroups.filter(g => g.id !== group.id);
+                this._toastService.open({
+                    message: this._translocoService.translate('delete-success')
+                });
             }
         });
     }
 
-    private _managePermission() {
-        const category = [
-            {
-                name: `${this._translocoService.translate('bim-information-listing')}`,
-                permissions: [
-                    { codename: "view_process_function", name: this._translocoService.translate('bim-information-search'), desc: this._translocoService.translate('bim-information-search-desc') },
-                ]
-            },
-            {
-                name: `${this._translocoService.translate('bim-model-viewer')}`,
-                permissions: [
-                    { codename: "view_bim_model", name: this._translocoService.translate('3d-model-viewer'), desc: this._translocoService.translate('3d-model-viewer-desc') },
-                    { codename: "manage_bim_model", name: this._translocoService.translate('bim-file-management'), desc: this._translocoService.translate('bim-file-management-desc') }
-                ]
-            },
-            {
-                name: `${this._translocoService.translate('digital-files')}`,
-                permissions: [
-                    { codename: "manage_media_data", name: this._translocoService.translate('digital-files'), desc: this._translocoService.translate('digital-files-desc') },
-                ]
-            },
-            {
-                name: `${this._translocoService.translate('bim-data-import')}`,
-                permissions: [
-                    { codename: "manage_data_import", name: this._translocoService.translate('model-import-operations'), desc: this._translocoService.translate('model-import-operations-desc') }
-                ]
-            },
-            {
-                name: `${this._translocoService.translate('user-management')}`,
-                permissions: [
-                    { codename: "manage_users", name: this._translocoService.translate('user-management'), desc: this._translocoService.translate('user-management-desc') },
-                    { codename: "manage_user_groups", name: this._translocoService.translate('permission-group-management'), desc: this._translocoService.translate('permission-group-management-desc') },
-                    { codename: "view_user_activity_log", name: this._translocoService.translate('user-log-query'), desc: this._translocoService.translate('user-log-query-desc') }
-                ]
-            },
-            {
-                name: `${this._translocoService.translate('system-administration')}`,
-                permissions: [
-                    { codename: "manage_aps_credentials", name: this._translocoService.translate('aps-account'), desc: this._translocoService.translate('aps-account-desc') },
-                    { codename: "manage_backup_restore", name: this._translocoService.translate('database-management'), desc: this._translocoService.translate('database-management-desc') },
-                    { codename: "view_system_activity_log", name: this._translocoService.translate('system-log-query'), desc: this._translocoService.translate('system-log-query-desc') }
-                ]
+    // ==================== 多選刪除功能（參考 bim-data-import）====================
+
+    /**
+     * 檢查是否所有可刪除的群組都已被選中
+     */
+    isAllDeletableGroupsSelected(): boolean {
+        const deletableGroups = this.groups.filter(g => !g.isNew);
+        return deletableGroups.length > 0 &&
+               this.selectedGroups.length === deletableGroups.length;
+    }
+
+    /**
+     * 切換全選狀態
+     */
+    toggleSelectAll(): void {
+        const deletableGroups = this.groups.filter(g => !g.isNew);
+
+        if (this.isAllDeletableGroupsSelected()) {
+            this.selectedGroups = [];
+        } else {
+            this.selectedGroups = [...deletableGroups];
+        }
+        this._changeDetectorRef.markForCheck();
+    }
+
+    /**
+     * 切換行選擇狀態
+     */
+    toggleRowSelection(group: GroupRow, event: Event): void {
+        // 新增中的群組不可選
+        if (group.isNew) {
+            return;
+        }
+
+        // 檢查是否點擊了按鈕、checkbox、input 或其子元素
+        const target = event.target as HTMLElement;
+        if (target.closest('button') ||
+            target.closest('mat-icon') ||
+            target.closest('input') ||
+            target.closest('p-tablecheckbox') ||
+            target.closest('p-checkbox') ||
+            target.closest('.p-checkbox')) {
+            return;
+        }
+
+        // 切換選擇狀態
+        const index = this.selectedGroups.findIndex(g => g.id === group.id);
+        if (index > -1) {
+            this.selectedGroups = this.selectedGroups.filter(g => g.id !== group.id);
+        } else {
+            this.selectedGroups = [...this.selectedGroups, group];
+        }
+        this._changeDetectorRef.markForCheck();
+    }
+
+    /**
+     * 批量刪除
+     */
+    onBatchDelete(): void {
+        if (this.selectedGroups.length === 0) {
+            this._toastService.open({
+                message: this._translocoService.translate('no-groups-selected')
+            });
+            return;
+        }
+
+        const dialogRef = this._gtsConfirmationService.open({
+            title: this._translocoService.translate('confirm-action'),
+            message: this._translocoService.translate('batch-delete-confirm', {
+                count: this.selectedGroups.length
+            }),
+            icon: { color: 'warn' },
+            actions: {
+                confirm: { label: this._translocoService.translate('delete'), color: 'warn' },
+                cancel: { label: this._translocoService.translate('cancel') }
             }
-        ]
-
-        const permissionsDict = this.page.permissions.reduce((acc, permission) => {
-            acc[permission.codename] = permission.id;
-            return acc;
-        }, {});
-
-        this.page.restruct = category.map(r => {
-            return {
-                name: r.name,
-                permissions: r.permissions.map(permission => {
-                    // 根據 codename 查找對應的 id
-                    const permissionId = permissionsDict[permission.codename];
-                    return {
-                        ...permission,
-                        id: permissionId
-                    };
-                })
-            };
         });
-    }    
+
+        dialogRef.afterClosed().subscribe(res => {
+            if (res === 'confirmed') {
+                this._batchDelete();
+            }
+        });
+    }
+
+    private _batchDelete(): void {
+        this.isLoading = true;
+        this._changeDetectorRef.markForCheck();
+
+        // 分離新增（尚未儲存）和已存在的群組
+        const newGroups = this.selectedGroups.filter(g => g.isNew);
+        const existingGroups = this.selectedGroups.filter(g => !g.isNew);
+
+        // 直接從列表移除新增的群組
+        newGroups.forEach(group => {
+            this.groups = this.groups.filter(g => g !== group);
+        });
+
+        // 如果沒有需要調用 API 刪除的群組
+        if (existingGroups.length === 0) {
+            this.selectedGroups = [];
+            this.isLoading = false;
+            this._toastService.open({
+                message: this._translocoService.translate('delete-success')
+            });
+            this._changeDetectorRef.markForCheck();
+            return;
+        }
+
+        // 刪除已存在的群組（需要調用 API）
+        let completedCount = 0;
+        let errorCount = 0;
+
+        existingGroups.forEach(group => {
+            this._userGroupService.delete(group.id).subscribe({
+                next: () => {
+                    this.groups = this.groups.filter(g => g.id !== group.id);
+                    completedCount++;
+
+                    if (completedCount + errorCount === existingGroups.length) {
+                        this._finalizeBatchDelete(completedCount, errorCount);
+                    }
+                },
+                error: (err) => {
+                    console.error(`Failed to delete group ${group.name}:`, err);
+                    errorCount++;
+
+                    if (completedCount + errorCount === existingGroups.length) {
+                        this._finalizeBatchDelete(completedCount, errorCount);
+                    }
+                }
+            });
+        });
+    }
+
+    private _finalizeBatchDelete(successCount: number, errorCount: number): void {
+        this.selectedGroups = [];
+        this.isLoading = false;
+
+        if (errorCount > 0) {
+            this._toastService.open({
+                message: this._translocoService.translate('batch-delete-partial', {
+                    success: successCount,
+                    error: errorCount
+                })
+            });
+        } else {
+            this._toastService.open({
+                message: this._translocoService.translate('delete-success')
+            });
+        }
+
+        this._changeDetectorRef.markForCheck();
+    }
+
+    // ==================== 工具函數 ====================
 
     trackByFn(index: number, item: any): any {
         return item.id || index;
     }
 
-    // 更新 breadcrumb
     private updateBreadcrumb(): void {
         this._breadcrumbService.setBreadcrumb([
             {

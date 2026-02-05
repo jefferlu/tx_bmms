@@ -1,0 +1,68 @@
+// Permission Matrix Table Styles
+:host {
+    .permission-matrix-table {
+        // Sticky columns for horizontal scroll
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+        }
+
+        .sticky-col-name {
+            position: sticky;
+            left: 4rem; // 64px (width of checkbox column)
+            z-index: 1;
+        }
+
+        .sticky-col-action {
+            position: sticky;
+            right: 0;
+            z-index: 1;
+        }
+
+        // Header sticky columns should have higher z-index
+        th.sticky-col,
+        th.sticky-col-name,
+        th.sticky-col-action {
+            z-index: 2;
+        }
+
+        // Add shadow to sticky columns
+        .sticky-col-name {
+            &::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                right: -8px;
+                bottom: 0;
+                width: 8px;
+                background: linear-gradient(to right, rgba(0, 0, 0, 0.05), transparent);
+                pointer-events: none;
+            }
+        }
+
+        .sticky-col-action {
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -8px;
+                bottom: 0;
+                width: 8px;
+                background: linear-gradient(to left, rgba(0, 0, 0, 0.05), transparent);
+                pointer-events: none;
+            }
+        }
+
+        // Table cell styles
+        td, th {
+            vertical-align: middle;
+        }
+
+        // Checkbox column alignment
+        .p-checkbox {
+            display: flex;
+            justify-content: center;
+        }
+    }
+}

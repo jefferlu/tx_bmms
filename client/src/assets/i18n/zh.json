@@ -123,5 +123,15 @@
     "clear-criteria-confirm": "確定要清除所有查詢條件嗎？",
     "range_values_required": "範圍查詢需要填寫最小值和最大值",
     "invalid_numeric_values": "請輸入有效的數值",
-    "min_greater_than_max": "最小值不能大於最大值"
+    "min_greater_than_max": "最小值不能大於最大值",
+    "user-group": "使用者群組",
+    "enter-group-name": "請輸入群組名稱",
+    "click-add-to-create-group": "點擊新增按鈕以創建群組",
+    "no-groups-selected": "未選擇任何群組",
+    "name-required": "名稱為必填欄位",
+    "update-success": "更新成功",
+    "create-success": "新增成功",
+    "delete": "刪除",
+    "re-translate-confirm": "確定要重新轉譯此文件嗎？",
+    "message": "訊息"
 }

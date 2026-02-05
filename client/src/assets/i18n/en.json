@@ -123,5 +123,15 @@
     "clear-criteria-confirm": "Are you sure you want to clear all search criteria?",
     "range_values_required": "Range query requires both minimum and maximum values",
     "invalid_numeric_values": "Please enter valid numeric values",
-    "min_greater_than_max": "Minimum value cannot be greater than maximum value"
+    "min_greater_than_max": "Minimum value cannot be greater than maximum value",
+    "user-group": "User Groups",
+    "enter-group-name": "Enter group name",
+    "click-add-to-create-group": "Click add button to create a group",
+    "no-groups-selected": "No groups selected",
+    "name-required": "Name is required",
+    "update-success": "Update successful",
+    "create-success": "Create successful",
+    "delete": "Delete",
+    "re-translate-confirm": "Are you sure you want to re-translate this file?",
+    "message": "Message"
 }
