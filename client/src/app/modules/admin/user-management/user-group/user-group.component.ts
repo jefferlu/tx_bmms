@@ -526,7 +526,7 @@ export class UserGroupComponent implements OnInit, OnDestroy {
                 label: this._translocoService.translate('user-management')
             },
             {
-                label: this._translocoService.translate('role')
+                label: this._translocoService.translate('user-group')
             }
         ]);
     }

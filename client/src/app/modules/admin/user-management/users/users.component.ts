@@ -265,7 +265,7 @@ export class UsersComponent implements OnInit, OnDestroy {
                 label: this._translocoService.translate('user-management')
             },
             {
-                label: this._translocoService.translate('user')
+                label: this._translocoService.translate('users')
             }
         ]);
     }

@@ -1,9 +1,9 @@
 <div class="absolute inset-0 flex min-w-0 flex-col overflow-hidden h-full" *transloco="let t">
-    <div class="mx-auto flex w-full h-full flex-wrap px-6 pb-6">
+    <div class="mx-auto flex w-full h-full flex-wrap px-6 py-2">
         <div class="flex flex-auto flex-col h-full sm:col-span-2 lg:col-span-3">
 
             <!-- Header -->
-            <div class="flex flex-row items-center justify-between pb-2 pt-6">
+            <div class="flex flex-row items-center justify-between py-2">
                 <!-- Search -->
                 <div>
                     <div class="card flex justify-center items-center gap-2">
@@ -33,7 +33,7 @@
 
                     <ng-template pTemplate="header">
                         <tr>
-                            <th class="w-20">
+                            <th class="w-20 py-3">
                                 <div class="flex items-center space-x-2">
                                     <button pButton pRipple text rounded plain class="w-8 h-8 text-default bg-transparent"
                                         [icon]="isAllExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" (click)="toggleExpandAll()">
