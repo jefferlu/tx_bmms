@@ -34,7 +34,7 @@
                                 <p-checkbox [binary]="true" [checked]="isAllDeletableGroupsSelected()" (onChange)="toggleSelectAll()" />
                             </th>
                             <!-- Group Name -->
-                            <th class="min-w-48 py-3">{{t('name')}}</th>
+                            <th class="w-48 py-3">{{t('name')}}</th>
                             <!-- Permission Columns -->
                             @for (col of permissionColumns; track col.codename) {
                             <th class="text-center min-w-28 py-3">
@@ -58,9 +58,9 @@
                             </td>
 
                             <!-- Group Name -->
-                            <td [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
+                            <td class="w-48" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
                                 @if(group.isNew || group.isEditing) {
-                                <input type="text" pInputText class="w-full" [(ngModel)]="group.name" [placeholder]="t('enter-group-name')"
+                                <input type="text" pInputText class="w-40" [(ngModel)]="group.name" [placeholder]="t('enter-group-name')"
                                     (click)="$event.stopPropagation()">
                                 } @else {
                                 <span class="font-medium">{{group.name}}</span>
