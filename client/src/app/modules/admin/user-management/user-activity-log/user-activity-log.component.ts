@@ -3,13 +3,15 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
 import { UserActivityLogService } from './user-activity-log.service';
 import { MatMenuModule } from '@angular/material/menu';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
+import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
 @Component({
     selector: 'app-user-activity-log',
@@ -18,7 +20,8 @@ import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.servi
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         FormsModule, TranslocoModule, TableModule, DatePipe,
-        MatIconModule, MatButtonModule, MatInputModule, MatMenuModule
+        MatIconModule, MatButtonModule, MatMenuModule,
+        InputTextModule, IconFieldModule, InputIconModule
     ],
 })
 export class UserActivityLogComponent implements OnInit, OnDestroy {

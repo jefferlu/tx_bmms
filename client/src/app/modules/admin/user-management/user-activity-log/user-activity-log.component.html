@@ -4,43 +4,37 @@
 
             <!-- Header -->
             <div class="flex flex-row items-center justify-between py-2">
-
+                <!-- Search -->
                 <div>
-                   
+                    <div class="card flex justify-center items-center gap-2">
+                        <p-iconfield>
+                            <p-inputicon class="pi pi-search" />
+                            <input type="text" class="sm:min-w-72" pInputText [(ngModel)]="searchBinName" [placeholder]="t('search')"
+                                (keydown.enter)="onSearch()" />
+                        </p-iconfield>
+                    </div>
                 </div>
 
-                <!-- Search -->
-                <div class="flex items-center justify-between gap-x-2 sm:gap-x-4">
-                    <div class="flex flex-col">
-                        <mat-form-field class="w-full sm:w-72 mt-2 sm:mt-0 gts-mat-dense" subscriptSizing="dynamic">
-
-                            <input matInput [placeholder]="t('search')" [(ngModel)]="searchBinName" (keyup.enter)="onSearch()" />
-
-                            <button mat-icon-button matSuffix (click)="onSearch()">
-                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
-                            </button>
-                        </mat-form-field>
-                    </div>
-                    <div>
-                        <button mat-flat-button [matMenuTriggerFor]="manageCriteria">
-                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-down-tray'"></mat-icon>
-                            <span class="ml-2">{{t('download')}}</span>
+                <!-- Download -->
+                <div>
+                    <button mat-flat-button [matMenuTriggerFor]="manageCriteria">
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-down-tray'"></mat-icon>
+                        <span class="ml-2">{{t('download')}}</span>
+                    </button>
+                    <mat-menu #manageCriteria="matMenu">
+                        <button mat-menu-item (click)="onSaveCsv()">
+                            <span class="flex items-center">
+                                <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+                                <span>{{t('download-csv')}}</span>
+                            </span>
                         </button>
-                        <mat-menu #manageCriteria="matMenu">
-                            <button mat-menu-item (click)="onSaveCsv()">
-                                <span class="flex items-center">
-                                    <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
-                                    <span>{{t('download-csv')}}</span>
-                                </span>
-                            </button>
-                            <button mat-menu-item (click)="onSaveTxt()">
-                                <span class="flex items-center">
-                                    <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
-                                    <span>{{t('download-txt')}}</span>
-                                </span>
-                            </button>
-                        </mat-menu>
-                    </div>
+                        <button mat-menu-item (click)="onSaveTxt()">
+                            <span class="flex items-center">
+                                <mat-icon class="mr-3 icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+                                <span>{{t('download-txt')}}</span>
+                            </span>
+                        </button>
+                    </mat-menu>
                 </div>
             </div>
 
