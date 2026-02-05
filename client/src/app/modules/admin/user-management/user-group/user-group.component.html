@@ -24,30 +24,22 @@
 
             <!-- Content - Permission Matrix Table -->
             <div class="flex h-full overflow-auto bg-card rounded-md">
-                <p-table class="w-full permission-matrix-table"
-                    [value]="groups"
-                    [(selection)]="selectedGroups"
-                    dataKey="id"
-                    [scrollable]="true"
-                    scrollHeight="flex"
-                    [styleClass]="'p-datatable-sm'"
-                    [loading]="isLoading">
+                <p-table class="w-full permission-matrix-table" [value]="groups" [(selection)]="selectedGroups" dataKey="id" [scrollable]="true"
+                    scrollHeight="flex" [styleClass]="'p-datatable-sm'" [loading]="isLoading">
 
                     <ng-template pTemplate="header">
                         <tr class="border-b-2">
                             <!-- Select All Checkbox -->
                             <th class="w-16 py-4 pl-6">
-                                <p-checkbox [binary]="true"
-                                    [checked]="isAllDeletableGroupsSelected()"
-                                    (onChange)="toggleSelectAll()" />
+                                <p-checkbox [binary]="true" [checked]="isAllDeletableGroupsSelected()" (onChange)="toggleSelectAll()" />
                             </th>
                             <!-- Group Name -->
                             <th class="min-w-48 py-3">{{t('name')}}</th>
                             <!-- Permission Columns -->
                             @for (col of permissionColumns; track col.codename) {
-                                <th class="text-center min-w-28 py-3">
-                                    <span class="text-base">{{col.name}}</span>
-                                </th>
+                            <th class="text-center min-w-28 py-3">
+                                <span class="text-base">{{col.name}}</span>
+                            </th>
                             }
                             <!-- Actions -->
                             <th class="w-40 text-center py-3">{{t('action')}}</th>
@@ -55,73 +47,58 @@
                     </ng-template>
 
                     <ng-template pTemplate="body" let-group let-index="rowIndex">
-                        <tr (click)="toggleRowSelection(group, $event)"
-                            [pSelectableRowDisabled]="group.isNew"
-                            [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}"
-                            class="hover:bg-hover cursor-pointer">
+                        <tr (click)="toggleRowSelection(group, $event)" [pSelectableRowDisabled]="group.isNew"
+                            [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}" class="hover:bg-hover cursor-pointer">
 
                             <!-- Row Checkbox -->
                             <td class="pl-6" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
                                 @if(!group.isNew) {
-                                    <p-tableCheckbox [value]="group" />
+                                <p-tableCheckbox [value]="group" />
                                 }
                             </td>
 
                             <!-- Group Name -->
                             <td [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
                                 @if(group.isNew || group.isEditing) {
-                                    <input type="text" pInputText
-                                        class="w-full"
-                                        [(ngModel)]="group.name"
-                                        [placeholder]="t('enter-group-name')"
-                                        (click)="$event.stopPropagation()">
+                                <input type="text" pInputText class="w-full" [(ngModel)]="group.name" [placeholder]="t('enter-group-name')"
+                                    (click)="$event.stopPropagation()">
                                 } @else {
-                                    <span class="font-medium">{{group.name}}</span>
+                                <span class="font-medium">{{group.name}}</span>
                                 }
                             </td>
 
                             <!-- Permission Checkboxes -->
                             @for (col of permissionColumns; track col.codename) {
-                                <td class="text-center">
-                                    <p-checkbox
-                                        [binary]="true"
-                                        [(ngModel)]="group.permissions[col.codename]"
-                                        (click)="$event.stopPropagation()"
-                                        (onChange)="group.isEditing = true" />
-                                </td>
+                            <td class="text-center">
+                                <p-checkbox [binary]="true" [(ngModel)]="group.permissions[col.codename]" (click)="$event.stopPropagation()"
+                                    (onChange)="group.isEditing = true" />
+                            </td>
                             }
 
                             <!-- Actions -->
                             <td class="text-center" [ngClass]="{'bg-blue-50 dark:bg-blue-900/20': group.isNew || group.isEditing}">
                                 @if(isSaving[group.id || group.tempId]) {
-                                    <mat-progress-spinner class="mx-auto" [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>
+                                <mat-progress-spinner class="mx-auto" [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>
                                 } @else {
-                                    @if(group.isNew || group.isEditing) {
-                                        <!-- Save Button -->
-                                        <button mat-icon-button
-                                            color="primary"
-                                            (click)="onSaveGroup(group); $event.stopPropagation()"
-                                            [disabled]="!group.name?.trim()">
-                                            <mat-icon [svgIcon]="'heroicons_outline:check'"></mat-icon>
-                                        </button>
-                                        <!-- Cancel Button -->
-                                        <button mat-icon-button
-                                            (click)="onCancelEdit(group, index); $event.stopPropagation()">
-                                            <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
-                                        </button>
-                                    } @else {
-                                        <!-- Edit Button -->
-                                        <button mat-icon-button
-                                            (click)="onEditGroup(group); $event.stopPropagation()">
-                                            <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
-                                        </button>
-                                        <!-- Delete Button -->
-                                        <button mat-icon-button
-                                            color="warn"
-                                            (click)="onDeleteGroup(group, index); $event.stopPropagation()">
-                                            <mat-icon class="text-red-500" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
-                                        </button>
-                                    }
+                                @if(group.isNew || group.isEditing) {
+                                <!-- Save Button -->
+                                <button mat-icon-button color="primary" (click)="onSaveGroup(group); $event.stopPropagation()" [disabled]="!group.name?.trim()">
+                                    <mat-icon [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                                </button>
+                                <!-- Cancel Button -->
+                                <button mat-icon-button (click)="onCancelEdit(group, index); $event.stopPropagation()">
+                                    <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+                                </button>
+                                } @else {
+                                <!-- Edit Button -->
+                                <button mat-icon-button (click)="onEditGroup(group); $event.stopPropagation()">
+                                    <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                                </button>
+                                <!-- Delete Button -->
+                                <button mat-icon-button color="warn" (click)="onDeleteGroup(group, index); $event.stopPropagation()">
+                                    <mat-icon class="text-red-500" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                </button>
+                                }
                                 }
                             </td>
                         </tr>
