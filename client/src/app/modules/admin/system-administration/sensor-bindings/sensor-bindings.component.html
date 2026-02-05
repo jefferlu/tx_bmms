@@ -8,11 +8,9 @@
             <div class="flex flex-auto flex-col h-full bg-white dark:bg-gray-900 p-6" *transloco="let t">
 
                 <!-- Header -->
-                <div class="flex flex-row items-center justify-between px-6 py-8 md:px-8">
-                    <!-- Title -->
-                    <div class="text-3xl font-extrabold leading-none tracking-tight">
-                        {{ t('sensor-binding-management') }}
-                    </div>
+                <div class="flex flex-row items-center justify-between px-6 py-2 md:px-8">
+                    
+                    <div></div>
 
                     <!-- Actions -->
                     <div class="flex gap-2">
@@ -41,7 +39,7 @@
                         (onRowSelect)="onOpenDrawer($event)">
                         <ng-template pTemplate="header">
                             <tr>
-                                <th class="pl-8 py-4">{{ t('user') }}</th>
+                                <th class="pl-8 py-4">{{ t('name') }}</th>
                                 <th>{{ t('model-urn') }}</th>
                                 <th class="text-center">{{ t('element-db-id') }}</th>
                                 <th>{{ t('element-name') }}</th>
@@ -52,11 +50,11 @@
                         <ng-template pTemplate="body" let-d>
                             <tr [pSelectableRow]="d" class="hover:bg-hover">
                                 <td class="pl-8">{{getSensorName(d.sensor)}}</td>
-                                <td class="text-xs">{{d.model_urn}}</td>
+                                <td class="">{{d.model_urn}}</td>
                                 <td class="text-center">{{d.element_dbid}}</td>
                                 <td>{{d.element_name || '-'}}</td>
                                 <td class="text-center">
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 font-medium"
                                         [ngClass]="{
                                             'bg-blue-100 text-blue-800': d.position_type === 'center',
                                             'bg-green-100 text-green-800': d.position_type === 'top',
@@ -67,7 +65,7 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 font-medium"
                                         [ngClass]="{
                                             'bg-green-100 text-green-800': d.is_active,
                                             'bg-gray-100 text-gray-800': !d.is_active
