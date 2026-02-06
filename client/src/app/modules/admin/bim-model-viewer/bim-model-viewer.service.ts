@@ -13,6 +13,13 @@ export class BimModelViewerService {
         return this._appService.get('forge/bim-model', params);
     }
 
+    // 獲取 COBie 數據（JSON 格式，用於生成多 sheet Excel）
+    getCobieData(fileName: string): Observable<any> {
+        return this._appService.get('forge/bim-cobie-objects',
+            { file_name: encodeURIComponent(fileName) }
+        );
+    }
+
     downloadCsv(fileName: string) {
         return this._appService.get('forge/bim-cobie-objects/download_csv',
             { file_name: encodeURIComponent(fileName) },

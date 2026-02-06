@@ -21,6 +21,7 @@ import { GtsConfirmationService } from '@gts/services/confirmation';
 import { WebsocketService } from 'app/core/services/websocket/websocket.service';
 import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.service';
 import { Subject, Subscription, takeUntil } from 'rxjs';
+import * as XLSX from 'xlsx';
 
 
 @Component({
@@ -391,7 +392,7 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
     }
 
     onDownloadCsv(fileName: string): void {
-        let dialogRef = this._gtsConfirmationService.open({
+        const dialogRef = this._gtsConfirmationService.open({
             title: this._translocoService.translate('confirm-action'),
             message: this._translocoService.translate('download-cobie-properties'),
             icon: { color: 'primary' },
@@ -399,43 +400,94 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
                 confirm: { label: this._translocoService.translate('confirm') },
                 cancel: { label: this._translocoService.translate('cancel') }
             }
-
         });
 
         dialogRef.afterClosed().subscribe(res => {
-
             if (res === 'confirmed') {
                 this.isLoading = true;
                 this._changeDetectorRef.markForCheck();
-                this._bimModelViewerService.downloadCsv(fileName).subscribe({
-                    next: (blob: Blob) => {
-                        // 創建 Blob 並生成臨時 URL
-                        const csvFilename = `${fileName.split('.')[0]}.csv`;
-                        const downloadUrl = window.URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.href = downloadUrl;
-                        link.download = csvFilename; // 檔案名稱，與 API 的 filename 一致
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        window.URL.revokeObjectURL(downloadUrl); // 清理臨時 URL
+
+                // 獲取 COBie JSON 數據
+                this._bimModelViewerService.getCobieData(fileName).subscribe({
+                    next: (data: any[]) => {
+                        this._generateCobieExcel(data, fileName);
                         this.isLoading = false;
                         this._changeDetectorRef.markForCheck();
                     },
                     error: (error) => {
-                        // 處理錯誤（例如 HTTP 400, 404, 500）
                         this.isLoading = false;
                         this._changeDetectorRef.markForCheck();
-                        error.error.text().then((errorMessage: string) => {
-                            const errorJson = JSON.parse(errorMessage);
-                            this._toastService.open({ message: errorJson.error || errorJson.message || '下載失敗，請稍後再試' });
-                        }).catch(() => {
-                            this._toastService.open({ message: '下載失敗，請聯繫管理員' });
-                        });
+                        this._toastService.open({ message: error?.error?.message || '下載失敗，請稍後再試' });
                     }
                 });
             }
         });
+    }
+
+    /**
+     * 根據 COBie 數據生成多 sheet 的 Excel 文件
+     * display_name 格式: COBie.Category.PropertyName
+     * 根據 Category 分類到不同的 sheet
+     */
+    private _generateCobieExcel(data: any[], fileName: string): void {
+        // 根據 display_name 分類數據
+        const sheetDataMap: { [category: string]: any[] } = {};
+
+        data.forEach(item => {
+            const displayName = item.display_name || '';
+            const parts = displayName.split('.');
+
+            // 檢查是否為有效的 COBie 格式 (至少要有 COBie.Category.xxx)
+            if (parts.length < 3 || parts[0] !== 'COBie') {
+                return; // 忽略無法分類的項目
+            }
+
+            const category = parts[1]; // 取得分類名稱 (Space, Component, Type 等)
+
+            if (!sheetDataMap[category]) {
+                sheetDataMap[category] = [];
+            }
+
+            sheetDataMap[category].push(item);
+        });
+
+        // 如果沒有任何有效數據
+        if (Object.keys(sheetDataMap).length === 0) {
+            this._toastService.open({ message: '沒有可匯出的 COBie 數據' });
+            return;
+        }
+
+        // 創建 workbook
+        const workbook = XLSX.utils.book_new();
+
+        // 為每個分類創建 sheet
+        Object.keys(sheetDataMap).sort().forEach(category => {
+            const categoryData = sheetDataMap[category];
+
+            // 轉換數據為 worksheet 格式
+            const worksheetData = categoryData.map(item => ({
+                'Display Name': item.display_name,
+                'Value': item.value,
+                'External ID': item.external_id
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+
+            // 設定欄寬
+            worksheet['!cols'] = [
+                { wch: 40 },  // Display Name
+                { wch: 30 },  // Value
+                { wch: 20 }   // External ID
+            ];
+
+            // 將 sheet 加入 workbook（sheet 名稱最長 31 字元）
+            const sheetName = category.substring(0, 31);
+            XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+        });
+
+        // 生成 Excel 文件並下載
+        const excelFileName = `${fileName.split('.')[0]}_COBie.xlsx`;
+        XLSX.writeFile(workbook, excelFileName);
     }
 
     onDownloadBim(fileName: string, version: string = null): void {
