@@ -70,7 +70,7 @@
 // Tooltip styles (global, outside :host for PrimeNG overlay)
 .permission-tooltip {
     .p-tooltip-text {
-        background-color: #374151 !important; // gray-700
+        background-color: rgb(59 130 246 / var(--tw-text-opacity, 1)) !important; // gray-700
         color: #fff !important;
         font-size: 0.875rem;
         padding: 0.5rem 0.75rem;
@@ -78,6 +78,6 @@
     }
 
     .p-tooltip-arrow {
-        border-top-color: #374151 !important;
+        border-top-color: rgb(59 130 246 / var(--tw-text-opacity, 1)) !important;
     }
 }
