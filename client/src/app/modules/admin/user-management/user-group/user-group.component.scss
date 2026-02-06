@@ -1,5 +1,10 @@
 // Permission Matrix Table Styles
 :host {
+    // Permission info icon - green color like checkboxes
+    .permission-info-icon {
+        color: #22c55e; // green-500
+    }
+
     .permission-matrix-table {
         // Sticky columns for horizontal scroll
         .sticky-col {
@@ -64,5 +69,20 @@
             display: flex;
             justify-content: center;
         }
+    }
+}
+
+// Tooltip styles (global, outside :host for PrimeNG overlay)
+.permission-tooltip {
+    .p-tooltip-text {
+        background-color: #374151 !important; // gray-700
+        color: #fff !important;
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+    }
+
+    .p-tooltip-arrow {
+        border-top-color: #374151 !important;
     }
 }
