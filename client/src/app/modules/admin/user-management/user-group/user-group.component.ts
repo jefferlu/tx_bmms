@@ -12,6 +12,7 @@ import { ToastService } from 'app/layout/common/toast/toast.service';
 import { TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { GtsConfirmationService } from '@gts/services/confirmation';
 import { PermissionService, UserGroupService } from './user-group.service';
@@ -20,6 +21,7 @@ import { BreadcrumbService } from 'app/core/services/breadcrumb/breadcrumb.servi
 interface PermissionDef {
     codename: string;
     name: string;
+    description?: string;
     id?: number;
 }
 
@@ -46,7 +48,7 @@ interface GroupRow {
         NgClass, FormsModule,
         MatInputModule, MatIconModule, MatFormFieldModule,
         MatButtonModule, MatProgressSpinnerModule,
-        TranslocoModule, TableModule, CheckboxModule, InputTextModule
+        TranslocoModule, TableModule, CheckboxModule, InputTextModule, TooltipModule
     ],
 })
 export class UserGroupComponent implements OnInit, OnDestroy {
@@ -112,17 +114,17 @@ export class UserGroupComponent implements OnInit, OnDestroy {
      */
     private _initPermissionColumns(): void {
         const permissionDefs: PermissionDef[] = [
-            { codename: 'view_process_function', name: this._translocoService.translate('bim-information-search') },
-            { codename: 'view_bim_model', name: this._translocoService.translate('3d-model-viewer') },
-            { codename: 'manage_bim_model', name: this._translocoService.translate('bim-file-management') },
-            { codename: 'manage_media_data', name: this._translocoService.translate('digital-files') },
-            { codename: 'manage_data_import', name: this._translocoService.translate('model-import-operations') },
-            { codename: 'manage_users', name: this._translocoService.translate('user-management') },
-            { codename: 'manage_user_groups', name: this._translocoService.translate('permission-group-management') },
-            { codename: 'view_user_activity_log', name: this._translocoService.translate('user-log-query') },
-            { codename: 'manage_aps_credentials', name: this._translocoService.translate('aps-account') },
-            { codename: 'manage_backup_restore', name: this._translocoService.translate('database-management') },
-            { codename: 'view_system_activity_log', name: this._translocoService.translate('system-log-query') }
+            { codename: 'view_process_function', name: this._translocoService.translate('bim-information-search'), description: this._translocoService.translate('bim-information-search-desc') },
+            { codename: 'view_bim_model', name: this._translocoService.translate('3d-model-viewer'), description: this._translocoService.translate('3d-model-viewer-desc') },
+            { codename: 'manage_bim_model', name: this._translocoService.translate('bim-file-management'), description: this._translocoService.translate('bim-file-management-desc') },
+            { codename: 'manage_media_data', name: this._translocoService.translate('digital-files'), description: this._translocoService.translate('digital-files-desc') },
+            { codename: 'manage_data_import', name: this._translocoService.translate('model-import-operations'), description: this._translocoService.translate('model-import-operations-desc') },
+            { codename: 'manage_users', name: this._translocoService.translate('user-management'), description: this._translocoService.translate('user-management-desc') },
+            { codename: 'manage_user_groups', name: this._translocoService.translate('permission-group-management'), description: this._translocoService.translate('permission-group-management-desc') },
+            { codename: 'view_user_activity_log', name: this._translocoService.translate('user-log-query'), description: this._translocoService.translate('user-log-query-desc') },
+            { codename: 'manage_aps_credentials', name: this._translocoService.translate('aps-account'), description: this._translocoService.translate('aps-account-desc') },
+            { codename: 'manage_backup_restore', name: this._translocoService.translate('database-management'), description: this._translocoService.translate('database-management-desc') },
+            { codename: 'view_system_activity_log', name: this._translocoService.translate('system-log-query'), description: this._translocoService.translate('system-log-query-desc') }
         ];
 
         // 將後端的 permission id 對應到定義中
