@@ -38,15 +38,12 @@
                             <!-- Permission Columns -->
                             @for (col of permissionColumns; track col.codename) {
                             <th class="text-center min-w-28 py-3">
-                                <div class="inline-flex items-center whitespace-nowrap">
-                                    <span class="text-base">{{col.name}}</span>
-                                    <mat-icon class="icon-size-4 ml-1 cursor-help text-green-500"
-                                        [svgIcon]="'heroicons_outline:information-circle'"
-                                        [pTooltip]="col.description"
-                                        tooltipPosition="top"
-                                        tooltipStyleClass="permission-tooltip">
-                                    </mat-icon>
-                                </div>
+                                <span class="text-base cursor-help"
+                                    [pTooltip]="col.description"
+                                    tooltipPosition="top"
+                                    tooltipStyleClass="permission-tooltip">
+                                    {{col.name}}
+                                </span>
                             </th>
                             }
                             <!-- Actions -->
