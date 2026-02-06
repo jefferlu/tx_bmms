@@ -1638,6 +1638,49 @@ class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelView
     permission_classes = (IsAuthenticated,)
     queryset = models.BimObject.objects.all()
 
+    def list(self, request, *args, **kwargs):
+        """
+        獲取 COBie 數據（JSON 格式，用於前端生成多 sheet Excel）
+        需要提供 file_name 查詢參數
+        """
+        try:
+            file_name = request.query_params.get('file_name', None)
+
+            if not file_name:
+                return Response(
+                    {"error": "請提供 file_name 查詢參數"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # 構建查詢：先找出符合 file_name 的 BimModel IDs
+            bim_model_ids = models.BimModel.objects.filter(
+                name__icontains=file_name
+            ).values_list('id', flat=True)
+
+            if not bim_model_ids:
+                return Response(
+                    {"error": "沒有找到匹配 file_name 的 BimModel"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # 查詢 BimObject，確保 display_name 包含 COBie，並按 dbid 排序
+            queryset = models.BimObject.objects.filter(
+                display_name__icontains='COBie',
+                bim_model_id__in=bim_model_ids
+            ).order_by('dbid', 'display_name').values(
+                'dbid', 'display_name', 'value', 'external_id'
+            )
+
+            data = list(queryset)
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Error fetching COBie data: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "伺服器內部錯誤，請聯繫管理員"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
     @action(detail=False, methods=['get'])
     def distinct_name_value(self, request):
         try:
