@@ -466,18 +466,18 @@ export class BimModelViewerComponent implements OnInit, OnDestroy {
 
             // 轉換數據為 worksheet 格式
             const worksheetData = categoryData.map(item => ({
+                'DBID': item.dbid,
                 'Display Name': item.display_name,
-                'Value': item.value,
-                'External ID': item.external_id
+                'Value': item.value
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(worksheetData);
 
             // 設定欄寬
             worksheet['!cols'] = [
+                { wch: 10 },  // DBID
                 { wch: 40 },  // Display Name
-                { wch: 30 },  // Value
-                { wch: 20 }   // External ID
+                { wch: 30 }   // Value
             ];
 
             // 將 sheet 加入 workbook（sheet 名稱最長 31 字元）

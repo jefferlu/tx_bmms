@@ -1668,7 +1668,7 @@ class BimCobieObjectViewSet(AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelView
                 display_name__icontains='COBie',
                 bim_model_id__in=bim_model_ids
             ).order_by('dbid', 'display_name').values(
-                'dbid', 'display_name', 'value', 'external_id'
+                'dbid', 'display_name', 'value'
             )
 
             data = list(queryset)
