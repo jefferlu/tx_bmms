@@ -31,6 +31,7 @@ export class SignInComponent {
 
     signInForm: UntypedFormGroup;
     showAlert: boolean = false;
+    showDemoAccounts: boolean = false;
 
     alert: { type: GtsAlertType; message: string } = {
         type: 'success',
@@ -54,6 +55,8 @@ export class SignInComponent {
     ) { }
 
     ngOnInit(): void {
+        this.showDemoAccounts = this._activatedRoute.snapshot.queryParamMap.get('demo') === 'true';
+
         // Create the form
         this.signInForm = this._formBuilder.group({
             email: ['', [Validators.required, Validators.email]],
@@ -63,7 +66,9 @@ export class SignInComponent {
         });
 
         // Auto-fill form with first demo account
-        this.selectDemoAccount(this.demoAccounts[0]);
+        if (this.showDemoAccounts) {
+            this.selectDemoAccount(this.demoAccounts[0]);
+        }
     }
 
     // Fill in the form with selected demo account
