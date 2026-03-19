@@ -1,0 +1,11 @@
+# 新增remote repo
+git remote add github https://github.com/jefferlu/easein_store.git
+
+# 鏡像完全同步 GitHub 到 GitLab (通常是初次)
+git fetch --all
+git push origin github/main:main --force
+
+# 本地merge (兩邊repo都有commit時)
+git fetch --all
+git merge github/main
+
